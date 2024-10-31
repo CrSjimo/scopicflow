@@ -46,6 +46,9 @@ namespace sflow {
     private:
         double m_start;
         double m_pixelDensity;
+        int m_primaryPosition;
+        int m_secondaryPosition;
+        int m_cursorPosition;
         SVS::MusicTimeline *m_timeline;
     };
 

@@ -5,12 +5,57 @@
 
 #include <QSGSimpleRectNode>
 #include <QQuickWindow>
+#include <QSGTextNode>
 
 #include <SVSCraftCore/musictimeline.h>
 
 #include <ScopicFlow/TimeViewModel.h>
 
 namespace sflow {
+
+    TimelinePrivate::~TimelinePrivate() {
+        for (auto p : barNumberTextLayouts)
+            delete p;
+        for (auto p : timeSignatureTextLayouts)
+            delete p;
+    }
+    QTextLayout *TimelinePrivate::createTextLayoutForBarNumber(int bar) {
+        auto layout = barNumberTextLayouts.value(bar);
+        if (layout)
+            return layout;
+        layout = new QTextLayout(QLocale().toString(bar + 1));
+        layout->beginLayout();
+        layout->createLine();
+        layout->endLayout();
+        barNumberTextLayouts.insert(bar, layout);
+        return layout;
+    }
+    QTextLayout *TimelinePrivate::createTextLayoutForTimeSignature(int numerator, int denominator) {
+        qint64 k = denominator;
+        k = k << 32 | numerator;
+        auto layout = timeSignatureTextLayouts.value(k);
+        if (layout)
+            return layout;
+        layout =
+            new QTextLayout(QLocale().toString(numerator) + "/" + QLocale().toString(denominator));
+        layout->beginLayout();
+        layout->createLine();
+        layout->endLayout();
+        timeSignatureTextLayouts.insert(k, layout);
+        return layout;
+    }
+    double TimelinePrivate::tickToX(int tick) const {
+        if (!timeViewModel)
+            return 0;
+        auto deltaTick = tick - timeViewModel->start();
+        return deltaTick * timeViewModel->pixelDensity();
+    }
+    int TimelinePrivate::xToTick(double x) const {
+        if (!timeViewModel)
+            return 0;
+        auto deltaTick = x / timeViewModel->pixelDensity();
+        return static_cast<int>(std::round(timeViewModel->start() + deltaTick));
+    }
 
     TimelinePalette::TimelinePalette(QObject *parent) : QObject(parent) {
     }
@@ -57,6 +102,11 @@ namespace sflow {
         Q_D(Timeline);
         d->q_ptr = this;
         setFlag(ItemHasContents, true);
+        auto defaultPalette = new TimelinePalette(this);
+        defaultPalette->setBackgroundColor(Qt::black);
+        defaultPalette->setForegroundColor(Qt::white);
+        defaultPalette->setPositionIndicatorColor(Qt::cyan);
+        setPalette(defaultPalette);
     }
     Timeline::~Timeline() = default;
 
@@ -74,10 +124,8 @@ namespace sflow {
         if (d->palette) {
             connect(d->palette, &TimelinePalette::backgroundColorChanged, this, &QQuickItem::update);
             connect(d->palette, &TimelinePalette::foregroundColorChanged, this, &QQuickItem::update);
-            connect(d->palette, &TimelinePalette::positionIndicatorColorChanged, this, &QQuickItem::update);
-            connect(d->palette, &TimelinePalette::cursorIndicatorColorChanged, this, &QQuickItem::update);
         }
-        emit paletteChanged();
+        emit paletteChanged(palette);
         update();
 
     }
@@ -93,18 +141,55 @@ namespace sflow {
             disconnect(d->timeViewModel, nullptr, this, nullptr);
         d->timeViewModel = timeViewModel;
         if (d->timeViewModel) {
-            connect(d->timeViewModel, &TimeViewModel::startChanged, this, &QQuickItem::update);
-            connect(d->timeViewModel, &TimeViewModel::pixelDensityChanged, this, &QQuickItem::update);
-            connect(d->timeViewModel, &TimeViewModel::primaryPositionChanged, this, &QQuickItem::update);
+            connect(d->timeViewModel, &TimeViewModel::startChanged, this, [=] {
+                emit zeroTickXChanged(zeroTickX());
+                emit primaryIndicatorXChanged(primaryIndicatorX());
+                update();
+            });
+            connect(d->timeViewModel, &TimeViewModel::pixelDensityChanged, this, [=] {
+                emit zeroTickXChanged(zeroTickX());
+                emit primaryIndicatorXChanged(primaryIndicatorX());
+                update();
+            });
+            connect(d->timeViewModel, &TimeViewModel::primaryPositionChanged, this, [=](int tick) {
+                emit primaryIndicatorXChanged(d->tickToX(tick));
+            });
             connect(d->timeViewModel, &TimeViewModel::secondaryPositionChanged, this, &QQuickItem::update);
             connect(d->timeViewModel, &TimeViewModel::cursorPositionChanged, this, &QQuickItem::update);
         }
     }
+    double Timeline::zeroTickX() const {
+        Q_D(const Timeline);
+        if (!d->timeViewModel)
+            return 0;
+        return d->tickToX(0);
+    }
+    double Timeline::primaryIndicatorX() const {
+        Q_D(const Timeline);
+        if (!d->timeViewModel)
+            return 0;
+        return d->tickToX(d->timeViewModel->primaryPosition());
+    }
+    void Timeline::setPrimaryIndicatorX(double primaryIndicatorX) {
+        Q_D(Timeline);
+        if (!d->timeViewModel)
+            return;
+        d->timeViewModel->setPrimaryPosition(d->xToTick(primaryIndicatorX));
+    }
 
     static inline bool isOnScale(const SVS::PersistentMusicTime &time, int barScaleIntervalExp2, bool doDrawBeatScale) {
         if (doDrawBeatScale)
-            return time.beat() == 0;
-        return time.measure() % (1 << barScaleIntervalExp2) == 0;
+            return time.tick() == 0;
+        return time.tick() == 0 && time.beat() == 0 && time.measure() % (1 << barScaleIntervalExp2) == 0;
+    }
+
+    static inline void moveBackward(SVS::PersistentMusicTime &time, int barScaleIntervalExp2, bool doDrawBeatScale) {
+        if (doDrawBeatScale) {
+            time = time.timeline()->create(time.measure(), time.beat() - 1, 0);
+            return;
+        }
+        int interval = 1 << barScaleIntervalExp2;
+        time = time.timeline()->create(time.measure() - interval, 0, 0);
     }
 
     static inline void moveForward(SVS::PersistentMusicTime &time, int barScaleIntervalExp2, bool doDrawBeatScale) {
@@ -120,20 +205,24 @@ namespace sflow {
         Q_D(Timeline);
         QSGSimpleRectNode *rectNode;
         QSGNode *scaleNode;
-        QSGNode *barLabelNode;
         QSGNode *indicatorNode;
         if (!node) {
             node = new QSGNode;
             node->appendChildNode(rectNode = new QSGSimpleRectNode);
-            node->appendChildNode(scaleNode = new QSGNode);
-            node->appendChildNode(barLabelNode = new QSGNode);
-            node->appendChildNode(indicatorNode = new QSGNode);
+            rectNode->setFlag(QSGNode::OwnedByParent);
         } else {
             rectNode = static_cast<QSGSimpleRectNode *>(node->childAtIndex(0));
-            scaleNode = static_cast<QSGNode *>(node->childAtIndex(1));
-            barLabelNode = static_cast<QSGNode*>(node->childAtIndex(2));
-            indicatorNode = static_cast<QSGNode*>(node->childAtIndex(3));
+            auto oldScaleNode = node->childAtIndex(1);
+            auto oldIndicatorNode = node->childAtIndex(2);
+            node->removeChildNode(oldScaleNode);
+            delete oldScaleNode;
+            node->removeChildNode(oldIndicatorNode);
+            delete oldIndicatorNode;
         }
+        node->appendChildNode(scaleNode = new QSGNode);
+        scaleNode->setFlag(QSGNode::OwnedByParent);
+        node->appendChildNode(indicatorNode = new QSGNode);
+        indicatorNode->setFlag(QSGNode::OwnedByParent);
         if (d->palette && d->palette->backgroundColor().isValid())
             rectNode->setColor(d->palette->backgroundColor());
         else
@@ -141,19 +230,21 @@ namespace sflow {
         rectNode->setRect(boundingRect());
 
         scaleNode->removeAllChildNodes();
-        barLabelNode->removeAllChildNodes();
         indicatorNode->removeAllChildNodes();
 
         if (!d->timeViewModel || !d->timeViewModel->timeline())
             return node;
-        double minimumScaleDistance = 32;
+        double minimumScaleDistance = 48;
         bool doDrawBeatScale = d->timeViewModel->pixelDensity() * 480 > minimumScaleDistance;
 
-        int barScaleIntervalExp2 = std::ceil(std::log2(minimumScaleDistance / 480 / 4)); // TODO consider variable time signature
+        int barScaleIntervalExp2 = std::ceil(std::log2(minimumScaleDistance / (d->timeViewModel->pixelDensity() * 480 * 4))); // TODO consider variable time signature
+        barScaleIntervalExp2 = std::max(0, barScaleIntervalExp2);
 
         auto musicTime = d->timeViewModel->timeline()->create(0, 0, static_cast<int>(d->timeViewModel->start()));
-        if (!isOnScale(musicTime, barScaleIntervalExp2, doDrawBeatScale))
+        if (!isOnScale(musicTime, barScaleIntervalExp2, doDrawBeatScale)) {
             moveForward(musicTime, barScaleIntervalExp2, doDrawBeatScale);
+            moveBackward(musicTime, barScaleIntervalExp2, doDrawBeatScale);
+        }
 
         for (;; moveForward(musicTime, barScaleIntervalExp2, doDrawBeatScale)) {
             double deltaTick = musicTime.totalTick() - d->timeViewModel->start();
@@ -164,9 +255,9 @@ namespace sflow {
             auto lineNode = new QSGGeometryNode;
             auto lineGeometry = new QSGGeometry(QSGGeometry::defaultAttributes_Point2D(), 2);
             lineGeometry->setDrawingMode(QSGGeometry::DrawLines);
-            lineGeometry->setLineWidth(2);
+            lineGeometry->setLineWidth(1);
             lineGeometry->vertexDataAsPoint2D()[0].set(x, height());
-            lineGeometry->vertexDataAsPoint2D()[1].set(x, height() - std::min(height(), 32.0) * (isEmphasized ? 0.5 : 0.25));
+            lineGeometry->vertexDataAsPoint2D()[1].set(x, height() - 32 * (isEmphasized ? 0.5 : 0.25));
             lineNode->setGeometry(lineGeometry);
             lineNode->setFlag(QSGNode::OwnsGeometry);
             auto material = new QSGFlatColorMaterial;
@@ -176,11 +267,26 @@ namespace sflow {
                 material->setColor(Qt::white);
             lineNode->setMaterial(material);
             lineNode->setFlag(QSGNode::OwnsMaterial);
+            lineNode->setFlag(QSGNode::OwnedByParent);
             scaleNode->appendChildNode(lineNode);
+            if (isEmphasized) {
+                auto textNode = window()->createTextNode();
+                textNode->setColor(material->color());
+                auto barNumberLayout = d->createTextLayoutForBarNumber(musicTime.measure());
+                textNode->addTextLayout({x + 2, height() - 16}, barNumberLayout);
+                textNode->setFlag(QSGNode::OwnedByParent);
+                scaleNode->appendChildNode(textNode);
 
+                if (d->timeViewModel->timeline()->nearestTimeSignatureTo(musicTime.measure()) == musicTime.measure()) {
+                    auto timeSignature = d->timeViewModel->timeline()->timeSignatureAt(musicTime.measure());
+                    textNode = window()->createTextNode();
+                    textNode->setColor(material->color());
+                    textNode->addTextLayout({x + 10 + barNumberLayout->maximumWidth(), height() - 16}, d->createTextLayoutForTimeSignature(timeSignature.numerator(), timeSignature.denominator()));
+                    textNode->setFlag(QSGNode::OwnedByParent);
+                    scaleNode->appendChildNode(textNode);
+                }
+            }
         }
-
-
         return node;
 
     }

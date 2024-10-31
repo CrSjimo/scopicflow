@@ -47,9 +47,12 @@ namespace sflow {
 
     class TimelinePrivate;
 
-    class  SCOPIC_FLOW_EXPORT Timeline : public QQuickItem {
+    class SCOPIC_FLOW_EXPORT Timeline : public QQuickItem {
         Q_OBJECT
         Q_PROPERTY(TimelinePalette *palette READ palette WRITE setPalette NOTIFY paletteChanged)
+        Q_PROPERTY(double zeroTickX READ zeroTickX NOTIFY zeroTickXChanged)
+        Q_PROPERTY(double primaryIndicatorX READ primaryIndicatorX WRITE setPrimaryIndicatorX NOTIFY
+                       primaryIndicatorXChanged)
         Q_DECLARE_PRIVATE(Timeline)
     public:
         explicit Timeline(QQuickItem *parent = nullptr);
@@ -61,18 +64,25 @@ namespace sflow {
         TimeViewModel *timeViewModel() const;
         void setTimeViewModel(TimeViewModel *timeViewModel);
 
+        double zeroTickX() const;
+
+        double primaryIndicatorX() const;
+        void setPrimaryIndicatorX(double primaryIndicatorX);
+
+
+
     signals:
-        void paletteChanged();
+        void paletteChanged(TimelinePalette *palette);
         void timeViewModelChanged();
+        void zeroTickXChanged(double x);
+        void primaryIndicatorXChanged(double x);
 
     protected:
         QSGNode *updatePaintNode(QSGNode *oldNode, UpdatePaintNodeData *) override;
 
     private:
         QScopedPointer<TimelinePrivate> d_ptr;
-
     };
-
 }
 
 #endif //SCOPIC_FLOW_TIMELINE_H

@@ -23,6 +23,8 @@ namespace sflow {
         double tickToX(int tick) const;
         int xToTick(double x) const;
         int alignTick(int tick) const;
+        int alignTickCeil(int tick) const;
+        int alignTickFloor(int tick) const;
     };
 }
 

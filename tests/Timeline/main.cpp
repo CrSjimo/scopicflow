@@ -74,8 +74,8 @@ int main(int argc, char *argv[]) {
     formLayout->addRow("Start", startSpinBox);
 
     auto pixelDensitySpinBox = new QDoubleSpinBox;
-    pixelDensitySpinBox->setRange(0.0005, 1);
-    pixelDensitySpinBox->setDecimals(4);
+    pixelDensitySpinBox->setRange(0.004, 2);
+    pixelDensitySpinBox->setDecimals(3);
     pixelDensitySpinBox->setValue(0.2);
     formLayout->addRow("Pixel density", pixelDensitySpinBox);
 
@@ -95,7 +95,9 @@ int main(int argc, char *argv[]) {
     mainLayout->addLayout(formLayout);
 
     QObject::connect(startSpinBox, &QSpinBox::valueChanged, timeViewModel, &TimeViewModel::setStart);
+    QObject::connect(timeViewModel, &TimeViewModel::startChanged, startSpinBox, &QSpinBox::setValue);
     QObject::connect(pixelDensitySpinBox, &QDoubleSpinBox::valueChanged, timeViewModel, &TimeViewModel::setPixelDensity);
+    QObject::connect(timeViewModel, &TimeViewModel::pixelDensityChanged, pixelDensitySpinBox, &QDoubleSpinBox::setValue);
     QObject::connect(primaryPositionSpinBox, &QSpinBox::valueChanged, timeViewModel, &TimeViewModel::setPrimaryPosition);
     QObject::connect(timeViewModel, &TimeViewModel::primaryPositionChanged, primaryPositionSpinBox, &QSpinBox::setValue);
     QObject::connect(secondaryPositionSpinBox, &QSpinBox::valueChanged, timeViewModel, &TimeViewModel::setSecondaryPosition);

@@ -72,6 +72,9 @@ namespace sflow {
         double cursorIndicatorX() const;
 
         Q_INVOKABLE void handleContextMenuRequest(double x);
+        Q_INVOKABLE double getAlignedX(double x) const;
+        Q_INVOKABLE void setZoomedRange(double selectionX, double selectionWidth);
+        Q_INVOKABLE void moveViewOnDraggingPositionIndicator(double deltaX);
 
     signals:
         void paletteChanged(TimelinePalette *palette);

@@ -62,6 +62,19 @@ namespace sflow {
         int align = timeAlignmentViewModel->positionAlignment();
         return (tick + align / 2) / align * align;
     }
+    int TimelineQuickItemPrivate::alignTickCeil(int tick) const {
+        if (!timeAlignmentViewModel)
+            return tick;
+        int align = timeAlignmentViewModel->positionAlignment();
+        return (tick + align - 1) / align * align;
+    }
+    int TimelineQuickItemPrivate::alignTickFloor(int tick) const {
+        if (!timeAlignmentViewModel)
+            return tick;
+        int align = timeAlignmentViewModel->positionAlignment();
+        return (tick) / align * align;
+    }
+
 
     TimelinePalette::TimelinePalette(QObject *parent) : QObject(parent) {
     }
@@ -191,6 +204,10 @@ namespace sflow {
         if (!d->timeAlignmentViewModel)
             return;
         int tick = d->alignTick(std::max(0, d->xToTick(primaryIndicatorX)));
+        if (d->tickToX(tick) < 0)
+            tick += d->timeAlignmentViewModel->positionAlignment();
+        else if (d->tickToX(tick) > width())
+            tick -= d->timeAlignmentViewModel->positionAlignment();
         d->timeAlignmentViewModel->setPrimaryPosition(tick);
         d->timeAlignmentViewModel->setSecondaryPosition(tick);
     }
@@ -209,6 +226,35 @@ namespace sflow {
     void TimelineQuickItem::handleContextMenuRequest(double x) {
         Q_D(TimelineQuickItem);
         emit contextMenuRequestedForTimeline(d->alignTick(d->xToTick(x)));
+    }
+    double TimelineQuickItem::getAlignedX(double x) const {
+        Q_D(const TimelineQuickItem);
+        return d->tickToX(d->alignTick(d->xToTick(x)));
+    }
+    void TimelineQuickItem::setZoomedRange(double selectionX, double selectionWidth) {
+        Q_D(TimelineQuickItem);
+        int start = d->xToTick(selectionX);
+        int end = d->xToTick(selectionX + selectionWidth);
+        d->timeAlignmentViewModel->setStart(start);
+        d->timeAlignmentViewModel->setPixelDensity(
+            qBound(d->timeAlignmentViewModel->minimumPixelDensity(), width() / (end - start),
+                   d->timeAlignmentViewModel->maximumPixelDensity()));
+    }
+    void TimelineQuickItem::moveViewOnDraggingPositionIndicator(double deltaX) {
+        Q_D(TimelineQuickItem);
+        if (!d->timeAlignmentViewModel)
+            return;
+        auto newStart = std::max(0.0, d->timeAlignmentViewModel->start() + deltaX * d->timeAlignmentViewModel->pixelDensity());
+        d->timeAlignmentViewModel->setStart(newStart);
+        if (deltaX < 0) {
+            int tick = d->alignTickCeil(std::max(0, d->xToTick(0)));
+            d->timeAlignmentViewModel->setPrimaryPosition(tick);
+            d->timeAlignmentViewModel->setSecondaryPosition(tick);
+        } else {
+            int tick = d->alignTickFloor(std::max(0, d->xToTick(width())));
+            d->timeAlignmentViewModel->setPrimaryPosition(tick);
+            d->timeAlignmentViewModel->setSecondaryPosition(tick);
+        }
     }
 
     static inline bool isOnScale(const SVS::PersistentMusicTime &time, int barScaleIntervalExp2, bool doDrawBeatScale) {
@@ -239,7 +285,6 @@ namespace sflow {
         Q_D(TimelineQuickItem);
         QSGSimpleRectNode *rectNode;
         QSGNode *scaleNode;
-        QSGNode *indicatorNode;
         if (!node) {
             node = new QSGNode;
             node->appendChildNode(rectNode = new QSGSimpleRectNode);
@@ -247,24 +292,16 @@ namespace sflow {
         } else {
             rectNode = static_cast<QSGSimpleRectNode *>(node->childAtIndex(0));
             auto oldScaleNode = node->childAtIndex(1);
-            auto oldIndicatorNode = node->childAtIndex(2);
             node->removeChildNode(oldScaleNode);
             delete oldScaleNode;
-            node->removeChildNode(oldIndicatorNode);
-            delete oldIndicatorNode;
         }
         node->appendChildNode(scaleNode = new QSGNode);
         scaleNode->setFlag(QSGNode::OwnedByParent);
-        node->appendChildNode(indicatorNode = new QSGNode);
-        indicatorNode->setFlag(QSGNode::OwnedByParent);
         if (d->palette && d->palette->backgroundColor().isValid())
             rectNode->setColor(d->palette->backgroundColor());
         else
             rectNode->setColor(Qt::black);
         rectNode->setRect(boundingRect());
-
-        scaleNode->removeAllChildNodes();
-        indicatorNode->removeAllChildNodes();
 
         if (!d->timeAlignmentViewModel || !d->timeAlignmentViewModel->timeline())
             return node;

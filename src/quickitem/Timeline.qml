@@ -1,9 +1,19 @@
 import ScopicFlowPrivate
+import QtQml
 import QtQuick
 import QtQuick.Shapes
 
 Timeline {
     id: timeline
+
+    Rectangle {
+        id: selectionRect
+        anchors.bottom: parent.bottom
+        anchors.top: parent.top
+        color: Qt.rgba(timeline.palette.foregroundColor.r, timeline.palette.foregroundColor.g, timeline.palette.foregroundColor.b, 0.5 * timeline.palette.foregroundColor.a)
+        visible: false
+        property int start: 0
+    }
 
     Shape {
         id: secondaryIndicator
@@ -56,10 +66,29 @@ Timeline {
         anchors.fill: parent
         drag.axis: Drag.XAxis
         drag.minimumX: timeline.zeroTickX - 8
+
+        property bool rejectContextMenu: false;
+
+        property double deltaTickingX: 4
+
+        Timer {
+            id: tickingTimer
+            interval: 10
+            repeat: true
+
+            onTriggered: {
+                timeline.moveViewOnDraggingPositionIndicator(parent.deltaTickingX)
+            }
+        }
+
+        onPressed: {
+            rejectContextMenu = false;
+        }
+
         onClicked: function (mouse) {
             if (mouse.button === Qt.LeftButton) {
                 timeline.primaryIndicatorX = mouse.x
-            } else {
+            } else if (!rejectContextMenu) {
                 if (primaryIndicator.contains(mapToItem(primaryIndicator, mouse.x, mouse.y))) {
                     timeline.contextMenuRequestedForPositionIndicator();
                 } else {
@@ -75,8 +104,46 @@ Timeline {
             }
         }
         onPositionChanged: function (mouse) {
-            if (pressed && (pressedButtons & Qt.LeftButton))
-                timeline.primaryIndicatorX = mouse.x
+            if (pressedButtons & Qt.LeftButton) {
+                if (mouse.x < 0) {
+                    deltaTickingX = mouse.x / 8
+                    tickingTimer.start()
+                } else if (mouse.x >= timeline.width) {
+                    deltaTickingX = (mouse.x - timeline.width) / 8
+                    tickingTimer.start()
+                } else {
+                    timeline.primaryIndicatorX = mouse.x
+                    tickingTimer.stop()
+                }
+
+            } else {
+                let alignedX = Math.min(Math.max(0, timeline.getAlignedX(mouse.x)), timeline.width)
+                if (!selectionRect.visible) {
+                    cursorShape = Qt.OpenHandCursor
+                    selectionRect.visible = true
+                    selectionRect.start = alignedX
+                    selectionRect.x = selectionRect.start
+                    selectionRect.width = 0
+                } else {
+                    if (alignedX > selectionRect.start) {
+                        selectionRect.x = selectionRect.start
+                        selectionRect.width = alignedX - selectionRect.start
+                    } else {
+                        selectionRect.width = selectionRect.start - alignedX
+                        selectionRect.x = alignedX
+                    }
+                }
+            }
+        }
+        onReleased: {
+            tickingTimer.stop()
+            if (selectionRect.visible) {
+                cursorShape = Qt.ArrowCursor
+                if (selectionRect.width)
+                    timeline.setZoomedRange(selectionRect.x, selectionRect.width)
+                selectionRect.visible = false
+                rejectContextMenu = true
+            }
         }
     }
 

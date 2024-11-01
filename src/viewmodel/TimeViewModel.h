@@ -20,8 +20,17 @@ namespace sflow {
         double start() const;
         void setStart(double start);
 
+        double end() const;
+        void setEnd(double end);
+
         double pixelDensity() const;
         void setPixelDensity(double pixelDensity);
+
+        double maximumPixelDensity() const;
+        void setMaximumPixelDensity(double maximumPixelDensity);
+
+        double minimumPixelDensity() const;
+        void setMinimumPixelDensity(double minimumPixelDensity);
 
         int primaryPosition() const;
         void setPrimaryPosition(int primaryPosition);
@@ -37,7 +46,10 @@ namespace sflow {
 
     signals:
         void startChanged(double start);
+        void endChanged(double end);
         void pixelDensityChanged(double pixelDensity);
+        void maximumPixelDensityChanged(double maximumPixelDensity);
+        void minimumPixelDensityChanged(double minimumPixelDensity);
         void primaryPositionChanged(int primaryPosition);
         void secondaryPositionChanged(int secondaryPosition);
         void cursorPositionChanged(int cursorPosition);
@@ -45,7 +57,10 @@ namespace sflow {
 
     private:
         double m_start;
+        double m_end;
         double m_pixelDensity;
+        double m_maximumPixelDensity;
+        double m_minimumPixelDensity;
         int m_primaryPosition;
         int m_secondaryPosition;
         int m_cursorPosition;

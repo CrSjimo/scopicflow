@@ -144,8 +144,11 @@ namespace sflow {
         Q_D(TimelineQuickItem);
         if (d->timeAlignmentViewModel == timeAlignmentViewModel)
             return;
-        if (d->timeAlignmentViewModel)
+        if (d->timeAlignmentViewModel) {
             disconnect(d->timeAlignmentViewModel, nullptr, this, nullptr);
+            if (d->timeAlignmentViewModel->timeline())
+                disconnect(d->timeAlignmentViewModel->timeline(), nullptr, this, nullptr);
+        }
         d->timeAlignmentViewModel = timeAlignmentViewModel;
         if (d->timeAlignmentViewModel) {
             connect(d->timeAlignmentViewModel, &TimeViewModel::startChanged, this, [=] {
@@ -166,6 +169,10 @@ namespace sflow {
                     [=](int tick) { emit secondaryIndicatorXChanged(d->tickToX(tick)); });
             connect(d->timeAlignmentViewModel, &TimeViewModel::cursorPositionChanged, this,
                     [=](int tick) { emit cursorIndicatorXChanged(d->tickToX(tick)); });
+            connect(d->timeAlignmentViewModel, &TimeViewModel::timelineChanged, this, [=] {
+                connect(d->timeAlignmentViewModel->timeline(), &SVS::MusicTimeline::timeSignatureChanged, this, &QQuickItem::update);
+            });
+            connect(d->timeAlignmentViewModel->timeline(), &SVS::MusicTimeline::timeSignatureChanged, this, &QQuickItem::update);
         }
         emit primaryIndicatorXChanged(primaryIndicatorX());
         emit secondaryIndicatorXChanged(secondaryIndicatorX());
@@ -198,6 +205,10 @@ namespace sflow {
         if (!d->timeAlignmentViewModel)
             return -1;
         return d->tickToX(d->timeAlignmentViewModel->cursorPosition());
+    }
+    void TimelineQuickItem::handleContextMenuRequest(double x) {
+        Q_D(TimelineQuickItem);
+        emit contextMenuRequestedForTimeline(d->alignTick(d->xToTick(x)));
     }
 
     static inline bool isOnScale(const SVS::PersistentMusicTime &time, int barScaleIntervalExp2, bool doDrawBeatScale) {

@@ -17,6 +17,9 @@ namespace sflow {
         setLayout(layout);
 
         d = static_cast<TimelineQuickItem *>(wrapper.second);
+        connect(d, &TimelineQuickItem::positionIndicatorDoubleClicked, this, &TimelineWidget::positionIndicatorDoubleClicked);
+        connect(d, &TimelineQuickItem::contextMenuRequestedForTimeline, this, &TimelineWidget::contextMenuRequestedForTimeline);
+        connect(d, &TimelineQuickItem::contextMenuRequestedForPositionIndicator, this, &TimelineWidget::contextMenuRequestedForPositionIndicator);
     }
     TimelineWidget::~TimelineWidget() = default;
 

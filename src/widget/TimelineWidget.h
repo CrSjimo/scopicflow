@@ -24,6 +24,8 @@ namespace sflow {
 
     signals:
         void positionIndicatorDoubleClicked();
+        void contextMenuRequestedForTimeline(int tick);
+        void contextMenuRequestedForPositionIndicator();
 
     private:
         TimelineQuickItem *d;

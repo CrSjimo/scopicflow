@@ -3,7 +3,7 @@ import QtQuick
 import QtQuick.Shapes
 
 Timeline {
-    id: timeLine
+    id: timeline
 
     Shape {
         id: secondaryIndicator
@@ -12,7 +12,7 @@ Timeline {
         anchors.bottom: parent.bottom
         ShapePath {
             strokeWidth: 0
-            fillColor: Qt.rgba(timeLine.palette.positionIndicatorColor.r, timeLine.palette.positionIndicatorColor.g, timeLine.palette.positionIndicatorColor.b, 0.5 * timeLine.palette.positionIndicatorColor.a)
+            fillColor: Qt.rgba(timeline.palette.positionIndicatorColor.r, timeline.palette.positionIndicatorColor.g, timeline.palette.positionIndicatorColor.b, 0.5 * timeline.palette.positionIndicatorColor.a)
             startX: 0; startY: 0
             PathLine { x: 0; y: 0 }
             PathLine { x: 0; y: 8 }
@@ -20,7 +20,7 @@ Timeline {
             PathLine { x: 16; y: 8 }
             PathLine { x: 16; y: 0 }
         }
-        x: timeLine.secondaryIndicatorX - 8
+        x: timeline.secondaryIndicatorX - 8
     }
 
     Shape {
@@ -30,7 +30,7 @@ Timeline {
         anchors.bottom: parent.bottom
         ShapePath {
             strokeWidth: 0
-            fillColor: timeLine.palette.positionIndicatorColor
+            fillColor: timeline.palette.positionIndicatorColor
             startX: 0; startY: 0
             PathLine { x: 0; y: 0 }
             PathLine { x: 0; y: 8 }
@@ -38,7 +38,7 @@ Timeline {
             PathLine { x: 16; y: 8 }
             PathLine { x: 16; y: 0 }
         }
-        x: timeLine.primaryIndicatorX - 8
+        x: timeline.primaryIndicatorX - 8
     }
 
     Rectangle {
@@ -46,21 +46,37 @@ Timeline {
         anchors.top: parent.top
         anchors.bottom: parent.bottom
         width: 1
-        color: timeLine.palette.cursorIndicatorColor
-        x: timeLine.cursorIndicatorX
-        visible: timeLine.cursorIndicatorX >= 0
+        color: timeline.palette.cursorIndicatorColor
+        x: timeline.cursorIndicatorX
+        visible: timeline.cursorIndicatorX >= 0
     }
 
     MouseArea {
+        acceptedButtons: Qt.LeftButton | Qt.RightButton
         anchors.fill: parent
         drag.axis: Drag.XAxis
-        drag.minimumX: timeLine.zeroTickX - 8
+        drag.minimumX: timeline.zeroTickX - 8
         onClicked: function (mouse) {
-            timeLine.primaryIndicatorX = mouse.x
+            if (mouse.button === Qt.LeftButton) {
+                timeline.primaryIndicatorX = mouse.x
+            } else {
+                if (primaryIndicator.contains(mapToItem(primaryIndicator, mouse.x, mouse.y))) {
+                    timeline.contextMenuRequestedForPositionIndicator();
+                } else {
+                    timeline.handleContextMenuRequest(mouse.x)
+                }
+            }
+
+        }
+        onDoubleClicked : function (mouse) {
+            if (mouse.button === Qt.LeftButton) {
+                timeline.primaryIndicatorX = mouse.x
+                timeline.positionIndicatorDoubleClicked()
+            }
         }
         onPositionChanged: function (mouse) {
-            if (pressed)
-                timeLine.primaryIndicatorX = mouse.x
+            if (pressed && (pressedButtons & Qt.LeftButton))
+                timeline.primaryIndicatorX = mouse.x
         }
     }
 

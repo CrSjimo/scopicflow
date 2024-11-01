@@ -1,6 +1,7 @@
 #include <limits>
 
 #include <QApplication>
+#include <QComboBox>
 #include <QFormLayout>
 #include <QLabel>
 #include <QMainWindow>
@@ -9,6 +10,9 @@
 #include <QQuickWidget>
 #include <QDoubleSpinBox>
 #include <QSpinBox>
+#include <QMenu>
+#include <QDialog>
+#include <QPushButton>
 
 #include <SVSCraftCore/musictimeline.h>
 
@@ -16,6 +20,34 @@
 #include <ScopicFlow/TimelineWidget.h>
 
 using namespace sflow;
+
+static SVS::MusicTimeSignature promptTimeSignature(QWidget *parent, SVS::MusicTimeSignature initialValue) {
+    QDialog dlg(parent);
+    auto layout = new QVBoxLayout;
+    auto numeratorSpinBox = new QSpinBox;
+    numeratorSpinBox->setRange(1, 32);
+    layout->addWidget(numeratorSpinBox);
+    auto denominatorComboBox = new QComboBox;
+    denominatorComboBox->addItems({"1", "2", "4", "8", "16", "32"});
+    layout->addWidget(denominatorComboBox);
+    auto okButton = new QPushButton("OK");
+    okButton->setDefault(true);
+    layout->addWidget(okButton);
+
+    dlg.setLayout(layout);
+
+    numeratorSpinBox->setValue(initialValue.numerator());
+    denominatorComboBox->setCurrentText(QString::number(initialValue.denominator()));
+    QObject::connect(okButton, &QPushButton::clicked, &dlg, &QDialog::accept);
+
+    if (dlg.exec() == QDialog::Accepted) {
+        return {numeratorSpinBox->value(), denominatorComboBox->currentText().toInt()};
+    } else {
+        return {0, 0};
+    }
+
+
+}
 
 int main(int argc, char *argv[]) {
     QApplication a(argc, argv);
@@ -69,6 +101,43 @@ int main(int argc, char *argv[]) {
     QObject::connect(secondaryPositionSpinBox, &QSpinBox::valueChanged, timeViewModel, &TimeViewModel::setSecondaryPosition);
     QObject::connect(timeViewModel, &TimeViewModel::secondaryPositionChanged, secondaryPositionSpinBox, &QSpinBox::setValue);
     QObject::connect(positionAlignmentSpinBox, &QSpinBox::valueChanged, timeViewModel, &TimeAlignmentViewModel::setPositionAlignment);
+
+    QObject::connect(timelineWidget, &TimelineWidget::positionIndicatorDoubleClicked, [=] {
+        qDebug() << "Double clicked";
+    });
+
+    QObject::connect(timelineWidget, &TimelineWidget::contextMenuRequestedForTimeline, [=, &win](int tick) {
+        QMenu menu(&win);
+        auto musicTime = timeViewModel->timeline()->create(0, 0, tick);
+        menu.addAction(QString("Set time signature at bar %1...").arg(musicTime.measure() + 1), [=, &win] {
+            auto timeSignature = promptTimeSignature(&win, timeViewModel->timeline()->timeSignatureAt(musicTime.measure()));
+            if (!timeSignature.isValid())
+                return;
+            timeViewModel->timeline()->setTimeSignature(musicTime.measure(), timeSignature);
+        });
+        auto removeAction = menu.addAction(QString("Remove time signature at bar %1").arg(musicTime.measure() + 1), [=] {
+            timeViewModel->timeline()->removeTimeSignature(musicTime.measure());
+        });
+        menu.addSeparator();
+        menu.addAction(QString("Position to %1").arg(musicTime.toString()), [=] {
+            timeViewModel->setPrimaryPosition(tick);
+            timeViewModel->setSecondaryPosition(tick);
+        });
+        menu.addAction(QString("Position to %1 and play").arg(musicTime.toString()), [=] {
+            timeViewModel->setPrimaryPosition(tick);
+            timeViewModel->setSecondaryPosition(tick);
+            qDebug() << "Play";
+        });
+        removeAction->setEnabled(musicTime.measure() && timeViewModel->timeline()->nearestTimeSignatureTo(musicTime.measure()) == musicTime.measure());
+        menu.exec(QCursor::pos());
+    });
+
+    QObject::connect(timelineWidget, &TimelineWidget::contextMenuRequestedForPositionIndicator, [=, &win] {
+        QMenu menu(&win);
+        menu.addAction("Menu on Time Indicator");
+        menu.exec(QCursor::pos());
+    });
+
 
     win.show();
 

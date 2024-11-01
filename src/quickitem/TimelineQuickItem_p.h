@@ -71,6 +71,8 @@ namespace sflow {
 
         double cursorIndicatorX() const;
 
+        Q_INVOKABLE void handleContextMenuRequest(double x);
+
     signals:
         void paletteChanged(TimelinePalette *palette);
         void timeViewModelChanged();
@@ -78,6 +80,11 @@ namespace sflow {
         void primaryIndicatorXChanged(double x);
         void secondaryIndicatorXChanged(double x);
         void cursorIndicatorXChanged(double x);
+
+        void positionIndicatorDoubleClicked();
+
+        void contextMenuRequestedForTimeline(int tick);
+        void contextMenuRequestedForPositionIndicator();
 
     protected:
         QSGNode *updatePaintNode(QSGNode *oldNode, UpdatePaintNodeData *) override;

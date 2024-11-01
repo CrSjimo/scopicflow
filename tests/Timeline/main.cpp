@@ -12,28 +12,25 @@
 
 #include <SVSCraftCore/musictimeline.h>
 
-#include <ScopicFlow/Timeline.h>
-#include <ScopicFlow/TimeViewModel.h>
+#include <ScopicFlow/TimeAlignmentViewModel.h>
+#include <ScopicFlow/TimelineWidget.h>
 
 using namespace sflow;
 
 int main(int argc, char *argv[]) {
     QApplication a(argc, argv);
-    qmlRegisterType<Timeline>("ScopicFlow", 1, 0, "Timeline");
     QMainWindow win;
     auto mainWidget = new QWidget;
     auto mainLayout = new QVBoxLayout;
-    auto quickView = new QQuickView(QUrl("qrc:/main.qml"));
-    auto quickViewContainer = QWidget::createWindowContainer(quickView);
-    quickView->setResizeMode(QQuickView::SizeRootObjectToView);
-    quickViewContainer->setMinimumHeight(24);
-    mainLayout->addWidget(quickViewContainer);
+    auto timelineWidget = new TimelineWidget;
+    mainLayout->addWidget(timelineWidget);
 
-    auto timelineItem = static_cast<Timeline *>(quickView->rootObject());
-
-    auto timeViewModel = new TimeViewModel;
+    auto timeViewModel = new TimeAlignmentViewModel;
     timeViewModel->setTimeline(new SVS::MusicTimeline);
-    timelineItem->setTimeViewModel(timeViewModel);
+    timeViewModel->setPositionAlignment(240);
+    timeViewModel->timeline()->setTimeSignature(3, {6, 8});
+
+    timelineWidget->setTimeAlignmentViewModel(timeViewModel);
 
     mainWidget->setLayout(mainLayout);
     win.setCentralWidget(mainWidget);
@@ -50,16 +47,28 @@ int main(int argc, char *argv[]) {
     pixelDensitySpinBox->setValue(0.2);
     formLayout->addRow("Pixel density", pixelDensitySpinBox);
 
-    auto primayPositionSpinBox = new QSpinBox;
-    primayPositionSpinBox->setMaximum(std::numeric_limits<int>::max());
-    formLayout->addRow("Primary position", primayPositionSpinBox);
+    auto primaryPositionSpinBox = new QSpinBox;
+    primaryPositionSpinBox->setMaximum(std::numeric_limits<int>::max());
+    formLayout->addRow("Primary position", primaryPositionSpinBox);
+
+    auto secondaryPositionSpinBox = new QSpinBox;
+    secondaryPositionSpinBox->setMaximum(std::numeric_limits<int>::max());
+    formLayout->addRow("Second position", secondaryPositionSpinBox);
+
+    auto positionAlignmentSpinBox = new QSpinBox;
+    positionAlignmentSpinBox->setRange(1, std::numeric_limits<int>::max());
+    positionAlignmentSpinBox->setValue(timeViewModel->positionAlignment());
+    formLayout->addRow("Position alignment", positionAlignmentSpinBox);
 
     mainLayout->addLayout(formLayout);
 
     QObject::connect(startSpinBox, &QSpinBox::valueChanged, timeViewModel, &TimeViewModel::setStart);
     QObject::connect(pixelDensitySpinBox, &QDoubleSpinBox::valueChanged, timeViewModel, &TimeViewModel::setPixelDensity);
-    QObject::connect(primayPositionSpinBox, &QSpinBox::valueChanged, timeViewModel, &TimeViewModel::setPrimaryPosition);
-    QObject::connect(timeViewModel, &TimeViewModel::primaryPositionChanged, primayPositionSpinBox, &QSpinBox::setValue);
+    QObject::connect(primaryPositionSpinBox, &QSpinBox::valueChanged, timeViewModel, &TimeViewModel::setPrimaryPosition);
+    QObject::connect(timeViewModel, &TimeViewModel::primaryPositionChanged, primaryPositionSpinBox, &QSpinBox::setValue);
+    QObject::connect(secondaryPositionSpinBox, &QSpinBox::valueChanged, timeViewModel, &TimeViewModel::setSecondaryPosition);
+    QObject::connect(timeViewModel, &TimeViewModel::secondaryPositionChanged, secondaryPositionSpinBox, &QSpinBox::setValue);
+    QObject::connect(positionAlignmentSpinBox, &QSpinBox::valueChanged, timeViewModel, &TimeAlignmentViewModel::setPositionAlignment);
 
     win.show();
 

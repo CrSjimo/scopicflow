@@ -96,13 +96,13 @@ endmacro()
 # Main Project
 # ----------------------------------
 
-file(GLOB_RECURSE _src *.h *.cpp)
+file(GLOB_RECURSE _src *.h *.cpp *.qrc)
 
 scopic_flow_add_library(ScopicFlow AUTOGEN
     SOURCES ${_src}
     LINKS svscraft::Core
-    QT_LINKS Core Gui Qml Quick
-    QT_INCLUDE_PRIVATE Core Gui Qml Quick
+    QT_LINKS Core Gui Widgets Qml Quick QuickWidgets
+    QT_INCLUDE_PRIVATE Core Gui Widgets Qml Quick QuickWidgets
 )
 
 if(SCOPIC_FLOW_INSTALL)

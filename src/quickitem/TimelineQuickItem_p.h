@@ -1,5 +1,5 @@
-#ifndef SCOPIC_FLOW_TIMELINE_H
-#define SCOPIC_FLOW_TIMELINE_H
+#ifndef SCOPIC_FLOW_TIMELINEQUICKITEM_P_H
+#define SCOPIC_FLOW_TIMELINEQUICKITEM_P_H
 
 #include <QQuickItem>
 
@@ -7,7 +7,7 @@
 
 namespace sflow {
 
-    class TimeViewModel;
+    class TimeAlignmentViewModel;
 
     class SCOPIC_FLOW_EXPORT TimelinePalette : public QObject {
         Q_OBJECT
@@ -45,44 +45,46 @@ namespace sflow {
         QColor m_cursorIndicatorColor;
     };
 
-    class TimelinePrivate;
+    class TimelineQuickItemPrivate;
 
-    class SCOPIC_FLOW_EXPORT Timeline : public QQuickItem {
+    class SCOPIC_FLOW_EXPORT TimelineQuickItem : public QQuickItem {
         Q_OBJECT
         Q_PROPERTY(TimelinePalette *palette READ palette WRITE setPalette NOTIFY paletteChanged)
-        Q_PROPERTY(double zeroTickX READ zeroTickX NOTIFY zeroTickXChanged)
-        Q_PROPERTY(double primaryIndicatorX READ primaryIndicatorX WRITE setPrimaryIndicatorX NOTIFY
-                       primaryIndicatorXChanged)
-        Q_DECLARE_PRIVATE(Timeline)
+        Q_PROPERTY(double primaryIndicatorX READ primaryIndicatorX WRITE setPrimaryIndicatorX NOTIFY primaryIndicatorXChanged)
+        Q_PROPERTY(double secondaryIndicatorX READ secondaryIndicatorX NOTIFY secondaryIndicatorXChanged)
+        Q_PROPERTY(double cursorIndicatorX READ cursorIndicatorX NOTIFY cursorIndicatorXChanged)
+        Q_DECLARE_PRIVATE(TimelineQuickItem)
     public:
-        explicit Timeline(QQuickItem *parent = nullptr);
-        ~Timeline() override;
+        explicit TimelineQuickItem(QQuickItem *parent = nullptr);
+        ~TimelineQuickItem() override;
 
         TimelinePalette *palette() const;
         void setPalette(TimelinePalette *palette);
 
-        TimeViewModel *timeViewModel() const;
-        void setTimeViewModel(TimeViewModel *timeViewModel);
-
-        double zeroTickX() const;
+        TimeAlignmentViewModel *timeAlignmentViewModel() const;
+        void setTimeAlignmentViewModel(TimeAlignmentViewModel *timeAlignmentViewModel);
 
         double primaryIndicatorX() const;
         void setPrimaryIndicatorX(double primaryIndicatorX);
 
+        double secondaryIndicatorX() const;
 
+        double cursorIndicatorX() const;
 
     signals:
         void paletteChanged(TimelinePalette *palette);
         void timeViewModelChanged();
-        void zeroTickXChanged(double x);
+        void timeAlignmentViewModelChanged();
         void primaryIndicatorXChanged(double x);
+        void secondaryIndicatorXChanged(double x);
+        void cursorIndicatorXChanged(double x);
 
     protected:
         QSGNode *updatePaintNode(QSGNode *oldNode, UpdatePaintNodeData *) override;
 
     private:
-        QScopedPointer<TimelinePrivate> d_ptr;
+        QScopedPointer<TimelineQuickItemPrivate> d_ptr;
     };
 }
 
-#endif //SCOPIC_FLOW_TIMELINE_H
+#endif //SCOPIC_FLOW_TIMELINEQUICKITEM_P_H

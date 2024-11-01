@@ -1,4 +1,4 @@
-import ScopicFlow
+import ScopicFlowPrivate
 import QtQuick
 import QtQuick.Shapes
 
@@ -65,4 +65,3 @@ Timeline {
     }
 
 }
-

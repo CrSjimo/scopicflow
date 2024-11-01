@@ -2,7 +2,7 @@
 
 namespace sflow {
 
-    TimeViewModel::TimeViewModel(QObject *parent) : QObject(parent), m_start(0.0), m_pixelDensity(0.2), m_timeline(nullptr), m_primaryPosition(0), m_secondaryPosition(0), m_cursorPosition(0) {
+    TimeViewModel::TimeViewModel(QObject *parent) : QObject(parent), m_start(0.0), m_pixelDensity(0.2), m_timeline(nullptr), m_primaryPosition(0), m_secondaryPosition(0), m_cursorPosition(-1) {
     }
 
     TimeViewModel::~TimeViewModel() = default;

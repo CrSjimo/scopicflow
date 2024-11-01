@@ -1,5 +1,5 @@
-#include "Timeline.h"
-#include "Timeline_p.h"
+#include "TimelineQuickItem_p.h"
+#include "TimelineQuickItem_p_p.h"
 
 #include <cmath>
 
@@ -9,17 +9,17 @@
 
 #include <SVSCraftCore/musictimeline.h>
 
-#include <ScopicFlow/TimeViewModel.h>
+#include <ScopicFlow/TimeAlignmentViewModel.h>
 
 namespace sflow {
 
-    TimelinePrivate::~TimelinePrivate() {
+    TimelineQuickItemPrivate::~TimelineQuickItemPrivate() {
         for (auto p : barNumberTextLayouts)
             delete p;
         for (auto p : timeSignatureTextLayouts)
             delete p;
     }
-    QTextLayout *TimelinePrivate::createTextLayoutForBarNumber(int bar) {
+    QTextLayout *TimelineQuickItemPrivate::createTextLayoutForBarNumber(int bar) {
         auto layout = barNumberTextLayouts.value(bar);
         if (layout)
             return layout;
@@ -30,7 +30,7 @@ namespace sflow {
         barNumberTextLayouts.insert(bar, layout);
         return layout;
     }
-    QTextLayout *TimelinePrivate::createTextLayoutForTimeSignature(int numerator, int denominator) {
+    QTextLayout *TimelineQuickItemPrivate::createTextLayoutForTimeSignature(int numerator, int denominator) {
         qint64 k = denominator;
         k = k << 32 | numerator;
         auto layout = timeSignatureTextLayouts.value(k);
@@ -44,17 +44,23 @@ namespace sflow {
         timeSignatureTextLayouts.insert(k, layout);
         return layout;
     }
-    double TimelinePrivate::tickToX(int tick) const {
-        if (!timeViewModel)
+    double TimelineQuickItemPrivate::tickToX(int tick) const {
+        if (!timeAlignmentViewModel)
             return 0;
-        auto deltaTick = tick - timeViewModel->start();
-        return deltaTick * timeViewModel->pixelDensity();
+        auto deltaTick = tick - timeAlignmentViewModel->start();
+        return deltaTick * timeAlignmentViewModel->pixelDensity();
     }
-    int TimelinePrivate::xToTick(double x) const {
-        if (!timeViewModel)
+    int TimelineQuickItemPrivate::xToTick(double x) const {
+        if (!timeAlignmentViewModel)
             return 0;
-        auto deltaTick = x / timeViewModel->pixelDensity();
-        return static_cast<int>(std::round(timeViewModel->start() + deltaTick));
+        auto deltaTick = x / timeAlignmentViewModel->pixelDensity();
+        return static_cast<int>(std::round(timeAlignmentViewModel->start() + deltaTick));
+    }
+    int TimelineQuickItemPrivate::alignTick(int tick) const {
+        if (!timeAlignmentViewModel)
+            return tick;
+        int align = timeAlignmentViewModel->positionAlignment();
+        return (tick + align / 2) / align * align;
     }
 
     TimelinePalette::TimelinePalette(QObject *parent) : QObject(parent) {
@@ -98,24 +104,25 @@ namespace sflow {
         }
     }
 
-    Timeline::Timeline(QQuickItem *parent) : QQuickItem(parent), d_ptr(new TimelinePrivate) {
-        Q_D(Timeline);
+    TimelineQuickItem::TimelineQuickItem(QQuickItem *parent) : QQuickItem(parent), d_ptr(new TimelineQuickItemPrivate) {
+        Q_D(TimelineQuickItem);
         d->q_ptr = this;
         setFlag(ItemHasContents, true);
         auto defaultPalette = new TimelinePalette(this);
         defaultPalette->setBackgroundColor(Qt::black);
         defaultPalette->setForegroundColor(Qt::white);
         defaultPalette->setPositionIndicatorColor(Qt::cyan);
+        defaultPalette->setCursorIndicatorColor(Qt::red);
         setPalette(defaultPalette);
     }
-    Timeline::~Timeline() = default;
+    TimelineQuickItem::~TimelineQuickItem() = default;
 
-    TimelinePalette *Timeline::palette() const {
-        Q_D(const Timeline);
+    TimelinePalette *TimelineQuickItem::palette() const {
+        Q_D(const TimelineQuickItem);
         return d->palette;
     }
-    void Timeline::setPalette(TimelinePalette *palette) {
-        Q_D(Timeline);
+    void TimelineQuickItem::setPalette(TimelinePalette *palette) {
+        Q_D(TimelineQuickItem);
         if (d->palette == palette)
             return;
         if (d->palette)
@@ -129,52 +136,68 @@ namespace sflow {
         update();
 
     }
-    TimeViewModel *Timeline::timeViewModel() const {
-        Q_D(const Timeline);
-        return d->timeViewModel;
+    TimeAlignmentViewModel *TimelineQuickItem::timeAlignmentViewModel() const {
+        Q_D(const TimelineQuickItem);
+        return d->timeAlignmentViewModel;
     }
-    void Timeline::setTimeViewModel(TimeViewModel *timeViewModel) {
-        Q_D(Timeline);
-        if (d->timeViewModel == timeViewModel)
+    void TimelineQuickItem::setTimeAlignmentViewModel(TimeAlignmentViewModel *timeAlignmentViewModel) {
+        Q_D(TimelineQuickItem);
+        if (d->timeAlignmentViewModel == timeAlignmentViewModel)
             return;
-        if (d->timeViewModel)
-            disconnect(d->timeViewModel, nullptr, this, nullptr);
-        d->timeViewModel = timeViewModel;
-        if (d->timeViewModel) {
-            connect(d->timeViewModel, &TimeViewModel::startChanged, this, [=] {
-                emit zeroTickXChanged(zeroTickX());
+        if (d->timeAlignmentViewModel)
+            disconnect(d->timeAlignmentViewModel, nullptr, this, nullptr);
+        d->timeAlignmentViewModel = timeAlignmentViewModel;
+        if (d->timeAlignmentViewModel) {
+            connect(d->timeAlignmentViewModel, &TimeViewModel::startChanged, this, [=] {
                 emit primaryIndicatorXChanged(primaryIndicatorX());
+                emit secondaryIndicatorXChanged(secondaryIndicatorX());
+                emit cursorIndicatorXChanged(cursorIndicatorX());
                 update();
             });
-            connect(d->timeViewModel, &TimeViewModel::pixelDensityChanged, this, [=] {
-                emit zeroTickXChanged(zeroTickX());
+            connect(d->timeAlignmentViewModel, &TimeViewModel::pixelDensityChanged, this, [=] {
                 emit primaryIndicatorXChanged(primaryIndicatorX());
+                emit secondaryIndicatorXChanged(secondaryIndicatorX());
+                emit cursorIndicatorXChanged(cursorIndicatorX());
                 update();
             });
-            connect(d->timeViewModel, &TimeViewModel::primaryPositionChanged, this, [=](int tick) {
-                emit primaryIndicatorXChanged(d->tickToX(tick));
-            });
-            connect(d->timeViewModel, &TimeViewModel::secondaryPositionChanged, this, &QQuickItem::update);
-            connect(d->timeViewModel, &TimeViewModel::cursorPositionChanged, this, &QQuickItem::update);
+            connect(d->timeAlignmentViewModel, &TimeViewModel::primaryPositionChanged, this,
+                    [=](int tick) { emit primaryIndicatorXChanged(d->tickToX(tick)); });
+            connect(d->timeAlignmentViewModel, &TimeViewModel::secondaryPositionChanged, this,
+                    [=](int tick) { emit secondaryIndicatorXChanged(d->tickToX(tick)); });
+            connect(d->timeAlignmentViewModel, &TimeViewModel::cursorPositionChanged, this,
+                    [=](int tick) { emit cursorIndicatorXChanged(d->tickToX(tick)); });
         }
+        emit primaryIndicatorXChanged(primaryIndicatorX());
+        emit secondaryIndicatorXChanged(secondaryIndicatorX());
+        emit cursorIndicatorXChanged(cursorIndicatorX());
+        emit timeAlignmentViewModelChanged();
+        update();
     }
-    double Timeline::zeroTickX() const {
-        Q_D(const Timeline);
-        if (!d->timeViewModel)
+    double TimelineQuickItem::primaryIndicatorX() const {
+        Q_D(const TimelineQuickItem);
+        if (!d->timeAlignmentViewModel)
             return 0;
-        return d->tickToX(0);
+        return d->tickToX(d->timeAlignmentViewModel->primaryPosition());
     }
-    double Timeline::primaryIndicatorX() const {
-        Q_D(const Timeline);
-        if (!d->timeViewModel)
-            return 0;
-        return d->tickToX(d->timeViewModel->primaryPosition());
-    }
-    void Timeline::setPrimaryIndicatorX(double primaryIndicatorX) {
-        Q_D(Timeline);
-        if (!d->timeViewModel)
+    void TimelineQuickItem::setPrimaryIndicatorX(double primaryIndicatorX) {
+        Q_D(TimelineQuickItem);
+        if (!d->timeAlignmentViewModel)
             return;
-        d->timeViewModel->setPrimaryPosition(d->xToTick(primaryIndicatorX));
+        int tick = d->alignTick(std::max(0, d->xToTick(primaryIndicatorX)));
+        d->timeAlignmentViewModel->setPrimaryPosition(tick);
+        d->timeAlignmentViewModel->setSecondaryPosition(tick);
+    }
+    double TimelineQuickItem::secondaryIndicatorX() const {
+        Q_D(const TimelineQuickItem);
+        if (!d->timeAlignmentViewModel)
+            return 0;
+        return d->tickToX(d->timeAlignmentViewModel->secondaryPosition());
+    }
+    double TimelineQuickItem::cursorIndicatorX() const {
+        Q_D(const TimelineQuickItem);
+        if (!d->timeAlignmentViewModel)
+            return -1;
+        return d->tickToX(d->timeAlignmentViewModel->cursorPosition());
     }
 
     static inline bool isOnScale(const SVS::PersistentMusicTime &time, int barScaleIntervalExp2, bool doDrawBeatScale) {
@@ -201,8 +224,8 @@ namespace sflow {
         time = time.timeline()->create((time.measure() / interval + 1) * interval, 0, 0);
     }
 
-    QSGNode *Timeline::updatePaintNode(QSGNode *node, UpdatePaintNodeData *) {
-        Q_D(Timeline);
+    QSGNode *TimelineQuickItem::updatePaintNode(QSGNode *node, UpdatePaintNodeData *) {
+        Q_D(TimelineQuickItem);
         QSGSimpleRectNode *rectNode;
         QSGNode *scaleNode;
         QSGNode *indicatorNode;
@@ -232,23 +255,23 @@ namespace sflow {
         scaleNode->removeAllChildNodes();
         indicatorNode->removeAllChildNodes();
 
-        if (!d->timeViewModel || !d->timeViewModel->timeline())
+        if (!d->timeAlignmentViewModel || !d->timeAlignmentViewModel->timeline())
             return node;
         double minimumScaleDistance = 48;
-        bool doDrawBeatScale = d->timeViewModel->pixelDensity() * 480 > minimumScaleDistance;
+        bool doDrawBeatScale = d->timeAlignmentViewModel->pixelDensity() * 480 > minimumScaleDistance;
 
-        int barScaleIntervalExp2 = std::ceil(std::log2(minimumScaleDistance / (d->timeViewModel->pixelDensity() * 480 * 4))); // TODO consider variable time signature
+        int barScaleIntervalExp2 = std::ceil(std::log2(minimumScaleDistance / (d->timeAlignmentViewModel->pixelDensity() * 480 * 4))); // TODO consider variable time signature
         barScaleIntervalExp2 = std::max(0, barScaleIntervalExp2);
 
-        auto musicTime = d->timeViewModel->timeline()->create(0, 0, static_cast<int>(d->timeViewModel->start()));
+        auto musicTime = d->timeAlignmentViewModel->timeline()->create(0, 0, static_cast<int>(d->timeAlignmentViewModel->start()));
         if (!isOnScale(musicTime, barScaleIntervalExp2, doDrawBeatScale)) {
             moveForward(musicTime, barScaleIntervalExp2, doDrawBeatScale);
             moveBackward(musicTime, barScaleIntervalExp2, doDrawBeatScale);
         }
 
         for (;; moveForward(musicTime, barScaleIntervalExp2, doDrawBeatScale)) {
-            double deltaTick = musicTime.totalTick() - d->timeViewModel->start();
-            double x = deltaTick * d->timeViewModel->pixelDensity();
+            double deltaTick = musicTime.totalTick() - d->timeAlignmentViewModel->start();
+            double x = deltaTick * d->timeAlignmentViewModel->pixelDensity();
             if (x > width())
                 break;
             bool isEmphasized = musicTime.beat() == 0;
@@ -277,8 +300,8 @@ namespace sflow {
                 textNode->setFlag(QSGNode::OwnedByParent);
                 scaleNode->appendChildNode(textNode);
 
-                if (d->timeViewModel->timeline()->nearestTimeSignatureTo(musicTime.measure()) == musicTime.measure()) {
-                    auto timeSignature = d->timeViewModel->timeline()->timeSignatureAt(musicTime.measure());
+                if (d->timeAlignmentViewModel->timeline()->nearestTimeSignatureTo(musicTime.measure()) == musicTime.measure()) {
+                    auto timeSignature = d->timeAlignmentViewModel->timeline()->timeSignatureAt(musicTime.measure());
                     textNode = window()->createTextNode();
                     textNode->setColor(material->color());
                     textNode->addTextLayout({x + 10 + barNumberLayout->maximumWidth(), height() - 16}, d->createTextLayoutForTimeSignature(timeSignature.numerator(), timeSignature.denominator()));

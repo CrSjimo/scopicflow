@@ -1,0 +1,5 @@
+<RCC>
+    <qresource prefix="/ScopicFlow/private">
+        <file>Timeline.qml</file>
+    </qresource>
+</RCC>

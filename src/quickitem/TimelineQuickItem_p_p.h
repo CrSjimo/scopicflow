@@ -1,6 +1,8 @@
 #ifndef SCOPIC_FLOW_TIMELINEQUICKITEM_P_P_H
 #define SCOPIC_FLOW_TIMELINEQUICKITEM_P_P_H
 
+#include <QVariantAnimation>
+
 #include <ScopicFlow/private/TimelineQuickItem_p.h>
 
 namespace sflow {
@@ -13,6 +15,7 @@ namespace sflow {
 
         TimelinePalette *palette = nullptr;
         TimeAlignmentViewModel *timeAlignmentViewModel = nullptr;
+        WheelModifierViewModel *wheelModifierViewModel = nullptr;
 
         QTextLayout *createTextLayoutForBarNumber(int bar);
         QTextLayout *createTextLayoutForTimeSignature(int numerator, int denominator);
@@ -25,6 +28,9 @@ namespace sflow {
         int alignTick(int tick) const;
         int alignTickCeil(int tick) const;
         int alignTickFloor(int tick) const;
+
+        QVariantAnimation *startAnimation;
+        QVariantAnimation *pixelDensityAnimation;
     };
 }
 

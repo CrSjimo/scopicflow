@@ -8,6 +8,7 @@
 namespace sflow {
 
     class TimeAlignmentViewModel;
+    class WheelModifierViewModel;
 
     class SCOPIC_FLOW_EXPORT TimelinePalette : public QObject {
         Q_OBJECT
@@ -64,6 +65,16 @@ namespace sflow {
         TimeAlignmentViewModel *timeAlignmentViewModel() const;
         void setTimeAlignmentViewModel(TimeAlignmentViewModel *timeAlignmentViewModel);
 
+        WheelModifierViewModel *wheelModifierViewModel() const;
+        void setWheelModifierViewModel(WheelModifierViewModel *wheelModifierViewModel);
+
+        enum WheelAction {
+            AlternateAxis,
+            Zoom,
+            Page,
+        };
+        Q_ENUM(WheelAction)
+
         double primaryIndicatorX() const;
         void setPrimaryIndicatorX(double primaryIndicatorX);
 
@@ -75,6 +86,9 @@ namespace sflow {
         Q_INVOKABLE double getAlignedX(double x) const;
         Q_INVOKABLE void setZoomedRange(double selectionX, double selectionWidth);
         Q_INVOKABLE void moveViewOnDraggingPositionIndicator(double deltaX);
+        Q_INVOKABLE void moveViewBy(double deltaX, bool animated = false);
+        Q_INVOKABLE Qt::KeyboardModifier modifier(WheelAction action) const;
+        Q_INVOKABLE void zoomOnWheel(double ratio, double centerX, bool animated = false);
 
     signals:
         void paletteChanged(TimelinePalette *palette);

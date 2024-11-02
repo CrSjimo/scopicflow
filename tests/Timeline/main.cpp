@@ -51,6 +51,9 @@ static SVS::MusicTimeSignature promptTimeSignature(QWidget *parent, SVS::MusicTi
 
 int main(int argc, char *argv[]) {
     QApplication a(argc, argv);
+    auto sf = QSurfaceFormat::defaultFormat();
+    sf.setSamples(8);
+    QSurfaceFormat::setDefaultFormat(sf);
     QMainWindow win;
     auto mainWidget = new QWidget;
     auto mainLayout = new QVBoxLayout;
@@ -64,13 +67,25 @@ int main(int argc, char *argv[]) {
 
     timelineWidget->setTimeAlignmentViewModel(timeViewModel);
 
+    auto groupLayout = new QVBoxLayout;
+    groupLayout->setContentsMargins(0, 0, 0, 0);
+    for (int i = 0; i < 16; i++) {
+        auto anotherTimelineWidget = new TimelineWidget;
+        groupLayout->addWidget(anotherTimelineWidget);
+
+        anotherTimelineWidget->setProperty("positionIndicatorColor", QColor(Qt::magenta));
+        anotherTimelineWidget->setProperty("backgroundColor", QColor(Qt::darkBlue));
+        anotherTimelineWidget->setTimeAlignmentViewModel(timeViewModel);
+    }
+    mainLayout->addLayout(groupLayout);
+
     mainWidget->setLayout(mainLayout);
     win.setCentralWidget(mainWidget);
 
     auto formLayout = new QFormLayout;
 
-    auto startSpinBox = new QSpinBox;
-    startSpinBox->setMaximum(std::numeric_limits<int>::max());
+    auto startSpinBox = new QDoubleSpinBox;
+    startSpinBox->setMaximum(std::numeric_limits<double>::max());
     formLayout->addRow("Start", startSpinBox);
 
     auto pixelDensitySpinBox = new QDoubleSpinBox;
@@ -94,15 +109,22 @@ int main(int argc, char *argv[]) {
 
     mainLayout->addLayout(formLayout);
 
-    QObject::connect(startSpinBox, &QSpinBox::valueChanged, timeViewModel, &TimeViewModel::setStart);
-    QObject::connect(timeViewModel, &TimeViewModel::startChanged, startSpinBox, &QSpinBox::setValue);
+    QObject::connect(startSpinBox, &QDoubleSpinBox::valueChanged, timeViewModel, &TimeViewModel::setStart);
+    QObject::connect(timeViewModel, &TimeViewModel::startChanged, startSpinBox, [=](double value) {
+        QSignalBlocker o(startSpinBox);
+        startSpinBox->setValue(value);
+    });
     QObject::connect(pixelDensitySpinBox, &QDoubleSpinBox::valueChanged, timeViewModel, &TimeViewModel::setPixelDensity);
-    QObject::connect(timeViewModel, &TimeViewModel::pixelDensityChanged, pixelDensitySpinBox, &QDoubleSpinBox::setValue);
+    QObject::connect(timeViewModel, &TimeViewModel::pixelDensityChanged, pixelDensitySpinBox, [=](double value) {
+        QSignalBlocker o(pixelDensitySpinBox);
+        pixelDensitySpinBox->setValue(value);
+    });
     QObject::connect(primaryPositionSpinBox, &QSpinBox::valueChanged, timeViewModel, &TimeViewModel::setPrimaryPosition);
     QObject::connect(timeViewModel, &TimeViewModel::primaryPositionChanged, primaryPositionSpinBox, &QSpinBox::setValue);
     QObject::connect(secondaryPositionSpinBox, &QSpinBox::valueChanged, timeViewModel, &TimeViewModel::setSecondaryPosition);
     QObject::connect(timeViewModel, &TimeViewModel::secondaryPositionChanged, secondaryPositionSpinBox, &QSpinBox::setValue);
     QObject::connect(positionAlignmentSpinBox, &QSpinBox::valueChanged, timeViewModel, &TimeAlignmentViewModel::setPositionAlignment);
+    QObject::connect(timeViewModel, &TimeAlignmentViewModel::positionAlignmentChanged, positionAlignmentSpinBox, &QSpinBox::setValue);
 
     QObject::connect(timelineWidget, &TimelineWidget::positionIndicatorDoubleClicked, [=] {
         qDebug() << "Double clicked";

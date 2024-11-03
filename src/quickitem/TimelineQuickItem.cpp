@@ -17,13 +17,21 @@ namespace sflow {
     TimelineQuickItemPrivate::~TimelineQuickItemPrivate() {
         for (auto p : barNumberTextLayouts)
             delete p;
+        for (auto p : barNumberTextNodes)
+            delete p;
         for (auto p : timeSignatureTextLayouts)
+            delete p;
+        for (auto p : timeSignatureTextNodes)
             delete p;
     }
     QTextLayout *TimelineQuickItemPrivate::createTextLayoutForBarNumber(int bar) {
         auto layout = barNumberTextLayouts.value(bar);
         if (layout)
             return layout;
+        if (barNumberTextLayouts.size() > 4096) {
+            delete barNumberTextLayouts.cbegin().value();
+            barNumberTextLayouts.erase(barNumberTextLayouts.cbegin());
+        }
         layout = new QTextLayout(QLocale().toString(bar + 1));
         layout->beginLayout();
         layout->createLine();
@@ -31,19 +39,63 @@ namespace sflow {
         barNumberTextLayouts.insert(bar, layout);
         return layout;
     }
+    QSGTextNode *TimelineQuickItemPrivate::createTextNodeForBarNumber(int bar, const QColor &color) {
+        Q_Q(TimelineQuickItem);
+        auto textNode = barNumberTextNodes.value(bar);
+        if (textNode) {
+            if (textNode->color() == color)
+                return textNode;
+            delete textNode;
+        }
+        if (barNumberTextNodes.size() > 1024) {
+            delete barNumberTextNodes.cbegin().value();
+            barNumberTextNodes.erase(barNumberTextNodes.cbegin());
+        }
+        textNode = q->window()->createTextNode();
+        textNode->setColor(color);
+        auto barNumberLayout = createTextLayoutForBarNumber(bar);
+        textNode->addTextLayout({0, 0}, barNumberLayout);
+        textNode->setFlag(QSGNode::OwnedByParent, false);
+        barNumberTextNodes.insert(bar, textNode);
+        return textNode;
+    }
     QTextLayout *TimelineQuickItemPrivate::createTextLayoutForTimeSignature(int numerator, int denominator) {
         qint64 k = denominator;
         k = k << 32 | numerator;
         auto layout = timeSignatureTextLayouts.value(k);
         if (layout)
             return layout;
-        layout =
-            new QTextLayout(QLocale().toString(numerator) + "/" + QLocale().toString(denominator));
+        if (timeSignatureTextLayouts.size() > 4096) {
+            delete timeSignatureTextLayouts.cbegin().value();
+            timeSignatureTextLayouts.erase(timeSignatureTextLayouts.cbegin());
+        }
+        layout = new QTextLayout(QLocale().toString(numerator) + "/" + QLocale().toString(denominator));
         layout->beginLayout();
         layout->createLine();
         layout->endLayout();
         timeSignatureTextLayouts.insert(k, layout);
         return layout;
+    }
+    QSGTextNode *TimelineQuickItemPrivate::createTextNodeForTimeSignature(int numerator, int denominator, const QColor &color) {
+        Q_Q(TimelineQuickItem);
+        qint64 k = denominator;
+        k = k << 32 | numerator;
+        auto textNode = timeSignatureTextNodes.value(k);
+        if (textNode) {
+            if (textNode->color() == color)
+                return textNode;
+            delete textNode;
+        }
+        if (timeSignatureTextNodes.size() > 1024) {
+            delete timeSignatureTextNodes.cbegin().value();
+            timeSignatureTextNodes.erase(timeSignatureTextNodes.cbegin());
+        }
+        textNode = q->window()->createTextNode();
+        textNode->setColor(color);
+        textNode->addTextLayout({}, createTextLayoutForTimeSignature(numerator, denominator));
+        textNode->setFlag(QSGNode::OwnedByParent, false);
+        timeSignatureTextNodes.insert(k, textNode);
+        return textNode;
     }
     double TimelineQuickItemPrivate::tickToX(int tick) const {
         if (!timeAlignmentViewModel)
@@ -204,7 +256,6 @@ namespace sflow {
                 auto newStart = std::max(0.0, d->timeAlignmentViewModel->start() + centerX / d->timeAlignmentViewModel->pixelDensity() - centerX / newPixelDensity);
                 d->timeAlignmentViewModel->setStart(newStart);
                 d->timeAlignmentViewModel->setPixelDensity(newPixelDensity);
-                qDebug() << oldTick << d->xToTick(centerX);
             });
         }
         emit primaryIndicatorXChanged(primaryIndicatorX());
@@ -369,7 +420,6 @@ namespace sflow {
         } else {
             rectNode = static_cast<QSGSimpleRectNode *>(node->childAtIndex(0));
             auto oldScaleNode = node->childAtIndex(1);
-            node->removeChildNode(oldScaleNode);
             delete oldScaleNode;
         }
         node->appendChildNode(scaleNode = new QSGNode);
@@ -394,47 +444,53 @@ namespace sflow {
             moveBackward(musicTime, barScaleIntervalExp2, doDrawBeatScale);
         }
 
+        QList<QPair<float, bool>> xList;
+        auto foregroundColor = d->palette && d->palette->foregroundColor().isValid() ? d->palette->foregroundColor() : Qt::white;
+
         for (;; moveForward(musicTime, barScaleIntervalExp2, doDrawBeatScale)) {
             double deltaTick = musicTime.totalTick() - d->timeAlignmentViewModel->start();
             double x = deltaTick * d->timeAlignmentViewModel->pixelDensity();
             if (x > width())
                 break;
             bool isEmphasized = musicTime.beat() == 0;
-            auto lineNode = new QSGGeometryNode;
-            auto lineGeometry = new QSGGeometry(QSGGeometry::defaultAttributes_Point2D(), 2);
-            lineGeometry->setDrawingMode(QSGGeometry::DrawLines);
-            lineGeometry->setLineWidth(1);
-            lineGeometry->vertexDataAsPoint2D()[0].set(x, height());
-            lineGeometry->vertexDataAsPoint2D()[1].set(x, height() - 32 * (isEmphasized ? 0.5 : 0.25));
-            lineNode->setGeometry(lineGeometry);
-            lineNode->setFlag(QSGNode::OwnsGeometry);
-            auto material = new QSGFlatColorMaterial;
-            if (d->palette && d->palette->foregroundColor().isValid())
-                material->setColor(d->palette->foregroundColor());
-            else
-                material->setColor(Qt::white);
-            lineNode->setMaterial(material);
-            lineNode->setFlag(QSGNode::OwnsMaterial);
-            lineNode->setFlag(QSGNode::OwnedByParent);
-            scaleNode->appendChildNode(lineNode);
-            if (isEmphasized) {
-                auto textNode = window()->createTextNode();
-                textNode->setColor(material->color());
-                auto barNumberLayout = d->createTextLayoutForBarNumber(musicTime.measure());
-                textNode->addTextLayout({x + 2, height() - 16}, barNumberLayout);
-                textNode->setFlag(QSGNode::OwnedByParent);
-                scaleNode->appendChildNode(textNode);
+            xList.emplace_back(x, isEmphasized);
 
-                if (d->timeAlignmentViewModel->timeline()->nearestTimeSignatureTo(musicTime.measure()) == musicTime.measure()) {
-                    auto timeSignature = d->timeAlignmentViewModel->timeline()->timeSignatureAt(musicTime.measure());
-                    textNode = window()->createTextNode();
-                    textNode->setColor(material->color());
-                    textNode->addTextLayout({x + 10 + barNumberLayout->maximumWidth(), height() - 16}, d->createTextLayoutForTimeSignature(timeSignature.numerator(), timeSignature.denominator()));
-                    textNode->setFlag(QSGNode::OwnedByParent);
-                    scaleNode->appendChildNode(textNode);
-                }
-            }
+            if (!isEmphasized)
+                continue;
+
+            auto barNumberLayout = d->createTextLayoutForBarNumber(musicTime.measure());
+            auto textNode = d->createTextNodeForBarNumber(musicTime.measure(), foregroundColor);
+            QMatrix4x4 transform;
+            transform.translate(x + 2, height() - 16);
+            textNode->setMatrix(transform);
+            scaleNode->appendChildNode(textNode);
+
+            if (d->timeAlignmentViewModel->timeline()->nearestTimeSignatureTo(musicTime.measure()) != musicTime.measure())
+                continue;
+
+            auto timeSignature = d->timeAlignmentViewModel->timeline()->timeSignatureAt(musicTime.measure());
+            textNode = d->createTextNodeForTimeSignature(timeSignature.numerator(), timeSignature.denominator(), foregroundColor);
+            transform.translate(8 + barNumberLayout->maximumWidth(), 0);
+            textNode->setMatrix(transform);
+            scaleNode->appendChildNode(textNode);
         }
+        auto lineNode = new QSGGeometryNode;
+        auto lineGeometry = new QSGGeometry(QSGGeometry::defaultAttributes_Point2D(), xList.size() * 2);
+        lineGeometry->setDrawingMode(QSGGeometry::DrawLines);
+        lineGeometry->setLineWidth(1);
+        for (int i = 0; i < xList.size(); i++) {
+            const auto &[x, isEmphasized] = xList[i];
+            lineGeometry->vertexDataAsPoint2D()[i * 2].set(x, height());
+            lineGeometry->vertexDataAsPoint2D()[i * 2 + 1].set(x, height() - 32 * (isEmphasized ? 0.5 : 0.25));
+        }
+        lineNode->setGeometry(lineGeometry);
+        lineNode->setFlag(QSGNode::OwnsGeometry);
+        auto material = new QSGFlatColorMaterial;
+        material->setColor(foregroundColor);
+        lineNode->setMaterial(material);
+        lineNode->setFlag(QSGNode::OwnsMaterial);
+        lineNode->setFlag(QSGNode::OwnedByParent);
+        scaleNode->appendChildNode(lineNode);
         return node;
 
     }

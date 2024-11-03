@@ -5,6 +5,8 @@
 
 #include <ScopicFlow/private/TimelineQuickItem_p.h>
 
+class QSGTextNode;
+
 namespace sflow {
 
     class TimelineQuickItemPrivate {
@@ -18,10 +20,14 @@ namespace sflow {
         WheelModifierViewModel *wheelModifierViewModel = nullptr;
 
         QTextLayout *createTextLayoutForBarNumber(int bar);
+        QSGTextNode *createTextNodeForBarNumber(int bar, const QColor &color);
         QTextLayout *createTextLayoutForTimeSignature(int numerator, int denominator);
+        QSGTextNode *createTextNodeForTimeSignature(int numerator, int denominator, const QColor &color);
 
         QHash<int, QTextLayout *> barNumberTextLayouts;
+        QHash<int, QSGTextNode *> barNumberTextNodes;
         QHash<qint64, QTextLayout *> timeSignatureTextLayouts;
+        QHash<qint64, QSGTextNode *> timeSignatureTextNodes;
 
         double tickToX(int tick) const;
         int xToTick(double x) const;

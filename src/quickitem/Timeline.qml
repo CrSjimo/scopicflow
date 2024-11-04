@@ -18,7 +18,7 @@ Timeline {
     Shape {
         id: secondaryIndicator
         width: 32 / Math.sqrt(3)
-        height: 14.6667
+        height: 14.3333
         anchors.bottom: parent.bottom
         ShapePath {
             id: indicatorPath
@@ -38,7 +38,7 @@ Timeline {
     Shape {
         id: primaryIndicator
         width: 32 / Math.sqrt(3)
-        height: 14.6667
+        height: 14.3333
         anchors.bottom: parent.bottom
         ShapePath {
             strokeWidth: 0
@@ -151,7 +151,7 @@ Timeline {
                 rejectContextMenu = true
             }
         }
-        onWheel : function (wheel) {
+        onWheel: function (wheel) {
             let isAxisRevert = wheel.modifiers & Qt.AltModifier
             let isAlternateAxis = Boolean(wheel.modifiers & timeline.modifier(Timeline.AlternateAxis))
             let isZoom = Boolean(wheel.modifiers & timeline.modifier(Timeline.Zoom))
@@ -164,13 +164,14 @@ Timeline {
             if (!deltaX)
                 return
 
+            let wheelHint = !deltaPixelX && deltaX - Math.floor(deltaX) < Number.EPSILON
 
             if (isZoom) {
-                timeline.zoomOnWheel(Math.pow(1 + (isPage ? 4 : 0.4) * Math.abs(deltaX), Math.sign(deltaX)), wheel.x, true)
+                timeline.zoomOnWheel(Math.pow(1 + (isPage ? 4 : 0.4) * Math.abs(deltaX), Math.sign(deltaX)), wheel.x, wheelHint)
             } else {
                 if (!deltaPixelX)
                     deltaPixelX = isPage ? Math.sign(deltaX) * timeline.width : 0.2 * deltaX * timeline.width
-                timeline.moveViewBy(-deltaPixelX, true)
+                timeline.moveViewBy(-deltaPixelX, wheelHint)
             }
 
         }

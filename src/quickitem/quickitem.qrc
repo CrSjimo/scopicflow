@@ -1,5 +1,8 @@
 <RCC>
     <qresource prefix="/ScopicFlow/private">
         <file>Timeline.qml</file>
+        <file>Clavier.qml</file>
+        <file>HelperComponents/MiddleKeyMoveHandler.qml</file>
+        <file>HelperComponents/StandardScrollHandler.qml</file>
     </qresource>
 </RCC>

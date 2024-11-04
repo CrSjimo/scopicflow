@@ -3,14 +3,13 @@
 
 #include <QQuickItem>
 
-#include <ScopicFlow/ScopicFlowGlobal.h>
+#include <ScopicFlow/WheelModifierViewModel.h>
 
 namespace sflow {
 
     class TimeAlignmentViewModel;
-    class WheelModifierViewModel;
 
-    class SCOPIC_FLOW_EXPORT TimelinePalette : public QObject {
+    class TimelinePalette : public QObject {
         Q_OBJECT
         Q_PROPERTY(QColor backgroundColor READ backgroundColor WRITE setBackgroundColor NOTIFY backgroundColorChanged)
         Q_PROPERTY(QColor foregroundColor READ foregroundColor WRITE setForegroundColor NOTIFY foregroundColorChanged)
@@ -48,9 +47,10 @@ namespace sflow {
 
     class TimelineQuickItemPrivate;
 
-    class SCOPIC_FLOW_EXPORT TimelineQuickItem : public QQuickItem {
+    class TimelineQuickItem : public QQuickItem {
         Q_OBJECT
-        Q_PROPERTY(TimelinePalette *palette READ palette WRITE setPalette NOTIFY paletteChanged)
+        Q_PROPERTY(TimelinePalette *palette READ palette CONSTANT)
+        Q_PROPERTY(WheelModifierViewModel *wheelModifierViewModel READ wheelModifierViewModel NOTIFY wheelModifierViewModelChanged)
         Q_PROPERTY(double primaryIndicatorX READ primaryIndicatorX WRITE setPrimaryIndicatorX NOTIFY primaryIndicatorXChanged)
         Q_PROPERTY(double secondaryIndicatorX READ secondaryIndicatorX NOTIFY secondaryIndicatorXChanged)
         Q_PROPERTY(double cursorIndicatorX READ cursorIndicatorX NOTIFY cursorIndicatorXChanged)
@@ -60,20 +60,12 @@ namespace sflow {
         ~TimelineQuickItem() override;
 
         TimelinePalette *palette() const;
-        void setPalette(TimelinePalette *palette);
 
         TimeAlignmentViewModel *timeAlignmentViewModel() const;
         void setTimeAlignmentViewModel(TimeAlignmentViewModel *timeAlignmentViewModel);
 
         WheelModifierViewModel *wheelModifierViewModel() const;
         void setWheelModifierViewModel(WheelModifierViewModel *wheelModifierViewModel);
-
-        enum WheelAction {
-            AlternateAxis,
-            Zoom,
-            Page,
-        };
-        Q_ENUM(WheelAction)
 
         double primaryIndicatorX() const;
         void setPrimaryIndicatorX(double primaryIndicatorX);
@@ -87,11 +79,9 @@ namespace sflow {
         Q_INVOKABLE void setZoomedRange(double selectionX, double selectionWidth);
         Q_INVOKABLE void moveViewOnDraggingPositionIndicator(double deltaX);
         Q_INVOKABLE void moveViewBy(double deltaX, bool animated = false);
-        Q_INVOKABLE Qt::KeyboardModifier modifier(WheelAction action) const;
         Q_INVOKABLE void zoomOnWheel(double ratio, double centerX, bool animated = false);
 
     signals:
-        void paletteChanged(TimelinePalette *palette);
         void timeViewModelChanged();
         void timeAlignmentViewModelChanged();
         void primaryIndicatorXChanged(double x);
@@ -102,6 +92,8 @@ namespace sflow {
 
         void contextMenuRequestedForTimeline(int tick);
         void contextMenuRequestedForPositionIndicator();
+
+        void wheelModifierViewModelChanged(WheelModifierViewModel *wheelModifierViewModel);
 
     protected:
         QSGNode *updatePaintNode(QSGNode *oldNode, UpdatePaintNodeData *) override;

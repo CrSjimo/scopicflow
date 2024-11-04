@@ -127,6 +127,14 @@ namespace sflow {
         int align = timeAlignmentViewModel->positionAlignment();
         return (tick) / align * align;
     }
+    void TimelineQuickItemPrivate::handlePixelDensityAnimation(double centerX, double newPixelDensity) const {
+        auto newStart = qFuzzyIsNull(timeAlignmentViewModel->start()) && currentAnimationFixStartToZero ? 0.0 :
+                            std::max(0.0, timeAlignmentViewModel->start() +
+                                              centerX / timeAlignmentViewModel->pixelDensity() -
+                                              centerX / newPixelDensity);
+        timeAlignmentViewModel->setStart(newStart);
+        timeAlignmentViewModel->setPixelDensity(newPixelDensity);
+    }
 
 
     TimelinePalette::TimelinePalette(QObject *parent) : QObject(parent) {
@@ -179,7 +187,9 @@ namespace sflow {
         defaultPalette->setForegroundColor(Qt::white);
         defaultPalette->setPositionIndicatorColor(Qt::cyan);
         defaultPalette->setCursorIndicatorColor(Qt::red);
-        setPalette(defaultPalette);
+        d->palette = defaultPalette;
+        connect(d->palette, &TimelinePalette::backgroundColorChanged, this, &QQuickItem::update);
+        connect(d->palette, &TimelinePalette::foregroundColorChanged, this, &QQuickItem::update);
 
         d->startAnimation = new QVariantAnimation(this);
         d->startAnimation->setEasingCurve(QEasingCurve::OutCubic);
@@ -192,26 +202,12 @@ namespace sflow {
         Q_D(const TimelineQuickItem);
         return d->palette;
     }
-    void TimelineQuickItem::setPalette(TimelinePalette *palette) {
-        Q_D(TimelineQuickItem);
-        if (d->palette == palette)
-            return;
-        if (d->palette)
-            disconnect(d->palette, nullptr, this, nullptr);
-        d->palette = palette;
-        if (d->palette) {
-            connect(d->palette, &TimelinePalette::backgroundColorChanged, this, &QQuickItem::update);
-            connect(d->palette, &TimelinePalette::foregroundColorChanged, this, &QQuickItem::update);
-        }
-        emit paletteChanged(palette);
-        update();
-
-    }
     TimeAlignmentViewModel *TimelineQuickItem::timeAlignmentViewModel() const {
         Q_D(const TimelineQuickItem);
         return d->timeAlignmentViewModel;
     }
-    void TimelineQuickItem::setTimeAlignmentViewModel(TimeAlignmentViewModel *timeAlignmentViewModel) {
+    void TimelineQuickItem::setTimeAlignmentViewModel(
+        TimeAlignmentViewModel *timeAlignmentViewModel) {
         Q_D(TimelineQuickItem);
         if (d->timeAlignmentViewModel == timeAlignmentViewModel)
             return;
@@ -243,26 +239,39 @@ namespace sflow {
             connect(d->timeAlignmentViewModel, &TimeViewModel::cursorPositionChanged, this,
                     [=](int tick) { emit cursorIndicatorXChanged(d->tickToX(tick)); });
             connect(d->timeAlignmentViewModel, &TimeViewModel::timelineChanged, this, [=] {
-                connect(d->timeAlignmentViewModel->timeline(), &SVS::MusicTimeline::timeSignatureChanged, this, &QQuickItem::update);
+                connect(d->timeAlignmentViewModel->timeline(),
+                        &SVS::MusicTimeline::timeSignatureChanged, this, &QQuickItem::update);
             });
-            connect(d->timeAlignmentViewModel->timeline(), &SVS::MusicTimeline::timeSignatureChanged, this, &QQuickItem::update);
+            connect(d->timeAlignmentViewModel->timeline(),
+                    &SVS::MusicTimeline::timeSignatureChanged, this, &QQuickItem::update);
 
-            connect(d->startAnimation, &QVariantAnimation::valueChanged, d->timeAlignmentViewModel, [=](const QVariant &value) {
-                d->timeAlignmentViewModel->setStart(value.toDouble());
-            });
-            connect(d->pixelDensityAnimation, &QVariantAnimation::valueChanged, d->timeAlignmentViewModel, [=](const QVariant &value) {
-                auto [centerX, newPixelDensity] = value.toSizeF();
-                auto oldTick = d->xToTick(centerX);
-                auto newStart = std::max(0.0, d->timeAlignmentViewModel->start() + centerX / d->timeAlignmentViewModel->pixelDensity() - centerX / newPixelDensity);
-                d->timeAlignmentViewModel->setStart(newStart);
-                d->timeAlignmentViewModel->setPixelDensity(newPixelDensity);
-            });
+            connect(d->startAnimation, &QVariantAnimation::valueChanged, d->timeAlignmentViewModel,
+                    [=](const QVariant &value) {
+                        d->timeAlignmentViewModel->setStart(value.toDouble());
+                    });
+            connect(d->pixelDensityAnimation, &QVariantAnimation::valueChanged,
+                    d->timeAlignmentViewModel, [=](const QVariant &value) {
+                        auto [centerX, newPixelDensity] = value.toSizeF();
+                        d->handlePixelDensityAnimation(centerX, newPixelDensity);
+                    });
         }
         emit primaryIndicatorXChanged(primaryIndicatorX());
         emit secondaryIndicatorXChanged(secondaryIndicatorX());
         emit cursorIndicatorXChanged(cursorIndicatorX());
         emit timeAlignmentViewModelChanged();
         update();
+    }
+    WheelModifierViewModel *TimelineQuickItem::wheelModifierViewModel() const {
+        Q_D(const TimelineQuickItem);
+        return d->wheelModifierViewModel;
+    }
+    void TimelineQuickItem::setWheelModifierViewModel(WheelModifierViewModel *wheelModifierViewModel) {
+        Q_D(TimelineQuickItem);
+        if (d->wheelModifierViewModel != wheelModifierViewModel) {
+            d->wheelModifierViewModel = wheelModifierViewModel;
+            emit wheelModifierViewModelChanged(wheelModifierViewModel);
+        }
+
     }
     double TimelineQuickItem::primaryIndicatorX() const {
         Q_D(const TimelineQuickItem);
@@ -349,21 +358,6 @@ namespace sflow {
             d->startAnimation->start();
         }
     }
-    Qt::KeyboardModifier TimelineQuickItem::modifier(WheelAction action) const {
-        Q_D(const TimelineQuickItem);
-        if (!d->wheelModifierViewModel) {
-            switch (action) {
-                case AlternateAxis:
-                    return Qt::AltModifier;
-                case Zoom:
-                    return Qt::ControlModifier;
-                case Page:
-                    return Qt::ShiftModifier;
-            }
-        }
-        return d->wheelModifierViewModel->modifier(
-            static_cast<WheelModifierViewModel::WheelAction>(action));
-    }
     void TimelineQuickItem::zoomOnWheel(double ratio, double centerX, bool animated) {
         Q_D(TimelineQuickItem);
         if (!d->timeAlignmentViewModel)
@@ -379,6 +373,7 @@ namespace sflow {
             d->timeAlignmentViewModel->setStart(newStart);
             d->timeAlignmentViewModel->setPixelDensity(newPixelDensity);
         } else {
+            d->currentAnimationFixStartToZero = qFuzzyIsNull(d->timeAlignmentViewModel->start());
             d->pixelDensityAnimation->setStartValue(QSizeF(centerX, d->timeAlignmentViewModel->pixelDensity()));
             d->pixelDensityAnimation->setEndValue(QSizeF(centerX, newPixelDensity));
             d->pixelDensityAnimation->start();

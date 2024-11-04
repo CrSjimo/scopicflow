@@ -1,7 +1,10 @@
 import ScopicFlowPrivate
+
 import QtQml
 import QtQuick
 import QtQuick.Shapes
+
+import './HelperComponents'
 
 Timeline {
     id: timeline
@@ -59,7 +62,7 @@ Timeline {
     }
 
     MouseArea {
-        acceptedButtons: Qt.LeftButton | Qt.RightButton | Qt.MiddleButton
+        acceptedButtons: Qt.LeftButton | Qt.RightButton
         anchors.fill: parent
         drag.axis: Drag.XAxis
         drag.minimumX: timeline.zeroTickX - 8
@@ -79,13 +82,9 @@ Timeline {
         }
 
         property bool rejectContextMenu: false;
-        property double originalX: 0;
 
         onPressed: function (mouse) {
             rejectContextMenu = false;
-            if (pressedButtons & Qt.MiddleButton) {
-                originalX = mouse.x
-            }
         }
         onClicked: function (mouse) {
             if (mouse.button === Qt.LeftButton) {
@@ -135,10 +134,6 @@ Timeline {
                         selectionRect.x = alignedX
                     }
                 }
-            } else {
-                cursorShape = Qt.ClosedHandCursor
-                timeline.moveViewBy(originalX - mouse.x)
-                originalX = mouse.x
             }
         }
         onReleased: function() {
@@ -151,29 +146,23 @@ Timeline {
                 rejectContextMenu = true
             }
         }
-        onWheel: function (wheel) {
-            let isAxisRevert = wheel.modifiers & Qt.AltModifier
-            let isAlternateAxis = Boolean(wheel.modifiers & timeline.modifier(Timeline.AlternateAxis))
-            let isZoom = Boolean(wheel.modifiers & timeline.modifier(Timeline.Zoom))
-            let isPage = Boolean(wheel.modifiers & timeline.modifier(Timeline.Page))
+    }
 
-            let deltaPixelX = isAlternateAxis ? (isAxisRevert ? wheel.pixelDelta.x : wheel.pixelDelta.y) : (isAxisRevert ? wheel.pixelDelta.y : wheel.pixelDelta.x)
+    StandardScrollHandler {
+        anchors.fill: parent
+        viewModel: timeline.wheelModifierViewModel
+        onZoomed: function (ratioX, _, x, _, isPhysicalWheel) {
+            timeline.zoomOnWheel(ratioX, x, isPhysicalWheel)
+        }
+        onMoved: function (x, _, isPhysicalWheel) {
+            timeline.moveViewBy(x, isPhysicalWheel)
+        }
+    }
 
-            let deltaX = (isAlternateAxis ? (isAxisRevert ? wheel.angleDelta.x : wheel.angleDelta.y) : (isAxisRevert ? wheel.angleDelta.y : wheel.angleDelta.x)) / 120
-
-            if (!deltaX)
-                return
-
-            let wheelHint = !deltaPixelX && deltaX - Math.floor(deltaX) < Number.EPSILON
-
-            if (isZoom) {
-                timeline.zoomOnWheel(Math.pow(1 + (isPage ? 4 : 0.4) * Math.abs(deltaX), Math.sign(deltaX)), wheel.x, wheelHint)
-            } else {
-                if (!deltaPixelX)
-                    deltaPixelX = isPage ? Math.sign(deltaX) * timeline.width : 0.2 * deltaX * timeline.width
-                timeline.moveViewBy(-deltaPixelX, wheelHint)
-            }
-
+    MiddleKeyMoveHandler {
+        anchors.fill: parent
+        onMoved: function (x) {
+            timeline.moveViewBy(x)
         }
     }
 

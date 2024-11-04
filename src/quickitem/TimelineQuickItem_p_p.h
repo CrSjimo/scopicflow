@@ -37,6 +37,9 @@ namespace sflow {
 
         QVariantAnimation *startAnimation;
         QVariantAnimation *pixelDensityAnimation;
+        bool currentAnimationFixStartToZero = false;
+
+        void handlePixelDensityAnimation(double centerX, double newPixelDensity) const;
     };
 }
 

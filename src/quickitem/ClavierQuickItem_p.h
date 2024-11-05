@@ -2,13 +2,14 @@
 #define SCOPIC_FLOW_CLAVIERQUICKITEM_P_H
 
 #include <QQuickItem>
-#include <ScopicFlow/ScopicFlowGlobal.h>
+
+#include <ScopicFlow/WheelModifierViewModel.h>
 
 namespace sflow {
 
     class ClavierViewModel;
 
-    class SCOPIC_FLOW_EXPORT ClavierPalette : public QObject {
+    class ClavierPalette : public QObject {
         Q_OBJECT
         Q_PROPERTY(QColor whiteKeyBackgroundColor READ whiteKeyBackgroundColor WRITE setWhiteKeyBackgroundColor NOTIFY whiteKeyBackgroundColorChanged)
         Q_PROPERTY(QColor whiteKeyForegroundColor READ whiteKeyForegroundColor WRITE setWhiteKeyForegroundColor NOTIFY whiteKeyForegroundColorChanged)
@@ -62,6 +63,7 @@ namespace sflow {
         Q_OBJECT
         Q_DECLARE_PRIVATE(ClavierQuickItem)
         Q_PROPERTY(ClavierPalette *palette READ palette CONSTANT)
+        Q_PROPERTY(WheelModifierViewModel *wheelModifierViewModel READ wheelModifierViewModel NOTIFY wheelModifierViewModelChanged)
         Q_PROPERTY(double keyHeight READ keyHeight NOTIFY keyHeightChanged)
         Q_PROPERTY(double viewportY READ viewportY NOTIFY viewportYChanged)
         Q_PROPERTY(int cursorNoteIndex READ cursorNoteIndex NOTIFY cursorNoteIndexChanged)
@@ -76,6 +78,9 @@ namespace sflow {
         ClavierViewModel *clavierViewModel() const;
         void setClavierViewModel(ClavierViewModel *clavierViewModel);
 
+        WheelModifierViewModel *wheelModifierViewModel() const;
+        void setWheelModifierViewModel(WheelModifierViewModel *wheelModifierViewModel);
+
         double keyHeight() const;
         double viewportY() const;
         int cursorNoteIndex() const;
@@ -89,6 +94,8 @@ namespace sflow {
         LabelStrategy labelStrategy() const;
         void setLabelStrategy(LabelStrategy strategy);
 
+        int mapToKey(double y) const;
+
         QString dummyKeyName() const;
 
         Q_INVOKABLE void moveViewBy(double deltaY, bool isAnimated = false);
@@ -96,6 +103,7 @@ namespace sflow {
         Q_INVOKABLE QString keyName(int key) const;
 
     signals:
+        void wheelModifierViewModelChanged(WheelModifierViewModel *wheelModifierViewModel);
         void keyHeightChanged(double keyHeight);
         void viewportYChanged(double viewportY);
         void cursorNoteIndexChanged(int cursorNoteIndex);

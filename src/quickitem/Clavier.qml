@@ -23,6 +23,16 @@ Clavier {
         return indexInGroup === 1 || indexInGroup === 3 || indexInGroup === 6 || indexInGroup === 8 || indexInGroup === 10
     }
 
+    property int lastNoteIndex: -1
+
+    onCursorNoteIndexChanged: function (index) {
+        if (lastNoteIndex >= 0)
+            keyRepeater.itemAt(lastNoteIndex).isLabelVisible = false
+        if (index >= 0)
+            keyRepeater.itemAt(index).isLeftLabelVisible = true
+        lastNoteIndex = index
+    }
+
     Item {
         anchors.left: parent.left
         anchors.right: parent.right
@@ -30,6 +40,7 @@ Clavier {
         y: clavier.viewportY
 
         Repeater {
+            id: keyRepeater
             model: 128
             Rectangle {
                 required property int index

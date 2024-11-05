@@ -10,6 +10,7 @@ class QQuickItem;
 namespace sflow {
 
     class TimeAlignmentViewModel;
+    class WheelModifierViewModel;
 
     class TimelineQuickItem;
 
@@ -25,6 +26,12 @@ namespace sflow {
 
         TimeAlignmentViewModel *timeAlignmentViewModel() const;
         void setTimeAlignmentViewModel(TimeAlignmentViewModel *viewModel);
+
+        WheelModifierViewModel *wheelModifierViewModel() const;
+        void setWheelModifierViewModel(WheelModifierViewModel *viewModel);
+
+        int mapToTick(double x) const;
+        double mapToX(int tick) const;
 
     signals:
         void positionIndicatorDoubleClicked();

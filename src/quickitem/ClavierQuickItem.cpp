@@ -142,6 +142,17 @@ namespace sflow {
         emit cursorNoteIndexChanged(cursorNoteIndex());
         emit keyNameUpdated();
     }
+    WheelModifierViewModel *ClavierQuickItem::wheelModifierViewModel() const {
+        Q_D(const ClavierQuickItem);
+        return d->wheelModifierViewModel;
+    }
+    void ClavierQuickItem::setWheelModifierViewModel(WheelModifierViewModel *wheelModifierViewModel) {
+        Q_D(ClavierQuickItem);
+        if (d->wheelModifierViewModel != wheelModifierViewModel) {
+            d->wheelModifierViewModel = wheelModifierViewModel;
+            emit wheelModifierViewModelChanged(wheelModifierViewModel);
+        }
+    }
     double ClavierQuickItem::keyHeight() const {
         Q_D(const ClavierQuickItem);
         if (!d->clavierViewModel)
@@ -170,6 +181,10 @@ namespace sflow {
             d->labelStrategy = strategy;
             emit labelStrategyChanged(strategy);
         }
+    }
+    int ClavierQuickItem::mapToKey(double y) const {
+        Q_D(const ClavierQuickItem);
+        return 127 - static_cast<int>(std::floor((y - viewportY()) / keyHeight()));
     }
     QString ClavierQuickItem::dummyKeyName() const {
         return {};

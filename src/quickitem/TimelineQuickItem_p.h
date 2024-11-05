@@ -74,6 +74,9 @@ namespace sflow {
 
         double cursorIndicatorX() const;
 
+        int mapToTick(double x) const;
+        double mapToX(int tick) const;
+
         Q_INVOKABLE void handleContextMenuRequest(double x);
         Q_INVOKABLE double getAlignedX(double x) const;
         Q_INVOKABLE void setZoomedRange(double selectionX, double selectionWidth);

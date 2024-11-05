@@ -16,6 +16,8 @@ namespace sflow {
         setMinimumHeight(20);
         setLayout(layout);
 
+        setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Minimum);
+
         d = static_cast<TimelineQuickItem *>(wrapper.second);
         connect(d, &TimelineQuickItem::positionIndicatorDoubleClicked, this, &TimelineWidget::positionIndicatorDoubleClicked);
         connect(d, &TimelineQuickItem::contextMenuRequestedForTimeline, this, &TimelineWidget::contextMenuRequestedForTimeline);
@@ -29,6 +31,19 @@ namespace sflow {
     void TimelineWidget::setTimeAlignmentViewModel(TimeAlignmentViewModel *viewModel) {
         d->setTimeAlignmentViewModel(viewModel);
     }
+    WheelModifierViewModel *TimelineWidget::wheelModifierViewModel() const {
+        return d->wheelModifierViewModel();
+    }
+    void TimelineWidget::setWheelModifierViewModel(WheelModifierViewModel *viewModel) {
+        d->setWheelModifierViewModel(viewModel);
+    }
+    int TimelineWidget::mapToTick(double x) const {
+        return d->mapToTick(x);
+    }
+    double TimelineWidget::mapToX(int tick) const {
+        return d->mapToX(tick);
+    }
+
     QColor TimelineWidget::backgroundColor() const {
         return d->palette()->backgroundColor();
     }

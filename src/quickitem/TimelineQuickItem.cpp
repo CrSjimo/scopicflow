@@ -303,6 +303,14 @@ namespace sflow {
             return -1;
         return d->tickToX(d->timeAlignmentViewModel->cursorPosition());
     }
+    int TimelineQuickItem::mapToTick(double x) const {
+        Q_D(const TimelineQuickItem);
+        return d->xToTick(x);
+    }
+    double TimelineQuickItem::mapToX(int tick) const {
+        Q_D(const TimelineQuickItem);
+        return d->tickToX(tick);
+    }
     void TimelineQuickItem::handleContextMenuRequest(double x) {
         Q_D(TimelineQuickItem);
         emit contextMenuRequestedForTimeline(d->alignTick(d->xToTick(x)));

@@ -1,6 +1,8 @@
 #include "ClavierQuickItem_p.h"
 #include "ClavierQuickItem_p_p.h"
 
+#include <SVSCraftCore/musicpitch.h>
+
 #include <ScopicFlow/ClavierViewModel.h>
 
 namespace sflow {
@@ -126,6 +128,7 @@ namespace sflow {
                 emit viewportYChanged(viewportY());
             });
             connect(clavierViewModel, &ClavierViewModel::cursorPositionChanged, this, &ClavierQuickItem::cursorNoteIndexChanged);
+            connect(clavierViewModel, &ClavierViewModel::accidentalTypeChanged, this, &ClavierQuickItem::keyNameUpdated);
             connect(d->startAnimation, &QVariantAnimation::valueChanged, d->clavierViewModel, [=](const QVariant &value) {
                 d->clavierViewModel->setStart(value.toDouble());
             });
@@ -137,6 +140,7 @@ namespace sflow {
         emit keyHeightChanged(keyHeight());
         emit viewportYChanged(viewportY());
         emit cursorNoteIndexChanged(cursorNoteIndex());
+        emit keyNameUpdated();
     }
     double ClavierQuickItem::keyHeight() const {
         Q_D(const ClavierQuickItem);
@@ -167,6 +171,9 @@ namespace sflow {
             emit labelStrategyChanged(strategy);
         }
     }
+    QString ClavierQuickItem::dummyKeyName() const {
+        return {};
+    }
     void ClavierQuickItem::moveViewBy(double deltaY, bool isAnimated) {
         Q_D(ClavierQuickItem);
         if (!d->clavierViewModel)
@@ -190,19 +197,32 @@ namespace sflow {
             return;
         d->startAnimation->stop();
         d->pixelDensityAnimation->stop();
-        auto newPixelDensity = qBound(d->clavierViewModel->minimumPixelDensity(), d->clavierViewModel->pixelDensity() * ratio, d->clavierViewModel->maximumPixelDensity());
-        auto newStart = std::max(0.0, d->clavierViewModel->start() + centerY / d->clavierViewModel->pixelDensity() - centerY / newPixelDensity);
+        auto newPixelDensity = qBound(d->clavierViewModel->minimumPixelDensity(),
+                                      d->clavierViewModel->pixelDensity() * ratio,
+                                      d->clavierViewModel->maximumPixelDensity());
+        auto newStart = std::max(0.0, d->clavierViewModel->start() +
+                                          centerY / d->clavierViewModel->pixelDensity() -
+                                          centerY / newPixelDensity);
         newStart = std::min(newStart, 128 - height() / newPixelDensity);
         if (!animated) {
             d->clavierViewModel->setStart(newStart);
             d->clavierViewModel->setPixelDensity(newPixelDensity);
         } else {
             d->currentAnimationFixStartToZero = qFuzzyIsNull(d->clavierViewModel->start());
-            d->currentAnimationEnsureEnd = qFuzzyCompare(d->clavierViewModel->start(), 128 - height() / d->clavierViewModel->pixelDensity());
-            d->pixelDensityAnimation->setStartValue(QSizeF(centerY, d->clavierViewModel->pixelDensity()));
+            d->currentAnimationEnsureEnd = qFuzzyCompare(
+                d->clavierViewModel->start(), 128 - height() / d->clavierViewModel->pixelDensity());
+            d->pixelDensityAnimation->setStartValue(
+                QSizeF(centerY, d->clavierViewModel->pixelDensity()));
             d->pixelDensityAnimation->setEndValue(QSizeF(centerY, newPixelDensity));
             d->pixelDensityAnimation->start();
         }
+    }
+    QString ClavierQuickItem::keyName(int key) const {
+        Q_D(const ClavierQuickItem);
+        if (!d->clavierViewModel)
+            return {};
+        SVS::MusicPitch musicPitch(key);
+        return musicPitch.toString(static_cast<SVS::MusicPitch::Accidental>(d->clavierViewModel->accidentalType()));
     }
 
 }

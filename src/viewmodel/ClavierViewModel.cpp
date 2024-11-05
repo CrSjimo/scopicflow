@@ -1,7 +1,7 @@
 #include "ClavierViewModel.h"
 
 namespace sflow {
-    ClavierViewModel::ClavierViewModel(QObject *parent) : QObject(parent), m_start(0), m_pixelDensity(24), m_minimumPixelDensity(16), m_maximumPixelDensity(64), m_cursorPosition(-1) {
+    ClavierViewModel::ClavierViewModel(QObject *parent) : QObject(parent), m_start(0), m_pixelDensity(24), m_minimumPixelDensity(16), m_maximumPixelDensity(64), m_cursorPosition(-1), m_accidentalType(Flat) {
     }
     ClavierViewModel::~ClavierViewModel() = default;
     double ClavierViewModel::start() const {
@@ -47,6 +47,15 @@ namespace sflow {
         if (m_cursorPosition != cursorPosition) {
             m_cursorPosition = cursorPosition;
             emit cursorPositionChanged(cursorPosition);
+        }
+    }
+    ClavierViewModel::AccidentalType ClavierViewModel::accidentalType() const {
+        return m_accidentalType;
+    }
+    void ClavierViewModel::setAccidentalType(AccidentalType accidentalType) {
+        if (m_accidentalType != accidentalType) {
+            m_accidentalType = accidentalType;
+            emit accidentalTypeChanged(accidentalType);
         }
     }
 }

@@ -66,6 +66,7 @@ namespace sflow {
         Q_PROPERTY(double viewportY READ viewportY NOTIFY viewportYChanged)
         Q_PROPERTY(int cursorNoteIndex READ cursorNoteIndex NOTIFY cursorNoteIndexChanged)
         Q_PROPERTY(sflow::ClavierQuickItem::LabelStrategy labelStrategy READ labelStrategy NOTIFY labelStrategyChanged)
+        Q_PROPERTY(QString dummyKeyName READ dummyKeyName NOTIFY keyNameUpdated)
     public:
         explicit ClavierQuickItem(QQuickItem *parent = nullptr);
         ~ClavierQuickItem() override;
@@ -88,8 +89,11 @@ namespace sflow {
         LabelStrategy labelStrategy() const;
         void setLabelStrategy(LabelStrategy strategy);
 
+        QString dummyKeyName() const;
+
         Q_INVOKABLE void moveViewBy(double deltaY, bool isAnimated = false);
         Q_INVOKABLE void zoomOnWheel(double ratio, double centerY, bool animated = false);
+        Q_INVOKABLE QString keyName(int key) const;
 
     signals:
         void keyHeightChanged(double keyHeight);
@@ -98,6 +102,7 @@ namespace sflow {
         void labelStrategyChanged(sflow::ClavierQuickItem::LabelStrategy labelStrategy);
         void noteOn(int key);
         void noteOff(int key);
+        void keyNameUpdated();
 
     private:
         QScopedPointer<ClavierQuickItemPrivate> d_ptr;

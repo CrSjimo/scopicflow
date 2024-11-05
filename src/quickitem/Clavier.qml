@@ -23,10 +23,6 @@ Clavier {
         return indexInGroup === 1 || indexInGroup === 3 || indexInGroup === 6 || indexInGroup === 8 || indexInGroup === 10
     }
 
-    function keyName(key) {
-        return String(key) // TODO
-    }
-
     Item {
         anchors.left: parent.left
         anchors.right: parent.right
@@ -37,7 +33,7 @@ Clavier {
             model: 128
             Rectangle {
                 required property int index
-                readonly property string keyName: clavier.keyName(index)
+                readonly property string keyName: clavier.dummyKeyName + clavier.keyName(index)
                 readonly property bool isBlackKey: clavier.isBlackKey(index)
                 readonly property double textYOffset: (clavier.keyYFactor[index % 12] - index % 12 - 0.5) * clavier.keyHeight
                 property bool isLeftLabelVisible: false

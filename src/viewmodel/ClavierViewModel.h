@@ -28,12 +28,21 @@ namespace sflow {
         int cursorPosition() const;
         void setCursorPosition(int cursorPosition);
 
+        enum AccidentalType {
+            Flat,
+            Sharp,
+        };
+        Q_ENUM(AccidentalType)
+        AccidentalType accidentalType() const;
+        void setAccidentalType(AccidentalType accidentalType);
+
     signals:
         void startChanged(double start);
         void pixelDensityChanged(double pixelDensity);
         void maximumPixelDensityChanged(double maximumPixelDensity);
         void minimumPixelDensityChanged(double minimumPixelDensity);
         void cursorPositionChanged(int cursorPosition);
+        void accidentalTypeChanged(AccidentalType accidentalType);
 
     private:
         double m_start;
@@ -41,6 +50,7 @@ namespace sflow {
         double m_maximumPixelDensity;
         double m_minimumPixelDensity;
         int m_cursorPosition;
+        AccidentalType m_accidentalType;
     };
 
 } // sflow

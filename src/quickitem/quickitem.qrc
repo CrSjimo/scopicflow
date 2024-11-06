@@ -9,5 +9,6 @@
         <file>HelperComponents/FluentSystemIcon.qml</file>
         <file>HelperComponents/FluentSystemIconCharset.mjs</file>
         <file>HelperComponents/TrackListSlider.qml</file>
+        <file>HelperComponents/TrackListDial.qml</file>
     </qresource>
 </RCC>

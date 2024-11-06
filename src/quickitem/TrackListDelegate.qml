@@ -46,6 +46,8 @@ Item {
         property color levelHighColor: "#FF3333"
     }
 
+    property var animationViewModel: null
+
     Rectangle {
         anchors.fill: parent
         color: trackListDelegate.palette.backgroundColor
@@ -114,7 +116,19 @@ Item {
             }
 
             Row {
+                id: controlsSecondRow
                 spacing: 0
+                visible: opacity !== 0.0
+                NumberAnimation on opacity {
+                    id: controlsSecondRowAppear
+                    to: 1.0
+                    // duration: 250 * (trackListDelegate.animationViewModel?.visualEffectAnimationRatio ?? 1)
+                }
+                NumberAnimation on opacity {
+                    id: controlsSecondRowDisappear
+                    to: 0.0
+                    // duration: 250 * (trackListDelegate.animationViewModel?.visualEffectAnimationRatio ?? 1)
+                }
                 Row {
                     spacing: 4
                     FluentSystemIcon {
@@ -125,10 +139,10 @@ Item {
                     }
                     TrackListSlider {
                         id: gainSlider
-
                         foregroundColor: trackListDelegate.palette.foregroundColor
                         primaryColor: trackListDelegate.palette.primaryColor
                         backgroundColor: trackListDelegate.palette.backgroundColor
+                        animationRatio: trackListDelegate.animationViewModel?.visualEffectAnimationRatio ?? 1.0
                         height: 24
                         width: 144
                         from: decibelToLinearValue(-96)
@@ -151,9 +165,15 @@ Item {
                         font.pixelSize: 24
                         color: trackListDelegate.palette.foregroundColor
                     }
-                    Dial {
+                    TrackListDial {
+                        foregroundColor: trackListDelegate.palette.foregroundColor
+                        primaryColor: trackListDelegate.palette.primaryColor
+                        backgroundColor: trackListDelegate.palette.backgroundColor
                         height: 24
                         width: 24
+                        from: -1.0
+                        to: 1.0
+                        defaultValue: 0
                     }
                 }
             }
@@ -162,5 +182,18 @@ Item {
 
     }
 
+    onHeightChanged: {
+        if (height < 80) {
+            controlsSecondRowAppear.stop()
+            if (!controlsSecondRowDisappear.running && controlsSecondRow.opacity !== 0.0) {
+                controlsSecondRowDisappear.start()
+            }
+        } else {
+            controlsSecondRowDisappear.stop()
+            if (!controlsSecondRowAppear.running && controlsSecondRow.opacity !== 1.0) {
+                controlsSecondRowAppear.start()
+            }
+        }
+    }
 
 }

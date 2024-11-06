@@ -7,6 +7,9 @@ using namespace sflow;
 
 int main(int argc, char *argv[]) {
     QGuiApplication a(argc, argv);
+    auto format = QSurfaceFormat::defaultFormat();
+    format.setSamples(8);
+    QSurfaceFormat::setDefaultFormat(format);
 
     TimeAlignmentViewModel viewModel;
 

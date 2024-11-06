@@ -8,6 +8,7 @@ Slider {
     required property color foregroundColor
     required property color backgroundColor
     required property color primaryColor
+    property double animationRatio: 1
 
     background: Rectangle {
         x: slider.leftPadding
@@ -30,40 +31,62 @@ Slider {
         }
     }
 
-    handle: Rectangle {
-        x: slider.leftPadding + slider.visualPosition * (slider.availableWidth - width)
-        y: slider.topPadding + slider.availableHeight / 2 - height / 2
-        implicitWidth: 14
-        implicitHeight: 14
-        radius: 7
-        color: slider.backgroundColor
-
+    handle: Item {
         Rectangle {
-            anchors.fill: parent
-            radius: parent.radius
-            color: slider.foregroundColor
-            opacity: slider.pressed ? 0.5 : 1.0
-        }
-
-        MouseArea {
-            anchors.fill: parent
-
-            Timer {
-                id: timer
-                interval: 250
+            x: slider.leftPadding + slider.visualPosition * (slider.availableWidth) - width / 2
+            y: slider.topPadding + slider.availableHeight / 2 - height / 2
+            property color pressedColor: Qt.rgba(slider.foregroundColor.r * 0.5 + slider.backgroundColor.r * 0.5, slider.foregroundColor.g * 0.5 + slider.backgroundColor.g * 0.5, slider.foregroundColor.b * 0.5 + slider.backgroundColor.b * 0.5, slider.foregroundColor.a * 0.5 + slider.backgroundColor.a * 0.5)
+            property double handleSize: 12
+            width: handleSize
+            height: handleSize
+            radius: handleSize / 2
+            NumberAnimation on handleSize {
+                id: hoverEnterAnimation
+                from: 12
+                to: 16
+                easing.type: Easing.OutCubic
+                duration: 250 * slider.animationRatio
+            }
+            NumberAnimation on handleSize {
+                id: hoverExitAnimation
+                from: 16
+                to: 12
+                easing.type: Easing.OutCubic
+                duration: 250 * slider.animationRatio
             }
 
-            onPressed: function (mouse) {
-                if (timer.running) {
-                    timer.stop()
-                    slider.value = slider.defaultValue
-                    mouse.accepted = true
-                } else {
-                    timer.start()
-                    mouse.accepted = false
+            color: slider.pressed ? pressedColor : slider.foregroundColor
+
+            MouseArea {
+                anchors.fill: parent
+
+                Timer {
+                    id: timer
+                    interval: 250
                 }
 
+                onPressed: function (mouse) {
+                    if (timer.running) {
+                        timer.stop()
+                        slider.value = slider.defaultValue
+                        mouse.accepted = true
+                    } else {
+                        timer.start()
+                        mouse.accepted = false
+                    }
+
+                }
             }
+        }
+    }
+
+    onHoveredChanged: {
+        hoverEnterAnimation.stop()
+        hoverExitAnimation.stop()
+        if (hovered) {
+            hoverEnterAnimation.start()
+        } else {
+            hoverExitAnimation.start()
         }
     }
 }

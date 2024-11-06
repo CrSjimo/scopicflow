@@ -3,6 +3,7 @@
         <file>Timeline.qml</file>
         <file>Clavier.qml</file>
         <file>TrackListDelegate.qml</file>
+        <file>LevelMeter.qml</file>
         <file>HelperComponents/MiddleKeyMoveHandler.qml</file>
         <file>HelperComponents/StandardScrollHandler.qml</file>
         <file>HelperComponents/TrackListButton.qml</file>

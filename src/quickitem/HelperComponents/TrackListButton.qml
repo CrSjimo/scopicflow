@@ -3,7 +3,7 @@ import QtQuick.Controls.Basic
 
 Button {
     id: button
-    required property color checkedColor
+    property color checkedColor
     required property color foregroundColor
     required property color borderColor
     property string toolTip: ""
@@ -29,7 +29,8 @@ Button {
     }
 
     ToolTip.text: toolTip
-    ToolTip.visible: hovered
+    Accessible.description: toolTip
+    ToolTip.visible: toolTip.length && hovered
     ToolTip.delay: 1000
     ToolTip.timeout: 5000
 

@@ -8,6 +8,7 @@ Dial {
     required property color backgroundColor
     required property color primaryColor
     property double defaultValue: from
+    property string toolTip: ""
 
     background: Rectangle {
         property color normalColor: Qt.rgba(control.foregroundColor.r * 0.5 + control.backgroundColor.r * 0.5, control.foregroundColor.g * 0.5 + control.backgroundColor.g * 0.5, control.foregroundColor.b * 0.5 + control.backgroundColor.b * 0.5, control.foregroundColor.a * 0.5 + control.backgroundColor.a * 0.5)
@@ -64,6 +65,7 @@ Dial {
 
     MouseArea {
         anchors.fill: parent
+        cursorShape: Qt.SizeHorCursor
 
         Timer {
             id: timer
@@ -82,4 +84,12 @@ Dial {
 
         }
     }
+
+    ToolTip.text: toolTip
+    Accessible.description: toolTip
+    ToolTip.visible: toolTip.length && hovered
+    ToolTip.delay: 1000
+    ToolTip.timeout: 5000
+
+    inputMode: Dial.Horizontal
 }

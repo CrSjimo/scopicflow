@@ -2,7 +2,9 @@ import QtQml
 import QtQuick
 import QtQuick.Controls.Basic
 
+import './'
 import './HelperComponents'
+import './HelperComponents/FluentSystemIconCharset.mjs' as Charset
 
 Item {
 
@@ -44,6 +46,8 @@ Item {
         property color levelLowColor: "#33CC33"
         property color levelMiddleColor: "#FFCC33"
         property color levelHighColor: "#FF3333"
+        property color levelBackgroundColor: "#222222"
+        property color levelBorderColor: "#000000"
     }
 
     property var animationViewModel: null
@@ -69,9 +73,35 @@ Item {
             id: trackNumberLabel
             anchors.left: selectionIndicator.right
             anchors.leftMargin: 4
-            anchors.verticalCenter: parent.verticalCenter
+            anchors.verticalCenter: parent.top
+            anchors.verticalCenterOffset: 20
             text: trackListDelegate.trackNumber
             color: trackListDelegate.selected ? trackListDelegate.palette.primaryColor : trackListDelegate.palette.foregroundColor
+        }
+
+        TrackListButton {
+            id: fitHeightButton
+            width: 16
+            height: 16
+            borderColor: trackListDelegate.palette.borderColor; foregroundColor: trackListDelegate.palette.foregroundColor
+            anchors.left: selectionIndicator.right
+            anchors.leftMargin: 18
+            anchors.bottom: parent.bottom
+            anchors.bottomMargin: 8
+            checkable: false
+            opacity: hovered ? 1.0 : 0.0
+            visible: trackListDelegate.height !== 80
+            rotation: trackListDelegate.height > 80 ? 0 : 180
+            contentItem: FluentSystemIcon {
+                icon: 'chevron_up_20_filled'
+                color: trackListDelegate.palette.foregroundColor
+                horizontalAlignment: Text.AlignHCenter
+                verticalAlignment: Text.AlignVCenter
+            }
+            onClicked: {
+                trackListDelegate.height = 80
+            }
+            toolTip: "Fit height"
         }
 
         Column {
@@ -144,10 +174,11 @@ Item {
                         backgroundColor: trackListDelegate.palette.backgroundColor
                         animationRatio: trackListDelegate.animationViewModel?.visualEffectAnimationRatio ?? 1.0
                         height: 24
-                        width: 144
+                        width: trackListDelegate. width - 256
                         from: decibelToLinearValue(-96)
                         to: decibelToLinearValue(6)
                         defaultValue: decibelToLinearValue(0)
+                        toolTip: qsTr("Gain")
 
                     }
                     Text {
@@ -158,7 +189,7 @@ Item {
                     }
                 }
                 Row {
-                    spacing: 4
+                    spacing: 8
                     FluentSystemIcon {
                         height: 24
                         icon: 'live_20_regular'
@@ -166,6 +197,7 @@ Item {
                         color: trackListDelegate.palette.foregroundColor
                     }
                     TrackListDial {
+                        id: panDial
                         foregroundColor: trackListDelegate.palette.foregroundColor
                         primaryColor: trackListDelegate.palette.primaryColor
                         backgroundColor: trackListDelegate.palette.backgroundColor
@@ -174,10 +206,66 @@ Item {
                         from: -1.0
                         to: 1.0
                         defaultValue: 0
+                        toolTip: qsTr("Pan")
+                    }
+                    Text {
+                        anchors.verticalCenter: panDial.verticalCenter
+                        width: 64
+                        text: Math.round(panDial.value * 100)
+                        color: trackListDelegate.palette.foregroundColor
                     }
                 }
             }
 
+        }
+
+        Rectangle {
+            anchors.top: parent.top
+            anchors.bottom: parent.bottom
+            anchors.right: parent.right
+            anchors.margins: 4
+            color: trackListDelegate.palette.levelBackgroundColor
+            width: 14
+            radius: 2
+            Row {
+                id: levelMeterRow
+                anchors.top: parent.top
+                anchors.bottom: parent.bottom
+                anchors.right: parent.right
+                anchors.margins: 2
+                spacing: 2
+                LevelMeter {
+                    id: leftChannelLevelMeter
+                    anchors.top: parent.top
+                    anchors.bottom: parent.bottom
+                    lowColor: trackListDelegate.palette.levelLowColor
+                    middleColor: trackListDelegate.palette.levelMiddleColor
+                    highColor: trackListDelegate.palette.levelHighColor
+                    backgroundColor: trackListDelegate.palette.levelBackgroundColor
+                    borderColor: trackListDelegate.palette.levelBorderColor
+                    value: trackListDelegate.leftLevel
+                }
+
+                LevelMeter {
+                    id: rightChannelLevelMeter
+                    anchors.top: parent.top
+                    anchors.bottom: parent.bottom
+                    lowColor: trackListDelegate.palette.levelLowColor
+                    middleColor: trackListDelegate.palette.levelMiddleColor
+                    highColor: trackListDelegate.palette.levelHighColor
+                    backgroundColor: trackListDelegate.palette.levelBackgroundColor
+                    borderColor: trackListDelegate.palette.levelBorderColor
+                    value: trackListDelegate.rightLevel
+                }
+
+            }
+            MouseArea {
+                anchors.fill: parent
+                onClicked: {
+                    leftChannelLevelMeter.clipping = false
+                    rightChannelLevelMeter.clipping = false
+                }
+            }
         }
 
     }

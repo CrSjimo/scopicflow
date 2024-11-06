@@ -9,6 +9,7 @@ Slider {
     required property color backgroundColor
     required property color primaryColor
     property double animationRatio: 1
+    property string toolTip: ""
 
     background: Rectangle {
         x: slider.leftPadding
@@ -89,4 +90,10 @@ Slider {
             hoverExitAnimation.start()
         }
     }
+
+    ToolTip.text: toolTip
+    Accessible.description: toolTip
+    ToolTip.visible: toolTip.length && hovered
+    ToolTip.delay: 1000
+    ToolTip.timeout: 5000
 }

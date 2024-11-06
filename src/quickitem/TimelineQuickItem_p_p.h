@@ -17,6 +17,7 @@ namespace sflow {
 
         TimelinePalette *palette = nullptr;
         TimeAlignmentViewModel *timeAlignmentViewModel = nullptr;
+        PlaybackViewModel *playbackViewModel = nullptr;
         WheelModifierViewModel *wheelModifierViewModel = nullptr;
 
         QTextLayout *createTextLayoutForBarNumber(int bar);

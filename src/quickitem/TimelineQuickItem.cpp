@@ -10,7 +10,7 @@
 #include <SVSCraftCore/musictimeline.h>
 
 #include <ScopicFlow/TimeAlignmentViewModel.h>
-#include <ScopicFlow/WheelModifierViewModel.h>
+#include <ScopicFlow/PlaybackViewModel.h>
 
 namespace sflow {
 
@@ -206,8 +206,7 @@ namespace sflow {
         Q_D(const TimelineQuickItem);
         return d->timeAlignmentViewModel;
     }
-    void TimelineQuickItem::setTimeAlignmentViewModel(
-        TimeAlignmentViewModel *timeAlignmentViewModel) {
+    void TimelineQuickItem::setTimeAlignmentViewModel(TimeAlignmentViewModel *timeAlignmentViewModel) {
         Q_D(TimelineQuickItem);
         if (d->timeAlignmentViewModel == timeAlignmentViewModel)
             return;
@@ -232,34 +231,38 @@ namespace sflow {
                 emit cursorIndicatorXChanged(cursorIndicatorX());
                 update();
             });
-            connect(d->timeAlignmentViewModel, &TimeViewModel::primaryPositionChanged, this,
-                    [=](int tick) { emit primaryIndicatorXChanged(d->tickToX(tick)); });
-            connect(d->timeAlignmentViewModel, &TimeViewModel::secondaryPositionChanged, this,
-                    [=](int tick) { emit secondaryIndicatorXChanged(d->tickToX(tick)); });
-            connect(d->timeAlignmentViewModel, &TimeViewModel::cursorPositionChanged, this,
-                    [=](int tick) { emit cursorIndicatorXChanged(d->tickToX(tick)); });
-            connect(d->timeAlignmentViewModel, &TimeViewModel::timelineChanged, this, [=] {
-                connect(d->timeAlignmentViewModel->timeline(),
-                        &SVS::MusicTimeline::timeSignatureChanged, this, &QQuickItem::update);
-            });
-            connect(d->timeAlignmentViewModel->timeline(),
-                    &SVS::MusicTimeline::timeSignatureChanged, this, &QQuickItem::update);
+            connect(d->timeAlignmentViewModel, &TimeViewModel::cursorPositionChanged, this, [=](int tick) { emit cursorIndicatorXChanged(d->tickToX(tick)); });
+            connect(d->timeAlignmentViewModel, &TimeViewModel::timelineChanged, this, [=] { connect(d->timeAlignmentViewModel->timeline(), &SVS::MusicTimeline::timeSignatureChanged, this, &QQuickItem::update); });
+            connect(d->timeAlignmentViewModel->timeline(), &SVS::MusicTimeline::timeSignatureChanged, this, &QQuickItem::update);
 
-            connect(d->startAnimation, &QVariantAnimation::valueChanged, d->timeAlignmentViewModel,
-                    [=](const QVariant &value) {
-                        d->timeAlignmentViewModel->setStart(value.toDouble());
-                    });
-            connect(d->pixelDensityAnimation, &QVariantAnimation::valueChanged,
-                    d->timeAlignmentViewModel, [=](const QVariant &value) {
-                        auto [centerX, newPixelDensity] = value.toSizeF();
-                        d->handlePixelDensityAnimation(centerX, newPixelDensity);
-                    });
+            connect(d->startAnimation, &QVariantAnimation::valueChanged, d->timeAlignmentViewModel, [=](const QVariant &value) { d->timeAlignmentViewModel->setStart(value.toDouble()); });
+            connect(d->pixelDensityAnimation, &QVariantAnimation::valueChanged, d->timeAlignmentViewModel, [=](const QVariant &value) {
+                auto [centerX, newPixelDensity] = value.toSizeF();
+                d->handlePixelDensityAnimation(centerX, newPixelDensity);
+            });
         }
-        emit primaryIndicatorXChanged(primaryIndicatorX());
-        emit secondaryIndicatorXChanged(secondaryIndicatorX());
         emit cursorIndicatorXChanged(cursorIndicatorX());
         emit timeAlignmentViewModelChanged();
         update();
+    }
+    PlaybackViewModel *TimelineQuickItem::playbackViewModel() const {
+        Q_D(const TimelineQuickItem);
+        return d->playbackViewModel;
+    }
+    void TimelineQuickItem::setPlaybackViewModel(PlaybackViewModel *playbackViewModel) {
+        Q_D(TimelineQuickItem);
+        if (d->playbackViewModel == playbackViewModel)
+            return;
+        if (d->playbackViewModel) {
+            disconnect(d->playbackViewModel, nullptr, this, nullptr);
+        }
+        d->playbackViewModel = playbackViewModel;
+        if (d->playbackViewModel) {
+            connect(d->playbackViewModel, &PlaybackViewModel::primaryPositionChanged, this, [=](int tick) { emit primaryIndicatorXChanged(d->tickToX(tick)); });
+            connect(d->playbackViewModel, &PlaybackViewModel::secondaryPositionChanged, this, [=](int tick) { emit secondaryIndicatorXChanged(d->tickToX(tick)); });
+        }
+        emit primaryIndicatorXChanged(primaryIndicatorX());
+        emit secondaryIndicatorXChanged(secondaryIndicatorX());
     }
     WheelModifierViewModel *TimelineQuickItem::wheelModifierViewModel() const {
         Q_D(const TimelineQuickItem);
@@ -275,27 +278,27 @@ namespace sflow {
     }
     double TimelineQuickItem::primaryIndicatorX() const {
         Q_D(const TimelineQuickItem);
-        if (!d->timeAlignmentViewModel)
+        if (!d->playbackViewModel)
             return 0;
-        return d->tickToX(d->timeAlignmentViewModel->primaryPosition());
+        return d->tickToX(d->playbackViewModel->primaryPosition());
     }
     void TimelineQuickItem::setPrimaryIndicatorX(double primaryIndicatorX) {
         Q_D(TimelineQuickItem);
-        if (!d->timeAlignmentViewModel)
+        if (!d->timeAlignmentViewModel || !d->playbackViewModel)
             return;
         int tick = d->alignTick(std::max(0, d->xToTick(primaryIndicatorX)));
         if (d->tickToX(tick) < 0)
             tick += d->timeAlignmentViewModel->positionAlignment();
         else if (d->tickToX(tick) > width())
             tick -= d->timeAlignmentViewModel->positionAlignment();
-        d->timeAlignmentViewModel->setPrimaryPosition(tick);
-        d->timeAlignmentViewModel->setSecondaryPosition(tick);
+        d->playbackViewModel->setPrimaryPosition(tick);
+        d->playbackViewModel->setSecondaryPosition(tick);
     }
     double TimelineQuickItem::secondaryIndicatorX() const {
         Q_D(const TimelineQuickItem);
-        if (!d->timeAlignmentViewModel)
+        if (!d->playbackViewModel)
             return 0;
-        return d->tickToX(d->timeAlignmentViewModel->secondaryPosition());
+        return d->tickToX(d->playbackViewModel->secondaryPosition());
     }
     double TimelineQuickItem::cursorIndicatorX() const {
         Q_D(const TimelineQuickItem);
@@ -334,17 +337,17 @@ namespace sflow {
     }
     void TimelineQuickItem::moveViewOnDraggingPositionIndicator(double deltaX) {
         Q_D(TimelineQuickItem);
-        if (!d->timeAlignmentViewModel)
+        if (!d->playbackViewModel)
             return;
         moveViewBy(deltaX);
         if (deltaX < 0) {
             int tick = d->alignTickCeil(std::max(0, d->xToTick(0)));
-            d->timeAlignmentViewModel->setPrimaryPosition(tick);
-            d->timeAlignmentViewModel->setSecondaryPosition(tick);
+            d->playbackViewModel->setPrimaryPosition(tick);
+            d->playbackViewModel->setSecondaryPosition(tick);
         } else {
             int tick = d->alignTickFloor(std::max(0, d->xToTick(width())));
-            d->timeAlignmentViewModel->setPrimaryPosition(tick);
-            d->timeAlignmentViewModel->setSecondaryPosition(tick);
+            d->playbackViewModel->setPrimaryPosition(tick);
+            d->playbackViewModel->setSecondaryPosition(tick);
         }
     }
     void TimelineQuickItem::moveViewBy(double deltaX, bool animated) {

@@ -18,6 +18,7 @@
 
 #include <ScopicFlow/TimeAlignmentViewModel.h>
 #include <ScopicFlow/TimelineWidget.h>
+#include <ScopicFlow/PlaybackViewModel.h>
 
 using namespace sflow;
 
@@ -65,17 +66,23 @@ int main(int argc, char *argv[]) {
     timeViewModel->setPositionAlignment(240);
     timeViewModel->timeline()->setTimeSignature(3, {6, 8});
 
+    auto playbackViewModel = new PlaybackViewModel;
+
     timelineWidget->setTimeAlignmentViewModel(timeViewModel);
+    timelineWidget->setPlaybackViewModel(playbackViewModel);
 
     auto groupLayout = new QVBoxLayout;
     groupLayout->setContentsMargins(0, 0, 0, 0);
     for (int i = 0; i < 16; i++) {
+        auto anotherTimeViewModel = new TimeAlignmentViewModel;
+        anotherTimeViewModel->setTimeline(timeViewModel->timeline());
         auto anotherTimelineWidget = new TimelineWidget;
         groupLayout->addWidget(anotherTimelineWidget);
 
         anotherTimelineWidget->setProperty("positionIndicatorColor", QColor(Qt::magenta));
         anotherTimelineWidget->setProperty("backgroundColor", QColor(Qt::darkBlue));
-        anotherTimelineWidget->setTimeAlignmentViewModel(timeViewModel);
+        anotherTimelineWidget->setTimeAlignmentViewModel(anotherTimeViewModel);
+        anotherTimelineWidget->setPlaybackViewModel(playbackViewModel);
     }
     mainLayout->addLayout(groupLayout);
 
@@ -119,10 +126,10 @@ int main(int argc, char *argv[]) {
         QSignalBlocker o(pixelDensitySpinBox);
         pixelDensitySpinBox->setValue(value);
     });
-    QObject::connect(primaryPositionSpinBox, &QSpinBox::valueChanged, timeViewModel, &TimeViewModel::setPrimaryPosition);
-    QObject::connect(timeViewModel, &TimeViewModel::primaryPositionChanged, primaryPositionSpinBox, &QSpinBox::setValue);
-    QObject::connect(secondaryPositionSpinBox, &QSpinBox::valueChanged, timeViewModel, &TimeViewModel::setSecondaryPosition);
-    QObject::connect(timeViewModel, &TimeViewModel::secondaryPositionChanged, secondaryPositionSpinBox, &QSpinBox::setValue);
+    QObject::connect(primaryPositionSpinBox, &QSpinBox::valueChanged, playbackViewModel, &PlaybackViewModel::setPrimaryPosition);
+    QObject::connect(playbackViewModel, &PlaybackViewModel::primaryPositionChanged, primaryPositionSpinBox, &QSpinBox::setValue);
+    QObject::connect(secondaryPositionSpinBox, &QSpinBox::valueChanged, playbackViewModel, &PlaybackViewModel::setSecondaryPosition);
+    QObject::connect(playbackViewModel, &PlaybackViewModel::secondaryPositionChanged, secondaryPositionSpinBox, &QSpinBox::setValue);
     QObject::connect(positionAlignmentSpinBox, &QSpinBox::valueChanged, timeViewModel, &TimeAlignmentViewModel::setPositionAlignment);
     QObject::connect(timeViewModel, &TimeAlignmentViewModel::positionAlignmentChanged, positionAlignmentSpinBox, &QSpinBox::setValue);
 
@@ -144,12 +151,12 @@ int main(int argc, char *argv[]) {
         });
         menu.addSeparator();
         menu.addAction(QString("Position to %1").arg(musicTime.toString()), [=] {
-            timeViewModel->setPrimaryPosition(tick);
-            timeViewModel->setSecondaryPosition(tick);
+            playbackViewModel->setPrimaryPosition(tick);
+            playbackViewModel->setSecondaryPosition(tick);
         });
         menu.addAction(QString("Position to %1 and play").arg(musicTime.toString()), [=] {
-            timeViewModel->setPrimaryPosition(tick);
-            timeViewModel->setSecondaryPosition(tick);
+            playbackViewModel->setPrimaryPosition(tick);
+            playbackViewModel->setSecondaryPosition(tick);
             qDebug() << "Play";
         });
         removeAction->setEnabled(musicTime.measure() && timeViewModel->timeline()->nearestTimeSignatureTo(musicTime.measure()) == musicTime.measure());

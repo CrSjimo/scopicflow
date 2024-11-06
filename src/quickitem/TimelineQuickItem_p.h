@@ -8,6 +8,7 @@
 namespace sflow {
 
     class TimeAlignmentViewModel;
+    class PlaybackViewModel;
 
     class TimelinePalette : public QObject {
         Q_OBJECT
@@ -64,6 +65,9 @@ namespace sflow {
         TimeAlignmentViewModel *timeAlignmentViewModel() const;
         void setTimeAlignmentViewModel(TimeAlignmentViewModel *timeAlignmentViewModel);
 
+        PlaybackViewModel *playbackViewModel() const;
+        void setPlaybackViewModel(PlaybackViewModel *playbackViewModel);
+
         WheelModifierViewModel *wheelModifierViewModel() const;
         void setWheelModifierViewModel(WheelModifierViewModel *wheelModifierViewModel);
 
@@ -85,7 +89,6 @@ namespace sflow {
         Q_INVOKABLE void zoomOnWheel(double ratio, double centerX, bool animated = false);
 
     signals:
-        void timeViewModelChanged();
         void timeAlignmentViewModelChanged();
         void primaryIndicatorXChanged(double x);
         void secondaryIndicatorXChanged(double x);

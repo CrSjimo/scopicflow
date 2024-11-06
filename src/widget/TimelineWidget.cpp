@@ -31,6 +31,12 @@ namespace sflow {
     void TimelineWidget::setTimeAlignmentViewModel(TimeAlignmentViewModel *viewModel) {
         d->setTimeAlignmentViewModel(viewModel);
     }
+    PlaybackViewModel *TimelineWidget::playbackViewModel() const {
+        return d->playbackViewModel();
+    }
+    void TimelineWidget::setPlaybackViewModel(PlaybackViewModel *viewModel) {
+        d->setPlaybackViewModel(viewModel);
+    }
     WheelModifierViewModel *TimelineWidget::wheelModifierViewModel() const {
         return d->wheelModifierViewModel();
     }

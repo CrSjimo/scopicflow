@@ -2,7 +2,12 @@
     <qresource prefix="/ScopicFlow/private">
         <file>Timeline.qml</file>
         <file>Clavier.qml</file>
+        <file>TrackListDelegate.qml</file>
         <file>HelperComponents/MiddleKeyMoveHandler.qml</file>
         <file>HelperComponents/StandardScrollHandler.qml</file>
+        <file>HelperComponents/TrackListButton.qml</file>
+        <file>HelperComponents/FluentSystemIcon.qml</file>
+        <file>HelperComponents/FluentSystemIconCharset.mjs</file>
+        <file>HelperComponents/TrackListSlider.qml</file>
     </qresource>
 </RCC>

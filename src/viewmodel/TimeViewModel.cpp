@@ -24,8 +24,6 @@ namespace sflow {
     m_maximumPixelDensity(2.0),
     m_minimumPixelDensity(1.0 / 256.0),
     m_timeline(nullptr),
-    m_primaryPosition(0),
-    m_secondaryPosition(0),
     m_cursorPosition(-1) {
 
 
@@ -76,24 +74,6 @@ namespace sflow {
         if(!qFuzzyCompare(m_minimumPixelDensity, minimumPixelDensity)) {
             m_minimumPixelDensity = minimumPixelDensity;
             emit minimumPixelDensityChanged(minimumPixelDensity);
-        }
-    }
-    int TimeViewModel::primaryPosition() const {
-        return m_primaryPosition;
-    }
-    void TimeViewModel::setPrimaryPosition(int primaryPosition) {
-        if (m_primaryPosition != primaryPosition) {
-            m_primaryPosition = primaryPosition;
-            emit primaryPositionChanged(primaryPosition);
-        }
-    }
-    int TimeViewModel::secondaryPosition() const {
-        return m_secondaryPosition;
-    }
-    void TimeViewModel::setSecondaryPosition(int secondaryPosition) {
-        if (m_secondaryPosition != secondaryPosition) {
-            m_secondaryPosition = secondaryPosition;
-            emit secondaryPositionChanged(secondaryPosition);
         }
     }
     int TimeViewModel::cursorPosition() const {

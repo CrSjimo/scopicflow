@@ -11,6 +11,7 @@
 #include <ScopicFlow/ClavierViewModel.h>
 #include <ScopicFlow/TimeAlignmentViewModel.h>
 #include <ScopicFlow/WheelModifierViewModel.h>
+#include <ScopicFlow/PlaybackViewModel.h>
 
 using namespace sflow;
 
@@ -34,6 +35,9 @@ int main(int argc, char *argv[]) {
     timeViewModel.setTimeline(&musicTimeline);
 
     timeline->setTimeAlignmentViewModel(&timeViewModel);
+
+    PlaybackViewModel playbackViewModel;
+    timeline->setPlaybackViewModel(&playbackViewModel);
 
     ClavierViewModel clavierViewModel;
     clavier->setClavierViewModel(&clavierViewModel);

@@ -32,12 +32,6 @@ namespace sflow {
         double minimumPixelDensity() const;
         void setMinimumPixelDensity(double minimumPixelDensity);
 
-        int primaryPosition() const;
-        void setPrimaryPosition(int primaryPosition);
-
-        int secondaryPosition() const;
-        void setSecondaryPosition(int secondaryPosition);
-
         int cursorPosition() const;
         void setCursorPosition(int cursorPosition);
 
@@ -50,8 +44,6 @@ namespace sflow {
         void pixelDensityChanged(double pixelDensity);
         void maximumPixelDensityChanged(double maximumPixelDensity);
         void minimumPixelDensityChanged(double minimumPixelDensity);
-        void primaryPositionChanged(int primaryPosition);
-        void secondaryPositionChanged(int secondaryPosition);
         void cursorPositionChanged(int cursorPosition);
         void timelineChanged();
 
@@ -61,8 +53,6 @@ namespace sflow {
         double m_pixelDensity;
         double m_maximumPixelDensity;
         double m_minimumPixelDensity;
-        int m_primaryPosition;
-        int m_secondaryPosition;
         int m_cursorPosition;
         SVS::MusicTimeline *m_timeline;
     };

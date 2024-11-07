@@ -23,16 +23,18 @@ Item {
 
     property bool mute: muteButton.checked
     property bool solo: soloButton.checked
-    property bool recordReady: recordReadyButton.checked
+    property bool record: recordButton.checked
 
-    property double gain: 0
-    property double pan: 0
-    property bool intermediate: false
+    property double gain: linearValueToDecibel(gainSlider.value)
+    property double pan: panDial.value
+    property bool intermediate: gainSlider.pressed || panDial.pressed
 
     property bool selected: false
 
     property double leftLevel: 0
     property double rightLevel: 0
+
+    property bool isCurrent: false
 
     readonly property var palette: Item {
         property color backgroundColor: "#333333"
@@ -42,7 +44,7 @@ Item {
 
         property color muteColor: "#CC6600"
         property color soloColor: "#00CC00"
-        property color recordReadyColor: "#CC3333"
+        property color recordColor: "#CC3333"
 
         property color levelLowColor: "#33CC33"
         property color levelMiddleColor: "#FFCC33"
@@ -132,10 +134,10 @@ Item {
                         toolTip: qsTr("Solo")
                     }
                     TrackListButton {
-                        id: recordReadyButton
-                        checkedColor: trackListDelegate.palette.recordReadyColor; borderColor: trackListDelegate.palette.borderColor; foregroundColor: trackListDelegate.palette.foregroundColor
+                        id: recordButton
+                        checkedColor: trackListDelegate.palette.recordColor; borderColor: trackListDelegate.palette.borderColor; foregroundColor: trackListDelegate.palette.foregroundColor
                         text: 'R'
-                        checked: trackListDelegate.recordReady
+                        checked: trackListDelegate.record
                         toolTip: qsTr("Record")
                     }
                 }
@@ -181,13 +183,6 @@ Item {
                         defaultValue: decibelToLinearValue(0)
                         value: decibelToLinearValue(trackListDelegate.gain)
                         toolTip: qsTr("Gain")
-                        onValueChanged: {
-                            trackListDelegate.gain = linearValueToDecibel(value)
-                        }
-                        onPressedChanged: {
-                            trackListDelegate.intermediate = pressed
-                        }
-
                     }
                     Text {
                         anchors.verticalCenter: gainSlider.verticalCenter
@@ -216,9 +211,6 @@ Item {
                         defaultValue: 0
                         value: trackListDelegate.pan
                         toolTip: qsTr("Pan")
-                        onValueChanged: {
-                            trackListDelegate.pan = value
-                        }
                     }
                     Text {
                         anchors.verticalCenter: panDial.verticalCenter

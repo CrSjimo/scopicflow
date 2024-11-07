@@ -27,6 +27,7 @@ Item {
 
     property double gain: 0
     property double pan: 0
+    property bool intermediate: false
 
     property bool selected: false
 
@@ -178,7 +179,14 @@ Item {
                         from: decibelToLinearValue(-96)
                         to: decibelToLinearValue(6)
                         defaultValue: decibelToLinearValue(0)
+                        value: decibelToLinearValue(trackListDelegate.gain)
                         toolTip: qsTr("Gain")
+                        onValueChanged: {
+                            trackListDelegate.gain = linearValueToDecibel(value)
+                        }
+                        onPressedChanged: {
+                            trackListDelegate.intermediate = pressed
+                        }
 
                     }
                     Text {
@@ -206,7 +214,11 @@ Item {
                         from: -1.0
                         to: 1.0
                         defaultValue: 0
+                        value: trackListDelegate.pan
                         toolTip: qsTr("Pan")
+                        onValueChanged: {
+                            trackListDelegate.pan = value
+                        }
                     }
                     Text {
                         anchors.verticalCenter: panDial.verticalCenter

@@ -153,6 +153,28 @@ namespace sflow {
             emit wheelModifierViewModelChanged(wheelModifierViewModel);
         }
     }
+    AnimationViewModel *ClavierQuickItem::animationViewModel() const {
+        Q_D(const ClavierQuickItem);
+        return d->animationViewModel;
+    }
+    void ClavierQuickItem::setAnimationViewModel(AnimationViewModel *animationViewModel) {
+        Q_D(ClavierQuickItem);
+        if (d->animationViewModel == animationViewModel)
+            return;
+        if (d->animationViewModel) {
+            disconnect(d->animationViewModel, nullptr, this, nullptr);
+        }
+        d->animationViewModel = animationViewModel;
+        if (animationViewModel) {
+            connect(animationViewModel, &AnimationViewModel::scrollAnimationRatioChanged, this, [=](double value) {
+                d->startAnimation->setDuration(value * 250);
+                d->pixelDensityAnimation->setDuration(value * 250);
+            });
+            d->startAnimation->setDuration(animationViewModel->scrollAnimationRatio() * 250);
+            d->pixelDensityAnimation->setDuration(animationViewModel->scrollAnimationRatio() * 250);
+        }
+        emit animationViewModelChanged(animationViewModel);
+    }
     double ClavierQuickItem::keyHeight() const {
         Q_D(const ClavierQuickItem);
         if (!d->clavierViewModel)

@@ -274,7 +274,28 @@ namespace sflow {
             d->wheelModifierViewModel = wheelModifierViewModel;
             emit wheelModifierViewModelChanged(wheelModifierViewModel);
         }
-
+    }
+    AnimationViewModel *TimelineQuickItem::animationViewModel() const {
+        Q_D(const TimelineQuickItem);
+        return d->animationViewModel;
+    }
+    void TimelineQuickItem::setAnimationViewModel(AnimationViewModel *animationViewModel) {
+        Q_D(TimelineQuickItem);
+        if (d->animationViewModel == animationViewModel)
+            return;
+        if (d->animationViewModel) {
+            disconnect(d->animationViewModel, nullptr, this, nullptr);
+        }
+        d->animationViewModel = animationViewModel;
+        if (animationViewModel) {
+            connect(animationViewModel, &AnimationViewModel::scrollAnimationRatioChanged, this, [=](double value) {
+                d->startAnimation->setDuration(value * 250);
+                d->pixelDensityAnimation->setDuration(value * 250);
+            });
+            d->startAnimation->setDuration(animationViewModel->scrollAnimationRatio() * 250);
+            d->pixelDensityAnimation->setDuration(animationViewModel->scrollAnimationRatio() * 250);
+        }
+        emit animationViewModelChanged(animationViewModel);
     }
     double TimelineQuickItem::primaryIndicatorX() const {
         Q_D(const TimelineQuickItem);

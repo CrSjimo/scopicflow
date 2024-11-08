@@ -12,6 +12,9 @@ namespace sflow {
         TrackListPalette *palette;
         TrackListViewModel *trackListViewModel = nullptr;
 
+        WheelModifierViewModel *wheelModifierViewModel = nullptr;
+        AnimationViewModel *animationViewModel = nullptr;
+
         double totalHeight = 0.0;
         QList<double> handlePositionList;
         void calculateTotalHeight();

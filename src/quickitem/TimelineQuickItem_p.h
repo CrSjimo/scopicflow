@@ -4,6 +4,7 @@
 #include <QQuickItem>
 
 #include <ScopicFlow/WheelModifierViewModel.h>
+#include <ScopicFlow/AnimationViewModel.h>
 
 namespace sflow {
 
@@ -52,6 +53,7 @@ namespace sflow {
         Q_OBJECT
         Q_PROPERTY(TimelinePalette *palette READ palette CONSTANT)
         Q_PROPERTY(WheelModifierViewModel *wheelModifierViewModel READ wheelModifierViewModel NOTIFY wheelModifierViewModelChanged)
+        Q_PROPERTY(AnimationViewModel *animationViewModel READ animationViewModel NOTIFY animationViewModelChanged)
         Q_PROPERTY(double primaryIndicatorX READ primaryIndicatorX WRITE setPrimaryIndicatorX NOTIFY primaryIndicatorXChanged)
         Q_PROPERTY(double secondaryIndicatorX READ secondaryIndicatorX NOTIFY secondaryIndicatorXChanged)
         Q_PROPERTY(double cursorIndicatorX READ cursorIndicatorX NOTIFY cursorIndicatorXChanged)
@@ -70,6 +72,9 @@ namespace sflow {
 
         WheelModifierViewModel *wheelModifierViewModel() const;
         void setWheelModifierViewModel(WheelModifierViewModel *wheelModifierViewModel);
+
+        AnimationViewModel *animationViewModel() const;
+        void setAnimationViewModel(AnimationViewModel *animationViewModel);
 
         double primaryIndicatorX() const;
         void setPrimaryIndicatorX(double primaryIndicatorX);
@@ -100,6 +105,7 @@ namespace sflow {
         void contextMenuRequestedForPositionIndicator();
 
         void wheelModifierViewModelChanged(WheelModifierViewModel *wheelModifierViewModel);
+        void animationViewModelChanged(AnimationViewModel *animationViewModel);
 
     protected:
         QSGNode *updatePaintNode(QSGNode *oldNode, UpdatePaintNodeData *) override;

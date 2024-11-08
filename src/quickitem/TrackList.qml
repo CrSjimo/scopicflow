@@ -30,7 +30,7 @@ TrackList {
         anchors.right: parent.right
         color: trackList.palette.backgroundColor
         y: -trackList.trackListViewModel?.viewportOffset ?? 0
-        height: Math.max(trackList.height, trackLayoutRepeater.itemAt(trackLayoutRepeater.count - 1) ? trackLayoutRepeater.itemAt(trackLayoutRepeater.count - 1).y + 2 * trackLayoutRepeater.itemAt(trackLayoutRepeater.count - 1).height : 0)
+        height: Math.max(trackList.height, trackLayoutRepeater.itemAt(trackLayoutRepeater.count - 1) ? trackLayoutRepeater.itemAt(trackLayoutRepeater.count - 1).y + 2 * trackLayoutRepeater.itemAt(trackLayoutRepeater.count - 1).height : 0, trackList.height - y)
 
         Column {
             id: trackLayout
@@ -182,12 +182,34 @@ TrackList {
                     return item.index
                 if (backgroundRectangle.contains(Qt.point(x, y)))
                     return trackLayoutRepeater.count
-                return null
+                return -1
             }
             anchors.fill: parent
+            acceptedButtons: Qt.LeftButton | Qt.RightButton
             cursorShape: undefined
             property bool rejectClick: false
             property var pressedItem: null
+
+            property double deltaTickingY: 4
+            function calculateDraggingScrollingSpeed(y) {
+                return Math.min(1, y / 256)
+            }
+            Timer {
+                id: tickingTimer
+                interval: 10
+                repeat: true
+
+                onTriggered: {
+                    if (!trackList.trackListViewModel)
+                        return
+                    let newViewportOffset = Math.max(0, trackList.trackListViewModel.viewportOffset + parent.deltaTickingY)
+                    if (newViewportOffset + trackList.height > backgroundRectangle.height) {
+                        newViewportOffset = backgroundRectangle.height - trackList.height
+                    }
+                    trackList.trackListViewModel.viewportOffset = newViewportOffset
+                }
+            }
+
             onPressed: function (mouse) {
                 rejectClick = false
                 let item = interactionTarget(mouse)
@@ -201,11 +223,33 @@ TrackList {
             onPositionChanged: function (mouse) {
                 if (!pressedItem || typeof(pressedItem.index) !== "number")
                     return
-                cursorShape = Qt.ClosedHandCursor
                 rejectClick = true
                 let index = indexAt(mouse.x, mouse.y)
-                if (index === null) {
-                    index = -1
+                if (mouse.modifiers & Qt.ControlModifier) {
+                    cursorShape = Qt.CrossCursor
+                    if (lastIndicatorIndex !== -1) {
+                        let handle = (lastIndicatorIndex ? trackHandlesRepeater.itemAt(lastIndicatorIndex - 1) : topTrackHandle)
+                        handle.indicatesTarget = false
+                    }
+                    if (index >= 0 && index < trackLayoutRepeater.count) {
+                        trackList.trackAt(index).selected = true
+                        trackList.trackListViewModel.currentIndex = index
+                        pressedItem = trackLayoutRepeater.itemAt(index)
+                    }
+                    return
+                }
+                cursorShape = Qt.ClosedHandCursor
+                let viewportPoint = trackList.mapFromItem(backgroundRectangle, mouse.x, mouse.y)
+                if (viewportPoint.y < 0) {
+                    deltaTickingY = -calculateDraggingScrollingSpeed(-viewportPoint.y) * tickingTimer.interval
+                    tickingTimer.start()
+                    return
+                } else if (viewportPoint.y > trackList.height) {
+                    deltaTickingY = calculateDraggingScrollingSpeed(viewportPoint.y - trackList.height) * tickingTimer.interval
+                    tickingTimer.start()
+                    return
+                } else {
+                    tickingTimer.stop()
                 }
                 if (lastIndicatorIndex !== -1) {
                     let handle = (lastIndicatorIndex ? trackHandlesRepeater.itemAt(lastIndicatorIndex - 1) : topTrackHandle)
@@ -219,11 +263,21 @@ TrackList {
             }
             onReleased: function (mouse) {
                 cursorShape = undefined
+                tickingTimer.stop()
                 if (lastIndicatorIndex !== -1) {
-                    if (pressedItem)
-                        trackList.handleTrackMoved(pressedItem.index, lastIndicatorIndex)
+                    if (pressedItem) {
+                        if (mouse.button & Qt.LeftButton) {
+                            trackList.handleTrackMoved(pressedItem.index, lastIndicatorIndex)
+                        } else {
+                            trackList.contextMenuRequestedForTrackDragging(pressedItem.index, lastIndicatorIndex)
+                        }
+                    }
                     let handle = (lastIndicatorIndex ? trackHandlesRepeater.itemAt(lastIndicatorIndex - 1) : topTrackHandle)
                     handle.indicatesTarget = false
+                } else {
+                    if (rejectClick && pressedItem) {
+                        trackList.contextMenuRequestedForTrack(pressedItem.index)
+                    }
                 }
                 lastIndicatorIndex = -1
             }
@@ -232,17 +286,40 @@ TrackList {
                     return
                 if (!pressedItem)
                     return
+                if (mouse.button & Qt.RightButton) {
+                    trackList.trackListViewModel.currentIndex = pressedItem.index
+                    trackList.contextMenuRequestedForTrack(pressedItem.index)
+                    return
+                }
                 let multipleSelect = Boolean(mouse.modifiers & Qt.ControlModifier)
+                let extendingSelect = Boolean(mouse.modifiers & Qt.ShiftModifier)
+                let previousSelected = typeof(pressedItem.index) === "number" && pressedItem.trackViewModel.selected
+                let previousSelectionCount = 0
                 if (!multipleSelect || typeof(pressedItem.index) !== "number") {
                     for (let i = 0; i < trackList.trackListViewModel.count; i++) {
                         let track = trackList.trackAt(i)
-                        track.selected = false
+                        if (track.selected) {
+                            track.selected = false
+                            previousSelectionCount++
+                        }
                     }
                 }
                 if (typeof(pressedItem.index) === "number") {
-                    trackList.trackListViewModel.currentIndex = pressedItem.index
-                    pressedItem.trackViewModel.selected = true
+                    if (extendingSelect) {
+                        for (let i = trackList.trackListViewModel.currentIndex; i <= pressedItem.index; i++) {
+                            trackList.trackAt(i).selected = true
+                        }
+                    } else {
+                        trackList.trackListViewModel.currentIndex = pressedItem.index
+                        pressedItem.trackViewModel.selected = previousSelectionCount > 1 || !previousSelected
+                    }
                 }
+            }
+
+            onDoubleClicked: function (mouse) {
+                if (!pressedItem)
+                    return
+                trackList.trackDoubleClicked(pressedItem.index)
             }
         }
 
@@ -263,6 +340,7 @@ TrackList {
 
     StandardScrollHandler {
         anchors.fill: parent
+        viewModel: trackList.wheelModifierViewModel
         onMoved: function (_, deltaY, isPhysicalWheel) {
             if (!trackList.trackListViewModel)
                 return

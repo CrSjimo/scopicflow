@@ -19,6 +19,7 @@ namespace sflow {
         TimeAlignmentViewModel *timeAlignmentViewModel = nullptr;
         PlaybackViewModel *playbackViewModel = nullptr;
         WheelModifierViewModel *wheelModifierViewModel = nullptr;
+        AnimationViewModel *animationViewModel = nullptr;
 
         QTextLayout *createTextLayoutForBarNumber(int bar);
         QSGTextNode *createTextNodeForBarNumber(int bar, const QColor &color);

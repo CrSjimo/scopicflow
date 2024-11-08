@@ -4,6 +4,7 @@
 #include <QQuickItem>
 
 #include <ScopicFlow/WheelModifierViewModel.h>
+#include <ScopicFlow/AnimationViewModel.h>
 
 namespace sflow {
 
@@ -64,6 +65,7 @@ namespace sflow {
         Q_DECLARE_PRIVATE(ClavierQuickItem)
         Q_PROPERTY(ClavierPalette *palette READ palette CONSTANT)
         Q_PROPERTY(WheelModifierViewModel *wheelModifierViewModel READ wheelModifierViewModel NOTIFY wheelModifierViewModelChanged)
+        Q_PROPERTY(AnimationViewModel *animationViewModel READ animationViewModel NOTIFY animationViewModelChanged)
         Q_PROPERTY(double keyHeight READ keyHeight NOTIFY keyHeightChanged)
         Q_PROPERTY(double viewportY READ viewportY NOTIFY viewportYChanged)
         Q_PROPERTY(int cursorNoteIndex READ cursorNoteIndex NOTIFY cursorNoteIndexChanged)
@@ -80,6 +82,9 @@ namespace sflow {
 
         WheelModifierViewModel *wheelModifierViewModel() const;
         void setWheelModifierViewModel(WheelModifierViewModel *wheelModifierViewModel);
+
+        AnimationViewModel *animationViewModel() const;
+        void setAnimationViewModel(AnimationViewModel *animationViewModel);
 
         double keyHeight() const;
         double viewportY() const;
@@ -104,6 +109,7 @@ namespace sflow {
 
     signals:
         void wheelModifierViewModelChanged(WheelModifierViewModel *wheelModifierViewModel);
+        void animationViewModelChanged(AnimationViewModel *animationViewModel);
         void keyHeightChanged(double keyHeight);
         void viewportYChanged(double viewportY);
         void cursorNoteIndexChanged(int cursorNoteIndex);

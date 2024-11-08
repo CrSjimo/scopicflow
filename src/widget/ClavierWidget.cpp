@@ -34,6 +34,12 @@ namespace sflow {
     void ClavierWidget::setWheelModifierViewModel(WheelModifierViewModel *viewModel) {
         d->setWheelModifierViewModel(viewModel);
     }
+    AnimationViewModel *ClavierWidget::animationViewModel() const {
+        return d->animationViewModel();
+    }
+    void ClavierWidget::setAnimationViewModel(AnimationViewModel *viewModel) {
+        d->setAnimationViewModel(viewModel);
+    }
     ClavierWidget::LabelStrategy ClavierWidget::labelStrategy() const {
         return static_cast<LabelStrategy>(d->labelStrategy());
     }

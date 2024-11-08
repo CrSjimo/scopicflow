@@ -11,6 +11,7 @@ namespace sflow {
 
     class ClavierViewModel;
     class WheelModifierViewModel;
+    class AnimationViewModel;
 
     class ClavierQuickItem;
 
@@ -33,6 +34,9 @@ namespace sflow {
 
         WheelModifierViewModel *wheelModifierViewModel() const;
         void setWheelModifierViewModel(WheelModifierViewModel *viewModel);
+
+        AnimationViewModel *animationViewModel() const;
+        void setAnimationViewModel(AnimationViewModel *viewModel);
 
         enum LabelStrategy {
             None,

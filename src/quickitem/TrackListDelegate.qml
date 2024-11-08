@@ -203,11 +203,19 @@ Item {
                         animationRatio: trackListDelegate.animationViewModel?.visualEffectAnimationRatio ?? 1.0
                         height: 24
                         width: trackListDelegate. width - 256
+                        enabled: width > 40
+                        opacity: enabled ? 1 : 0
+                        Behavior on opacity {
+                            SmoothedAnimation {
+                                duration: (trackListDelegate.animationViewModel?.visualEffectAnimationRatio ?? 1.0) * 250
+                                velocity: -1
+                            }
+                        }
                         from: decibelToLinearValue(-96)
                         to: decibelToLinearValue(6)
                         defaultValue: decibelToLinearValue(0)
                         value: decibelToLinearValue(trackListDelegate.gain)
-                        toolTip: qsTr("Gain")
+                        toolTip: enabled ? qsTr("Gain") : ""
                     }
                     Text {
                         anchors.verticalCenter: gainSlider.verticalCenter

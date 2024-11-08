@@ -4,6 +4,8 @@
 #include <QQuickItem>
 
 #include <ScopicFlow/TrackListViewModel.h>
+#include <ScopicFlow/WheelModifierViewModel.h>
+#include <ScopicFlow/AnimationViewModel.h>
 
 namespace sflow {
 
@@ -103,6 +105,8 @@ namespace sflow {
         Q_DECLARE_PRIVATE(TrackListQuickItem)
         Q_PROPERTY(TrackListPalette *palette READ palette CONSTANT)
         Q_PROPERTY(TrackListViewModel *trackListViewModel READ trackListViewModel NOTIFY trackListViewModelChanged)
+        Q_PROPERTY(WheelModifierViewModel *wheelModifierViewModel READ wheelModifierViewModel NOTIFY wheelModifierViewModelChanged)
+        Q_PROPERTY(AnimationViewModel *animationViewModel READ animationViewModel NOTIFY animationViewModelChanged)
     public:
         explicit TrackListQuickItem(QQuickItem *parent = nullptr);
         ~TrackListQuickItem() override;
@@ -112,13 +116,24 @@ namespace sflow {
         TrackListViewModel *trackListViewModel() const;
         void setTrackListViewModel(TrackListViewModel *trackListViewModel);
 
+        WheelModifierViewModel *wheelModifierViewModel() const;
+        void setWheelModifierViewModel(WheelModifierViewModel *wheelModifierViewModel);
+
+        AnimationViewModel *animationViewModel() const;
+        void setAnimationViewModel(AnimationViewModel *animationViewModel);
+
         Q_INVOKABLE QObject *trackAt(int index) const;
         Q_INVOKABLE double handlePositionAt(int index) const;
         Q_INVOKABLE void handleTrackMoved(int index, int target);
 
     signals:
-        void trackListViewModelChanged();
+        void trackListViewModelChanged(TrackListViewModel *trackListViewModel);
+        void wheelModifierViewModelChanged(WheelModifierViewModel *wheelModifierViewModel);
+        void animationViewModelChanged(AnimationViewModel *animationViewModel);
         void layoutRequired();
+        void trackDoubleClicked(int index);
+        void contextMenuRequestedForTrack(int index);
+        void contextMenuRequestedForTrackDragging(int index, int target);
 
     private:
         QScopedPointer<TrackListQuickItemPrivate> d_ptr;

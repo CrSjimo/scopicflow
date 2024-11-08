@@ -180,7 +180,29 @@ namespace sflow {
             emit layoutRequired();
         });
         connect(d->trackListViewModel, &TrackListViewModel::tracksRotated, this, &TrackListQuickItem::layoutRequired);
-        emit trackListViewModelChanged();
+        emit trackListViewModelChanged(trackListViewModel);
+    }
+    WheelModifierViewModel *TrackListQuickItem::wheelModifierViewModel() const {
+        Q_D(const TrackListQuickItem);
+        return d->wheelModifierViewModel;
+    }
+    void TrackListQuickItem::setWheelModifierViewModel(WheelModifierViewModel *wheelModifierViewModel) {
+        Q_D(TrackListQuickItem);
+        if (d->wheelModifierViewModel == wheelModifierViewModel)
+            return;
+        d->wheelModifierViewModel = wheelModifierViewModel;
+        emit wheelModifierViewModelChanged(wheelModifierViewModel);
+    }
+    AnimationViewModel *TrackListQuickItem::animationViewModel() const {
+        Q_D(const TrackListQuickItem);
+        return d->animationViewModel;
+    }
+    void TrackListQuickItem::setAnimationViewModel(AnimationViewModel *animationViewModel) {
+        Q_D(TrackListQuickItem);
+        if (d->animationViewModel == animationViewModel)
+            return;
+        d->animationViewModel = animationViewModel;
+        emit animationViewModelChanged(animationViewModel);
     }
     QObject *TrackListQuickItem::trackAt(int index) const {
         Q_D(const TrackListQuickItem);

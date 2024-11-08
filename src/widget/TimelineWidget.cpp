@@ -43,6 +43,12 @@ namespace sflow {
     void TimelineWidget::setWheelModifierViewModel(WheelModifierViewModel *viewModel) {
         d->setWheelModifierViewModel(viewModel);
     }
+    AnimationViewModel *TimelineWidget::animationViewModel() const {
+        return d->animationViewModel();
+    }
+    void TimelineWidget::setAnimationViewModel(AnimationViewModel *viewModel) {
+        d->setAnimationViewModel(viewModel);
+    }
     int TimelineWidget::mapToTick(double x) const {
         return d->mapToTick(x);
     }

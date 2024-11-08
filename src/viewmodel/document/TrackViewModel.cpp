@@ -3,7 +3,8 @@
 namespace sflow {
     TrackViewModel::TrackViewModel(QObject *parent) : QObject(parent),
     m_mute(false), m_solo(false), m_record(false),
-    m_gain(0), m_pan(0), m_leftLevel(-qInf()), m_rightLevel(-qInf()),
+    m_gain(0), m_pan(0), m_intermediate(false),
+    m_leftLevel(-qInf()), m_rightLevel(-qInf()),
     m_selected(false),
     m_rowHeight(80){
     }
@@ -61,6 +62,15 @@ namespace sflow {
         if (m_pan != pan) {
             m_pan = pan;
             emit panChanged(pan);
+        }
+    }
+    bool TrackViewModel::intermediate() const {
+        return m_intermediate;
+    }
+    void TrackViewModel::setIntermediate(bool intermediate) {
+        if (m_intermediate != intermediate) {
+            m_intermediate = intermediate;
+            emit intermediateChanged(intermediate);
         }
     }
     double TrackViewModel::leftLevel() const {

@@ -15,6 +15,7 @@ namespace sflow {
         Q_PROPERTY(bool record READ record WRITE setRecord NOTIFY recordChanged)
         Q_PROPERTY(double gain READ gain WRITE setGain NOTIFY gainChanged)
         Q_PROPERTY(double pan READ pan WRITE setPan NOTIFY panChanged)
+        Q_PROPERTY(double intermediate READ intermediate WRITE setIntermediate NOTIFY intermediateChanged)
         Q_PROPERTY(double leftLevel READ leftLevel WRITE setLeftLevel NOTIFY leftLevelChanged)
         Q_PROPERTY(double rightLevel READ rightLevel WRITE setRightLevel NOTIFY rightLevelChanged)
         Q_PROPERTY(bool selected READ selected WRITE setSelected NOTIFY selectedChanged)
@@ -42,6 +43,9 @@ namespace sflow {
         double pan() const;
         void setPan(double pan);
 
+        bool intermediate() const;
+        void setIntermediate(bool intermediate);
+
         double leftLevel() const;
         void setLeftLevel(double leftLevel);
 
@@ -61,6 +65,7 @@ namespace sflow {
         void recordChanged(bool record);
         void gainChanged(double gain);
         void panChanged(double pan);
+        void intermediateChanged(bool intermediate);
         void leftLevelChanged(double leftLevel);
         void rightLevelChanged(double rightLevel);
         void selectedChanged(bool selected);
@@ -71,9 +76,10 @@ namespace sflow {
         bool m_mute;
         bool m_solo;
         bool m_record;
-        bool m_selected;
         double m_gain;
         double m_pan;
+        bool m_selected;
+        bool m_intermediate;
         double m_leftLevel;
         double m_rightLevel;
         double m_rowHeight;

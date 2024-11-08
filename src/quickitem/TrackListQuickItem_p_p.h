@@ -9,7 +9,12 @@ namespace sflow {
     public:
         TrackListQuickItem *q_ptr;
 
+        TrackListPalette *palette;
         TrackListViewModel *trackListViewModel = nullptr;
+
+        double totalHeight = 0.0;
+        QList<double> handlePositionList;
+        void calculateTotalHeight();
     };
 }
 

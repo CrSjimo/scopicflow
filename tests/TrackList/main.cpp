@@ -21,11 +21,13 @@ int main(int argc, char *argv[]) {
     auto trackList = static_cast<TrackListQuickItem *>(item);
     TrackListViewModel trackListViewModel;
 
-    TrackViewModel trackViewModel1;
-    trackViewModel1.setName("test1");
-    TrackViewModel trackViewModel2;
-    trackViewModel2.setName("test2");
-    trackListViewModel.insertTracks(0, {&trackViewModel1, &trackViewModel2});
+    QList<TrackViewModel *> tracks;
+    for (int i = 0; i < 4; i++) {
+        auto trackViewModel = new TrackViewModel;
+        trackViewModel->setName("test");
+        tracks.append(trackViewModel);
+    }
+    trackListViewModel.insertTracks(0, tracks);
 
     trackList->setTrackListViewModel(&trackListViewModel);
 

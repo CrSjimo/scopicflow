@@ -22,9 +22,9 @@ int main(int argc, char *argv[]) {
     TrackListViewModel trackListViewModel;
 
     QList<TrackViewModel *> tracks;
-    for (int i = 0; i < 4; i++) {
+    for (int i = 0; i < 8; i++) {
         auto trackViewModel = new TrackViewModel;
-        trackViewModel->setName("test");
+        trackViewModel->setName("test" + QString::number(i));
         tracks.append(trackViewModel);
     }
     trackListViewModel.insertTracks(0, tracks);

@@ -66,6 +66,8 @@ Item {
 
     Rectangle {
         anchors.fill: parent
+        anchors.leftMargin: -1
+        anchors.rightMargin: -1
         anchors.bottomMargin: -1
         color: trackListDelegate.selected ? trackListDelegate.palette.selectedBackgroundColor : trackListDelegate.palette.backgroundColor
         border.width: 1

@@ -113,13 +113,12 @@ namespace sflow {
         void setTrackListViewModel(TrackListViewModel *trackListViewModel);
 
         Q_INVOKABLE QObject *trackAt(int index) const;
-
         Q_INVOKABLE double handlePositionAt(int index) const;
+        Q_INVOKABLE void handleTrackMoved(int index, int target);
 
     signals:
         void trackListViewModelChanged();
         void layoutRequired();
-        void totalHeightChanged();
 
     private:
         QScopedPointer<TrackListQuickItemPrivate> d_ptr;

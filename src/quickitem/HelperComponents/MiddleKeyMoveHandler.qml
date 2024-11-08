@@ -7,6 +7,7 @@ Item {
     MouseArea {
         anchors.fill: parent
         acceptedButtons: Qt.MiddleButton
+        cursorShape: undefined
 
         property double originalX: 0
         property double originalY: 0
@@ -22,7 +23,7 @@ Item {
             originalY = mouse.y
         }
         onReleased: function (mouse) {
-            cursorShape = Qt.ArrowCursor
+            cursorShape = undefined
         }
 
     }

@@ -10,6 +10,7 @@ Item {
     MouseArea {
         acceptedButtons: Qt.NoButton
         anchors.fill: parent
+        cursorShape: undefined
 
         readonly property var alternateAxisModifier: parent.viewModel? parent.viewModel.alternateAxisModifier : Qt.AltModifier
         readonly property var zoomModifier: parent.viewModel? parent.viewModel.zoomModifier : Qt.ControlModifier

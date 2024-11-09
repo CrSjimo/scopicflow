@@ -12,7 +12,7 @@ namespace sflow {
         TrackListPalette *palette;
         TrackListViewModel *trackListViewModel = nullptr;
 
-        WheelModifierViewModel *wheelModifierViewModel = nullptr;
+        ScrollBehaviorViewModel *scrollBehaviorViewModel = nullptr;
         AnimationViewModel *animationViewModel = nullptr;
 
         double totalHeight = 0.0;

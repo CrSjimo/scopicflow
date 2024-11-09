@@ -264,15 +264,15 @@ namespace sflow {
         emit primaryIndicatorXChanged(primaryIndicatorX());
         emit secondaryIndicatorXChanged(secondaryIndicatorX());
     }
-    WheelModifierViewModel *TimelineQuickItem::wheelModifierViewModel() const {
+    ScrollBehaviorViewModel *TimelineQuickItem::scrollBehaviorViewModel() const {
         Q_D(const TimelineQuickItem);
-        return d->wheelModifierViewModel;
+        return d->scrollBehaviorViewModel;
     }
-    void TimelineQuickItem::setWheelModifierViewModel(WheelModifierViewModel *wheelModifierViewModel) {
+    void TimelineQuickItem::setScrollBehaviorViewModel(ScrollBehaviorViewModel *scrollBehaviorViewModel) {
         Q_D(TimelineQuickItem);
-        if (d->wheelModifierViewModel != wheelModifierViewModel) {
-            d->wheelModifierViewModel = wheelModifierViewModel;
-            emit wheelModifierViewModelChanged(wheelModifierViewModel);
+        if (d->scrollBehaviorViewModel != scrollBehaviorViewModel) {
+            d->scrollBehaviorViewModel = scrollBehaviorViewModel;
+            emit scrollBehaviorViewModelChanged(scrollBehaviorViewModel);
         }
     }
     AnimationViewModel *TimelineQuickItem::animationViewModel() const {

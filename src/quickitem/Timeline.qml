@@ -150,7 +150,7 @@ Timeline {
 
     StandardScrollHandler {
         anchors.fill: parent
-        viewModel: timeline.wheelModifierViewModel
+        viewModel: timeline.scrollBehaviorViewModel
         onZoomed: function (ratioX, _, x, _, isPhysicalWheel) {
             timeline.zoomOnWheel(ratioX, x, isPhysicalWheel)
         }
@@ -159,8 +159,9 @@ Timeline {
         }
     }
 
-    MiddleKeyMoveHandler {
+    MiddleButtonMoveHandler {
         anchors.fill: parent
+        viewModel: timeline.scrollBehaviorViewModel
         onMoved: function (x) {
             timeline.moveViewBy(x)
         }

@@ -325,8 +325,9 @@ TrackList {
 
     }
 
-    MiddleKeyMoveHandler {
+    MiddleButtonMoveHandler {
         anchors.fill: parent
+        viewModel: trackList.scrollBehaviorViewModel
         onMoved: function (_, deltaY) {
             if (!trackList.trackListViewModel)
                 return
@@ -340,7 +341,7 @@ TrackList {
 
     StandardScrollHandler {
         anchors.fill: parent
-        viewModel: trackList.wheelModifierViewModel
+        viewModel: trackList.scrollBehaviorViewModel
         onMoved: function (_, deltaY, isPhysicalWheel) {
             if (!trackList.trackListViewModel)
                 return

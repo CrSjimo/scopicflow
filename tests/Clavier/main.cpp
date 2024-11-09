@@ -10,7 +10,7 @@
 #include <ScopicFlow/TimelineWidget.h>
 #include <ScopicFlow/ClavierViewModel.h>
 #include <ScopicFlow/TimeAlignmentViewModel.h>
-#include <ScopicFlow/WheelModifierViewModel.h>
+#include <ScopicFlow/ScrollBehaviorViewModel.h>
 #include <ScopicFlow/PlaybackViewModel.h>
 
 using namespace sflow;
@@ -42,9 +42,9 @@ int main(int argc, char *argv[]) {
     ClavierViewModel clavierViewModel;
     clavier->setClavierViewModel(&clavierViewModel);
 
-    WheelModifierViewModel wheelModifierViewModel;
-    clavier->setWheelModifierViewModel(&wheelModifierViewModel);
-    timeline->setWheelModifierViewModel(&wheelModifierViewModel);
+    ScrollBehaviorViewModel scrollBehaviorViewModel;
+    clavier->setScrollBehaviorViewModel(&scrollBehaviorViewModel);
+    timeline->setScrollBehaviorViewModel(&scrollBehaviorViewModel);
 
     mainLayout->addWidget(clavier, 1, 0);
     mainLayout->addWidget(timeline, 0, 1);

@@ -104,7 +104,7 @@ Clavier {
 
     StandardScrollHandler {
         anchors.fill: parent
-        viewModel: clavier.wheelModifierViewModel
+        viewModel: clavier.scrollBehaviorViewModel
         onZoomed: function (_, ratioY, _, y, isPhysicalWheel) {
             clavier.zoomOnWheel(ratioY, y, isPhysicalWheel)
         }
@@ -113,8 +113,9 @@ Clavier {
         }
     }
 
-    MiddleKeyMoveHandler {
+    MiddleButtonMoveHandler {
         anchors.fill: parent
+        viewModel: clavier.scrollBehaviorViewModel
         onMoved: function (_, y) {
             clavier.moveViewBy(y)
         }

@@ -3,7 +3,7 @@
 
 #include <QQuickItem>
 
-#include <ScopicFlow/WheelModifierViewModel.h>
+#include <ScopicFlow/ScrollBehaviorViewModel.h>
 #include <ScopicFlow/AnimationViewModel.h>
 
 namespace sflow {
@@ -52,7 +52,7 @@ namespace sflow {
     class TimelineQuickItem : public QQuickItem {
         Q_OBJECT
         Q_PROPERTY(TimelinePalette *palette READ palette CONSTANT)
-        Q_PROPERTY(WheelModifierViewModel *wheelModifierViewModel READ wheelModifierViewModel NOTIFY wheelModifierViewModelChanged)
+        Q_PROPERTY(ScrollBehaviorViewModel *scrollBehaviorViewModel READ scrollBehaviorViewModel NOTIFY scrollBehaviorViewModelChanged)
         Q_PROPERTY(AnimationViewModel *animationViewModel READ animationViewModel NOTIFY animationViewModelChanged)
         Q_PROPERTY(double primaryIndicatorX READ primaryIndicatorX WRITE setPrimaryIndicatorX NOTIFY primaryIndicatorXChanged)
         Q_PROPERTY(double secondaryIndicatorX READ secondaryIndicatorX NOTIFY secondaryIndicatorXChanged)
@@ -70,8 +70,8 @@ namespace sflow {
         PlaybackViewModel *playbackViewModel() const;
         void setPlaybackViewModel(PlaybackViewModel *playbackViewModel);
 
-        WheelModifierViewModel *wheelModifierViewModel() const;
-        void setWheelModifierViewModel(WheelModifierViewModel *wheelModifierViewModel);
+        ScrollBehaviorViewModel *scrollBehaviorViewModel() const;
+        void setScrollBehaviorViewModel(ScrollBehaviorViewModel *scrollBehaviorViewModel);
 
         AnimationViewModel *animationViewModel() const;
         void setAnimationViewModel(AnimationViewModel *animationViewModel);
@@ -104,7 +104,7 @@ namespace sflow {
         void contextMenuRequestedForTimeline(int tick);
         void contextMenuRequestedForPositionIndicator();
 
-        void wheelModifierViewModelChanged(WheelModifierViewModel *wheelModifierViewModel);
+        void scrollBehaviorViewModelChanged(ScrollBehaviorViewModel *scrollBehaviorViewModel);
         void animationViewModelChanged(AnimationViewModel *animationViewModel);
 
     protected:

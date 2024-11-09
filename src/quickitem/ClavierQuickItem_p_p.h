@@ -14,7 +14,7 @@ namespace sflow {
 
         ClavierPalette *palette;
         ClavierViewModel *clavierViewModel = nullptr;
-        WheelModifierViewModel *wheelModifierViewModel = nullptr;
+        ScrollBehaviorViewModel *scrollBehaviorViewModel = nullptr;
         AnimationViewModel *animationViewModel = nullptr;
         ClavierQuickItem::LabelStrategy labelStrategy = ClavierQuickItem::C;
 

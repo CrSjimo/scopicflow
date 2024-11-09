@@ -10,7 +10,7 @@ class QQuickItem;
 namespace sflow {
 
     class ClavierViewModel;
-    class WheelModifierViewModel;
+    class ScrollBehaviorViewModel;
     class AnimationViewModel;
 
     class ClavierQuickItem;
@@ -32,8 +32,8 @@ namespace sflow {
         ClavierViewModel *clavierViewModel() const;
         void setClavierViewModel(ClavierViewModel *viewModel);
 
-        WheelModifierViewModel *wheelModifierViewModel() const;
-        void setWheelModifierViewModel(WheelModifierViewModel *viewModel);
+        ScrollBehaviorViewModel *scrollBehaviorViewModel() const;
+        void setScrollBehaviorViewModel(ScrollBehaviorViewModel *viewModel);
 
         AnimationViewModel *animationViewModel() const;
         void setAnimationViewModel(AnimationViewModel *viewModel);

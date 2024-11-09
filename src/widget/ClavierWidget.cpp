@@ -28,11 +28,11 @@ namespace sflow {
     void ClavierWidget::setClavierViewModel(ClavierViewModel *viewModel) {
         d->setClavierViewModel(viewModel);
     }
-    WheelModifierViewModel *ClavierWidget::wheelModifierViewModel() const {
-        return d->wheelModifierViewModel();
+    ScrollBehaviorViewModel *ClavierWidget::scrollBehaviorViewModel() const {
+        return d->scrollBehaviorViewModel();
     }
-    void ClavierWidget::setWheelModifierViewModel(WheelModifierViewModel *viewModel) {
-        d->setWheelModifierViewModel(viewModel);
+    void ClavierWidget::setScrollBehaviorViewModel(ScrollBehaviorViewModel *viewModel) {
+        d->setScrollBehaviorViewModel(viewModel);
     }
     AnimationViewModel *ClavierWidget::animationViewModel() const {
         return d->animationViewModel();

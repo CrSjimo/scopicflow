@@ -37,11 +37,11 @@ namespace sflow {
     void TimelineWidget::setPlaybackViewModel(PlaybackViewModel *viewModel) {
         d->setPlaybackViewModel(viewModel);
     }
-    WheelModifierViewModel *TimelineWidget::wheelModifierViewModel() const {
-        return d->wheelModifierViewModel();
+    ScrollBehaviorViewModel *TimelineWidget::scrollBehaviorViewModel() const {
+        return d->scrollBehaviorViewModel();
     }
-    void TimelineWidget::setWheelModifierViewModel(WheelModifierViewModel *viewModel) {
-        d->setWheelModifierViewModel(viewModel);
+    void TimelineWidget::setScrollBehaviorViewModel(ScrollBehaviorViewModel *viewModel) {
+        d->setScrollBehaviorViewModel(viewModel);
     }
     AnimationViewModel *TimelineWidget::animationViewModel() const {
         return d->animationViewModel();

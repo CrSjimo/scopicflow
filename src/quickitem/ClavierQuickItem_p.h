@@ -3,7 +3,7 @@
 
 #include <QQuickItem>
 
-#include <ScopicFlow/WheelModifierViewModel.h>
+#include <ScopicFlow/ScrollBehaviorViewModel.h>
 #include <ScopicFlow/AnimationViewModel.h>
 
 namespace sflow {
@@ -64,7 +64,7 @@ namespace sflow {
         Q_OBJECT
         Q_DECLARE_PRIVATE(ClavierQuickItem)
         Q_PROPERTY(ClavierPalette *palette READ palette CONSTANT)
-        Q_PROPERTY(WheelModifierViewModel *wheelModifierViewModel READ wheelModifierViewModel NOTIFY wheelModifierViewModelChanged)
+        Q_PROPERTY(ScrollBehaviorViewModel *scrollBehaviorViewModel READ scrollBehaviorViewModel NOTIFY scrollBehaviorViewModelChanged)
         Q_PROPERTY(AnimationViewModel *animationViewModel READ animationViewModel NOTIFY animationViewModelChanged)
         Q_PROPERTY(double keyHeight READ keyHeight NOTIFY keyHeightChanged)
         Q_PROPERTY(double viewportY READ viewportY NOTIFY viewportYChanged)
@@ -80,8 +80,8 @@ namespace sflow {
         ClavierViewModel *clavierViewModel() const;
         void setClavierViewModel(ClavierViewModel *clavierViewModel);
 
-        WheelModifierViewModel *wheelModifierViewModel() const;
-        void setWheelModifierViewModel(WheelModifierViewModel *wheelModifierViewModel);
+        ScrollBehaviorViewModel *scrollBehaviorViewModel() const;
+        void setScrollBehaviorViewModel(ScrollBehaviorViewModel *scrollBehaviorViewModel);
 
         AnimationViewModel *animationViewModel() const;
         void setAnimationViewModel(AnimationViewModel *animationViewModel);
@@ -108,7 +108,7 @@ namespace sflow {
         Q_INVOKABLE QString keyName(int key) const;
 
     signals:
-        void wheelModifierViewModelChanged(WheelModifierViewModel *wheelModifierViewModel);
+        void scrollBehaviorViewModelChanged(ScrollBehaviorViewModel *scrollBehaviorViewModel);
         void animationViewModelChanged(AnimationViewModel *animationViewModel);
         void keyHeightChanged(double keyHeight);
         void viewportYChanged(double viewportY);

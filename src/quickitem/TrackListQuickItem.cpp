@@ -182,16 +182,16 @@ namespace sflow {
         connect(d->trackListViewModel, &TrackListViewModel::tracksRotated, this, &TrackListQuickItem::layoutRequired);
         emit trackListViewModelChanged(trackListViewModel);
     }
-    WheelModifierViewModel *TrackListQuickItem::wheelModifierViewModel() const {
+    ScrollBehaviorViewModel *TrackListQuickItem::scrollBehaviorViewModel() const {
         Q_D(const TrackListQuickItem);
-        return d->wheelModifierViewModel;
+        return d->scrollBehaviorViewModel;
     }
-    void TrackListQuickItem::setWheelModifierViewModel(WheelModifierViewModel *wheelModifierViewModel) {
+    void TrackListQuickItem::setScrollBehaviorViewModel(ScrollBehaviorViewModel *scrollBehaviorViewModel) {
         Q_D(TrackListQuickItem);
-        if (d->wheelModifierViewModel == wheelModifierViewModel)
+        if (d->scrollBehaviorViewModel == scrollBehaviorViewModel)
             return;
-        d->wheelModifierViewModel = wheelModifierViewModel;
-        emit wheelModifierViewModelChanged(wheelModifierViewModel);
+        d->scrollBehaviorViewModel = scrollBehaviorViewModel;
+        emit scrollBehaviorViewModelChanged(scrollBehaviorViewModel);
     }
     AnimationViewModel *TrackListQuickItem::animationViewModel() const {
         Q_D(const TrackListQuickItem);

@@ -11,7 +11,7 @@ namespace sflow {
 
     class TimeAlignmentViewModel;
     class PlaybackViewModel;
-    class WheelModifierViewModel;
+    class ScrollBehaviorViewModel;
     class AnimationViewModel;
 
     class TimelineQuickItem;
@@ -32,8 +32,8 @@ namespace sflow {
         PlaybackViewModel *playbackViewModel() const;
         void setPlaybackViewModel(PlaybackViewModel *viewModel);
 
-        WheelModifierViewModel *wheelModifierViewModel() const;
-        void setWheelModifierViewModel(WheelModifierViewModel *viewModel);
+        ScrollBehaviorViewModel *scrollBehaviorViewModel() const;
+        void setScrollBehaviorViewModel(ScrollBehaviorViewModel *viewModel);
 
         AnimationViewModel *animationViewModel() const;
         void setAnimationViewModel(AnimationViewModel *viewModel);

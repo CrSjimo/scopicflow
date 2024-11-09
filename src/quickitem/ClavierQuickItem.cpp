@@ -142,15 +142,15 @@ namespace sflow {
         emit cursorNoteIndexChanged(cursorNoteIndex());
         emit keyNameUpdated();
     }
-    WheelModifierViewModel *ClavierQuickItem::wheelModifierViewModel() const {
+    ScrollBehaviorViewModel *ClavierQuickItem::scrollBehaviorViewModel() const {
         Q_D(const ClavierQuickItem);
-        return d->wheelModifierViewModel;
+        return d->scrollBehaviorViewModel;
     }
-    void ClavierQuickItem::setWheelModifierViewModel(WheelModifierViewModel *wheelModifierViewModel) {
+    void ClavierQuickItem::setScrollBehaviorViewModel(ScrollBehaviorViewModel *scrollBehaviorViewModel) {
         Q_D(ClavierQuickItem);
-        if (d->wheelModifierViewModel != wheelModifierViewModel) {
-            d->wheelModifierViewModel = wheelModifierViewModel;
-            emit wheelModifierViewModelChanged(wheelModifierViewModel);
+        if (d->scrollBehaviorViewModel != scrollBehaviorViewModel) {
+            d->scrollBehaviorViewModel = scrollBehaviorViewModel;
+            emit scrollBehaviorViewModelChanged(scrollBehaviorViewModel);
         }
     }
     AnimationViewModel *ClavierQuickItem::animationViewModel() const {

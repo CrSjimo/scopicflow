@@ -21,13 +21,25 @@ Item {
     required property string trackNumber
     required property string trackName
 
-    property bool mute: muteButton.checked
-    property bool solo: soloButton.checked
-    property bool record: recordButton.checked
+    required property bool mute
+    readonly property bool _mute: muteButton.checked
+    on_MuteChanged: mute = _mute
+    required property bool solo
+    readonly property bool _solo: soloButton.checked
+    on_SoloChanged: solo = _solo
+    required property bool record
+    readonly property bool _record: recordButton.checked
+    on_RecordChanged: record = _record
 
-    property double gain: linearValueToDecibel(gainSlider.value)
-    property double pan: panDial.value
-    property bool intermediate: gainSlider.pressed || panDial.pressed
+    required property double gain
+    readonly property double _gain: linearValueToDecibel(gainSlider.value)
+    on_GainChanged: gain = _gain
+    required property double pan
+    readonly property double _pan: panDial.value
+    on_PanChanged: pan = _pan
+    required property bool intermediate
+    readonly property bool _intermediate: gainSlider.pressed || panDial.pressed
+    on_IntermediateChanged: intermediate = _intermediate
 
     property bool selected: false
 
@@ -176,15 +188,12 @@ Item {
                 spacing: 0
                 visible: opacity !== 0.0
                 readonly property bool isMouseInteractionTarget: true
-                NumberAnimation on opacity {
-                    id: controlsSecondRowAppear
-                    to: 1.0
-                    duration: 250 * (trackListDelegate.animationViewModel?.visualEffectAnimationRatio ?? 1)
-                }
-                NumberAnimation on opacity {
-                    id: controlsSecondRowDisappear
-                    to: 0.0
-                    duration: 250 * (trackListDelegate.animationViewModel?.visualEffectAnimationRatio ?? 1)
+                Behavior on opacity {
+                    SmoothedAnimation {
+                        duration: (trackListDelegate.animationViewModel?.visualEffectAnimationRatio ?? 1.0) * 250
+                        velocity: -1
+                        easing.type: Easing.OutCubic
+                    }
                 }
                 Row {
                     spacing: 4
@@ -209,6 +218,7 @@ Item {
                             SmoothedAnimation {
                                 duration: (trackListDelegate.animationViewModel?.visualEffectAnimationRatio ?? 1.0) * 250
                                 velocity: -1
+                                easing.type: Easing.OutCubic
                             }
                         }
                         from: decibelToLinearValue(-96)
@@ -310,15 +320,9 @@ Item {
 
     onHeightChanged: {
         if (height < 80) {
-            controlsSecondRowAppear.stop()
-            if (!controlsSecondRowDisappear.running && controlsSecondRow.opacity !== 0.0) {
-                controlsSecondRowDisappear.start()
-            }
+            controlsSecondRow.opacity = 0
         } else {
-            controlsSecondRowDisappear.stop()
-            if (!controlsSecondRowAppear.running && controlsSecondRow.opacity !== 1.0) {
-                controlsSecondRowAppear.start()
-            }
+            controlsSecondRow.opacity = 1
         }
     }
 

@@ -287,8 +287,9 @@ TrackList {
                 if (!pressedItem)
                     return
                 if (mouse.button & Qt.RightButton) {
-                    trackList.trackListViewModel.currentIndex = pressedItem.index
-                    trackList.contextMenuRequestedForTrack(pressedItem.index)
+                    if (typeof(pressedItem.index) === "number")
+                        trackList.trackListViewModel.currentIndex = pressedItem.index
+                    trackList.contextMenuRequestedForTrack(pressedItem.index ?? -1)
                     return
                 }
                 let multipleSelect = Boolean(mouse.modifiers & Qt.ControlModifier)
@@ -319,7 +320,7 @@ TrackList {
             onDoubleClicked: function (mouse) {
                 if (!pressedItem)
                     return
-                trackList.trackDoubleClicked(pressedItem.index)
+                trackList.trackDoubleClicked(pressedItem.index ?? -1)
             }
         }
 

@@ -100,7 +100,7 @@ namespace sflow {
 
     class TrackListQuickItemPrivate;
 
-    class SCOPIC_FLOW_EXPORT TrackListQuickItem : public QQuickItem {
+    class TrackListQuickItem : public QQuickItem {
         Q_OBJECT
         Q_DECLARE_PRIVATE(TrackListQuickItem)
         Q_PROPERTY(TrackListPalette *palette READ palette CONSTANT)

@@ -1,9 +1,10 @@
 #include <QApplication>
 #include <QQuickView>
 #include <QMainWindow>
+#include <QMessageBox>
+#include <QMenu>
 
-#include <ScopicFlow/private/QuickWrapperHelper_p.h>
-#include <ScopicFlow/private/TrackListQuickItem_p.h>
+#include <ScopicFlow/TrackListWidget.h>
 #include <ScopicFlow/TrackViewModel.h>
 #include <ScopicFlow/TrackListViewModel.h>
 
@@ -15,10 +16,7 @@ int main(int argc, char *argv[]) {
     format.setSamples(8);
     QSurfaceFormat::setDefaultFormat(format);
 
-    qmlRegisterType<TrackListQuickItem>("ScopicFlowPrivate", 1, 0, "TrackList");
-    auto [w, item] = QuickWrapperHelper::wrap("TrackList");
-
-    auto trackList = static_cast<TrackListQuickItem *>(item);
+    auto trackList = new TrackListWidget;
     TrackListViewModel trackListViewModel;
 
     QList<TrackViewModel *> tracks;
@@ -32,9 +30,24 @@ int main(int argc, char *argv[]) {
     trackList->setTrackListViewModel(&trackListViewModel);
 
     QMainWindow win;
-    win.setCentralWidget(w);
+    win.setCentralWidget(trackList);
 
     win.show();
+
+    QObject::connect(trackList, &TrackListWidget::trackDoubleClicked, [=, &win](int index) {
+        QMessageBox::information(&win, {}, "track double-clicked " + QString::number(index));
+    });
+    QObject::connect(trackList, &TrackListWidget::contextMenuRequestedForTrack, [=, &win](int index) {
+        QMenu menu(&win);
+        menu.addAction("Menu on Track " + QString::number(index));
+        menu.exec(QCursor::pos());
+    });
+    QObject::connect(trackList, &TrackListWidget::contextMenuRequestedForTrackDragging, [=, &win](int index, int target) {
+        QMenu menu(&win);
+        menu.addAction("Move to here");
+        menu.addAction("Copy to here");
+        menu.exec(QCursor::pos());
+    });
 
     return a.exec();
 }

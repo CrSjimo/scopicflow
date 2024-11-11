@@ -230,7 +230,7 @@ Item {
                     Text {
                         anchors.verticalCenter: gainSlider.verticalCenter
                         width: 64
-                        text: (gainSlider.value - gainSlider.from < Number.EPSILON ? '-INF ' : linearValueToDecibel(gainSlider.value).toFixed(1)) + "dB"
+                        text: (Math.abs(gainSlider.value - gainSlider.from) < Number.EPSILON ? '-INF ' : linearValueToDecibel(gainSlider.value).toFixed(1)) + "dB"
                         color: trackListDelegate.palette.foregroundColor
                     }
                 }

@@ -33,6 +33,13 @@ Clavier {
         lastNoteIndex = index
     }
 
+    ClavierManipulator {
+        id: clavierManipulator
+        anchors.fill: parent
+        clavierViewModel: clavier.clavierViewModel
+        animationViewModel: clavier.animationViewModel
+    }
+
     Item {
         anchors.left: parent.left
         anchors.right: parent.right
@@ -106,10 +113,10 @@ Clavier {
         anchors.fill: parent
         viewModel: clavier.scrollBehaviorViewModel
         onZoomed: function (_, ratioY, _, y, isPhysicalWheel) {
-            clavier.zoomOnWheel(ratioY, y, isPhysicalWheel)
+            clavierManipulator.zoomOnWheel(ratioY, y, isPhysicalWheel)
         }
         onMoved: function (_, y, isPhysicalWheel) {
-            clavier.moveViewBy(y, isPhysicalWheel)
+            clavierManipulator.moveViewBy(y, isPhysicalWheel)
         }
     }
 
@@ -117,7 +124,7 @@ Clavier {
         anchors.fill: parent
         viewModel: clavier.scrollBehaviorViewModel
         onMoved: function (_, y) {
-            clavier.moveViewBy(y)
+            clavierManipulator.moveViewBy(y)
         }
     }
 

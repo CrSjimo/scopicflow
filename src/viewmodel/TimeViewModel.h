@@ -13,6 +13,12 @@ namespace sflow {
 
     class SCOPIC_FLOW_EXPORT TimeViewModel : public QObject {
         Q_OBJECT
+        Q_PROPERTY(double start READ start WRITE setStart NOTIFY startChanged)
+        Q_PROPERTY(double end READ end WRITE setEnd NOTIFY endChanged)
+        Q_PROPERTY(double pixelDensity READ pixelDensity WRITE setPixelDensity NOTIFY pixelDensityChanged)
+        Q_PROPERTY(double maximumPixelDensity READ maximumPixelDensity WRITE setMaximumPixelDensity NOTIFY maximumPixelDensityChanged)
+        Q_PROPERTY(double minimumPixelDensity READ minimumPixelDensity WRITE setMinimumPixelDensity NOTIFY minimumPixelDensityChanged)
+        Q_PROPERTY(int cursorPosition READ cursorPosition WRITE setCursorPosition NOTIFY cursorPositionChanged)
     public:
         explicit TimeViewModel(QObject *parent = nullptr);
         ~TimeViewModel() override;

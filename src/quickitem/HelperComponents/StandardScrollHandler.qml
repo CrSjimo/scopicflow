@@ -28,7 +28,7 @@ Item {
             let deltaX = (isAlternateAxis ? (isAxisRevert ? wheel.angleDelta.x : wheel.angleDelta.y) : (isAxisRevert ? wheel.angleDelta.y : wheel.angleDelta.x)) / 120
             let deltaY = (!isAlternateAxis ? (isAxisRevert ? wheel.angleDelta.x : wheel.angleDelta.y) : (isAxisRevert ? wheel.angleDelta.y : wheel.angleDelta.x)) / 120
 
-            let wheelHint = (!deltaPixelX && deltaX - Math.floor(deltaX) < Number.EPSILON) && (!deltaPixelY && deltaY - Math.floor(deltaY) < Number.EPSILON)
+            let wheelHint = (!deltaPixelX && Math.abs(deltaX - Math.floor(deltaX)) < Number.EPSILON) && (!deltaPixelY && Math.abs(deltaY - Math.floor(deltaY)) < Number.EPSILON)
 
             if (isZoom) {
                 parent.zoomed(

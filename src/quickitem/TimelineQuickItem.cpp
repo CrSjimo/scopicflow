@@ -127,15 +127,6 @@ namespace sflow {
         int align = timeAlignmentViewModel->positionAlignment();
         return (tick) / align * align;
     }
-    void TimelineQuickItemPrivate::handlePixelDensityAnimation(double centerX, double newPixelDensity) const {
-        auto newStart = qFuzzyIsNull(timeAlignmentViewModel->start()) && currentAnimationFixStartToZero ? 0.0 :
-                            std::max(0.0, timeAlignmentViewModel->start() +
-                                              centerX / timeAlignmentViewModel->pixelDensity() -
-                                              centerX / newPixelDensity);
-        timeAlignmentViewModel->setStart(newStart);
-        timeAlignmentViewModel->setPixelDensity(newPixelDensity);
-    }
-
 
     TimelinePalette::TimelinePalette(QObject *parent) : QObject(parent) {
     }
@@ -190,11 +181,6 @@ namespace sflow {
         d->palette = defaultPalette;
         connect(d->palette, &TimelinePalette::backgroundColorChanged, this, &QQuickItem::update);
         connect(d->palette, &TimelinePalette::foregroundColorChanged, this, &QQuickItem::update);
-
-        d->startAnimation = new QVariantAnimation(this);
-        d->startAnimation->setEasingCurve(QEasingCurve::OutCubic);
-        d->pixelDensityAnimation = new QVariantAnimation(this);
-        d->pixelDensityAnimation->setEasingCurve(QEasingCurve::OutCubic);
     }
     TimelineQuickItem::~TimelineQuickItem() = default;
 
@@ -212,8 +198,6 @@ namespace sflow {
             return;
         if (d->timeAlignmentViewModel) {
             disconnect(d->timeAlignmentViewModel, nullptr, this, nullptr);
-            disconnect(d->startAnimation, nullptr, d->timeAlignmentViewModel, nullptr);
-            disconnect(d->pixelDensityAnimation, nullptr, d->timeAlignmentViewModel, nullptr);
             if (d->timeAlignmentViewModel->timeline())
                 disconnect(d->timeAlignmentViewModel->timeline(), nullptr, this, nullptr);
         }
@@ -234,12 +218,6 @@ namespace sflow {
             connect(d->timeAlignmentViewModel, &TimeViewModel::cursorPositionChanged, this, [=](int tick) { emit cursorIndicatorXChanged(d->tickToX(tick)); });
             connect(d->timeAlignmentViewModel, &TimeViewModel::timelineChanged, this, [=] { connect(d->timeAlignmentViewModel->timeline(), &SVS::MusicTimeline::timeSignatureChanged, this, &QQuickItem::update); });
             connect(d->timeAlignmentViewModel->timeline(), &SVS::MusicTimeline::timeSignatureChanged, this, &QQuickItem::update);
-
-            connect(d->startAnimation, &QVariantAnimation::valueChanged, d->timeAlignmentViewModel, [=](const QVariant &value) { d->timeAlignmentViewModel->setStart(value.toDouble()); });
-            connect(d->pixelDensityAnimation, &QVariantAnimation::valueChanged, d->timeAlignmentViewModel, [=](const QVariant &value) {
-                auto [centerX, newPixelDensity] = value.toSizeF();
-                d->handlePixelDensityAnimation(centerX, newPixelDensity);
-            });
         }
         emit cursorIndicatorXChanged(cursorIndicatorX());
         emit timeAlignmentViewModelChanged();
@@ -283,18 +261,7 @@ namespace sflow {
         Q_D(TimelineQuickItem);
         if (d->animationViewModel == animationViewModel)
             return;
-        if (d->animationViewModel) {
-            disconnect(d->animationViewModel, nullptr, this, nullptr);
-        }
         d->animationViewModel = animationViewModel;
-        if (animationViewModel) {
-            connect(animationViewModel, &AnimationViewModel::scrollAnimationRatioChanged, this, [=](double value) {
-                d->startAnimation->setDuration(value * 250);
-                d->pixelDensityAnimation->setDuration(value * 250);
-            });
-            d->startAnimation->setDuration(animationViewModel->scrollAnimationRatio() * 250);
-            d->pixelDensityAnimation->setDuration(animationViewModel->scrollAnimationRatio() * 250);
-        }
         emit animationViewModelChanged(animationViewModel);
     }
     double TimelineQuickItem::primaryIndicatorX() const {
@@ -360,7 +327,12 @@ namespace sflow {
         Q_D(TimelineQuickItem);
         if (!d->playbackViewModel)
             return;
-        moveViewBy(deltaX);
+        auto newStart = std::max(0.0, d->timeAlignmentViewModel->start() +
+                                          deltaX / d->timeAlignmentViewModel->pixelDensity());
+        auto newEnd = newStart + width() / d->timeAlignmentViewModel->pixelDensity();
+        if (newEnd > d->timeAlignmentViewModel->end())
+            d->timeAlignmentViewModel->setEnd(newEnd);
+        d->timeAlignmentViewModel->setStart(newStart);
         if (deltaX < 0) {
             int tick = d->alignTickCeil(std::max(0, d->xToTick(0)));
             d->playbackViewModel->setPrimaryPosition(tick);
@@ -369,46 +341,6 @@ namespace sflow {
             int tick = d->alignTickFloor(std::max(0, d->xToTick(width())));
             d->playbackViewModel->setPrimaryPosition(tick);
             d->playbackViewModel->setSecondaryPosition(tick);
-        }
-    }
-    void TimelineQuickItem::moveViewBy(double deltaX, bool animated) {
-        Q_D(TimelineQuickItem);
-        if (!d->timeAlignmentViewModel)
-            return;
-        d->startAnimation->stop();
-        d->pixelDensityAnimation->stop();
-        auto newStart = std::max(0.0, d->timeAlignmentViewModel->start() +
-                                          deltaX / d->timeAlignmentViewModel->pixelDensity());
-        auto newEnd = newStart + width() / d->timeAlignmentViewModel->pixelDensity();
-        if (newEnd > d->timeAlignmentViewModel->end())
-            d->timeAlignmentViewModel->setEnd(newEnd);
-        if (!animated) {
-            d->timeAlignmentViewModel->setStart(newStart);
-        } else {
-            d->startAnimation->setStartValue(d->timeAlignmentViewModel->start());
-            d->startAnimation->setEndValue(newStart);
-            d->startAnimation->start();
-        }
-    }
-    void TimelineQuickItem::zoomOnWheel(double ratio, double centerX, bool animated) {
-        Q_D(TimelineQuickItem);
-        if (!d->timeAlignmentViewModel)
-            return;
-        d->startAnimation->stop();
-        d->pixelDensityAnimation->stop();
-        auto newPixelDensity = qBound(d->timeAlignmentViewModel->minimumPixelDensity(), d->timeAlignmentViewModel->pixelDensity() * ratio, d->timeAlignmentViewModel->maximumPixelDensity());
-        auto newStart = std::max(0.0, d->timeAlignmentViewModel->start() + centerX / d->timeAlignmentViewModel->pixelDensity() - centerX / newPixelDensity);
-        auto newEnd = newStart + width() / newPixelDensity;
-        if (newEnd > d->timeAlignmentViewModel->end())
-            d->timeAlignmentViewModel->setEnd(newEnd);
-        if (!animated) {
-            d->timeAlignmentViewModel->setStart(newStart);
-            d->timeAlignmentViewModel->setPixelDensity(newPixelDensity);
-        } else {
-            d->currentAnimationFixStartToZero = qFuzzyIsNull(d->timeAlignmentViewModel->start());
-            d->pixelDensityAnimation->setStartValue(QSizeF(centerX, d->timeAlignmentViewModel->pixelDensity()));
-            d->pixelDensityAnimation->setEndValue(QSizeF(centerX, newPixelDensity));
-            d->pixelDensityAnimation->start();
         }
     }
 

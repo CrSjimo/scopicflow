@@ -3,12 +3,12 @@
 
 #include <QQuickItem>
 
+#include <ScopicFlow/TimeAlignmentViewModel.h>
 #include <ScopicFlow/ScrollBehaviorViewModel.h>
 #include <ScopicFlow/AnimationViewModel.h>
 
 namespace sflow {
 
-    class TimeAlignmentViewModel;
     class PlaybackViewModel;
 
     class TimelinePalette : public QObject {
@@ -52,6 +52,7 @@ namespace sflow {
     class TimelineQuickItem : public QQuickItem {
         Q_OBJECT
         Q_PROPERTY(TimelinePalette *palette READ palette CONSTANT)
+        Q_PROPERTY(TimeAlignmentViewModel *timeAlignmentViewModel READ timeAlignmentViewModel NOTIFY timeAlignmentViewModelChanged)
         Q_PROPERTY(ScrollBehaviorViewModel *scrollBehaviorViewModel READ scrollBehaviorViewModel NOTIFY scrollBehaviorViewModelChanged)
         Q_PROPERTY(AnimationViewModel *animationViewModel READ animationViewModel NOTIFY animationViewModelChanged)
         Q_PROPERTY(double primaryIndicatorX READ primaryIndicatorX WRITE setPrimaryIndicatorX NOTIFY primaryIndicatorXChanged)
@@ -90,8 +91,6 @@ namespace sflow {
         Q_INVOKABLE double getAlignedX(double x) const;
         Q_INVOKABLE void setZoomedRange(double selectionX, double selectionWidth);
         Q_INVOKABLE void moveViewOnDraggingPositionIndicator(double deltaX);
-        Q_INVOKABLE void moveViewBy(double deltaX, bool animated = false);
-        Q_INVOKABLE void zoomOnWheel(double ratio, double centerX, bool animated = false);
 
     signals:
         void timeAlignmentViewModelChanged();

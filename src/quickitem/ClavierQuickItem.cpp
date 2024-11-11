@@ -7,14 +7,6 @@
 
 namespace sflow {
 
-    void ClavierQuickItemPrivate::handlePixelDensityAnimation(double centerY, double newPixelDensity) const {
-        Q_Q(const ClavierQuickItem);
-        auto newStart = currentAnimationFixStartToZero ? 0.0 : currentAnimationEnsureEnd ? 128 - q->height() / newPixelDensity : std::max(0.0, clavierViewModel->start() + centerY / clavierViewModel->pixelDensity() - centerY / newPixelDensity);
-        newStart = std::min(newStart, 128 - q->height() / newPixelDensity);
-        clavierViewModel->setStart(newStart);
-        clavierViewModel->setPixelDensity(newPixelDensity);
-    }
-
     ClavierPalette::ClavierPalette(QObject *parent) : QObject(parent) {
     }
     ClavierPalette::~ClavierPalette() = default;
@@ -95,11 +87,6 @@ namespace sflow {
         defaultPalette->setBlackKeyTextColor(Qt::white);
         defaultPalette->setBorderColor(Qt::darkGray);
         d->palette = defaultPalette;
-
-        d->startAnimation = new QVariantAnimation;
-        d->startAnimation->setEasingCurve(QEasingCurve::OutCubic);
-        d->pixelDensityAnimation = new QVariantAnimation;
-        d->pixelDensityAnimation->setEasingCurve(QEasingCurve::OutCubic);
     }
     ClavierQuickItem::~ClavierQuickItem() = default;
 
@@ -113,10 +100,10 @@ namespace sflow {
     }
     void ClavierQuickItem::setClavierViewModel(ClavierViewModel *clavierViewModel) {
         Q_D(ClavierQuickItem);
+        if (d->clavierViewModel == clavierViewModel)
+            return;
         if (d->clavierViewModel) {
             disconnect(d->clavierViewModel, nullptr, this, nullptr);
-            disconnect(d->startAnimation, nullptr, d->clavierViewModel, nullptr);
-            disconnect(d->pixelDensityAnimation, nullptr, d->clavierViewModel, nullptr);
         }
         d->clavierViewModel = clavierViewModel;
         if (clavierViewModel) {
@@ -129,14 +116,8 @@ namespace sflow {
             });
             connect(clavierViewModel, &ClavierViewModel::cursorPositionChanged, this, &ClavierQuickItem::cursorNoteIndexChanged);
             connect(clavierViewModel, &ClavierViewModel::accidentalTypeChanged, this, &ClavierQuickItem::keyNameUpdated);
-            connect(d->startAnimation, &QVariantAnimation::valueChanged, d->clavierViewModel, [=](const QVariant &value) {
-                d->clavierViewModel->setStart(value.toDouble());
-            });
-            connect(d->pixelDensityAnimation, &QVariantAnimation::valueChanged, d->clavierViewModel, [=](const QVariant &value) {
-                auto [centerY, pixelDensity] = value.toSizeF();
-                d->handlePixelDensityAnimation(centerY, pixelDensity);
-            });
         }
+        emit clavierViewModelChanged(clavierViewModel);
         emit keyHeightChanged(keyHeight());
         emit viewportYChanged(viewportY());
         emit cursorNoteIndexChanged(cursorNoteIndex());
@@ -161,18 +142,7 @@ namespace sflow {
         Q_D(ClavierQuickItem);
         if (d->animationViewModel == animationViewModel)
             return;
-        if (d->animationViewModel) {
-            disconnect(d->animationViewModel, nullptr, this, nullptr);
-        }
         d->animationViewModel = animationViewModel;
-        if (animationViewModel) {
-            connect(animationViewModel, &AnimationViewModel::scrollAnimationRatioChanged, this, [=](double value) {
-                d->startAnimation->setDuration(value * 250);
-                d->pixelDensityAnimation->setDuration(value * 250);
-            });
-            d->startAnimation->setDuration(animationViewModel->scrollAnimationRatio() * 250);
-            d->pixelDensityAnimation->setDuration(animationViewModel->scrollAnimationRatio() * 250);
-        }
         emit animationViewModelChanged(animationViewModel);
     }
     double ClavierQuickItem::keyHeight() const {
@@ -210,49 +180,6 @@ namespace sflow {
     }
     QString ClavierQuickItem::dummyKeyName() const {
         return {};
-    }
-    void ClavierQuickItem::moveViewBy(double deltaY, bool isAnimated) {
-        Q_D(ClavierQuickItem);
-        if (!d->clavierViewModel)
-            return;
-        d->startAnimation->stop();
-        auto newStart = std::max(0.0, d->clavierViewModel->start() -
-                                          deltaY / d->clavierViewModel->pixelDensity());
-        newStart = std::min(newStart, 128 - height() / d->clavierViewModel->pixelDensity());
-
-        if (!isAnimated) {
-            d->clavierViewModel->setStart(newStart);
-        } else {
-            d->startAnimation->setStartValue(d->clavierViewModel->start());
-            d->startAnimation->setEndValue(newStart);
-            d->startAnimation->start();
-        }
-    }
-    void ClavierQuickItem::zoomOnWheel(double ratio, double centerY, bool animated) {
-        Q_D(ClavierQuickItem);
-        if (!d->clavierViewModel)
-            return;
-        d->startAnimation->stop();
-        d->pixelDensityAnimation->stop();
-        auto newPixelDensity = qBound(d->clavierViewModel->minimumPixelDensity(),
-                                      d->clavierViewModel->pixelDensity() * ratio,
-                                      d->clavierViewModel->maximumPixelDensity());
-        auto newStart = std::max(0.0, d->clavierViewModel->start() +
-                                          centerY / d->clavierViewModel->pixelDensity() -
-                                          centerY / newPixelDensity);
-        newStart = std::min(newStart, 128 - height() / newPixelDensity);
-        if (!animated) {
-            d->clavierViewModel->setStart(newStart);
-            d->clavierViewModel->setPixelDensity(newPixelDensity);
-        } else {
-            d->currentAnimationFixStartToZero = qFuzzyIsNull(d->clavierViewModel->start());
-            d->currentAnimationEnsureEnd = qFuzzyCompare(
-                d->clavierViewModel->start(), 128 - height() / d->clavierViewModel->pixelDensity());
-            d->pixelDensityAnimation->setStartValue(
-                QSizeF(centerY, d->clavierViewModel->pixelDensity()));
-            d->pixelDensityAnimation->setEndValue(QSizeF(centerY, newPixelDensity));
-            d->pixelDensityAnimation->start();
-        }
     }
     QString ClavierQuickItem::keyName(int key) const {
         Q_D(const ClavierQuickItem);

@@ -36,12 +36,6 @@ namespace sflow {
         int alignTick(int tick) const;
         int alignTickCeil(int tick) const;
         int alignTickFloor(int tick) const;
-
-        QVariantAnimation *startAnimation;
-        QVariantAnimation *pixelDensityAnimation;
-        bool currentAnimationFixStartToZero = false;
-
-        void handlePixelDensityAnimation(double centerX, double newPixelDensity) const;
     };
 }
 

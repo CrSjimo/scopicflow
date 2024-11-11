@@ -3,12 +3,11 @@
 
 #include <QQuickItem>
 
+#include <ScopicFlow/ClavierViewModel.h>
 #include <ScopicFlow/ScrollBehaviorViewModel.h>
 #include <ScopicFlow/AnimationViewModel.h>
 
 namespace sflow {
-
-    class ClavierViewModel;
 
     class ClavierPalette : public QObject {
         Q_OBJECT
@@ -64,6 +63,7 @@ namespace sflow {
         Q_OBJECT
         Q_DECLARE_PRIVATE(ClavierQuickItem)
         Q_PROPERTY(ClavierPalette *palette READ palette CONSTANT)
+        Q_PROPERTY(ClavierViewModel *clavierViewModel READ clavierViewModel NOTIFY clavierViewModelChanged)
         Q_PROPERTY(ScrollBehaviorViewModel *scrollBehaviorViewModel READ scrollBehaviorViewModel NOTIFY scrollBehaviorViewModelChanged)
         Q_PROPERTY(AnimationViewModel *animationViewModel READ animationViewModel NOTIFY animationViewModelChanged)
         Q_PROPERTY(double keyHeight READ keyHeight NOTIFY keyHeightChanged)
@@ -103,11 +103,10 @@ namespace sflow {
 
         QString dummyKeyName() const;
 
-        Q_INVOKABLE void moveViewBy(double deltaY, bool isAnimated = false);
-        Q_INVOKABLE void zoomOnWheel(double ratio, double centerY, bool animated = false);
         Q_INVOKABLE QString keyName(int key) const;
 
     signals:
+        void clavierViewModelChanged(ClavierViewModel *clavierViewModel);
         void scrollBehaviorViewModelChanged(ScrollBehaviorViewModel *scrollBehaviorViewModel);
         void animationViewModelChanged(AnimationViewModel *animationViewModel);
         void keyHeightChanged(double keyHeight);

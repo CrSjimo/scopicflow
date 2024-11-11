@@ -9,6 +9,13 @@ import './HelperComponents'
 Timeline {
     id: timeline
 
+    TimeManipulator {
+        id: timeManipulator
+        anchors.fill: parent
+        timeViewModel: timeline.timeAlignmentViewModel
+        animationViewModel: timeline.animationViewModel
+    }
+
     Rectangle {
         id: selectionRect
         anchors.bottom: parent.bottom
@@ -152,10 +159,10 @@ Timeline {
         anchors.fill: parent
         viewModel: timeline.scrollBehaviorViewModel
         onZoomed: function (ratioX, _, x, _, isPhysicalWheel) {
-            timeline.zoomOnWheel(ratioX, x, isPhysicalWheel)
+            timeManipulator.zoomOnWheel(ratioX, x, isPhysicalWheel)
         }
         onMoved: function (x, _, isPhysicalWheel) {
-            timeline.moveViewBy(x, isPhysicalWheel)
+            timeManipulator.moveViewBy(x, isPhysicalWheel)
         }
     }
 
@@ -163,7 +170,7 @@ Timeline {
         anchors.fill: parent
         viewModel: timeline.scrollBehaviorViewModel
         onMoved: function (x) {
-            timeline.moveViewBy(x)
+            timeManipulator.moveViewBy(x)
         }
     }
 

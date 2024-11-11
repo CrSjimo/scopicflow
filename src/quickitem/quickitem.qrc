@@ -12,5 +12,7 @@
         <file>HelperComponents/FluentSystemIconCharset.mjs</file>
         <file>HelperComponents/TrackListSlider.qml</file>
         <file>HelperComponents/TrackListDial.qml</file>
+        <file>HelperComponents/TimeManipulator.qml</file>
+        <file>HelperComponents/ClavierManipulator.qml</file>
     </qresource>
 </RCC>

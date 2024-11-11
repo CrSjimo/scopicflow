@@ -17,13 +17,6 @@ namespace sflow {
         ScrollBehaviorViewModel *scrollBehaviorViewModel = nullptr;
         AnimationViewModel *animationViewModel = nullptr;
         ClavierQuickItem::LabelStrategy labelStrategy = ClavierQuickItem::C;
-
-        QVariantAnimation *startAnimation;
-        QVariantAnimation *pixelDensityAnimation;
-        bool currentAnimationFixStartToZero = false;
-        bool currentAnimationEnsureEnd = false;
-
-        void handlePixelDensityAnimation(double centerY, double newPixelDensity) const;
     };
 }
 

@@ -9,6 +9,12 @@ namespace sflow {
 
     class SCOPIC_FLOW_EXPORT ClavierViewModel : public QObject {
         Q_OBJECT
+        Q_PROPERTY(double start READ start WRITE setStart NOTIFY startChanged)
+        Q_PROPERTY(double pixelDensity READ pixelDensity WRITE setPixelDensity NOTIFY pixelDensityChanged)
+        Q_PROPERTY(double maximumPixelDensity READ maximumPixelDensity WRITE setMaximumPixelDensity NOTIFY maximumPixelDensityChanged)
+        Q_PROPERTY(double minimumPixelDensity READ minimumPixelDensity WRITE setMinimumPixelDensity NOTIFY minimumPixelDensityChanged)
+        Q_PROPERTY(int cursorPosition READ cursorPosition WRITE setCursorPosition NOTIFY cursorPositionChanged)
+        Q_PROPERTY(sflow::ClavierViewModel::AccidentalType accidentalType READ accidentalType WRITE setAccidentalType NOTIFY accidentalTypeChanged)
     public:
         explicit ClavierViewModel(QObject *parent = nullptr);
         ~ClavierViewModel() override;
@@ -33,7 +39,7 @@ namespace sflow {
             Sharp,
         };
         Q_ENUM(AccidentalType)
-        AccidentalType accidentalType() const;
+        sflow::ClavierViewModel::AccidentalType accidentalType() const;
         void setAccidentalType(AccidentalType accidentalType);
 
     signals:
@@ -42,7 +48,7 @@ namespace sflow {
         void maximumPixelDensityChanged(double maximumPixelDensity);
         void minimumPixelDensityChanged(double minimumPixelDensity);
         void cursorPositionChanged(int cursorPosition);
-        void accidentalTypeChanged(AccidentalType accidentalType);
+        void accidentalTypeChanged(sflow::ClavierViewModel::AccidentalType accidentalType);
 
     private:
         double m_start;

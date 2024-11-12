@@ -55,29 +55,4 @@ namespace sflow {
     double TimelineWidget::mapToX(int tick) const {
         return d->mapToX(tick);
     }
-
-    QColor TimelineWidget::backgroundColor() const {
-        return d->palette()->backgroundColor();
-    }
-    void TimelineWidget::setBackgroundColor(const QColor &color) {
-        d->palette()->setBackgroundColor(color);
-    }
-    QColor TimelineWidget::foregroundColor() const {
-        return d->palette()->foregroundColor();
-    }
-    void TimelineWidget::setForegroundColor(const QColor &color) {
-        d->palette()->setForegroundColor(color);
-    }
-    QColor TimelineWidget::positionIndicatorColor() const {
-        return d->palette()->positionIndicatorColor();
-    }
-    void TimelineWidget::setPositionIndicatorColor(const QColor &color) {
-        d->palette()->setPositionIndicatorColor(color);
-    }
-    QColor TimelineWidget::cursorIndicatorColor() const {
-        return d->palette()->cursorIndicatorColor();
-    }
-    void TimelineWidget::setCursorIndicatorColor(const QColor &color) {
-        d->palette()->setCursorIndicatorColor(color);
-    }
 } // sflow

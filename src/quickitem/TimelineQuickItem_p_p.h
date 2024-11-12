@@ -15,11 +15,14 @@ namespace sflow {
         ~TimelineQuickItemPrivate();
         TimelineQuickItem *q_ptr;
 
-        TimelinePalette *palette = nullptr;
         TimeAlignmentViewModel *timeAlignmentViewModel = nullptr;
         PlaybackViewModel *playbackViewModel = nullptr;
         ScrollBehaviorViewModel *scrollBehaviorViewModel = nullptr;
         AnimationViewModel *animationViewModel = nullptr;
+        PaletteViewModel *paletteViewModel = nullptr;
+
+        QColor backgroundColor;
+        QColor foregroundColor;
 
         QTextLayout *createTextLayoutForBarNumber(int bar);
         QSGTextNode *createTextNodeForBarNumber(int bar, const QColor &color);

@@ -5,9 +5,19 @@ import QtQuick
 import QtQuick.Shapes
 
 import './HelperComponents'
+import '../palette' as ScopicFlowPalette
 
 Timeline {
     id: timeline
+
+    readonly property QtObject defaultPalette: ScopicFlowPalette.Timeline {
+
+    }
+
+    readonly property QtObject palette: paletteViewModel?.palette?.timeline ?? defaultPalette
+
+    backgroundColor: palette.backgroundColor
+    foregroundColor: palette.foregroundColor
 
     TimeManipulator {
         id: timeManipulator
@@ -20,7 +30,7 @@ Timeline {
         id: selectionRect
         anchors.bottom: parent.bottom
         anchors.top: parent.top
-        color: Qt.rgba(timeline.palette.foregroundColor.r, timeline.palette.foregroundColor.g, timeline.palette.foregroundColor.b, 0.5 * timeline.palette.foregroundColor.a)
+        color: Qt.rgba(timeline.foregroundColor.r, timeline.foregroundColor.g, timeline.foregroundColor.b, 0.5 * timeline.foregroundColor.a)
         visible: false
         property int start: 0
     }
@@ -33,7 +43,7 @@ Timeline {
         ShapePath {
             id: indicatorPath
             strokeWidth: 0
-            fillColor: Qt.rgba(timeline.palette.positionIndicatorColor.r, timeline.palette.positionIndicatorColor.g, timeline.palette.positionIndicatorColor.b, 0.5 * timeline.palette.positionIndicatorColor.a)
+            fillColor: timeline.palette.secondaryIndicatorColor
             PathLine { x: 8 / Math.sqrt(3); y: 0 }
             PathLine { x: 24 / Math.sqrt(3); y: 0 }
             PathArc { x: 28 / Math.sqrt(3); y: 4; radiusX: 4 / 3; radiusY: 4 / 3}
@@ -52,7 +62,7 @@ Timeline {
         anchors.bottom: parent.bottom
         ShapePath {
             strokeWidth: 0
-            fillColor: timeline.palette.positionIndicatorColor
+            fillColor: timeline.palette.primaryIndicatorColor
             pathElements: indicatorPath.pathElements
         }
         x: timeline.primaryIndicatorX - 16 / Math.sqrt(3)

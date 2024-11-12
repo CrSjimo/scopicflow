@@ -128,66 +128,15 @@ namespace sflow {
         return (tick) / align * align;
     }
 
-    TimelinePalette::TimelinePalette(QObject *parent) : QObject(parent) {
-    }
-    TimelinePalette::~TimelinePalette() = default;
-
-    QColor TimelinePalette::backgroundColor() const {
-        return m_backgroundColor;
-    }
-    void TimelinePalette::setBackgroundColor(const QColor &color) {
-        if (m_backgroundColor != color) {
-            m_backgroundColor = color;
-            emit backgroundColorChanged(color);
-        }
-    }
-    QColor TimelinePalette::foregroundColor() const {
-        return m_foregroundColor;
-    }
-    void TimelinePalette::setForegroundColor(const QColor &color) {
-        if (m_foregroundColor != color) {
-            m_foregroundColor = color;
-            emit foregroundColorChanged(color);
-        }
-    }
-    QColor TimelinePalette::positionIndicatorColor() const {
-        return m_positionIndicatorColor;
-    }
-    void TimelinePalette::setPositionIndicatorColor(const QColor &color) {
-        if (m_positionIndicatorColor != color) {
-            m_positionIndicatorColor = color;
-            emit positionIndicatorColorChanged(color);
-        }
-    }
-    QColor TimelinePalette::cursorIndicatorColor() const {
-        return m_cursorIndicatorColor;
-    }
-    void TimelinePalette::setCursorIndicatorColor(const QColor &color) {
-        if (m_cursorIndicatorColor != color) {
-            m_cursorIndicatorColor = color;
-            emit cursorIndicatorColorChanged(color);
-        }
-    }
-
     TimelineQuickItem::TimelineQuickItem(QQuickItem *parent) : QQuickItem(parent), d_ptr(new TimelineQuickItemPrivate) {
         Q_D(TimelineQuickItem);
         d->q_ptr = this;
         setFlag(ItemHasContents, true);
-        auto defaultPalette = new TimelinePalette(this);
-        defaultPalette->setBackgroundColor(Qt::black);
-        defaultPalette->setForegroundColor(Qt::white);
-        defaultPalette->setPositionIndicatorColor(Qt::cyan);
-        defaultPalette->setCursorIndicatorColor(Qt::red);
-        d->palette = defaultPalette;
-        connect(d->palette, &TimelinePalette::backgroundColorChanged, this, &QQuickItem::update);
-        connect(d->palette, &TimelinePalette::foregroundColorChanged, this, &QQuickItem::update);
+        connect(this, &TimelineQuickItem::backgroundColorChanged, this, &QQuickItem::update);
+        connect(this, &TimelineQuickItem::foregroundColorChanged, this, &QQuickItem::update);
     }
     TimelineQuickItem::~TimelineQuickItem() = default;
 
-    TimelinePalette *TimelineQuickItem::palette() const {
-        Q_D(const TimelineQuickItem);
-        return d->palette;
-    }
     TimeAlignmentViewModel *TimelineQuickItem::timeAlignmentViewModel() const {
         Q_D(const TimelineQuickItem);
         return d->timeAlignmentViewModel;
@@ -264,6 +213,18 @@ namespace sflow {
         d->animationViewModel = animationViewModel;
         emit animationViewModelChanged(animationViewModel);
     }
+    PaletteViewModel *TimelineQuickItem::paletteViewModel() const {
+        Q_D(const TimelineQuickItem);
+        return d->paletteViewModel;
+    }
+    void TimelineQuickItem::setPaletteViewModel(PaletteViewModel *paletteViewModel) {
+        Q_D(TimelineQuickItem);
+        if (d->paletteViewModel == paletteViewModel)
+            return;
+        d->paletteViewModel = paletteViewModel;
+        emit paletteViewModelChanged(paletteViewModel);
+        
+    }
     double TimelineQuickItem::primaryIndicatorX() const {
         Q_D(const TimelineQuickItem);
         if (!d->playbackViewModel)
@@ -293,6 +254,22 @@ namespace sflow {
         if (!d->timeAlignmentViewModel)
             return -1;
         return d->tickToX(d->timeAlignmentViewModel->cursorPosition());
+    }
+    QColor TimelineQuickItem::backgroundColor() const {
+        Q_D(const TimelineQuickItem);
+        return d->backgroundColor;
+    }
+    void TimelineQuickItem::setBackgroundColor(const QColor &backgroundColor) {
+        Q_D(TimelineQuickItem);
+        d->backgroundColor = backgroundColor;
+    }
+    QColor TimelineQuickItem::foregroundColor() const {
+        Q_D(const TimelineQuickItem);
+        return d->foregroundColor;
+    }
+    void TimelineQuickItem::setForegroundColor(const QColor &foregroundColor) {
+        Q_D(TimelineQuickItem);
+        d->foregroundColor = foregroundColor;
     }
     int TimelineQuickItem::mapToTick(double x) const {
         Q_D(const TimelineQuickItem);
@@ -383,8 +360,8 @@ namespace sflow {
         }
         node->appendChildNode(scaleNode = new QSGNode);
         scaleNode->setFlag(QSGNode::OwnedByParent);
-        if (d->palette && d->palette->backgroundColor().isValid())
-            rectNode->setColor(d->palette->backgroundColor());
+        if (d->backgroundColor.isValid())
+            rectNode->setColor(d->backgroundColor);
         else
             rectNode->setColor(Qt::black);
         rectNode->setRect(boundingRect());
@@ -404,7 +381,7 @@ namespace sflow {
         }
 
         QList<QPair<float, bool>> xList;
-        auto foregroundColor = d->palette && d->palette->foregroundColor().isValid() ? d->palette->foregroundColor() : Qt::white;
+        auto foregroundColor = d->foregroundColor.isValid() ? d->foregroundColor : Qt::white;
 
         for (;; moveForward(musicTime, barScaleIntervalExp2, doDrawBeatScale)) {
             double deltaTick = musicTime.totalTick() - d->timeAlignmentViewModel->start();

@@ -1,0 +1,8 @@
+<RCC>
+    <qresource prefix="/ScopicFlow/palette">
+        <file>qmldir</file>
+        <file>Palette.qml</file>
+        <file>Timeline.qml</file>
+        <file>Clavier.qml</file>
+    </qresource>
+</RCC>

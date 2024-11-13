@@ -16,6 +16,7 @@ namespace sflow {
         TimelineQuickItem *q_ptr;
 
         TimeAlignmentViewModel *timeAlignmentViewModel = nullptr;
+        SVS::MusicTimeline *timeline = nullptr;
         PlaybackViewModel *playbackViewModel = nullptr;
         ScrollBehaviorViewModel *scrollBehaviorViewModel = nullptr;
         AnimationViewModel *animationViewModel = nullptr;

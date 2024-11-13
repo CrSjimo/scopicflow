@@ -147,11 +147,14 @@ namespace sflow {
             return;
         if (d->timeAlignmentViewModel) {
             disconnect(d->timeAlignmentViewModel, nullptr, this, nullptr);
-            if (d->timeAlignmentViewModel->timeline())
-                disconnect(d->timeAlignmentViewModel->timeline(), nullptr, this, nullptr);
+        }
+        if (d->timeline) {
+            disconnect(d->timeline, nullptr, this, nullptr);
         }
         d->timeAlignmentViewModel = timeAlignmentViewModel;
+        d->timeline = nullptr;
         if (d->timeAlignmentViewModel) {
+            d->timeline = d->timeAlignmentViewModel->timeline();
             connect(d->timeAlignmentViewModel, &TimeViewModel::startChanged, this, [=] {
                 emit primaryIndicatorXChanged(primaryIndicatorX());
                 emit secondaryIndicatorXChanged(secondaryIndicatorX());
@@ -165,8 +168,18 @@ namespace sflow {
                 update();
             });
             connect(d->timeAlignmentViewModel, &TimeViewModel::cursorPositionChanged, this, [=](int tick) { emit cursorIndicatorXChanged(d->tickToX(tick)); });
-            connect(d->timeAlignmentViewModel, &TimeViewModel::timelineChanged, this, [=] { connect(d->timeAlignmentViewModel->timeline(), &SVS::MusicTimeline::timeSignatureChanged, this, &QQuickItem::update); });
-            connect(d->timeAlignmentViewModel->timeline(), &SVS::MusicTimeline::timeSignatureChanged, this, &QQuickItem::update);
+            connect(d->timeAlignmentViewModel, &TimeViewModel::timelineChanged, this, [=] {
+                if (d->timeline) {
+                   disconnect(d->timeline, nullptr, this, nullptr);
+                }
+                d->timeline = d->timeAlignmentViewModel->timeline();
+                if (d->timeline) {
+                    connect(d->timeline, &SVS::MusicTimeline::changed, this, &QQuickItem::update);
+                }
+            });
+            if (d->timeline) {
+                connect(d->timeline, &SVS::MusicTimeline::changed, this, &QQuickItem::update);
+            }
         }
         emit cursorIndicatorXChanged(cursorIndicatorX());
         emit timeAlignmentViewModelChanged();

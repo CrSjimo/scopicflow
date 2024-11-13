@@ -17,13 +17,6 @@ namespace sflow {
 
     class SCOPIC_FLOW_EXPORT ClavierWidget : public QWidget {
         Q_OBJECT
-        Q_PROPERTY(QColor whiteKeyBackgroundColor READ whiteKeyBackgroundColor WRITE setWhiteKeyBackgroundColor)
-        Q_PROPERTY(QColor whiteKeyForegroundColor READ whiteKeyForegroundColor WRITE setWhiteKeyForegroundColor)
-        Q_PROPERTY(QColor whiteKeyTextColor READ whiteKeyTextColor WRITE setWhiteKeyTextColor)
-        Q_PROPERTY(QColor blackKeyBackgroundColor READ blackKeyBackgroundColor WRITE setBlackKeyBackgroundColor)
-        Q_PROPERTY(QColor blackKeyForegroundColor READ blackKeyForegroundColor WRITE setBlackKeyForegroundColor)
-        Q_PROPERTY(QColor blackKeyTextColor READ blackKeyTextColor WRITE setBlackKeyTextColor)
-        Q_PROPERTY(QColor borderColor READ borderColor WRITE setBorderColor)
 
     public:
         explicit ClavierWidget(QWidget *parent = nullptr);
@@ -51,21 +44,6 @@ namespace sflow {
 
     private:
         ClavierQuickItem *d;
-
-        QColor whiteKeyBackgroundColor() const;
-        void setWhiteKeyBackgroundColor(const QColor &color);
-        QColor whiteKeyForegroundColor() const;
-        void setWhiteKeyForegroundColor(const QColor &color);
-        QColor whiteKeyTextColor() const;
-        void setWhiteKeyTextColor(const QColor &color);
-        QColor blackKeyBackgroundColor() const;
-        void setBlackKeyBackgroundColor(const QColor &color);
-        QColor blackKeyForegroundColor() const;
-        void setBlackKeyForegroundColor(const QColor &color);
-        QColor blackKeyTextColor() const;
-        void setBlackKeyTextColor(const QColor &color);
-        QColor borderColor() const;
-        void setBorderColor(const QColor &color);
     };
 
 } // sflow

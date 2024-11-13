@@ -4,20 +4,28 @@ import QtQuick.Controls.Basic
 Button {
     id: button
     property color checkedColor
-    required property color foregroundColor
-    required property color borderColor
+    required property QtObject palette
+    readonly property color borderColor: trackListDelegate.palette.borderColor
+    readonly property color foregroundColor: trackListDelegate.palette.foregroundColor
+    readonly property color normalColor: trackListDelegate.palette.buttonColor
+    readonly property color hoveredColor: trackListDelegate.palette.buttonHoveredColor
+    readonly property color pressedColor: trackListDelegate.palette.buttonPressedColor
+    required property double animationRatio
     property string toolTip: ""
     checkable: true
     width: 24
     height: 24
     background: Rectangle {
-        property color hoveredColor: Qt.rgba(foregroundColor.r, foregroundColor.g, foregroundColor.b, 0.5 * foregroundColor.a)
-        property color pressedColor: Qt.rgba(foregroundColor.r, foregroundColor.g, foregroundColor.b, 0.125 * foregroundColor.a)
-        property color normalColor: Qt.rgba(foregroundColor.r, foregroundColor.g, foregroundColor.b, 0.25 * foregroundColor.a)
         border.width: 1
         border.color: borderColor
         radius: 2
         color: button.checked ? button.checkedColor : button.down ? pressedColor : button.hovered ? hoveredColor : normalColor
+        Behavior on color {
+            ColorAnimation {
+                duration: button.animationRatio * 250
+                easing.type: Easing.OutCubic
+            }
+        }
     }
 
     contentItem: Text {

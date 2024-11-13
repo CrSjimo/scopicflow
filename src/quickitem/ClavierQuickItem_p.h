@@ -6,66 +6,19 @@
 #include <ScopicFlow/ClavierViewModel.h>
 #include <ScopicFlow/ScrollBehaviorViewModel.h>
 #include <ScopicFlow/AnimationViewModel.h>
+#include <ScopicFlow/PaletteViewModel.h>
 
 namespace sflow {
-
-    class ClavierPalette : public QObject {
-        Q_OBJECT
-        Q_PROPERTY(QColor whiteKeyBackgroundColor READ whiteKeyBackgroundColor WRITE setWhiteKeyBackgroundColor NOTIFY whiteKeyBackgroundColorChanged)
-        Q_PROPERTY(QColor whiteKeyForegroundColor READ whiteKeyForegroundColor WRITE setWhiteKeyForegroundColor NOTIFY whiteKeyForegroundColorChanged)
-        Q_PROPERTY(QColor whiteKeyTextColor READ whiteKeyTextColor WRITE setWhiteKeyTextColor NOTIFY whiteKeyTextColorChanged)
-        Q_PROPERTY(QColor blackKeyBackgroundColor READ blackKeyBackgroundColor WRITE setBlackKeyBackgroundColor NOTIFY blackKeyBackgroundColorChanged)
-        Q_PROPERTY(QColor blackKeyForegroundColor READ blackKeyForegroundColor WRITE setBlackKeyForegroundColor NOTIFY blackKeyForegroundColorChanged)
-        Q_PROPERTY(QColor blackKeyTextColor READ blackKeyTextColor WRITE setBlackKeyTextColor NOTIFY blackKeyTextColorChanged)
-        Q_PROPERTY(QColor borderColor READ borderColor WRITE setBorderColor NOTIFY borderColorChanged)
-
-    public:
-        explicit ClavierPalette(QObject *parent = nullptr);
-        ~ClavierPalette() override;
-
-        QColor whiteKeyBackgroundColor() const;
-        void setWhiteKeyBackgroundColor(const QColor &color);
-        QColor whiteKeyForegroundColor() const;
-        void setWhiteKeyForegroundColor(const QColor &color);
-        QColor whiteKeyTextColor() const;
-        void setWhiteKeyTextColor(const QColor &color);
-        QColor blackKeyBackgroundColor() const;
-        void setBlackKeyBackgroundColor(const QColor &color);
-        QColor blackKeyForegroundColor() const;
-        void setBlackKeyForegroundColor(const QColor &color);
-        QColor blackKeyTextColor() const;
-        void setBlackKeyTextColor(const QColor &color);
-        QColor borderColor() const;
-        void setBorderColor(const QColor &color);
-
-    signals:
-        void whiteKeyBackgroundColorChanged(const QColor &color);
-        void whiteKeyForegroundColorChanged(const QColor &color);
-        void whiteKeyTextColorChanged(const QColor &color);
-        void blackKeyBackgroundColorChanged(const QColor &color);
-        void blackKeyForegroundColorChanged(const QColor &color);
-        void blackKeyTextColorChanged(const QColor &color);
-        void borderColorChanged(const QColor &color);
-
-    private:
-        QColor m_whiteKeyBackgroundColor;
-        QColor m_whiteKeyForegroundColor;
-        QColor m_whiteKeyTextColor;
-        QColor m_blackKeyBackgroundColor;
-        QColor m_blackKeyForegroundColor;
-        QColor m_blackKeyTextColor;
-        QColor m_borderColor;
-    };
 
     class ClavierQuickItemPrivate;
 
     class SCOPIC_FLOW_EXPORT ClavierQuickItem : public QQuickItem {
         Q_OBJECT
         Q_DECLARE_PRIVATE(ClavierQuickItem)
-        Q_PROPERTY(ClavierPalette *palette READ palette CONSTANT)
         Q_PROPERTY(ClavierViewModel *clavierViewModel READ clavierViewModel NOTIFY clavierViewModelChanged)
         Q_PROPERTY(ScrollBehaviorViewModel *scrollBehaviorViewModel READ scrollBehaviorViewModel NOTIFY scrollBehaviorViewModelChanged)
         Q_PROPERTY(AnimationViewModel *animationViewModel READ animationViewModel NOTIFY animationViewModelChanged)
+        Q_PROPERTY(PaletteViewModel *paletteViewModel READ paletteViewModel NOTIFY paletteViewModelChanged)
         Q_PROPERTY(double keyHeight READ keyHeight NOTIFY keyHeightChanged)
         Q_PROPERTY(double viewportY READ viewportY NOTIFY viewportYChanged)
         Q_PROPERTY(int cursorNoteIndex READ cursorNoteIndex NOTIFY cursorNoteIndexChanged)
@@ -75,8 +28,6 @@ namespace sflow {
         explicit ClavierQuickItem(QQuickItem *parent = nullptr);
         ~ClavierQuickItem() override;
 
-        ClavierPalette *palette() const;
-
         ClavierViewModel *clavierViewModel() const;
         void setClavierViewModel(ClavierViewModel *clavierViewModel);
 
@@ -85,6 +36,9 @@ namespace sflow {
 
         AnimationViewModel *animationViewModel() const;
         void setAnimationViewModel(AnimationViewModel *animationViewModel);
+
+        PaletteViewModel *paletteViewModel() const;
+        void setPaletteViewModel(PaletteViewModel *paletteViewModel);
 
         double keyHeight() const;
         double viewportY() const;
@@ -109,6 +63,7 @@ namespace sflow {
         void clavierViewModelChanged(ClavierViewModel *clavierViewModel);
         void scrollBehaviorViewModelChanged(ScrollBehaviorViewModel *scrollBehaviorViewModel);
         void animationViewModelChanged(AnimationViewModel *animationViewModel);
+        void paletteViewModelChanged(PaletteViewModel *paletteViewModel);
         void keyHeightChanged(double keyHeight);
         void viewportYChanged(double viewportY);
         void cursorNoteIndexChanged(int cursorNoteIndex);

@@ -4,9 +4,14 @@ import ScopicFlowPrivate
 
 import '.'
 import './HelperComponents'
+import '../palette' as ScopicFlowPalette
 
 TrackList {
     id: trackList
+
+    property QtObject defaultPalette: ScopicFlowPalette.TrackList {}
+    property QtObject palette: paletteViewModel?.palette?.trackList ?? defaultPalette
+
     property bool trackHandleEnabled: true
     onHeightChanged: {
         if (!trackList.trackListViewModel)
@@ -115,6 +120,12 @@ TrackList {
                     anchors.right: parent.right
                     y: trackLayoutRepeater.itemAt(index).y + trackLayoutRepeater.itemAt(index).height - 2
                     opacity: indicatesTarget || trackHandleMouseArea.containsPressed || trackHandleMouseArea.originalY !== -1
+                    Behavior on opacity {
+                        NumberAnimation {
+                            duration: (trackList.animationViewModel?.visualEffectAnimationRatio ?? 1.0) * 250
+                            easing.type: Easing.OutCubic
+                        }
+                    }
                     height: 4
                     color: trackList.palette.primaryColor
 

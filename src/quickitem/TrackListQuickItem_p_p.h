@@ -9,11 +9,11 @@ namespace sflow {
     public:
         TrackListQuickItem *q_ptr;
 
-        TrackListPalette *palette;
         TrackListViewModel *trackListViewModel = nullptr;
 
         ScrollBehaviorViewModel *scrollBehaviorViewModel = nullptr;
         AnimationViewModel *animationViewModel = nullptr;
+        PaletteViewModel *paletteViewModel = nullptr;
 
         double totalHeight = 0.0;
         QList<double> handlePositionList;

@@ -49,46 +49,4 @@ namespace sflow {
     int ClavierWidget::mapToKey(double y) const {
         return d->mapToKey(y);
     }
-    QColor ClavierWidget::whiteKeyBackgroundColor() const {
-        return d->palette()->whiteKeyBackgroundColor();
-    }
-    void ClavierWidget::setWhiteKeyBackgroundColor(const QColor &color) {
-        d->palette()->setWhiteKeyBackgroundColor(color);
-    }
-    QColor ClavierWidget::whiteKeyForegroundColor() const {
-        return d->palette()->whiteKeyForegroundColor();
-    }
-    void ClavierWidget::setWhiteKeyForegroundColor(const QColor &color) {
-        d->palette()->setWhiteKeyForegroundColor(color);
-    }
-    QColor ClavierWidget::whiteKeyTextColor() const {
-        return d->palette()->whiteKeyTextColor();
-    }
-    void ClavierWidget::setWhiteKeyTextColor(const QColor &color) {
-        d->palette()->setWhiteKeyTextColor(color);
-    }
-    QColor ClavierWidget::blackKeyBackgroundColor() const {
-        return d->palette()->blackKeyBackgroundColor();
-    }
-    void ClavierWidget::setBlackKeyBackgroundColor(const QColor &color) {
-        d->palette()->setBlackKeyBackgroundColor(color);
-    }
-    QColor ClavierWidget::blackKeyForegroundColor() const {
-        return d->palette()->blackKeyForegroundColor();
-    }
-    void ClavierWidget::setBlackKeyForegroundColor(const QColor &color) {
-        d->palette()->setBlackKeyForegroundColor(color);
-    }
-    QColor ClavierWidget::blackKeyTextColor() const {
-        return d->palette()->blackKeyTextColor();
-    }
-    void ClavierWidget::setBlackKeyTextColor(const QColor &color) {
-        d->palette()->setBlackKeyTextColor(color);
-    }
-    QColor ClavierWidget::borderColor() const {
-        return d->palette()->borderColor();
-    }
-    void ClavierWidget::setBorderColor(const QColor &color) {
-        d->palette()->setBorderColor(color);
-    }
 }

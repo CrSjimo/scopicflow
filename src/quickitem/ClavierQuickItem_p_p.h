@@ -12,10 +12,10 @@ namespace sflow {
     public:
         ClavierQuickItem *q_ptr;
 
-        ClavierPalette *palette;
         ClavierViewModel *clavierViewModel = nullptr;
         ScrollBehaviorViewModel *scrollBehaviorViewModel = nullptr;
         AnimationViewModel *animationViewModel = nullptr;
+        PaletteViewModel *paletteViewModel = nullptr;
         ClavierQuickItem::LabelStrategy labelStrategy = ClavierQuickItem::C;
     };
 }

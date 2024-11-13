@@ -10,9 +10,8 @@ Item {
     property double _start: 0
     Behavior on _start {
         id: startBehavior
-        SmoothedAnimation {
+        NumberAnimation {
             duration: (timeManipulator.animationViewModel?.scrollAnimationRatio ?? 1.0) * 250
-            velocity: -1
             easing.type: Easing.OutCubic
         }
     }
@@ -22,9 +21,8 @@ Item {
     property double _pixelDensity: 0
     Behavior on _pixelDensity {
         id: pixelDensityBehavior
-        SmoothedAnimation {
+        NumberAnimation {
             duration: (timeManipulator.animationViewModel?.scrollAnimationRatio ?? 1.0) * 250
-            velocity: -1
             easing.type: Easing.OutCubic
         }
     }

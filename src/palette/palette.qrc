@@ -4,5 +4,6 @@
         <file>Palette.qml</file>
         <file>Timeline.qml</file>
         <file>Clavier.qml</file>
+        <file>TrackList.qml</file>
     </qresource>
 </RCC>

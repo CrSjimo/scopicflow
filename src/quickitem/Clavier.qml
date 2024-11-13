@@ -4,9 +4,14 @@ import QtQml
 import QtQuick
 
 import './HelperComponents'
+import '../palette' as ScopicFlowPalette
 
 Clavier {
     id: clavier
+
+    readonly property QtObject defaultPalette: ScopicFlowPalette.Clavier {}
+    readonly property QtObject palette: paletteViewModel?.palette?.clavier ?? defaultPalette
+
 
     readonly property list<double> keyYFactor: [5 / 3, 2, 10 / 3, 4, 15 / 3, 27 / 4, 7, 34 / 4, 9, 41 / 4, 11, 12]
     readonly property list<double> keyHeightFactor: [5 / 3, 1, 5 / 3, 1, 5 / 3, 7 / 4, 1, 7 / 4, 1, 7 / 4, 1, 7 / 4]
@@ -57,14 +62,21 @@ Clavier {
                 property bool isLeftLabelVisible: false
                 readonly property bool isRightLabelVisible: clavier.labelStrategy === Clavier.All || labelStrategy === Clavier.C && index % 12 === 0
                 readonly property color normalColor: isBlackKey ? clavier.palette.blackKeyBackgroundColor : clavier.palette.whiteKeyBackgroundColor
-                readonly property color hoverColor: isBlackKey ? clavier.palette.blackKeyForegroundColor : clavier.palette.whiteKeyForegroundColor
-                readonly property color pressedColor: Qt.rgba(normalColor.r / 2 + hoverColor.r / 2, normalColor.g / 2 + hoverColor.g / 2, normalColor.b / 2 + hoverColor.b / 2, normalColor.a / 2 + hoverColor.a / 2)
+                readonly property color hoverColor: isBlackKey ? clavier.palette.blackKeyHoveredColor : clavier.palette.whiteKeyHoveredColor
+                readonly property color pressedColor: isBlackKey ? clavier.palette.blackKeyPressedColor : clavier.palette.whiteKeyPressedColor
                 anchors.left: parent.left
                 width: parent.width * (isBlackKey ? 0.75 : 1)
                 height: clavier.keyHeight * clavier.keyHeightFactor[index % 12]
+                visible: y + height >= -clavier.viewportY && y <= 128 * clavier.height - clavier.viewportY
                 y: clavier.calculateYFromKey(index)
                 z: isBlackKey ? 1 : 0
                 color: normalColor
+                Behavior on color {
+                    ColorAnimation {
+                        duration: (clavier.animationViewModel?.visualEffectAnimationRatio ?? 1.0) * 250
+                        easing.type: Easing.OutCubic
+                    }
+                }
                 border.width: 1
                 border.color: clavier.palette.borderColor
                 topRightRadius: isBlackKey ? 4 : 0

@@ -7,93 +7,12 @@
 
 namespace sflow {
 
-    ClavierPalette::ClavierPalette(QObject *parent) : QObject(parent) {
-    }
-    ClavierPalette::~ClavierPalette() = default;
-
-    QColor ClavierPalette::whiteKeyBackgroundColor() const {
-        return m_whiteKeyBackgroundColor;
-    }
-    void ClavierPalette::setWhiteKeyBackgroundColor(const QColor &color) {
-        if (m_whiteKeyBackgroundColor != color) {
-            m_whiteKeyBackgroundColor = color;
-            emit whiteKeyBackgroundColorChanged(color);
-        }
-    }
-    QColor ClavierPalette::whiteKeyForegroundColor() const {
-        return m_whiteKeyForegroundColor;
-    }
-    void ClavierPalette::setWhiteKeyForegroundColor(const QColor &color) {
-        if (m_whiteKeyForegroundColor != color) {
-            m_whiteKeyForegroundColor = color;
-            emit whiteKeyForegroundColorChanged(color);
-        }
-    }
-    QColor ClavierPalette::whiteKeyTextColor() const {
-        return m_whiteKeyTextColor;
-    }
-    void ClavierPalette::setWhiteKeyTextColor(const QColor &color) {
-        if (m_whiteKeyTextColor != color) {
-            m_whiteKeyTextColor = color;
-            emit whiteKeyTextColorChanged(color);
-        }
-    }
-    QColor ClavierPalette::blackKeyBackgroundColor() const {
-        return m_blackKeyBackgroundColor;
-    }
-    void ClavierPalette::setBlackKeyBackgroundColor(const QColor &color) {
-        if (m_blackKeyBackgroundColor != color) {
-            m_blackKeyBackgroundColor = color;
-            emit blackKeyBackgroundColorChanged(color);
-        }
-    }
-    QColor ClavierPalette::blackKeyForegroundColor() const {
-        return m_blackKeyForegroundColor;
-    }
-    void ClavierPalette::setBlackKeyForegroundColor(const QColor &color) {
-        if (m_blackKeyForegroundColor != color) {
-            m_blackKeyForegroundColor = color;
-            emit blackKeyForegroundColorChanged(color);
-        }
-    }
-    QColor ClavierPalette::blackKeyTextColor() const {
-        return m_blackKeyTextColor;
-    }
-    void ClavierPalette::setBlackKeyTextColor(const QColor &color) {
-        if (m_blackKeyTextColor != color) {
-            m_blackKeyTextColor = color;
-            emit blackKeyTextColorChanged(color);
-        }
-    }
-    QColor ClavierPalette::borderColor() const {
-        return m_borderColor;
-    }
-    void ClavierPalette::setBorderColor(const QColor &color) {
-        if (m_borderColor != color) {
-            m_borderColor = color;
-            emit borderColorChanged(color);
-        }
-    }
-
     ClavierQuickItem::ClavierQuickItem(QQuickItem *parent) : QQuickItem(parent), d_ptr(new ClavierQuickItemPrivate) {
         Q_D(ClavierQuickItem);
         d->q_ptr = this;
-        auto defaultPalette = new ClavierPalette;
-        defaultPalette->setWhiteKeyBackgroundColor(Qt::white);
-        defaultPalette->setWhiteKeyForegroundColor(Qt::cyan);
-        defaultPalette->setWhiteKeyTextColor(Qt::black);
-        defaultPalette->setBlackKeyBackgroundColor(Qt::black);
-        defaultPalette->setBlackKeyForegroundColor(Qt::cyan);
-        defaultPalette->setBlackKeyTextColor(Qt::white);
-        defaultPalette->setBorderColor(Qt::darkGray);
-        d->palette = defaultPalette;
     }
     ClavierQuickItem::~ClavierQuickItem() = default;
 
-    ClavierPalette *ClavierQuickItem::palette() const {
-        Q_D(const ClavierQuickItem);
-        return d->palette;
-    }
     ClavierViewModel *ClavierQuickItem::clavierViewModel() const {
         Q_D(const ClavierQuickItem);
         return d->clavierViewModel;
@@ -145,6 +64,18 @@ namespace sflow {
         d->animationViewModel = animationViewModel;
         emit animationViewModelChanged(animationViewModel);
     }
+    PaletteViewModel *ClavierQuickItem::paletteViewModel() const {
+        Q_D(const ClavierQuickItem);
+        return d->paletteViewModel;
+    }
+    void ClavierQuickItem::setPaletteViewModel(PaletteViewModel *paletteViewModel) {
+        Q_D(ClavierQuickItem);
+        if (d->paletteViewModel == paletteViewModel)
+            return;
+        d->paletteViewModel = paletteViewModel;
+        emit paletteViewModelChanged(paletteViewModel);
+    }
+
     double ClavierQuickItem::keyHeight() const {
         Q_D(const ClavierQuickItem);
         if (!d->clavierViewModel)

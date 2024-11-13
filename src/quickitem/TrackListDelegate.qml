@@ -49,23 +49,7 @@ Item {
     property bool isCurrent: false
     property bool isLast: false
 
-    property var palette: Item {
-        property color backgroundColor: "#333333"
-        property color selectedBackgroundColor: "#334444"
-        property color foregroundColor: "#FFFFFF"
-        property color primaryColor: "#00FFFF"
-        property color borderColor: "#CCCCCC"
-
-        property color muteColor: "#CC6600"
-        property color soloColor: "#00CC00"
-        property color recordColor: "#CC3333"
-
-        property color levelLowColor: "#33CC33"
-        property color levelMiddleColor: "#FFCC33"
-        property color levelHighColor: "#FF3333"
-        property color levelBackgroundColor: "#222222"
-        property color levelBorderColor: "#000000"
-    }
+    required property QtObject palette
 
     property var animationViewModel: null
 
@@ -82,6 +66,12 @@ Item {
         anchors.rightMargin: -1
         anchors.bottomMargin: -1
         color: trackListDelegate.selected ? trackListDelegate.palette.selectedBackgroundColor : trackListDelegate.palette.backgroundColor
+        Behavior on color {
+            ColorAnimation {
+                duration: 250 * (trackListDelegate.animationViewModel?.visualEffectAnimationRatio ?? 1)
+                easing.type: Easing.OutCubic
+            }
+        }
         border.width: 1
         border.color: trackListDelegate.palette.borderColor
 
@@ -95,7 +85,14 @@ Item {
             anchors.margins: 8
             width: 2
             color: trackListDelegate.palette.primaryColor
-            visible: trackListDelegate.isCurrent
+            visible: opacity !== 0
+            opacity: trackListDelegate.isCurrent ? 1 : 0
+            Behavior on opacity {
+                NumberAnimation {
+                    duration: 250 * (trackListDelegate.animationViewModel?.visualEffectAnimationRatio ?? 1)
+                    easing.type: Easing.OutCubic
+                }
+            }
         }
 
         Text {
@@ -106,6 +103,12 @@ Item {
             anchors.verticalCenterOffset: 20
             text: trackListDelegate.trackNumber
             color: trackListDelegate.isCurrent ? trackListDelegate.palette.primaryColor : trackListDelegate.palette.foregroundColor
+            Behavior on color {
+                ColorAnimation {
+                    duration: 250 * (trackListDelegate.animationViewModel?.visualEffectAnimationRatio ?? 1)
+                    easing.type: Easing.OutCubic
+                }
+            }
         }
 
         Rectangle {
@@ -119,13 +122,20 @@ Item {
             id: fitHeightButton
             width: 16
             height: 16
-            borderColor: trackListDelegate.palette.borderColor; foregroundColor: trackListDelegate.palette.foregroundColor
+            palette: trackListDelegate.palette
+            animationRatio: trackListDelegate.animationViewModel?.visualEffectAnimationRatio ?? 1.0
             anchors.left: selectionIndicator.right
             anchors.leftMargin: 18
             anchors.bottom: parent.bottom
             anchors.bottomMargin: 8
             checkable: false
             opacity: hovered ? 1.0 : 0.0
+            Behavior on opacity {
+                NumberAnimation {
+                    duration: 250 * (trackListDelegate.animationViewModel?.visualEffectAnimationRatio ?? 1.0)
+                    easing.type: Easing.OutCubic
+                }
+            }
             visible: trackListDelegate.height !== 80
             rotation: trackListDelegate.height > 80 ? 0 : 180
             contentItem: FluentSystemIcon {
@@ -156,21 +166,27 @@ Item {
                     spacing: 4
                     TrackListButton {
                         id: muteButton
-                        checkedColor: trackListDelegate.palette.muteColor; borderColor: trackListDelegate.palette.borderColor; foregroundColor: trackListDelegate.palette.foregroundColor
+                        checkedColor: trackListDelegate.palette.muteColor
+                        palette: trackListDelegate.palette
+                        animationRatio: trackListDelegate.animationViewModel?.visualEffectAnimationRatio ?? 1.0
                         text: 'M'
                         checked: trackListDelegate.mute
                         toolTip: qsTr("Mute")
                     }
                     TrackListButton {
                         id: soloButton
-                        checkedColor: trackListDelegate.palette.soloColor; borderColor: trackListDelegate.palette.borderColor; foregroundColor: trackListDelegate.palette.foregroundColor
+                        checkedColor: trackListDelegate.palette.soloColor
+                        palette: trackListDelegate.palette
+                        animationRatio: trackListDelegate.animationViewModel?.visualEffectAnimationRatio ?? 1.0
                         text: 'S'
                         checked: trackListDelegate.solo
                         toolTip: qsTr("Solo")
                     }
                     TrackListButton {
                         id: recordButton
-                        checkedColor: trackListDelegate.palette.recordColor; borderColor: trackListDelegate.palette.borderColor; foregroundColor: trackListDelegate.palette.foregroundColor
+                        checkedColor: trackListDelegate.palette.recordColor
+                        palette: trackListDelegate.palette
+                        animationRatio: trackListDelegate.animationViewModel?.visualEffectAnimationRatio ?? 1.0
                         text: 'R'
                         checked: trackListDelegate.record
                         toolTip: qsTr("Record")
@@ -189,9 +205,8 @@ Item {
                 visible: opacity !== 0.0
                 readonly property bool isMouseInteractionTarget: true
                 Behavior on opacity {
-                    SmoothedAnimation {
+                    NumberAnimation {
                         duration: (trackListDelegate.animationViewModel?.visualEffectAnimationRatio ?? 1.0) * 250
-                        velocity: -1
                         easing.type: Easing.OutCubic
                     }
                 }
@@ -206,18 +221,15 @@ Item {
                     }
                     TrackListSlider {
                         id: gainSlider
-                        foregroundColor: trackListDelegate.palette.foregroundColor
-                        primaryColor: trackListDelegate.palette.primaryColor
-                        backgroundColor: trackListDelegate.palette.backgroundColor
+                        palette: trackListDelegate.palette
                         animationRatio: trackListDelegate.animationViewModel?.visualEffectAnimationRatio ?? 1.0
                         height: 24
                         width: trackListDelegate. width - 256
                         enabled: width > 40
                         opacity: enabled ? 1 : 0
                         Behavior on opacity {
-                            SmoothedAnimation {
+                            NumberAnimation {
                                 duration: (trackListDelegate.animationViewModel?.visualEffectAnimationRatio ?? 1.0) * 250
-                                velocity: -1
                                 easing.type: Easing.OutCubic
                             }
                         }
@@ -245,9 +257,8 @@ Item {
                     }
                     TrackListDial {
                         id: panDial
-                        foregroundColor: trackListDelegate.palette.foregroundColor
-                        primaryColor: trackListDelegate.palette.primaryColor
-                        backgroundColor: trackListDelegate.palette.backgroundColor
+                        palette: trackListDelegate.palette
+                        animationRatio: trackListDelegate.animationViewModel?.visualEffectAnimationRatio ?? 1.0
                         height: 24
                         width: 24
                         from: -1.0

@@ -12,9 +12,16 @@ namespace sflow {
         TimeAlignmentViewModel *timeAlignmentViewModel = nullptr;
         SVS::MusicTimeline *timeline = nullptr;
 
-        QColor scaleColor;
+        QColor beatScaleColor;
         QColor barScaleColor;
         QColor segmentScaleColor;
+
+        double tickToX(int tick) const;
+
+        enum ScaleType {
+            Bar, Beat, Segment
+        };
+        QList<QPair<float, ScaleType>> xList;
     };
 }
 

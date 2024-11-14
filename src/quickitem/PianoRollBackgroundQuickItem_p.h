@@ -4,17 +4,16 @@
 #include <QQuickItem>
 
 #include <ScopicFlow/TimeAlignmentViewModel.h>
-#include <ScopicFlow/ClavierViewModel.h>
 
 namespace sflow {
 
     class PianoRollBackgroundQuickItemPrivate;
 
-    class PianoRollBackgroundQuickItem : public QQuickItem {
+    class SCOPIC_FLOW_EXPORT PianoRollBackgroundQuickItem : public QQuickItem {
         Q_OBJECT
         Q_DECLARE_PRIVATE(PianoRollBackgroundQuickItem)
         Q_PROPERTY(TimeAlignmentViewModel *timeAlignmentViewModel READ timeAlignmentViewModel WRITE setTimeAlignmentViewModel NOTIFY timeAlignmentViewModelChanged)
-        Q_PROPERTY(QColor scaleColor READ scaleColor WRITE setScaleColor NOTIFY scaleColorChanged)
+        Q_PROPERTY(QColor beatScaleColor READ beatScaleColor WRITE setBeatScaleColor NOTIFY beatScaleColorChanged)
         Q_PROPERTY(QColor barScaleColor READ barScaleColor WRITE setBarScaleColor NOTIFY barScaleColorChanged)
         Q_PROPERTY(QColor segmentScaleColor READ segmentScaleColor WRITE setSegmentScaleColor NOTIFY segmentScaleColorChanged)
     public:
@@ -24,8 +23,8 @@ namespace sflow {
         TimeAlignmentViewModel *timeAlignmentViewModel() const;
         void setTimeAlignmentViewModel(TimeAlignmentViewModel *viewModel);
 
-        QColor scaleColor() const;
-        void setScaleColor(const QColor &color);
+        QColor beatScaleColor() const;
+        void setBeatScaleColor(const QColor &color);
 
         QColor barScaleColor() const;
         void setBarScaleColor(const QColor &color);
@@ -38,7 +37,7 @@ namespace sflow {
 
     signals:
         void timeAlignmentViewModelChanged(TimeAlignmentViewModel *viewModel);
-        void scaleColorChanged(const QColor &color);
+        void beatScaleColorChanged(const QColor &color);
         void barScaleColorChanged(const QColor &color);
         void segmentScaleColorChanged(const QColor &color);
 

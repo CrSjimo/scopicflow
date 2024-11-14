@@ -5,6 +5,7 @@
         <file>TrackListDelegate.qml</file>
         <file>LevelMeter.qml</file>
         <file>TrackList.qml</file>
+        <file>PianoRoll.qml</file>
         <file>HelperComponents/MiddleButtonMoveHandler.qml</file>
         <file>HelperComponents/StandardScrollHandler.qml</file>
         <file>HelperComponents/TrackListButton.qml</file>

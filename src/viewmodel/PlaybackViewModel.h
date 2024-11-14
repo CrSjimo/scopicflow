@@ -8,6 +8,8 @@ namespace sflow {
 
     class SCOPIC_FLOW_EXPORT PlaybackViewModel : public QObject {
         Q_OBJECT
+        Q_PROPERTY(int primaryPosition READ primaryPosition WRITE setPrimaryPosition NOTIFY primaryPositionChanged)
+        Q_PROPERTY(int secondaryPositon READ secondaryPosition WRITE setSecondaryPosition NOTIFY secondaryPositionChanged)
     public:
         explicit PlaybackViewModel(QObject *parent = nullptr);
         ~PlaybackViewModel() override;

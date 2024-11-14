@@ -9,7 +9,7 @@ namespace sflow {
     class QuickWrapperHelper {
     public:
         static inline QPair<QWidget *, QQuickItem *> wrap(const QString &name) {
-#if 1
+#if 0
             auto w = new QQuickWidget(QUrl(QString("qrc:/ScopicFlow/private/%1.qml").arg(name)));
             w->setFormat(QSurfaceFormat::defaultFormat());
             w->setResizeMode(QQuickWidget::SizeRootObjectToView);

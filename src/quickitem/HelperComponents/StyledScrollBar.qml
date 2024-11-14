@@ -15,6 +15,7 @@ ScrollBar {
         Behavior on color {
             ColorAnimation {
                 duration: 250 * scrollBar.animationRatio
+                easing.type: Easing.OutCubic
             }
         }
     }

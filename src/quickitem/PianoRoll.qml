@@ -2,6 +2,7 @@ import ScopicFlowPrivate
 import QtQml
 import QtQuick
 
+import "./HelperComponents"
 import "../palette" as ScopicFlowPalette
 
 PianoRoll {
@@ -15,6 +16,20 @@ PianoRoll {
         return indexInGroup === 1 || indexInGroup === 3 || indexInGroup === 6 || indexInGroup === 8 || indexInGroup === 10
     }
 
+    TimeManipulator {
+        id: timeManipulator
+        anchors.fill: parent
+        timeViewModel: pianoRoll.timeAlignmentViewModel
+        animationViewModel: pianoRoll.animationViewModel
+    }
+
+    ClavierManipulator {
+        id: clavierManipulator
+        anchors.fill: parent
+        clavierViewModel: pianoRoll.clavierViewModel
+        animationViewModel: pianoRoll.animationViewModel
+    }
+
     Item {
         anchors.fill: parent
 
@@ -23,7 +38,7 @@ PianoRoll {
             anchors.left: parent.left
             anchors.right: parent.right
             height: 128 * pianoRoll.keyHeight
-            y: pianoRoll.clavierViewModel ? 0 : height - (128 - pianoRoll.clavierViewModel.start) * pianoRoll.clavierViewModel.pixelDensity
+            y: pianoRoll.clavierViewModel ? Math.min(0, pianoRoll.height - (128 - pianoRoll.clavierViewModel.start) * pianoRoll.clavierViewModel.pixelDensity) : 0
 
             Repeater {
                 id: keyRepeater
@@ -50,6 +65,84 @@ PianoRoll {
             barScaleColor: palette.barScaleColor
             beatScaleColor: palette.beatScaleColor
             segmentScaleColor: palette.segmentScaleColor
+        }
+    }
+
+    Rectangle {
+        id: secondaryIndicator
+        anchors.top: parent.top
+        anchors.bottom: parent.bottom
+        width: 1
+        color: pianoRoll.palette.secondaryIndicatorColor
+        x: pianoRoll.timeAlignmentViewModel && pianoRoll.playbackViewModel ? (pianoRoll.playbackViewModel.secondaryPositon - pianoRoll.timeAlignmentViewModel.start) * pianoRoll.timeAlignmentViewModel.pixelDensity - 0.5 : 0
+    }
+
+    Rectangle {
+        id: primaryIndicator
+        anchors.top: parent.top
+        anchors.bottom: parent.bottom
+        width: 1
+        color: pianoRoll.palette.primaryIndicatorColor
+        x: pianoRoll.timeAlignmentViewModel && pianoRoll.playbackViewModel ? (pianoRoll.playbackViewModel.primaryPosition - pianoRoll.timeAlignmentViewModel.start) * pianoRoll.timeAlignmentViewModel.pixelDensity - 0.5 : 0
+    }
+
+    StyledScrollBar {
+        id: verticalSlider
+        anchors.top: parent.top
+        anchors.bottom: parent.bottom
+        anchors.bottomMargin: 6
+        anchors.right: parent.right
+        orientation: Qt.Vertical
+        normalColor: pianoRoll.palette.scrollBarNormalColor
+        pressedColor: pianoRoll.palette.scrollBarPressedColor
+        hoveredColor: pianoRoll.palette.scrollBarHoveredColor
+        animationRatio: pianoRoll.animationViewModel?.visualEffectAnimationRatio ?? 1.0
+        size: pianoRoll.height / backgroundViewport.height
+        position: 1 - (pianoRoll.clavierViewModel?.start ?? 0) / 128 - size
+        onPositionChanged: {
+            if (pianoRoll.clavierViewModel && Math.abs(pianoRoll.clavierViewModel.start - (1 - (position + size)) * 128) > Number.EPSILON * 100)
+                pianoRoll.clavierViewModel.start = (1 - (position + size)) * 128
+        }
+    }
+
+    StyledScrollBar {
+        id: horizontalSlider
+        anchors.left: parent.left
+        anchors.right: parent.right
+        anchors.rightMargin: 6
+        anchors.bottom: parent.bottom
+        orientation: Qt.Horizontal
+        normalColor: pianoRoll.palette.scrollBarNormalColor
+        pressedColor: pianoRoll.palette.scrollBarPressedColor
+        hoveredColor: pianoRoll.palette.scrollBarHoveredColor
+        animationRatio: pianoRoll.animationViewModel?.visualEffectAnimationRatio ?? 1.0
+        size: pianoRoll.timeAlignmentViewModel ? pianoRoll.width / pianoRoll.timeAlignmentViewModel.pixelDensity / pianoRoll.timeAlignmentViewModel.end : 0
+        position: pianoRoll.timeAlignmentViewModel ? pianoRoll.timeAlignmentViewModel.start / pianoRoll.timeAlignmentViewModel.end : 0
+        onPositionChanged: {
+            if (pianoRoll.timeAlignmentViewModel && Math.abs(pianoRoll.timeAlignmentViewModel.start - position * pianoRoll.timeAlignmentViewModel.end) > Number.EPSILON * 100)
+                pianoRoll.timeAlignmentViewModel.start = position * pianoRoll.timeAlignmentViewModel.end
+        }
+    }
+
+    StandardScrollHandler {
+        anchors.fill: parent
+        viewModel: pianoRoll.scrollBehaviorViewModel
+        onZoomed: function (ratioX, ratioY, x, y, isPhysicalWheel) {
+            timeManipulator.zoomOnWheel(ratioX, x, isPhysicalWheel)
+            clavierManipulator.zoomOnWheel(ratioY, y, isPhysicalWheel)
+        }
+        onMoved: function (x, y, isPhysicalWheel) {
+            timeManipulator.moveViewBy(x, isPhysicalWheel)
+            clavierManipulator.moveViewBy(y, isPhysicalWheel)
+        }
+    }
+
+    MiddleButtonMoveHandler {
+        anchors.fill: parent
+        viewModel: pianoRoll.scrollBehaviorViewModel
+        onMoved: function (x, y) {
+            timeManipulator.moveViewBy(x)
+            clavierManipulator.moveViewBy(y)
         }
     }
 }

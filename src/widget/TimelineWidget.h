@@ -13,6 +13,7 @@ namespace sflow {
     class PlaybackViewModel;
     class ScrollBehaviorViewModel;
     class AnimationViewModel;
+    class PaletteViewModel;
 
     class TimelineQuickItem;
 
@@ -33,6 +34,10 @@ namespace sflow {
 
         AnimationViewModel *animationViewModel() const;
         void setAnimationViewModel(AnimationViewModel *viewModel);
+
+        PaletteViewModel *paletteViewModel() const;
+        void setPaletteViewModel(PaletteViewModel *viewModel);
+
 
         int mapToTick(double x) const;
         double mapToX(int tick) const;

@@ -19,6 +19,11 @@ namespace sflow {
 
         d = static_cast<ClavierQuickItem *>(wrapper.second);
 
+        connect(d, &ClavierQuickItem::noteOn, this, &ClavierWidget::noteOn);
+        connect(d, &ClavierQuickItem::noteOff, this, &ClavierWidget::noteOff);
+        connect(d, &ClavierQuickItem::noteDoubleClicked, this, &ClavierWidget::noteDoubleClicked);
+        connect(d, &ClavierQuickItem::contextMenuRequestedForNote, this, &ClavierWidget::contextMenuRequestedForNote);
+
     }
     ClavierWidget::~ClavierWidget() = default;
 
@@ -39,6 +44,12 @@ namespace sflow {
     }
     void ClavierWidget::setAnimationViewModel(AnimationViewModel *viewModel) {
         d->setAnimationViewModel(viewModel);
+    }
+    PaletteViewModel *ClavierWidget::paletteViewModel() const {
+        return d->paletteViewModel();
+    }
+    void ClavierWidget::setPaletteViewModel(PaletteViewModel *viewModel) {
+        d->setPaletteViewModel(viewModel);
     }
     ClavierWidget::LabelStrategy ClavierWidget::labelStrategy() const {
         return static_cast<LabelStrategy>(d->labelStrategy());

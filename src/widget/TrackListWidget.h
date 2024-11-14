@@ -12,6 +12,7 @@ namespace sflow {
     class TrackListViewModel;
     class ScrollBehaviorViewModel;
     class AnimationViewModel;
+    class PaletteViewModel;
 
     class TrackListQuickItem;
 
@@ -29,6 +30,9 @@ namespace sflow {
 
         AnimationViewModel *animationViewModel() const;
         void setAnimationViewModel(AnimationViewModel *animationViewModel);
+
+        PaletteViewModel *paletteViewModel() const;
+        void setPaletteViewModel(PaletteViewModel *paletteViewModel);
 
     signals:
         void trackDoubleClicked(int index);

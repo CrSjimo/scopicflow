@@ -49,6 +49,12 @@ namespace sflow {
     void TimelineWidget::setAnimationViewModel(AnimationViewModel *viewModel) {
         d->setAnimationViewModel(viewModel);
     }
+    PaletteViewModel *TimelineWidget::paletteViewModel() const {
+        return d->paletteViewModel();
+    }
+    void TimelineWidget::setPaletteViewModel(PaletteViewModel *viewModel) {
+        d->setPaletteViewModel(viewModel);
+    }
     int TimelineWidget::mapToTick(double x) const {
         return d->mapToTick(x);
     }

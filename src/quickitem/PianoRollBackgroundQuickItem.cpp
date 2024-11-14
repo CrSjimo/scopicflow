@@ -122,12 +122,12 @@ namespace sflow {
                 calculatedSegmentRatio = 1;
             } else {
                 calculatedSegmentRatio = ticksPerBeat / d->timeAlignmentViewModel->positionAlignment();
-                while (calculatedSegmentRatio && ticksPerBeat / calculatedSegmentRatio * d->timeAlignmentViewModel->pixelDensity() < minimumScaleDistance) {
-                    int nextRatio = calculatedSegmentRatio & -calculatedSegmentRatio;
-                    if (nextRatio == calculatedSegmentRatio)
-                        nextRatio >>= 1;
-                    calculatedSegmentRatio = nextRatio;
-                }
+            }
+            while (calculatedSegmentRatio && ticksPerBeat / calculatedSegmentRatio * d->timeAlignmentViewModel->pixelDensity() < minimumScaleDistance) {
+                int nextRatio = calculatedSegmentRatio & -calculatedSegmentRatio;
+                if (nextRatio == calculatedSegmentRatio)
+                    nextRatio >>= 1;
+                calculatedSegmentRatio = nextRatio;
             }
             d->xList.emplace_back(d->tickToX(d->timeline->create(bar, 0, 0).totalTick()), PianoRollBackgroundQuickItemPrivate::Bar);
             if (calculatedSegmentRatio == 0)
@@ -137,7 +137,7 @@ namespace sflow {
                 if (musicTime.tick() == 0) {
                     d->xList.emplace_back(d->tickToX(musicTime.totalTick()), PianoRollBackgroundQuickItemPrivate::Beat);
                 } else {
-                    d->xList.emplace_back(musicTime.totalTick(), PianoRollBackgroundQuickItemPrivate::Segment);
+                    d->xList.emplace_back(d->tickToX(musicTime.totalTick()), PianoRollBackgroundQuickItemPrivate::Segment);
                 }
             }
         }

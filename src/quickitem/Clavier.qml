@@ -38,6 +38,12 @@ Clavier {
         lastNoteIndex = index
     }
 
+    onHeightChanged: {
+        if (clavier.clavierViewModel) {
+            clavier.clavierViewModel.start = Math.min(clavier.clavierViewModel.start, 128 - clavier.height / clavier.clavierViewModel.pixelDensity)
+        }
+    }
+
     ClavierManipulator {
         id: clavierManipulator
         anchors.fill: parent
@@ -46,10 +52,11 @@ Clavier {
     }
 
     Item {
+        id: clavierViewport
         anchors.left: parent.left
         anchors.right: parent.right
         height: 128 * clavier.keyHeight
-        y: clavier.viewportY
+        y: clavier.clavierViewModel ? Math.min(0, clavier.height - (128 - clavier.clavierViewModel.start) * clavier.clavierViewModel.pixelDensity) : 0
 
         Repeater {
             id: keyRepeater
@@ -67,7 +74,7 @@ Clavier {
                 anchors.left: parent.left
                 width: parent.width * (isBlackKey ? 0.75 : 1)
                 height: clavier.keyHeight * clavier.keyHeightFactor[index % 12]
-                visible: y + height >= -clavier.viewportY && y <= 128 * clavier.height - clavier.viewportY
+                visible: y + height >= -clavierViewport.y && y <= 128 * clavier.height - clavierViewport.y
                 y: clavier.calculateYFromKey(index)
                 z: isBlackKey ? 1 : 0
                 color: normalColor
@@ -102,13 +109,28 @@ Clavier {
                 MouseArea {
                     anchors.fill: parent
                     hoverEnabled: true
-                    onPressed: {
-                        parent.color = parent.pressedColor
-                        clavier.noteOn(parent.index)
+                    acceptedButtons: Qt.LeftButton | Qt.RightButton
+                    onPressed: function (mouse) {
+                        if (mouse.button === Qt.LeftButton) {
+                            parent.color = parent.pressedColor
+                            clavier.noteOn(parent.index)
+                        }
                     }
-                    onReleased: {
-                        parent.color = containsMouse ? parent.hoverColor : parent.normalColor
-                        clavier.noteOff(parent.index)
+                    onReleased: function (mouse) {
+                        if (mouse.button === Qt.LeftButton) {
+                            parent.color = containsMouse ? parent.hoverColor : parent.normalColor
+                            clavier.noteOff(parent.index)
+                        }
+                    }
+                    onClicked: function (mouse) {
+                        if (mouse.button === Qt.RightButton) {
+                            clavier.contextMenuRequestedForNote(parent.index)
+                        }
+                    }
+                    onDoubleClicked: function (mouse) {
+                        if (mouse.button === Qt.LeftButton) {
+                            clavier.noteDoubleClicked(parent.index)
+                        }
                     }
                     onEntered: {
                         parent.color = pressed ? parent.pressedColor : parent.hoverColor

@@ -70,6 +70,8 @@ namespace sflow {
         void labelStrategyChanged(sflow::ClavierQuickItem::LabelStrategy labelStrategy);
         void noteOn(int key);
         void noteOff(int key);
+        void noteDoubleClicked(int key);
+        void contextMenuRequestedForNote(int key);
         void keyNameUpdated();
 
     private:

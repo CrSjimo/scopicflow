@@ -19,7 +19,7 @@ namespace sflow {
 
     TimeViewModel::TimeViewModel(QObject *parent) : QObject(parent),
     m_start(0.0),
-    m_end(64.0),
+    m_end(48000),
     m_pixelDensity(0.2),
     m_maximumPixelDensity(2.0),
     m_minimumPixelDensity(1.0 / 256.0),

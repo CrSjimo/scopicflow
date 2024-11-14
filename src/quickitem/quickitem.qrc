@@ -15,5 +15,6 @@
         <file>HelperComponents/TrackListDial.qml</file>
         <file>HelperComponents/TimeManipulator.qml</file>
         <file>HelperComponents/ClavierManipulator.qml</file>
+        <file>HelperComponents/StyledScrollBar.qml</file>
     </qresource>
 </RCC>

@@ -42,4 +42,10 @@ namespace sflow {
     void TrackListWidget::setAnimationViewModel(AnimationViewModel *animationViewModel) {
         d->setAnimationViewModel(animationViewModel);
     }
+    PaletteViewModel *TrackListWidget::paletteViewModel() const {
+        return d->paletteViewModel();
+    }
+    void TrackListWidget::setPaletteViewModel(PaletteViewModel *paletteViewModel) {
+        d->setPaletteViewModel(paletteViewModel);
+    }
 } // sflow

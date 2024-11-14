@@ -18,9 +18,9 @@ Item {
 
         onWheel: function (wheel) {
             let isAxisRevert = wheel.modifiers & Qt.AltModifier
-            let isAlternateAxis = Boolean(wheel.modifiers & alternateAxisModifier)
-            let isZoom = Boolean(wheel.modifiers & zoomModifier)
-            let isPage = Boolean(wheel.modifiers & pageModifier)
+            let isAlternateAxis = Boolean(wheel.modifiers & alternateAxisModifier) || Boolean(wheel.modifiers & pageModifier) && parent.viewModel?.usePageModifierAsAlternateAxisZoom
+            let isZoom = Boolean(wheel.modifiers & zoomModifier) || Boolean(wheel.modifiers & pageModifier) && parent.viewModel?.usePageModifierAsAlternateAxisZoom
+            let isPage = Boolean(wheel.modifiers & pageModifier) && !parent.viewModel?.usePageModifierAsAlternateAxisZoom
 
             let deltaPixelX = isAlternateAxis ? (isAxisRevert ? wheel.pixelDelta.x : wheel.pixelDelta.y) : (isAxisRevert ? wheel.pixelDelta.y : wheel.pixelDelta.x)
             let deltaPixelY = !isAlternateAxis ? (isAxisRevert ? wheel.pixelDelta.x : wheel.pixelDelta.y) : (isAxisRevert ? wheel.pixelDelta.y : wheel.pixelDelta.x)

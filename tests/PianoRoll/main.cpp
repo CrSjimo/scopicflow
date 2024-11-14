@@ -16,6 +16,7 @@
 #include <ScopicFlow/TimeAlignmentViewModel.h>
 #include <ScopicFlow/PlaybackViewModel.h>
 #include <ScopicFlow/ClavierViewModel.h>
+#include <ScopicFlow/ScrollBehaviorViewModel.h>
 
 using namespace sflow;
 
@@ -78,6 +79,12 @@ int main(int argc, char *argv[]) {
     ClavierViewModel clavierViewModel;
     clavier->setClavierViewModel(&clavierViewModel);
     pianoRoll->setClavierViewModel(&clavierViewModel);
+
+    ScrollBehaviorViewModel scrollBehaviorViewModel;
+    scrollBehaviorViewModel.setUsePageModifierAsAlternateAxisZoom(true);
+    timeline->setScrollBehaviorViewModel(&scrollBehaviorViewModel);
+    clavier->setScrollBehaviorViewModel(&scrollBehaviorViewModel);
+    pianoRoll->setScrollBehaviorViewModel(&scrollBehaviorViewModel);
 
     mainLayout->addWidget(clavier, 1, 0);
     mainLayout->addWidget(timeline, 0, 1);

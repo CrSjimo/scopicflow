@@ -1,7 +1,9 @@
 #include "ScrollBehaviorViewModel.h"
 
 namespace sflow {
-    ScrollBehaviorViewModel::ScrollBehaviorViewModel(QObject *parent) : QObject(parent), m_alternateAxisModifier(Qt::AltModifier), m_zoomModifier(Qt::ControlModifier), m_pageModifier(Qt::ShiftModifier) {
+    ScrollBehaviorViewModel::ScrollBehaviorViewModel(QObject *parent) : QObject(parent),
+    m_alternateAxisModifier(Qt::AltModifier), m_zoomModifier(Qt::ControlModifier), m_pageModifier(Qt::ShiftModifier),
+    m_usePageModifierAsAlternateAxisZoom(false), m_affectVelocity(false) {
     }
     ScrollBehaviorViewModel::~ScrollBehaviorViewModel() = default;
 
@@ -30,6 +32,24 @@ namespace sflow {
         if (m_pageModifier != modifier) {
             m_pageModifier = modifier;
             emit pageModifierChanged(modifier);
+        }
+    }
+    bool ScrollBehaviorViewModel::usePageModifierAsAlternateAxisZoom() const {
+        return m_usePageModifierAsAlternateAxisZoom;
+    }
+    void ScrollBehaviorViewModel::setUsePageModifierAsAlternateAxisZoom(bool usePageModifierAsAlternateAxisZoom) {
+        if(m_usePageModifierAsAlternateAxisZoom != usePageModifierAsAlternateAxisZoom) {
+            m_usePageModifierAsAlternateAxisZoom = usePageModifierAsAlternateAxisZoom;
+            emit usePageModifierAsAlternateAxisZoomChanged(usePageModifierAsAlternateAxisZoom);
+        }
+    }
+    bool ScrollBehaviorViewModel::affectVelocity() const {
+        return m_affectVelocity;
+    }
+    void ScrollBehaviorViewModel::setAffectVelocity(bool affectVelocity) {
+        if (m_affectVelocity != affectVelocity) {
+            m_affectVelocity = affectVelocity;
+            emit affectVelocityChanged(affectVelocity);
         }
     }
 

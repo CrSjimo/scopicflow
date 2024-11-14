@@ -13,6 +13,8 @@ namespace sflow {
         Q_PROPERTY(Qt::KeyboardModifier alternateAxisModifier READ alternateAxisModifier WRITE setAlternateAxisModifier NOTIFY alternateAxisModifierChanged)
         Q_PROPERTY(Qt::KeyboardModifier zoomModifier READ zoomModifier WRITE setZoomModifier NOTIFY zoomModifierChanged)
         Q_PROPERTY(Qt::KeyboardModifier pageModifier READ pageModifier WRITE setPageModifier NOTIFY pageModifierChanged)
+        Q_PROPERTY(bool usePageModifierAsAlternateAxisZoom READ usePageModifierAsAlternateAxisZoom WRITE setUsePageModifierAsAlternateAxisZoom NOTIFY usePageModifierAsAlternateAxisZoomChanged)
+        Q_PROPERTY(bool affectVelocity READ affectVelocity WRITE setAffectVelocity NOTIFY affectVelocityChanged)
     public:
         explicit ScrollBehaviorViewModel(QObject *parent = nullptr);
         ~ScrollBehaviorViewModel() override;
@@ -26,15 +28,25 @@ namespace sflow {
         Qt::KeyboardModifier pageModifier() const;
         void setPageModifier(Qt::KeyboardModifier modifier);
 
+        bool usePageModifierAsAlternateAxisZoom() const;
+        void setUsePageModifierAsAlternateAxisZoom(bool usePageModifierAsAlternateAxisZoom);
+
+        bool affectVelocity() const;
+        void setAffectVelocity(bool affectVelocity);
+
     signals:
         void alternateAxisModifierChanged(Qt::KeyboardModifier modifier);
         void zoomModifierChanged(Qt::KeyboardModifier modifier);
         void pageModifierChanged(Qt::KeyboardModifier modifier);
+        void usePageModifierAsAlternateAxisZoomChanged(bool usePageModifierAsAlternateAxisZoom);
+        void affectVelocityChanged(bool affectVeloCity);
 
     private:
         Qt::KeyboardModifier m_alternateAxisModifier;
         Qt::KeyboardModifier m_zoomModifier;
         Qt::KeyboardModifier m_pageModifier;
+        bool m_usePageModifierAsAlternateAxisZoom;
+        bool m_affectVelocity;
     };
 
 } // sflow

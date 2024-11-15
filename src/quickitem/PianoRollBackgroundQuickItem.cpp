@@ -153,8 +153,8 @@ namespace sflow {
         for (int i = 0; i < d->xList.size(); i++) {
             const auto &[x, type] = d->xList.at(i);
             auto color = type == PianoRollBackgroundQuickItemPrivate::Bar ? barScaleColor : type == PianoRollBackgroundQuickItemPrivate::Beat ? beatScaleColor : segmentScaleColor;
-            barScaleGeometry->vertexDataAsColoredPoint2D()[i * 2].set(x, 0, color.red(), color.green(), color.blue(), 255);
-            barScaleGeometry->vertexDataAsColoredPoint2D()[i * 2 + 1].set(x, height(), color.red(), color.green(), color.blue(), 255);
+            barScaleGeometry->vertexDataAsColoredPoint2D()[i * 2].set(x, 0, color.red(), color.green(), color.blue(), color.alpha());
+            barScaleGeometry->vertexDataAsColoredPoint2D()[i * 2 + 1].set(x, height(), color.red(), color.green(), color.blue(), color.alpha());
         }
         barScaleNode->setGeometry(barScaleGeometry);
         barScaleNode->setFlag(QSGNode::OwnsGeometry);

@@ -12,6 +12,8 @@ Clavier {
     readonly property QtObject defaultPalette: ScopicFlowPalette.Clavier {}
     readonly property QtObject palette: paletteViewModel?.palette?.clavier ?? defaultPalette
 
+    clip: true
+
 
     readonly property list<double> keyYFactor: [5 / 3, 2, 10 / 3, 4, 15 / 3, 27 / 4, 7, 34 / 4, 9, 41 / 4, 11, 12]
     readonly property list<double> keyHeightFactor: [5 / 3, 1, 5 / 3, 1, 5 / 3, 7 / 4, 1, 7 / 4, 1, 7 / 4, 1, 7 / 4]
@@ -74,7 +76,6 @@ Clavier {
                 anchors.left: parent.left
                 width: parent.width * (isBlackKey ? 0.75 : 1)
                 height: clavier.keyHeight * clavier.keyHeightFactor[index % 12]
-                visible: y + height >= -clavierViewport.y && y <= 128 * clavier.height - clavierViewport.y
                 y: clavier.calculateYFromKey(index)
                 z: isBlackKey ? 1 : 0
                 color: normalColor

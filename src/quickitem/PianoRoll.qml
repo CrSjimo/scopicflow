@@ -33,6 +33,8 @@ PianoRoll {
     Item {
         anchors.fill: parent
 
+        clip: true
+
         Item {
             id: backgroundViewport
             anchors.left: parent.left
@@ -49,7 +51,6 @@ PianoRoll {
                     anchors.left: parent.left
                     width: parent.width
                     height: pianoRoll.keyHeight
-                    visible: y + height >= -backgroundViewport.y && y <= 128 * pianoRoll.height - backgroundViewport.y
                     y: (127 - index) * pianoRoll.keyHeight
                     color: isBlackKey ? pianoRoll.palette.blackKeyBackgroundColor : pianoRoll.palette.whiteKeyBackgroundColor
                     border.width: 1
@@ -65,6 +66,59 @@ PianoRoll {
             barScaleColor: palette.barScaleColor
             beatScaleColor: palette.beatScaleColor
             segmentScaleColor: palette.segmentScaleColor
+        }
+    }
+
+    Item {
+        id: testNotes
+        readonly property double start: pianoRoll.timeAlignmentViewModel?.start ?? 0
+        readonly property double end: pianoRoll.timeAlignmentViewModel?.end ?? 0
+        readonly property double pixelDensity: pianoRoll.timeAlignmentViewModel?.pixelDensity ?? 0
+        anchors.left: parent.left
+        anchors.right: parent.right
+        height: 128 * pianoRoll.keyHeight
+        y: backgroundViewport.y
+        clip: true
+        Item {
+            anchors.top: parent.top
+            anchors.bottom: parent.bottom
+            x: -testNotes.start * testNotes.pixelDensity
+            width: testNotes.end * testNotes.pixelDensity
+            Repeater {
+                id: testNoteRepeater
+                property int s: Math.floor(testNotes.start / 480 / 64) * 64
+                model: Math.ceil(pianoRoll.width / testNotes.pixelDensity / 480 / 64) * 64 + 1
+                Rectangle {
+                    required property int index
+                    readonly property int realIndex: index + Math.floor(testNotes.start / 480)
+                    readonly property int key: 48 + realIndex % 24
+                    readonly property int pos: realIndex * 480
+                    readonly property int length: 480
+
+                    readonly property bool selected: realIndex % 2 === 0
+                    readonly property bool silent: realIndex % 3 === 0
+                    readonly property bool invalid: realIndex % 5 === 0
+
+                    x: pos * testNotes.pixelDensity
+                    y: (127 - key) * height
+                    radius: 2
+                    width: 480 * testNotes.pixelDensity
+                    height: pianoRoll.keyHeight
+                    color: selected ? pianoRoll.palette.noteSelectedColor : invalid ? pianoRoll.palette.noteInvalidColor : silent ? pianoRoll.palette.noteSilentColor : pianoRoll.palette.noteColor
+                    border.width: 2
+                    border.color: invalid ? pianoRoll.palette.noteInvalidBorderColor : silent ? pianoRoll.palette.noteSilentBorderColor : selected ? pianoRoll.palette.noteSelectedBorderColor : pianoRoll.palette.noteBorderColor
+                    clip: true
+
+                    Text {
+                        anchors.left: parent.left
+                        anchors.leftMargin: 4
+                        anchors.verticalCenter: parent.verticalCenter
+                        text: parent.realIndex
+                        color: invalid ? pianoRoll.palette.noteInvalidTextColor : silent ? pianoRoll.palette.noteSilentTextColor : selected ? pianoRoll.palette.noteSelectedTextColor : pianoRoll.palette.noteTextColor
+                    }
+
+                }
+            }
         }
     }
 

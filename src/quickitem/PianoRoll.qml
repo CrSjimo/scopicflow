@@ -3,7 +3,7 @@ import QtQml
 import QtQuick
 
 import "./HelperComponents"
-import "../palette" as ScopicFlowPalette
+import "qrc:/ScopicFlow/modules/dev/sjimo/ScopicFlow/Palettes" as ScopicFlowPalette
 
 PianoRoll {
     id: pianoRoll

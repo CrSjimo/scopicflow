@@ -3,7 +3,8 @@ import QtQml
 import '.'
 
 QtObject {
-    property QtObject timeLine: Timeline {}
+    property QtObject timeline: Timeline {}
     property QtObject clavier: Clavier {}
     property QtObject trackList: TrackList {}
+    property QtObject pianoRoll: PianoRoll {}
 }

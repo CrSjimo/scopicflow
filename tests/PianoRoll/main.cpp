@@ -1,3 +1,5 @@
+#include <memory>
+
 #include <QApplication>
 #include <QSurfaceFormat>
 #include <QMainWindow>
@@ -7,6 +9,11 @@
 #include <QComboBox>
 #include <QPushButton>
 #include <QMenu>
+#include <QInputDialog>
+#include <QMenuBar>
+#include <QQmlEngine>
+#include <QQmlComponent>
+#include <QFileDialog>
 
 #include <SVSCraftCore/musictimeline.h>
 
@@ -17,6 +24,8 @@
 #include <ScopicFlow/PlaybackViewModel.h>
 #include <ScopicFlow/ClavierViewModel.h>
 #include <ScopicFlow/ScrollBehaviorViewModel.h>
+#include <ScopicFlow/AnimationViewModel.h>
+#include <ScopicFlow/PaletteViewModel.h>
 
 using namespace sflow;
 
@@ -44,8 +53,20 @@ static SVS::MusicTimeSignature promptTimeSignature(QWidget *parent, SVS::MusicTi
     } else {
         return {0, 0};
     }
+}
 
-
+static QObject *loadCustomPalette(QWidget *parent) {
+    static auto engine = [] {
+        auto engine = std::make_unique<QQmlEngine>();
+        engine->addImportPath("qrc:/ScopicFlow/modules");
+        return engine;
+    }();
+    auto file = QFileDialog::getOpenFileName(parent);
+    if (file.isEmpty())
+        return nullptr;
+    QQmlComponent component(engine.get(), QUrl::fromLocalFile(file));
+    QObject *customPalette = component.create();
+    return customPalette;
 }
 
 int main(int argc, char *argv[]) {
@@ -63,6 +84,8 @@ int main(int argc, char *argv[]) {
     auto clavier = new ClavierWidget;
     auto timeline = new TimelineWidget;
     auto pianoRoll = new PianoRollWidget;
+
+    delete new TimelineWidget;
 
     TimeAlignmentViewModel timeViewModel;
     timeViewModel.setPositionAlignment(240);
@@ -85,6 +108,16 @@ int main(int argc, char *argv[]) {
     timeline->setScrollBehaviorViewModel(&scrollBehaviorViewModel);
     clavier->setScrollBehaviorViewModel(&scrollBehaviorViewModel);
     pianoRoll->setScrollBehaviorViewModel(&scrollBehaviorViewModel);
+
+    AnimationViewModel animationViewModel;
+    timeline->setAnimationViewModel(&animationViewModel);
+    clavier->setAnimationViewModel(&animationViewModel);
+    pianoRoll->setAnimationViewModel(&animationViewModel);
+
+    PaletteViewModel paletteViewModel;
+    timeline->setPaletteViewModel(&paletteViewModel);
+    clavier->setPaletteViewModel(&paletteViewModel);
+    pianoRoll->setPaletteViewModel(&paletteViewModel);
 
     mainLayout->addWidget(clavier, 1, 0);
     mainLayout->addWidget(timeline, 0, 1);
@@ -125,6 +158,30 @@ int main(int argc, char *argv[]) {
         menu.addAction(QString("Note %1").arg(key));
         menu.exec(QCursor::pos());
     });
+
+    auto mainMenu = new QMenu("Edit");
+    mainMenu->addAction("Set Position Alignment...", [&] {
+        auto v = QInputDialog::getInt(&win, {}, "Position alignment", timeViewModel.positionAlignment(), 1, 480);
+        timeViewModel.setPositionAlignment(v);
+    });
+    mainMenu->addAction("Set Visual Effect Animation Ratio...", [&] {
+        auto v = QInputDialog::getDouble(&win, {}, "Animation ratio", animationViewModel.visualEffectAnimationRatio(), 0, 10);
+        animationViewModel.setVisualEffectAnimationRatio(v);
+    });
+    mainMenu->addAction("Set Scroll Animation Ratio...", [&] {
+        auto v = QInputDialog::getDouble(&win, {}, "Animation ratio", animationViewModel.scrollAnimationRatio(), 0, 10);
+        animationViewModel.setScrollAnimationRatio(v);
+    });
+    mainMenu->addAction("Load Custom Palette...", [&] {
+        auto palette = loadCustomPalette(&win);
+        if (palette) {
+            paletteViewModel.setPalette(palette);
+        }
+    });
+    mainMenu->addAction("Reset to Default Palette", [&] {
+        paletteViewModel.setPalette(nullptr);
+    });
+    win.menuBar()->addMenu(mainMenu);
 
     return a.exec();
 }

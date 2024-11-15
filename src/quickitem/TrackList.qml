@@ -4,7 +4,7 @@ import ScopicFlowPrivate
 
 import '.'
 import './HelperComponents'
-import '../palette' as ScopicFlowPalette
+import "qrc:/ScopicFlow/modules/dev/sjimo/ScopicFlow/Palettes" as ScopicFlowPalette
 
 TrackList {
     id: trackList

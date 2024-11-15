@@ -1,5 +1,5 @@
 <RCC>
-    <qresource prefix="/ScopicFlow/palette">
+    <qresource prefix="/ScopicFlow/modules/dev/sjimo/ScopicFlow/Palettes">
         <file>qmldir</file>
         <file>Palette.qml</file>
         <file>Timeline.qml</file>

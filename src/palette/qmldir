@@ -1,4 +1,4 @@
-module ScopicFlow.Palettes
+module dev.sjimo.ScopicFlow.Palettes
 
 Palette 1.0 Palette.qml
 Timeline 1.0 Timeline.qml

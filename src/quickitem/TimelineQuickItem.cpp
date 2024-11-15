@@ -14,17 +14,21 @@
 
 namespace sflow {
 
-    TimelineQuickItemPrivate::~TimelineQuickItemPrivate() {
+    ScaleSGNode::~ScaleSGNode() {
         for (auto p : barNumberTextLayouts)
             delete p;
+        barNumberTextLayouts.clear();
         for (auto p : barNumberTextNodes)
             delete p;
+        barNumberTextNodes.clear();
         for (auto p : timeSignatureTextLayouts)
             delete p;
+        timeSignatureTextLayouts.clear();
         for (auto p : timeSignatureTextNodes)
             delete p;
+        timeSignatureTextNodes.clear();
     }
-    QTextLayout *TimelineQuickItemPrivate::createTextLayoutForBarNumber(int bar) {
+    QTextLayout *ScaleSGNode::createTextLayoutForBarNumber(int bar) {
         auto layout = barNumberTextLayouts.value(bar);
         if (layout)
             return layout;
@@ -39,8 +43,7 @@ namespace sflow {
         barNumberTextLayouts.insert(bar, layout);
         return layout;
     }
-    QSGTextNode *TimelineQuickItemPrivate::createTextNodeForBarNumber(int bar, const QColor &color) {
-        Q_Q(TimelineQuickItem);
+    QSGTextNode *ScaleSGNode::createTextNodeForBarNumber(int bar, const QColor &color) {
         auto textNode = barNumberTextNodes.value(bar);
         if (textNode) {
             if (textNode->color() == color)
@@ -51,7 +54,7 @@ namespace sflow {
             delete barNumberTextNodes.cbegin().value();
             barNumberTextNodes.erase(barNumberTextNodes.cbegin());
         }
-        textNode = q->window()->createTextNode();
+        textNode = d->q_ptr->window()->createTextNode();
         textNode->setColor(color);
         auto barNumberLayout = createTextLayoutForBarNumber(bar);
         textNode->addTextLayout({0, 0}, barNumberLayout);
@@ -59,7 +62,7 @@ namespace sflow {
         barNumberTextNodes.insert(bar, textNode);
         return textNode;
     }
-    QTextLayout *TimelineQuickItemPrivate::createTextLayoutForTimeSignature(int numerator, int denominator) {
+    QTextLayout *ScaleSGNode::createTextLayoutForTimeSignature(int numerator, int denominator) {
         qint64 k = denominator;
         k = k << 32 | numerator;
         auto layout = timeSignatureTextLayouts.value(k);
@@ -76,8 +79,7 @@ namespace sflow {
         timeSignatureTextLayouts.insert(k, layout);
         return layout;
     }
-    QSGTextNode *TimelineQuickItemPrivate::createTextNodeForTimeSignature(int numerator, int denominator, const QColor &color) {
-        Q_Q(TimelineQuickItem);
+    QSGTextNode *ScaleSGNode::createTextNodeForTimeSignature(int numerator, int denominator, const QColor &color) {
         qint64 k = denominator;
         k = k << 32 | numerator;
         auto textNode = timeSignatureTextNodes.value(k);
@@ -90,7 +92,7 @@ namespace sflow {
             delete timeSignatureTextNodes.cbegin().value();
             timeSignatureTextNodes.erase(timeSignatureTextNodes.cbegin());
         }
-        textNode = q->window()->createTextNode();
+        textNode = d->q_ptr->window()->createTextNode();
         textNode->setColor(color);
         textNode->addTextLayout({}, createTextLayoutForTimeSignature(numerator, denominator));
         textNode->setFlag(QSGNode::OwnedByParent, false);
@@ -275,6 +277,7 @@ namespace sflow {
     void TimelineQuickItem::setBackgroundColor(const QColor &backgroundColor) {
         Q_D(TimelineQuickItem);
         d->backgroundColor = backgroundColor;
+        update();
     }
     QColor TimelineQuickItem::foregroundColor() const {
         Q_D(const TimelineQuickItem);
@@ -283,6 +286,7 @@ namespace sflow {
     void TimelineQuickItem::setForegroundColor(const QColor &foregroundColor) {
         Q_D(TimelineQuickItem);
         d->foregroundColor = foregroundColor;
+        update();
     }
     int TimelineQuickItem::mapToTick(double x) const {
         Q_D(const TimelineQuickItem);
@@ -361,7 +365,7 @@ namespace sflow {
     QSGNode *TimelineQuickItem::updatePaintNode(QSGNode *node, UpdatePaintNodeData *) {
         Q_D(TimelineQuickItem);
         QSGSimpleRectNode *rectNode;
-        QSGNode *scaleNode;
+        ScaleSGNode *scaleNode;
         if (!node) {
             node = new QSGNode;
             node->appendChildNode(rectNode = new QSGSimpleRectNode);
@@ -371,7 +375,7 @@ namespace sflow {
             auto oldScaleNode = node->childAtIndex(1);
             delete oldScaleNode;
         }
-        node->appendChildNode(scaleNode = new QSGNode);
+        node->appendChildNode(scaleNode = new ScaleSGNode(d));
         scaleNode->setFlag(QSGNode::OwnedByParent);
         if (d->backgroundColor.isValid())
             rectNode->setColor(d->backgroundColor);
@@ -407,8 +411,8 @@ namespace sflow {
             if (!isEmphasized)
                 continue;
 
-            auto barNumberLayout = d->createTextLayoutForBarNumber(musicTime.measure());
-            auto textNode = d->createTextNodeForBarNumber(musicTime.measure(), foregroundColor);
+            auto barNumberLayout = scaleNode->createTextLayoutForBarNumber(musicTime.measure());
+            auto textNode = scaleNode->createTextNodeForBarNumber(musicTime.measure(), foregroundColor);
             QMatrix4x4 transform;
             transform.translate(x + 2, height() - 16);
             textNode->setMatrix(transform);
@@ -418,7 +422,7 @@ namespace sflow {
                 continue;
 
             auto timeSignature = d->timeAlignmentViewModel->timeline()->timeSignatureAt(musicTime.measure());
-            textNode = d->createTextNodeForTimeSignature(timeSignature.numerator(), timeSignature.denominator(), foregroundColor);
+            textNode = scaleNode->createTextNodeForTimeSignature(timeSignature.numerator(), timeSignature.denominator(), foregroundColor);
             transform.translate(8 + barNumberLayout->maximumWidth(), 0);
             textNode->setMatrix(transform);
             scaleNode->appendChildNode(textNode);

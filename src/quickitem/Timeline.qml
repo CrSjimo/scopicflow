@@ -5,7 +5,7 @@ import QtQuick
 import QtQuick.Shapes
 
 import './HelperComponents'
-import '../palette' as ScopicFlowPalette
+import "qrc:/ScopicFlow/modules/dev/sjimo/ScopicFlow/Palettes" as ScopicFlowPalette
 
 Timeline {
     id: timeline

@@ -19,39 +19,14 @@ Item {
     }
 
     required property string trackNumber
-    required property string trackName
-
-    required property bool mute
-    readonly property bool _mute: muteButton.checked
-    on_MuteChanged: mute = _mute
-    required property bool solo
-    readonly property bool _solo: soloButton.checked
-    on_SoloChanged: solo = _solo
-    required property bool record
-    readonly property bool _record: recordButton.checked
-    on_RecordChanged: record = _record
-
-    required property double gain
-    readonly property double _gain: linearValueToDecibel(gainSlider.value)
-    on_GainChanged: gain = _gain
-    required property double pan
-    readonly property double _pan: panDial.value
-    on_PanChanged: pan = _pan
-    required property bool intermediate
-    readonly property bool _intermediate: gainSlider.pressed || panDial.pressed
-    on_IntermediateChanged: intermediate = _intermediate
-
-    property bool selected: false
-
-    property double leftLevel: 0
-    property double rightLevel: 0
+    required property QtObject trackViewModel
 
     property bool isCurrent: false
     property bool isLast: false
 
     required property QtObject palette
 
-    property var animationViewModel: null
+    property QtObject animationViewModel: null
 
     NumberAnimation on height {
         id: fitHeightAnimation
@@ -65,7 +40,7 @@ Item {
         anchors.leftMargin: -1
         anchors.rightMargin: -1
         anchors.bottomMargin: -1
-        color: trackListDelegate.selected ? trackListDelegate.palette.selectedBackgroundColor : trackListDelegate.palette.backgroundColor
+        color: trackListDelegate.trackViewModel.selected ? trackListDelegate.palette.selectedBackgroundColor : trackListDelegate.palette.backgroundColor
         Behavior on color {
             ColorAnimation {
                 duration: 250 * (trackListDelegate.animationViewModel?.visualEffectAnimationRatio ?? 1)
@@ -170,7 +145,8 @@ Item {
                         palette: trackListDelegate.palette
                         animationRatio: trackListDelegate.animationViewModel?.visualEffectAnimationRatio ?? 1.0
                         text: 'M'
-                        checked: trackListDelegate.mute
+                        checked: trackListDelegate.trackViewModel.mute
+                        onCheckedChanged: trackListDelegate.trackViewModel.mute = checked
                         toolTip: qsTr("Mute")
                     }
                     TrackListButton {
@@ -179,7 +155,8 @@ Item {
                         palette: trackListDelegate.palette
                         animationRatio: trackListDelegate.animationViewModel?.visualEffectAnimationRatio ?? 1.0
                         text: 'S'
-                        checked: trackListDelegate.solo
+                        checked: trackListDelegate.trackViewModel.solo
+                        onCheckedChanged: trackListDelegate.trackViewModel.solo = checked
                         toolTip: qsTr("Solo")
                     }
                     TrackListButton {
@@ -188,13 +165,14 @@ Item {
                         palette: trackListDelegate.palette
                         animationRatio: trackListDelegate.animationViewModel?.visualEffectAnimationRatio ?? 1.0
                         text: 'R'
-                        checked: trackListDelegate.record
+                        checked: trackListDelegate.trackViewModel.record
+                        onCheckedChanged: trackListDelegate.trackViewModel.record = checked
                         toolTip: qsTr("Record")
                     }
                 }
                 Text {
                     anchors.verticalCenter: controlsFirstRow.verticalCenter
-                    text: trackListDelegate.trackName
+                    text: trackListDelegate.trackViewModel.name
                     color: trackListDelegate.palette.foregroundColor
                 }
             }
@@ -210,6 +188,10 @@ Item {
                         easing.type: Easing.OutCubic
                     }
                 }
+                readonly property bool intermediate: gainSlider.pressed || panDial.pressed
+                onIntermediateChanged: {
+                    trackListDelegate.trackViewModel.intermediate = intermediate
+                }
                 Row {
                     spacing: 4
                     readonly property bool isMouseInteractionTarget: true
@@ -224,7 +206,7 @@ Item {
                         palette: trackListDelegate.palette
                         animationRatio: trackListDelegate.animationViewModel?.visualEffectAnimationRatio ?? 1.0
                         height: 24
-                        width: trackListDelegate. width - 256
+                        width: trackListDelegate.width - 256
                         enabled: width > 40
                         opacity: enabled ? 1 : 0
                         Behavior on opacity {
@@ -236,7 +218,15 @@ Item {
                         from: decibelToLinearValue(-96)
                         to: decibelToLinearValue(6)
                         defaultValue: decibelToLinearValue(0)
-                        value: decibelToLinearValue(trackListDelegate.gain)
+                        value: decibelToLinearValue(trackListDelegate.trackViewModel.gain)
+                        onValueChanged: {
+                            let v = linearValueToDecibel(value)
+                            if (Math.abs(trackListDelegate.trackViewModel.gain - v) > Number.EPSILON * 1000)
+                                trackListDelegate.trackViewModel.gain = v
+                        }
+                        onReset: {
+                            trackListDelegate.trackViewModel.gain = 0
+                        }
                         toolTip: enabled ? qsTr("Gain") : ""
                     }
                     Text {
@@ -264,8 +254,14 @@ Item {
                         from: -1.0
                         to: 1.0
                         defaultValue: 0
-                        value: trackListDelegate.pan
+                        value: trackListDelegate.trackViewModel.pan
                         toolTip: qsTr("Pan")
+                        onValueChanged: {
+                            trackListDelegate.trackViewModel.pan = value
+                        }
+                        onReset: {
+                            trackListDelegate.trackViewModel.pan = 0
+                        }
                     }
                     Text {
                         anchors.verticalCenter: panDial.verticalCenter
@@ -302,7 +298,7 @@ Item {
                     highColor: trackListDelegate.palette.levelHighColor
                     backgroundColor: trackListDelegate.palette.levelBackgroundColor
                     borderColor: trackListDelegate.palette.levelBorderColor
-                    value: trackListDelegate.leftLevel
+                    value: trackListDelegate.trackViewModel.leftLevel
                 }
 
                 LevelMeter {
@@ -314,7 +310,7 @@ Item {
                     highColor: trackListDelegate.palette.levelHighColor
                     backgroundColor: trackListDelegate.palette.levelBackgroundColor
                     borderColor: trackListDelegate.palette.levelBorderColor
-                    value: trackListDelegate.rightLevel
+                    value: trackListDelegate.trackViewModel.rightLevel
                 }
 
             }

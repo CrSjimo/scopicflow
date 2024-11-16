@@ -9,6 +9,8 @@ Dial {
     property double animationRatio: 1
     property string toolTip: ""
 
+    signal reset()
+
     background: Rectangle {
         x: control.width / 2 - width / 2
         y: control.height / 2 - height / 2
@@ -77,7 +79,7 @@ Dial {
         onPressed: function (mouse) {
             if (timer.running) {
                 timer.stop()
-                control.value = control.defaultValue
+                control.reset()
                 mouse.accepted = true
             } else {
                 timer.start()

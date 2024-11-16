@@ -47,7 +47,7 @@ TrackList {
                     id: trackListDelegate
                     readonly property bool isTrackListDelegate: true
                     required property int index
-                    property var trackViewModel: trackList.trackAt(index)
+                    trackViewModel: trackList.trackAt(index)
                     Connections {
                         target: trackList
                         function onLayoutRequired() { trackListDelegate.trackViewModel = trackList.trackAt(trackListDelegate.index) }
@@ -56,31 +56,9 @@ TrackList {
                     anchors.right: parent.right
                     palette: trackList.palette
                     trackNumber: index + 1
-                    trackName: trackViewModel.name
-                    onTrackNameChanged: trackViewModel.name = trackName
 
-                    mute: trackViewModel.mute
-                    onMuteChanged: trackViewModel.mute = mute
-                    solo: trackViewModel.solo
-                    onSoloChanged: trackViewModel.solo = solo
-                    record: trackViewModel.record
-                    onRecordChanged: trackViewModel.record = record
-
-                    gain: trackViewModel.gain
-                    onGainChanged: trackViewModel.gain = gain
-                    pan: trackViewModel.pan
-                    onPanChanged: trackViewModel.pan = pan
-
-                    intermediate: trackViewModel.intermediate
-                    onIntermediateChanged: trackViewModel.intermediate = intermediate
-
-                    leftLevel: trackViewModel.leftLevel
-                    rightLevel: trackViewModel.rightLevel
-
-                    selected: trackViewModel.selected
                     isLast: index === trackList.trackListViewModel.count
                     isCurrent: trackList.trackListViewModel?.currentIndex === index
-                    onSelectedChanged: trackViewModel.selected = selected
 
                     height: trackViewModel.rowHeight
                     onHeightChanged: {
@@ -286,7 +264,7 @@ TrackList {
                     let handle = (lastIndicatorIndex ? trackHandlesRepeater.itemAt(lastIndicatorIndex - 1) : topTrackHandle)
                     handle.indicatesTarget = false
                 } else {
-                    if (rejectClick && pressedItem) {
+                    if (rejectClick && pressedItem && (mouse.button & Qt.RightButton)) {
                         trackList.contextMenuRequestedForTrack(pressedItem.index)
                     }
                 }

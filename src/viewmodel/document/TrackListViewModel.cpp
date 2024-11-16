@@ -1,5 +1,7 @@
 #include "TrackListViewModel.h"
 
+#include "TrackViewModel.h"
+
 #include <algorithm>
 
 namespace sflow {
@@ -39,12 +41,18 @@ namespace sflow {
     void TrackListViewModel::insertTracks(int index, const QList<TrackViewModel *> &tracks) {
         m_tracks.insert(index, tracks.size(), nullptr);
         std::copy(tracks.begin(), tracks.end(), m_tracks.begin() + index);
+        for (auto track : tracks) {
+            track->setParent(this);
+        }
         if (!tracks.empty()) {
             emit tracksInserted(index, tracks);
             emit countChanged(count());
         }
     }
     void TrackListViewModel::removeTracks(int index, int count) {
+        std::for_each_n(m_tracks.begin(), count, [](TrackViewModel *track) {
+            delete track;
+        });
         m_tracks.remove(index, count);
         if (count > 0) {
             emit tracksRemoved(index, count);

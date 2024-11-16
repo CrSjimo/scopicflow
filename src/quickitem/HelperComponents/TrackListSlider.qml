@@ -9,6 +9,8 @@ Slider {
     property double animationRatio: 1
     property string toolTip: ""
 
+    signal reset()
+
     background: Rectangle {
         x: slider.leftPadding
         y: slider.topPadding + slider.availableHeight / 2 - height / 2
@@ -65,7 +67,7 @@ Slider {
                 onPressed: function (mouse) {
                     if (timer.running) {
                         timer.stop()
-                        slider.value = slider.defaultValue
+                        slider.reset()
                         mouse.accepted = true
                     } else {
                         timer.start()

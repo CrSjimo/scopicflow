@@ -29,4 +29,10 @@ QtObject {
     property color noteInvalidColor: "#4d7e9e"
     property color noteInvalidBorderColor: "#994926"
     property color noteInvalidTextColor: "#7f000000"
+
+    property color noteEditingColor: "#c8d6e5"
+    property color noteEditingBorderColor: "#3498db"
+    property color noteEditingTextColor: "#000000"
+
+    property color lyricErrorTextColor: "#aa3300"
 }

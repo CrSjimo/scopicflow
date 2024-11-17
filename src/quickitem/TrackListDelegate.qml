@@ -219,20 +219,33 @@ Item {
                         to: decibelToLinearValue(6)
                         defaultValue: decibelToLinearValue(0)
                         value: decibelToLinearValue(trackListDelegate.trackViewModel.gain)
+                        NumberAnimation on value {
+                            id: gainSliderResetAnimation
+                            to: decibelToLinearValue(0)
+                            duration: (trackListDelegate.animationViewModel?.visualEffectAnimationRatio ?? 1.0) * 250
+                            easing.type: Easing.OutCubic
+                            onStopped: {
+                                gainSlider.value = Qt.binding(() => decibelToLinearValue(trackListDelegate.trackViewModel.gain))
+                            }
+                        }
                         onValueChanged: {
+                            if (gainSliderResetAnimation.running)
+                                return
                             let v = linearValueToDecibel(value)
                             if (Math.abs(trackListDelegate.trackViewModel.gain - v) > Number.EPSILON * 1000)
                                 trackListDelegate.trackViewModel.gain = v
                         }
                         onReset: {
+                            gainSlider.value = gainSlider.value
                             trackListDelegate.trackViewModel.gain = 0
+                            gainSliderResetAnimation.start()
                         }
                         toolTip: enabled ? qsTr("Gain") : ""
                     }
                     Text {
                         anchors.verticalCenter: gainSlider.verticalCenter
                         width: 64
-                        text: (Math.abs(gainSlider.value - gainSlider.from) < Number.EPSILON ? '-INF ' : linearValueToDecibel(gainSlider.value).toFixed(1)) + "dB"
+                        text: (Math.abs(trackListDelegate.trackViewModel.gain + 96) < Number.EPSILON ? '-INF ' : trackListDelegate.trackViewModel.gain.toFixed(1)) + "dB"
                         color: trackListDelegate.palette.foregroundColor
                     }
                 }
@@ -256,17 +269,30 @@ Item {
                         defaultValue: 0
                         value: trackListDelegate.trackViewModel.pan
                         toolTip: qsTr("Pan")
+                        NumberAnimation on value {
+                            id: panDialResetAnimation
+                            to: 0
+                            duration: (trackListDelegate.animationViewModel?.visualEffectAnimationRatio ?? 1.0) * 250
+                            easing.type: Easing.OutCubic
+                            onStopped: {
+                                panDial.value = Qt.binding(() => trackListDelegate.trackViewModel.pan)
+                            }
+                        }
                         onValueChanged: {
+                            if (panDialResetAnimation.running)
+                                return
                             trackListDelegate.trackViewModel.pan = value
                         }
                         onReset: {
+                            panDial.value = panDial.value
                             trackListDelegate.trackViewModel.pan = 0
+                            panDialResetAnimation.start()
                         }
                     }
                     Text {
                         anchors.verticalCenter: panDial.verticalCenter
                         width: 64
-                        text: Math.round(panDial.value * 100)
+                        text: Math.round(trackListDelegate.trackViewModel.pan * 100)
                         color: trackListDelegate.palette.foregroundColor
                     }
                 }

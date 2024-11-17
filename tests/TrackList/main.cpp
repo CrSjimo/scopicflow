@@ -104,6 +104,16 @@ int main(int argc, char *argv[]) {
     QObject::connect(trackViewModel, &TrackViewModel::rowHeightChanged, rowHeightSpinBox, &QDoubleSpinBox::setValue);
     QObject::connect(rowHeightSpinBox, &QDoubleSpinBox::valueChanged, trackViewModel, &TrackViewModel::setRowHeight);
 
+    QObject::connect(trackViewModel, &TrackViewModel::intermediateChanged, [](bool intermediate) {
+        qDebug() << "intermediate:" << intermediate;
+    });
+    QObject::connect(trackViewModel, &TrackViewModel::gainChanged, [](double gain) {
+        qDebug() << "gain:" << gain;
+    });
+    QObject::connect(trackViewModel, &TrackViewModel::panChanged, [](double pan) {
+        qDebug() << "pan:" << pan;
+    });
+
 
     mainWidget->setLayout(mainLayout);
     QMainWindow win;

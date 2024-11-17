@@ -188,7 +188,7 @@ Item {
                         easing.type: Easing.OutCubic
                     }
                 }
-                readonly property bool intermediate: gainSlider.pressed || panDial.pressed
+                readonly property bool intermediate: gainSlider.intermediate || panDial.intermediate
                 onIntermediateChanged: {
                     trackListDelegate.trackViewModel.intermediate = intermediate
                 }

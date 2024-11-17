@@ -8,6 +8,7 @@ Slider {
     required property QtObject palette
     property double animationRatio: 1
     property string toolTip: ""
+    readonly property bool intermediate: pressed || timer.running
 
     signal reset()
 
@@ -66,8 +67,8 @@ Slider {
 
                 onPressed: function (mouse) {
                     if (timer.running) {
-                        timer.stop()
                         slider.reset()
+                        timer.stop()
                         mouse.accepted = true
                     } else {
                         timer.start()

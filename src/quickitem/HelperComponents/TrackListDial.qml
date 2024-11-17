@@ -8,6 +8,7 @@ Dial {
     property double defaultValue: from
     property double animationRatio: 1
     property string toolTip: ""
+    readonly property bool intermediate: pressed || timer.running
 
     signal reset()
 
@@ -78,8 +79,8 @@ Dial {
 
         onPressed: function (mouse) {
             if (timer.running) {
-                timer.stop()
                 control.reset()
+                timer.stop()
                 mouse.accepted = true
             } else {
                 timer.start()

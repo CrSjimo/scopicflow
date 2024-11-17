@@ -26,6 +26,9 @@
 #include <ScopicFlow/ScrollBehaviorViewModel.h>
 #include <ScopicFlow/AnimationViewModel.h>
 #include <ScopicFlow/PaletteViewModel.h>
+#include <ScopicFlow/LabelSequenceWidget.h>
+#include <ScopicFlow/LabelSequenceViewModel.h>
+#include <ScopicFlow/LabelViewModel.h>
 
 using namespace sflow;
 
@@ -84,8 +87,7 @@ int main(int argc, char *argv[]) {
     auto clavier = new ClavierWidget;
     auto timeline = new TimelineWidget;
     auto pianoRoll = new PianoRollWidget;
-
-    delete new TimelineWidget;
+    auto labelSequence = new LabelSequenceWidget;
 
     TimeAlignmentViewModel timeViewModel;
     timeViewModel.setPositionAlignment(240);
@@ -94,10 +96,12 @@ int main(int argc, char *argv[]) {
 
     timeline->setTimeAlignmentViewModel(&timeViewModel);
     pianoRoll->setTimeAlignmentViewModel(&timeViewModel);
+    labelSequence->setTimeAlignmentViewModel(&timeViewModel);
 
     PlaybackViewModel playbackViewModel;
     timeline->setPlaybackViewModel(&playbackViewModel);
     pianoRoll->setPlaybackViewModel(&playbackViewModel);
+    labelSequence->setPlaybackViewModel(&playbackViewModel);
 
     ClavierViewModel clavierViewModel;
     clavier->setClavierViewModel(&clavierViewModel);
@@ -108,20 +112,33 @@ int main(int argc, char *argv[]) {
     timeline->setScrollBehaviorViewModel(&scrollBehaviorViewModel);
     clavier->setScrollBehaviorViewModel(&scrollBehaviorViewModel);
     pianoRoll->setScrollBehaviorViewModel(&scrollBehaviorViewModel);
+    labelSequence->setScrollBehaviorViewModel(&scrollBehaviorViewModel);
 
     AnimationViewModel animationViewModel;
     timeline->setAnimationViewModel(&animationViewModel);
     clavier->setAnimationViewModel(&animationViewModel);
     pianoRoll->setAnimationViewModel(&animationViewModel);
+    labelSequence->setAnimationViewModel(&animationViewModel);
 
     PaletteViewModel paletteViewModel;
     timeline->setPaletteViewModel(&paletteViewModel);
     clavier->setPaletteViewModel(&paletteViewModel);
     pianoRoll->setPaletteViewModel(&paletteViewModel);
+    labelSequence->setPaletteViewModel(&paletteViewModel);
 
-    mainLayout->addWidget(clavier, 1, 0);
+    LabelSequenceViewModel labelSequenceViewModel;
+    for (int i = 0; i < 16; i++) {
+        auto label = new LabelViewModel;
+        label->setPosition(i * 480);
+        label->setContent("test" + QString::number(i));
+        labelSequenceViewModel.insertLabels({label});
+    }
+    labelSequence->setLabelSequenceViewModel(&labelSequenceViewModel);
+
+    mainLayout->addWidget(clavier, 2, 0);
     mainLayout->addWidget(timeline, 0, 1);
-    mainLayout->addWidget(pianoRoll, 1, 1);
+    mainLayout->addWidget(pianoRoll, 2, 1);
+    mainLayout->addWidget(labelSequence, 1, 1);
 
     mainWidget->setLayout(mainLayout);
     win.setCentralWidget(mainWidget);

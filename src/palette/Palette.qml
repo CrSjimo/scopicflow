@@ -7,4 +7,5 @@ QtObject {
     property QtObject clavier: Clavier {}
     property QtObject trackList: TrackList {}
     property QtObject pianoRoll: PianoRoll {}
+    property QtObject labelSequence: LabelSequence {}
 }

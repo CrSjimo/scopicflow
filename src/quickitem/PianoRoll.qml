@@ -124,22 +124,11 @@ PianoRoll {
         }
     }
 
-    Rectangle {
-        id: secondaryIndicator
-        anchors.top: parent.top
-        anchors.bottom: parent.bottom
-        width: 1
-        color: pianoRoll.palette.secondaryIndicatorColor
-        x: pianoRoll.timeAlignmentViewModel && pianoRoll.playbackViewModel ? (pianoRoll.playbackViewModel.secondaryPositon - pianoRoll.timeAlignmentViewModel.start) * pianoRoll.timeAlignmentViewModel.pixelDensity - 0.5 : 0
-    }
-
-    Rectangle {
-        id: primaryIndicator
-        anchors.top: parent.top
-        anchors.bottom: parent.bottom
-        width: 1
-        color: pianoRoll.palette.primaryIndicatorColor
-        x: pianoRoll.timeAlignmentViewModel && pianoRoll.playbackViewModel ? (pianoRoll.playbackViewModel.primaryPosition - pianoRoll.timeAlignmentViewModel.start) * pianoRoll.timeAlignmentViewModel.pixelDensity - 0.5 : 0
+    PositionIndicators {
+        anchors.fill: parent
+        palette: pianoRoll.palette
+        timeViewModel: pianoRoll.timeAlignmentViewModel
+        playbackViewModel: pianoRoll.playbackViewModel
     }
 
     StyledScrollBar {

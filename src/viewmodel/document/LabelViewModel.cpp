@@ -1,7 +1,3 @@
-//
-// Created by Crs_1 on 2024/11/17.
-//
-
 #include "LabelViewModel.h"
 
 namespace sflow {

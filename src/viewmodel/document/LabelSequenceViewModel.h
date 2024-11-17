@@ -1,8 +1,9 @@
 #ifndef SCOPIC_FLOW_LABELSEQUENCEVIEWMODEL_H
 #define SCOPIC_FLOW_LABELSEQUENCEVIEWMODEL_H
 
+#include <map>
+
 #include <QObject>
-#include <QMap>
 #include <QSet>
 
 #include <ScopicFlow/ScopicFlowGlobal.h>
@@ -29,13 +30,17 @@ namespace sflow {
 
         QList<LabelViewModel *> selection() const;
 
+        LabelViewModel *nextItem(LabelViewModel *item) const;
+        LabelViewModel *previousItem(LabelViewModel *item) const;
+
     signals:
         void currentItemChanged(LabelViewModel *currentItem);
         void countChanged(int count);
         void selectionChanged();
 
     private:
-        QMap<int, LabelViewModel *> m_labels;
+        std::multimap<int, LabelViewModel *> m_labels;
+        QHash<LabelViewModel *, int> m_positions;
         QSet<LabelViewModel *> m_selection;
         LabelViewModel *m_currentItem;
 

@@ -6,5 +6,6 @@
         <file>Clavier.qml</file>
         <file>TrackList.qml</file>
         <file>PianoRoll.qml</file>
+        <file>LabelSequence.qml</file>
     </qresource>
 </RCC>

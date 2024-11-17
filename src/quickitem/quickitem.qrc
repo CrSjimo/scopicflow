@@ -7,6 +7,7 @@
         <file>TrackList.qml</file>
         <file>PianoRoll.qml</file>
         <file>NoteItem.qml</file>
+        <file>LabelSequence.qml</file>
         <file>HelperComponents/MiddleButtonMoveHandler.qml</file>
         <file>HelperComponents/StandardScrollHandler.qml</file>
         <file>HelperComponents/TrackListButton.qml</file>
@@ -17,5 +18,6 @@
         <file>HelperComponents/TimeManipulator.qml</file>
         <file>HelperComponents/ClavierManipulator.qml</file>
         <file>HelperComponents/StyledScrollBar.qml</file>
+        <file>HelperComponents/PositionIndicators.qml</file>
     </qresource>
 </RCC>

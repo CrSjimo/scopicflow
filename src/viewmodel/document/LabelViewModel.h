@@ -4,9 +4,11 @@
 #include <QObject>
 #include <QVariant>
 
+#include <ScopicFlow/ScopicFlowGlobal.h>
+
 namespace sflow {
 
-    class LabelViewModel : public QObject {
+    class SCOPIC_FLOW_EXPORT LabelViewModel : public QObject {
         Q_OBJECT
         Q_PROPERTY(int position READ position WRITE setPosition NOTIFY positionChanged)
         Q_PROPERTY(QVariant content READ content WRITE setContent NOTIFY contentChanged)

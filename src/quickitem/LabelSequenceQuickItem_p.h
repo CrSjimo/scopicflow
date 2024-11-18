@@ -52,6 +52,8 @@ namespace sflow {
 
         Q_INVOKABLE int deselectAll();
         Q_INVOKABLE void extendSelection(LabelViewModel *viewModel);
+        Q_INVOKABLE void moveSelectedLabelsTo(double x, LabelViewModel *viewModel);
+        Q_INVOKABLE void moveSelectedLabelOnDragScrolling(bool isBackward, LabelViewModel *viewModel);
 
         LabelViewModel *currentItem() const;
         void setCurrentItem(LabelViewModel *viewModel);

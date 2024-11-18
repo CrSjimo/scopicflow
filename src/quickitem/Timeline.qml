@@ -84,18 +84,11 @@ Timeline {
         drag.axis: Drag.XAxis
         drag.minimumX: timeline.zeroTickX - 8
 
-        property double deltaTickingX: 4
-        Timer {
-            id: tickingTimer
-            interval: 10
-            repeat: true
-
-            onTriggered: {
-                timeline.moveViewOnDraggingPositionIndicator(parent.deltaTickingX)
+        DragScroller {
+            id: dragScroller
+            onMoved: function (deltaX) {
+                timeline.moveViewOnDraggingPositionIndicator(deltaX)
             }
-        }
-        function calculateDraggingPositionIndicatorScrollingSpeed(x) {
-            return Math.min(1, x / 256)
         }
 
         property bool rejectContextMenu: false;
@@ -124,14 +117,14 @@ Timeline {
         onPositionChanged: function (mouse) {
             if (pressedButtons & Qt.LeftButton) {
                 if (mouse.x < 0) {
-                    deltaTickingX = -calculateDraggingPositionIndicatorScrollingSpeed(-mouse.x) * tickingTimer.interval
-                    tickingTimer.start()
+                    dragScroller.distanceX = mouse.x
+                    dragScroller.running = true
                 } else if (mouse.x >= timeline.width) {
-                    deltaTickingX = calculateDraggingPositionIndicatorScrollingSpeed(mouse.x - timeline.width) * tickingTimer.interval
-                    tickingTimer.start()
+                    dragScroller.distanceX = mouse.x - timeline.width
+                    dragScroller.running = true
                 } else {
                     timeline.primaryIndicatorX = mouse.x
-                    tickingTimer.stop()
+                    dragScroller.running = false
                 }
 
             } else if (pressedButtons & Qt.RightButton) {
@@ -154,7 +147,7 @@ Timeline {
             }
         }
         onReleased: function() {
-            tickingTimer.stop()
+            dragScroller.running = false
             cursorShape = Qt.ArrowCursor
             if (selectionRect.visible) {
                 if (selectionRect.width)

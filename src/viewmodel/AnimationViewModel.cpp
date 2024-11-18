@@ -1,7 +1,7 @@
 #include "AnimationViewModel.h"
 
 namespace sflow {
-    AnimationViewModel::AnimationViewModel(QObject *parent) : QObject(parent), m_visualEffectAnimationRatio(1.0), m_scrollAnimationRatio(1.0) {
+    AnimationViewModel::AnimationViewModel(QObject *parent) : QObject(parent), m_visualEffectAnimationRatio(1.0), m_scrollAnimationRatio(1.0), m_colorAnimationRatio(1.0) {
     }
     AnimationViewModel::~AnimationViewModel() = default;
     double AnimationViewModel::visualEffectAnimationRatio() const {
@@ -20,6 +20,15 @@ namespace sflow {
         if (m_scrollAnimationRatio != value) {
             m_scrollAnimationRatio = value;
             emit scrollAnimationRatioChanged(value);
+        }
+    }
+    double AnimationViewModel::colorAnimationRatio() const {
+        return m_colorAnimationRatio;
+    }
+    void AnimationViewModel::setColorAnimationRatio(double value) {
+        if (m_colorAnimationRatio != value) {
+            m_colorAnimationRatio = value;
+            emit colorAnimationRatioChanged(value);
         }
     }
 }

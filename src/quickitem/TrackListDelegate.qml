@@ -43,7 +43,7 @@ Item {
         color: trackListDelegate.trackViewModel.selected ? trackListDelegate.palette.selectedBackgroundColor : trackListDelegate.palette.backgroundColor
         Behavior on color {
             ColorAnimation {
-                duration: 250 * (trackListDelegate.animationViewModel?.visualEffectAnimationRatio ?? 1)
+                duration: 250 * (trackListDelegate.animationViewModel?.colorAnimationRatio ?? 1)
                 easing.type: Easing.OutCubic
             }
         }
@@ -80,7 +80,7 @@ Item {
             color: trackListDelegate.isCurrent ? trackListDelegate.palette.primaryColor : trackListDelegate.palette.foregroundColor
             Behavior on color {
                 ColorAnimation {
-                    duration: 250 * (trackListDelegate.animationViewModel?.visualEffectAnimationRatio ?? 1)
+                    duration: 250 * (trackListDelegate.animationViewModel?.colorAnimationRatio ?? 1)
                     easing.type: Easing.OutCubic
                 }
             }

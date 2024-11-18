@@ -112,7 +112,8 @@ namespace sflow {
                         break;
                     label = d->labelSequenceViewModel->previousItem(label);
                 }
-            } else if (viewModel->position() < d->labelSequenceViewModel->currentItem()->position()) {
+            } else if (viewModel->position() <
+                       d->labelSequenceViewModel->currentItem()->position()) {
                 for (auto label = viewModel; label;) {
                     label->setSelected(true);
                     if (label == d->labelSequenceViewModel->currentItem())
@@ -123,6 +124,44 @@ namespace sflow {
                 viewModel->setSelected(true);
             }
         }
+    }
+    void LabelSequenceQuickItemPrivate::moveSelectionTo(int position, LabelViewModel *viewModel) {
+        if (position  != viewModel->position()) {
+            int deltaPosition = position  - viewModel->position();
+            for (auto label : labelSequenceViewModel->selection()) {
+                if (label->position() + deltaPosition < 0)
+                    return;
+                if (label->position() + deltaPosition > timeAlignmentViewModel->end())
+                    timeAlignmentViewModel->setEnd(label->position() + deltaPosition);
+            }
+            for (auto label : labelSequenceViewModel->selection()) {
+                label->setPosition(label->position() + deltaPosition);
+            }
+        }
+    }
+    void LabelSequenceQuickItem::moveSelectedLabelsTo(double x, LabelViewModel *viewModel) {
+        Q_D(LabelSequenceQuickItem);
+        if (!d->timeAlignmentViewModel || !d->labelSequenceViewModel)
+            return;
+        auto deltaTick = x / d->timeAlignmentViewModel->pixelDensity();
+        int tick = static_cast<int>(std::round(d->timeAlignmentViewModel->start() + deltaTick));
+        int align = d->timeAlignmentViewModel->positionAlignment();
+        int alignedTick = (tick + align / 2) / align * align;
+        d->moveSelectionTo(alignedTick, viewModel);
+    }
+    void LabelSequenceQuickItem::moveSelectedLabelOnDragScrolling(bool isBackward, LabelViewModel *viewModel) {
+        Q_D(LabelSequenceQuickItem);
+        double x = isBackward ? 0 : width();
+        auto deltaTick = x / d->timeAlignmentViewModel->pixelDensity();
+        int tick = static_cast<int>(std::round(d->timeAlignmentViewModel->start() + deltaTick));
+        int align = d->timeAlignmentViewModel->positionAlignment();
+        int alignedTick;
+        if (isBackward) {
+            alignedTick = (tick + align - 1) / align * align;
+        } else {
+            alignedTick = tick / align * align;
+        }
+        d->moveSelectionTo(alignedTick, viewModel);
     }
     LabelViewModel *LabelSequenceQuickItem::currentItem() const {
         Q_D(const LabelSequenceQuickItem);

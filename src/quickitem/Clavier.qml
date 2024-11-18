@@ -81,7 +81,7 @@ Clavier {
                 color: normalColor
                 Behavior on color {
                     ColorAnimation {
-                        duration: (clavier.animationViewModel?.visualEffectAnimationRatio ?? 1.0) * 250
+                        duration: (clavier.animationViewModel?.colorAnimationRatio ?? 1.0) * 250
                         easing.type: Easing.OutCubic
                     }
                 }

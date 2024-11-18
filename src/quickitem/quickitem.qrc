@@ -19,5 +19,6 @@
         <file>HelperComponents/ClavierManipulator.qml</file>
         <file>HelperComponents/StyledScrollBar.qml</file>
         <file>HelperComponents/PositionIndicators.qml</file>
+        <file>HelperComponents/DragScroller.qml</file>
     </qresource>
 </RCC>

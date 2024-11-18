@@ -16,6 +16,8 @@ namespace sflow {
         PaletteViewModel *paletteViewModel = nullptr;
 
         LabelSequenceViewModel *labelSequenceViewModel = nullptr;
+
+        void moveSelectionTo(int position, LabelViewModel *viewModel);
     };
 }
 

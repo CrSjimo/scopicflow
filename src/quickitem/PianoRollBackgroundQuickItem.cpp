@@ -159,6 +159,7 @@ namespace sflow {
         barScaleNode->setGeometry(barScaleGeometry);
         barScaleNode->setFlag(QSGNode::OwnsGeometry);
         barScaleNode->setMaterial(new QSGVertexColorMaterial);
+        barScaleNode->setFlag(QSGNode::OwnsMaterial);
 
         return barScaleNode;
     }

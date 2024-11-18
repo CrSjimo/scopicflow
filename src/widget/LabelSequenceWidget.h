@@ -42,6 +42,9 @@ namespace sflow {
         LabelSequenceViewModel *labelSequenceViewModel() const;
         void setLabelSequenceViewModel(LabelSequenceViewModel *viewModel);
 
+    protected:
+        bool eventFilter(QObject *watched, QEvent *event) override;
+
     private:
         LabelSequenceQuickItem *d;
     };

@@ -163,6 +163,14 @@ namespace sflow {
         }
         d->moveSelectionTo(alignedTick, viewModel);
     }
+    LabelViewModel *LabelSequenceQuickItem::nextItem(LabelViewModel *viewModel) const {
+        Q_D(const LabelSequenceQuickItem);
+        return d->labelSequenceViewModel->nextItem(viewModel);
+    }
+    LabelViewModel *LabelSequenceQuickItem::previousItem(LabelViewModel *viewModel) const {
+        Q_D(const LabelSequenceQuickItem);
+        return d->labelSequenceViewModel->previousItem(viewModel);
+    }
     LabelViewModel *LabelSequenceQuickItem::currentItem() const {
         Q_D(const LabelSequenceQuickItem);
         if (!d->labelSequenceViewModel)

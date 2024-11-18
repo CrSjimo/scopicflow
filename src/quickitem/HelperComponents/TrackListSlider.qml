@@ -6,7 +6,7 @@ Slider {
     id: slider
     property double defaultValue: from
     required property QtObject palette
-    property double animationRatio: 1
+    required property QtObject animationViewModel
     property string toolTip: ""
     readonly property bool intermediate: pressed || timer.running
 
@@ -44,7 +44,7 @@ Slider {
             radius: handleSize / 2
             Behavior on handleSize {
                 NumberAnimation {
-                    duration: 250 * slider.animationRatio
+                    duration: 250 * (slider.animationViewModel?.visualEffect ?? 1)
                     easing.type: Easing.OutCubic
                 }
             }
@@ -52,7 +52,7 @@ Slider {
             color: slider.pressed ? slider.palette.sliderHandlePressedColor : slider.palette.sliderHandleColor
             Behavior on color {
                 ColorAnimation {
-                    duration: 250 * slider.animationRatio
+                    duration: 250 * (slider.animationViewModel?.colorAnimationRatio ?? 1)
                     easing.type: Easing.OutCubic
                 }
             }

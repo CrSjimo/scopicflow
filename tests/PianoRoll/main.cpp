@@ -108,7 +108,6 @@ int main(int argc, char *argv[]) {
     pianoRoll->setClavierViewModel(&clavierViewModel);
 
     ScrollBehaviorViewModel scrollBehaviorViewModel;
-    scrollBehaviorViewModel.setUsePageModifierAsAlternateAxisZoom(true);
     timeline->setScrollBehaviorViewModel(&scrollBehaviorViewModel);
     clavier->setScrollBehaviorViewModel(&scrollBehaviorViewModel);
     pianoRoll->setScrollBehaviorViewModel(&scrollBehaviorViewModel);

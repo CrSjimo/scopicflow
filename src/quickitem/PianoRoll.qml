@@ -141,7 +141,7 @@ PianoRoll {
         normalColor: pianoRoll.palette.scrollBarNormalColor
         pressedColor: pianoRoll.palette.scrollBarPressedColor
         hoveredColor: pianoRoll.palette.scrollBarHoveredColor
-        animationRatio: pianoRoll.animationViewModel?.visualEffectAnimationRatio ?? 1.0
+        animationViewModel: pianoRoll.animationViewModel
         size: pianoRoll.height / backgroundViewport.height
         position: 1 - (pianoRoll.clavierViewModel?.start ?? 0) / 128 - size
         onPositionChanged: {
@@ -160,7 +160,7 @@ PianoRoll {
         normalColor: pianoRoll.palette.scrollBarNormalColor
         pressedColor: pianoRoll.palette.scrollBarPressedColor
         hoveredColor: pianoRoll.palette.scrollBarHoveredColor
-        animationRatio: pianoRoll.animationViewModel?.visualEffectAnimationRatio ?? 1.0
+        animationViewModel: pianoRoll.animationViewModel
         size: pianoRoll.timeAlignmentViewModel ? pianoRoll.width / pianoRoll.timeAlignmentViewModel.pixelDensity / pianoRoll.timeAlignmentViewModel.end : 0
         position: pianoRoll.timeAlignmentViewModel ? pianoRoll.timeAlignmentViewModel.start / pianoRoll.timeAlignmentViewModel.end : 0
         onPositionChanged: {

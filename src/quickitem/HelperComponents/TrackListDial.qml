@@ -6,7 +6,7 @@ Dial {
     id: control
     required property QtObject palette
     property double defaultValue: from
-    property double animationRatio: 1
+    required property QtObject animationViewModel
     property string toolTip: ""
     readonly property bool intermediate: pressed || timer.running
 
@@ -22,7 +22,7 @@ Dial {
         color: control.pressed ? control.palette.dialPressedColor : control.hovered ? control.palette.dialHoveredColor : control.palette.dialColor
         Behavior on color {
             ColorAnimation {
-                duration: 250 * control.animationRatio
+                duration: 250 * (control.animationViewModel?.colorAnimationRatio ?? 1)
                 easing.type: Easing.OutCubic
             }
         }

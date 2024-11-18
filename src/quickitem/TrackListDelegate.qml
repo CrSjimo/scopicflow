@@ -98,7 +98,7 @@ Item {
             width: 16
             height: 16
             palette: trackListDelegate.palette
-            animationRatio: trackListDelegate.animationViewModel?.visualEffectAnimationRatio ?? 1.0
+            animationViewModel: trackListDelegate.animationViewModel
             anchors.left: selectionIndicator.right
             anchors.leftMargin: 18
             anchors.bottom: parent.bottom
@@ -143,7 +143,7 @@ Item {
                         id: muteButton
                         checkedColor: trackListDelegate.palette.muteColor
                         palette: trackListDelegate.palette
-                        animationRatio: trackListDelegate.animationViewModel?.visualEffectAnimationRatio ?? 1.0
+                        animationViewModel: trackListDelegate.animationViewModel
                         text: 'M'
                         checked: trackListDelegate.trackViewModel.mute
                         onCheckedChanged: trackListDelegate.trackViewModel.mute = checked
@@ -153,7 +153,7 @@ Item {
                         id: soloButton
                         checkedColor: trackListDelegate.palette.soloColor
                         palette: trackListDelegate.palette
-                        animationRatio: trackListDelegate.animationViewModel?.visualEffectAnimationRatio ?? 1.0
+                        animationViewModel: trackListDelegate.animationViewModel
                         text: 'S'
                         checked: trackListDelegate.trackViewModel.solo
                         onCheckedChanged: trackListDelegate.trackViewModel.solo = checked
@@ -163,7 +163,7 @@ Item {
                         id: recordButton
                         checkedColor: trackListDelegate.palette.recordColor
                         palette: trackListDelegate.palette
-                        animationRatio: trackListDelegate.animationViewModel?.visualEffectAnimationRatio ?? 1.0
+                        animationViewModel: trackListDelegate.animationViewModel
                         text: 'R'
                         checked: trackListDelegate.trackViewModel.record
                         onCheckedChanged: trackListDelegate.trackViewModel.record = checked
@@ -204,7 +204,7 @@ Item {
                     TrackListSlider {
                         id: gainSlider
                         palette: trackListDelegate.palette
-                        animationRatio: trackListDelegate.animationViewModel?.visualEffectAnimationRatio ?? 1.0
+                        animationViewModel: trackListDelegate.animationViewModel
                         height: 24
                         width: trackListDelegate.width - 256
                         enabled: width > 40
@@ -261,7 +261,7 @@ Item {
                     TrackListDial {
                         id: panDial
                         palette: trackListDelegate.palette
-                        animationRatio: trackListDelegate.animationViewModel?.visualEffectAnimationRatio ?? 1.0
+                        animationViewModel: trackListDelegate.animationViewModel
                         height: 24
                         width: 24
                         from: -1.0

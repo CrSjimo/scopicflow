@@ -17,6 +17,8 @@ namespace sflow {
         setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Minimum);
 
         d = static_cast<LabelSequenceQuickItem *>(wrapper.second);
+
+        wrapper.first->installEventFilter(this);
     }
     LabelSequenceWidget::~LabelSequenceWidget() = default;
 
@@ -55,5 +57,11 @@ namespace sflow {
     }
     void LabelSequenceWidget::setLabelSequenceViewModel(LabelSequenceViewModel *viewModel) {
         d->setLabelSequenceViewModel(viewModel);
+    }
+    bool LabelSequenceWidget::eventFilter(QObject *watched, QEvent *event) {
+        if (event->type() == QEvent::FocusOut) {
+            d->setCurrentItem(nullptr);
+        }
+        return QWidget::eventFilter(watched, event);
     }
 } // sflow

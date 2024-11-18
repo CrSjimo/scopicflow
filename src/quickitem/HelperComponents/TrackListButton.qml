@@ -10,7 +10,7 @@ Button {
     readonly property color normalColor: trackListDelegate.palette.buttonColor
     readonly property color hoveredColor: trackListDelegate.palette.buttonHoveredColor
     readonly property color pressedColor: trackListDelegate.palette.buttonPressedColor
-    required property double animationRatio
+    required property QtObject animationViewModel
     property string toolTip: ""
     checkable: true
     width: 24
@@ -22,7 +22,7 @@ Button {
         color: button.checked ? button.checkedColor : button.down ? pressedColor : button.hovered ? hoveredColor : normalColor
         Behavior on color {
             ColorAnimation {
-                duration: button.animationRatio * 250
+                duration: 250 * (button.animationViewModel?.colorAnimationRatio ?? 1)
                 easing.type: Easing.OutCubic
             }
         }

@@ -3,6 +3,7 @@ import QtQuick
 
 QtObject {
     property color backgroundColor: "#242a30"
+    property color borderColor: "#535c68"
     property color labelColor: "#3d444d"
     property color labelBorderColor: "#535c68"
     property color labelTextColor: "#ffffff"

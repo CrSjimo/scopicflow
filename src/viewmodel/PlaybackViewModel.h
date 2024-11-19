@@ -10,6 +10,7 @@ namespace sflow {
         Q_OBJECT
         Q_PROPERTY(int primaryPosition READ primaryPosition WRITE setPrimaryPosition NOTIFY primaryPositionChanged)
         Q_PROPERTY(int secondaryPositon READ secondaryPosition WRITE setSecondaryPosition NOTIFY secondaryPositionChanged)
+        Q_PROPERTY(int cursorPosition READ cursorPosition WRITE setCursorPosition NOTIFY cursorPositionChanged)
     public:
         explicit PlaybackViewModel(QObject *parent = nullptr);
         ~PlaybackViewModel() override;
@@ -20,13 +21,18 @@ namespace sflow {
         int secondaryPosition() const;
         void setSecondaryPosition(int secondaryPosition);
 
+        int cursorPosition() const;
+        void setCursorPosition(int cursorPosition);
+
     signals:
         void primaryPositionChanged(int primaryPosition);
         void secondaryPositionChanged(int secondaryPosition);
+        void cursorPositionChanged(int cursorPosition);
 
     private:
         int m_primaryPosition;
         int m_secondaryPosition;
+        int m_cursorPosition;
     };
 
 }

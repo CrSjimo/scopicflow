@@ -43,9 +43,87 @@ LabelSequence {
 
         MouseArea {
             anchors.fill: parent
+            property double pressedX: 0
+            property int nextIndex: -1
+            property bool rejectClick: false
+            onPressed: function (mouse) {
+                rejectClick = false
+                pressedX = mouse.x
+            }
             onClicked: function (mouse) {
+                if (rejectClick)
+                    return
                 labelSequence.currentItem = null
                 labelSequence.deselectAll()
+            }
+            onDoubleClicked: function (mouse) {
+                let label = labelSequence.insertLabelTo(mouse.x, "")
+                if (!labelRepeater.itemDict.has(label))
+                    return
+                let item = labelRepeater.itemAt(labelRepeater.itemDict.get(label))
+                item.selectItem(false, false, true)
+                item.editing = true
+
+            }
+            onPositionChanged: function (mouse) {
+                rejectClick = true
+                rubberBand.visible = true
+                if (nextIndex === -1 && labelRepeater.count) {
+                    labelSequence.deselectAll()
+                    labelSequence.modelChanged()
+                    for (let i = 0; i < labelRepeater.count; i++) {
+                        let item = labelRepeater.itemAt(i)
+                        if (item.x >= pressedX) {
+                            nextIndex = i
+                            break
+                        }
+                    }
+                }
+                if (nextIndex === -1)
+                    return
+                if (mouse.x >= pressedX) {
+                    rubberBand.x = pressedX
+                    rubberBand.width = mouse.x - pressedX
+                    for (let i = nextIndex - 1; i >= 0; i--) {
+                        let item = labelRepeater.itemAt(i)
+                        if (item.labelViewModel.selected)
+                            item.labelViewModel.selected = false
+                        else
+                            break
+                    }
+                    for (let i = nextIndex; i < labelRepeater.count; i++) {
+                        let item = labelRepeater.itemAt(i)
+                        if (mouse.x >= item.x)
+                            item.labelViewModel.selected = true
+                        else if (item.labelViewModel.selected)
+                            item.labelViewModel.selected = false
+                        else
+                            break
+                    }
+                } else {
+                    rubberBand.x = mouse.x
+                    rubberBand.width = pressedX - mouse.x
+                    for (let i = nextIndex; i < labelRepeater.count; i++) {
+                        let item = labelRepeater.itemAt(i)
+                        if (item.labelViewModel.selected)
+                            item.labelViewModel.selected = false
+                        else
+                            break
+                    }
+                    for (let i = nextIndex - 1; i >= 0; i--) {
+                        let item = labelRepeater.itemAt(i)
+                        if (mouse.x <= item.x + item.width)
+                            item.labelViewModel.selected = true
+                        else if (item.labelViewModel.selected)
+                            item.labelViewModel.selected = false
+                        else
+                            break
+                    }
+                }
+            }
+            onReleased: function (mouse) {
+                nextIndex = -1
+                rubberBand.visible = false
             }
         }
 
@@ -69,6 +147,9 @@ LabelSequence {
                     if (editing) {
                         labelEdit.focus = true
                     } else {
+                        if (!labelEdit.text.length) {
+                            labelSequence.removeLabel(labelRect.labelViewModel)
+                        }
                         labelViewModel.content = labelEdit.text
                         labelEdit.focus = false
                     }
@@ -76,7 +157,7 @@ LabelSequence {
                 id: labelRect
                 anchors.top: parent.top
                 anchors.bottom: parent.bottom
-                x: labelViewModel.position * viewport.pixelDensity
+                x: labelViewModel.position * viewport.pixelDensity - 0.5
                 z: isCurrent ? 1 : 0
                 color: labelViewModel.selected ? labelSequence.palette.labelSelectedColor: labelSequence.palette.labelColor
                 Behavior on color {
@@ -152,6 +233,7 @@ LabelSequence {
                     }
                     onPositionChanged: function (mouse) {
                         rejectClick = true
+                        labelSequence.playbackViewModel.cursorPosition = labelRect.labelViewModel.position
                         if (!labelRect.labelViewModel.selected) {
                             let multipleSelect = Boolean(mouse.modifiers & Qt.ControlModifier)
                             let extendingSelect = Boolean(mouse.modifiers & Qt.ShiftModifier)
@@ -172,6 +254,7 @@ LabelSequence {
                     }
                     onReleased: function (mouse) {
                         dragScroller.running = false
+                        labelSequence.playbackViewModel.cursorPosition = -1
                     }
                 }
 
@@ -224,6 +307,15 @@ LabelSequence {
                     }
                 }
             }
+        }
+
+        Rectangle {
+            id: rubberBand
+            anchors.top: parent.top
+            anchors.bottom: parent.bottom
+            z: 2
+            color: labelSequence.palette.rubberBandColor
+            visible: false
         }
     }
 

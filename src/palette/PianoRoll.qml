@@ -11,7 +11,7 @@ QtObject {
 
     property color primaryIndicatorColor: "#cc4455"
     property color secondaryIndicatorColor: "#7fcc4455"
-    property color cursorIndicatorColor: "#7f0652dd"
+    property color cursorIndicatorColor: "#7f66ccff"
 
     property color scrollBarNormalColor: "#3fffffff"
     property color scrollBarHoveredColor: "#7fffffff"

@@ -6,5 +6,5 @@ QtObject {
     property color foregroundColor: "#ffffff"
     property color primaryIndicatorColor: "#cc4455"
     property color secondaryIndicatorColor: "#7fcc4455"
-    property color cursorIndicatorColor: "#7f0652dd"
+    property color cursorIndicatorColor: "#7f66ccff"
 }

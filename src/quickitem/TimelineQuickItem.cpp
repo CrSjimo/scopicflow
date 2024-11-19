@@ -169,7 +169,6 @@ namespace sflow {
                 emit cursorIndicatorXChanged(cursorIndicatorX());
                 update();
             });
-            connect(d->timeAlignmentViewModel, &TimeViewModel::cursorPositionChanged, this, [=](int tick) { emit cursorIndicatorXChanged(d->tickToX(tick)); });
             connect(d->timeAlignmentViewModel, &TimeViewModel::timelineChanged, this, [=] {
                 if (d->timeline) {
                    disconnect(d->timeline, nullptr, this, nullptr);
@@ -183,7 +182,6 @@ namespace sflow {
                 connect(d->timeline, &SVS::MusicTimeline::changed, this, &QQuickItem::update);
             }
         }
-        emit cursorIndicatorXChanged(cursorIndicatorX());
         emit timeAlignmentViewModelChanged();
         update();
     }
@@ -202,9 +200,11 @@ namespace sflow {
         if (d->playbackViewModel) {
             connect(d->playbackViewModel, &PlaybackViewModel::primaryPositionChanged, this, [=](int tick) { emit primaryIndicatorXChanged(d->tickToX(tick)); });
             connect(d->playbackViewModel, &PlaybackViewModel::secondaryPositionChanged, this, [=](int tick) { emit secondaryIndicatorXChanged(d->tickToX(tick)); });
+            connect(d->playbackViewModel, &PlaybackViewModel::cursorPositionChanged, this, [=](int tick) { emit cursorIndicatorXChanged(d->tickToX(tick)); });
         }
         emit primaryIndicatorXChanged(primaryIndicatorX());
         emit secondaryIndicatorXChanged(secondaryIndicatorX());
+        emit cursorIndicatorXChanged(cursorIndicatorX());
     }
     ScrollBehaviorViewModel *TimelineQuickItem::scrollBehaviorViewModel() const {
         Q_D(const TimelineQuickItem);
@@ -266,9 +266,9 @@ namespace sflow {
     }
     double TimelineQuickItem::cursorIndicatorX() const {
         Q_D(const TimelineQuickItem);
-        if (!d->timeAlignmentViewModel)
+        if (!d->playbackViewModel)
             return -1;
-        return d->tickToX(d->timeAlignmentViewModel->cursorPosition());
+        return d->tickToX(d->playbackViewModel->cursorPosition());
     }
     QColor TimelineQuickItem::backgroundColor() const {
         Q_D(const TimelineQuickItem);

@@ -22,4 +22,13 @@ Item {
         color: parent.palette.primaryIndicatorColor
         x: parent.timeViewModel && parent.playbackViewModel ? (parent.playbackViewModel.primaryPosition - parent.timeViewModel.start) * parent.timeViewModel.pixelDensity - 0.5 : 0
     }
+
+    Rectangle {
+        id: cursorIndicator
+        anchors.top: parent.top
+        anchors.bottom: parent.bottom
+        width: 1
+        color: parent.palette.cursorIndicatorColor
+        x: parent.timeViewModel && parent.playbackViewModel ? (parent.playbackViewModel.cursorPosition - parent.timeViewModel.start) * parent.timeViewModel.pixelDensity - 0.5 : 0
+    }
 }

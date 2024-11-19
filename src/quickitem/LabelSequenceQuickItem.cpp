@@ -171,6 +171,27 @@ namespace sflow {
         Q_D(const LabelSequenceQuickItem);
         return d->labelSequenceViewModel->previousItem(viewModel);
     }
+    LabelViewModel *LabelSequenceQuickItem::insertLabelTo(double x, const QVariant &initialValue) {
+        Q_D(LabelSequenceQuickItem);
+        if (!d->timeAlignmentViewModel || !d->labelSequenceViewModel)
+            return nullptr;
+        auto deltaTick = x / d->timeAlignmentViewModel->pixelDensity();
+        int tick = static_cast<int>(std::round(d->timeAlignmentViewModel->start() + deltaTick));
+        int align = d->timeAlignmentViewModel->positionAlignment();
+        int alignedTick = (tick + align / 2) / align * align;
+        auto label = new LabelViewModel;
+        label->setPosition(alignedTick);
+        label->setContent(initialValue);
+        d->labelSequenceViewModel->insertLabels({label});
+        d->labelSequenceViewModel->setCurrentItem(label);
+        return label;
+    }
+    void LabelSequenceQuickItem::removeLabel(LabelViewModel *viewModel) {
+        Q_D(LabelSequenceQuickItem);
+        if (!d->labelSequenceViewModel)
+            return;
+        d->labelSequenceViewModel->removeLabels({viewModel});
+    }
     LabelViewModel *LabelSequenceQuickItem::currentItem() const {
         Q_D(const LabelSequenceQuickItem);
         if (!d->labelSequenceViewModel)

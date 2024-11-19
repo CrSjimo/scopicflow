@@ -1,7 +1,7 @@
 #include "PlaybackViewModel.h"
 
 namespace sflow {
-    PlaybackViewModel::PlaybackViewModel(QObject *parent) : QObject(parent), m_primaryPosition(0), m_secondaryPosition(0) {
+    PlaybackViewModel::PlaybackViewModel(QObject *parent) : QObject(parent), m_primaryPosition(0), m_secondaryPosition(0), m_cursorPosition(-1) {
     }
     PlaybackViewModel::~PlaybackViewModel() = default;
 
@@ -21,6 +21,15 @@ namespace sflow {
         if (m_secondaryPosition != secondaryPosition) {
             m_secondaryPosition = secondaryPosition;
             emit secondaryPositionChanged(secondaryPosition);
+        }
+    }
+    int PlaybackViewModel::cursorPosition() const {
+        return m_cursorPosition;
+    }
+    void PlaybackViewModel::setCursorPosition(int cursorPosition) {
+        if (m_cursorPosition != cursorPosition) {
+            m_cursorPosition = cursorPosition;
+            emit cursorPositionChanged(cursorPosition);
         }
     }
 }

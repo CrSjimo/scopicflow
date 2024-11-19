@@ -74,7 +74,7 @@ Timeline {
         anchors.bottom: parent.bottom
         width: 1
         color: timeline.palette.cursorIndicatorColor
-        x: timeline.cursorIndicatorX
+        x: timeline.cursorIndicatorX - 0.5
         visible: timeline.cursorIndicatorX >= 0
     }
 

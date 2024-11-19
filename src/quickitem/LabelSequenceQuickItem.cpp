@@ -176,7 +176,7 @@ namespace sflow {
         if (!d->timeAlignmentViewModel || !d->labelSequenceViewModel)
             return nullptr;
         auto deltaTick = x / d->timeAlignmentViewModel->pixelDensity();
-        int tick = static_cast<int>(std::round(d->timeAlignmentViewModel->start() + deltaTick));
+        int tick = static_cast<int>(std::round(deltaTick));
         int align = d->timeAlignmentViewModel->positionAlignment();
         int alignedTick = (tick + align / 2) / align * align;
         auto label = new LabelViewModel;

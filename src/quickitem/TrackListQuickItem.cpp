@@ -4,6 +4,11 @@
 #include <ScopicFlow/TrackViewModel.h>
 
 namespace sflow {
+
+    namespace {
+        auto _ = qmlRegisterType<TrackListQuickItem>("dev.sjimo.ScopicFlow.Private.Internal", 1, 0, "TrackList");
+    }
+
     void TrackListQuickItemPrivate::calculateTotalHeight() {
         totalHeight = 0.0;
         handlePositionList.resize(trackListViewModel->count());

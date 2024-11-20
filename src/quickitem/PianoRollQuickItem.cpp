@@ -3,6 +3,10 @@
 
 namespace sflow {
 
+    namespace {
+        auto _ = qmlRegisterType<PianoRollQuickItem>("dev.sjimo.ScopicFlow.Private.Internal", 1, 0, "PianoRoll");
+    }
+
     PianoRollQuickItem::PianoRollQuickItem(QQuickItem *parent) : QQuickItem(parent), d_ptr(new PianoRollQuickItemPrivate) {
         Q_D(PianoRollQuickItem);
         d->q_ptr = this;

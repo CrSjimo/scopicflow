@@ -7,6 +7,10 @@
 
 namespace sflow {
 
+    namespace {
+        auto _ = qmlRegisterType<ClavierQuickItem>("dev.sjimo.ScopicFlow.Private.Internal", 1, 0, "Clavier");
+    }
+
     ClavierQuickItem::ClavierQuickItem(QQuickItem *parent) : QQuickItem(parent), d_ptr(new ClavierQuickItemPrivate) {
         Q_D(ClavierQuickItem);
         d->q_ptr = this;

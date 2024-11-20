@@ -8,6 +8,7 @@ Pane {
     id: control
     property QtObject timeAlignmentViewModel: null
     property QtObject playbackViewModel: null
+    property QtObject labelSequenceViewModel: null
     property QtObject scrollBehaviorViewModel: null
     property QtObject animationViewModel: null
     property QtObject paletteViewModel: null
@@ -15,26 +16,29 @@ Pane {
     padding: 0
     focusPolicy: Qt.StrongFocus
 
-    function mapToTick(x) {
-        return timeline.mapToTick(x)
-    }
-    function mapToX(tick) {
-        return timeline.mapToX(tick)
-    }
-    signal positionIndicatorDoubleClicked()
-    signal contextMenuRequestedForTimeline(tick: int)
-    signal contextMenuRequestedForPositionIndicator()
+    signal contextMenuRequested(tick: int)
+    signal contextMenuRequestedForLabel(label: QtObject)
 
-    ScopicFlowPrivate.Timeline {
-        id: timeline
+    ScopicFlowPrivate.LabelSequence {
+        id: labelSequence
         anchors.fill: parent
+
         timeAlignmentViewModel: control.timeAlignmentViewModel
         playbackViewModel: control.playbackViewModel
+        labelSequenceViewModel: control.labelSequenceViewModel
         scrollBehaviorViewModel: control.scrollBehaviorViewModel
         animationViewModel: control.animationViewModel
         paletteViewModel: control.paletteViewModel
-        onPositionIndicatorDoubleClicked: control.positionIndicatorDoubleClicked()
-        onContextMenuRequestedForTimeline: tick => control.contextMenuRequestedForTimeline(tick)
-        onContextMenuRequestedForPositionIndicator: control.contextMenuRequestedForPositionIndicator()
+
+        onContextMenuRequested: tick => control.contextMenuRequested(tick)
+        onContextMenuRequestedForLabel: label => control.contextMenuRequestedForLabel(label)
+
+        Connections {
+            target: control
+            function onFocusChanged() {
+                labelSequence.currentItem = null
+            }
+        }
     }
+
 }

@@ -14,6 +14,10 @@
 
 namespace sflow {
 
+    namespace {
+        auto _ = qmlRegisterType<TimelineQuickItem>("dev.sjimo.ScopicFlow.Private.Internal", 1, 0, "Timeline");
+    }
+
     ScaleSGNode::~ScaleSGNode() {
         for (auto p : barNumberTextLayouts)
             delete p;
@@ -205,6 +209,7 @@ namespace sflow {
         }
         emit primaryIndicatorXChanged(primaryIndicatorX());
         emit secondaryIndicatorXChanged(secondaryIndicatorX());
+        emit playbackViewModelChanged(playbackViewModel);
     }
     ScrollBehaviorViewModel *TimelineQuickItem::scrollBehaviorViewModel() const {
         Q_D(const TimelineQuickItem);

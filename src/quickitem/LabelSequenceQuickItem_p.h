@@ -18,12 +18,12 @@ namespace sflow {
     class LabelSequenceQuickItem : public QQuickItem {
         Q_OBJECT
         Q_DECLARE_PRIVATE(LabelSequenceQuickItem)
-        Q_PROPERTY(TimeAlignmentViewModel *timeAlignmentViewModel READ timeAlignmentViewModel NOTIFY timeAlignmentViewModelChanged)
-        Q_PROPERTY(PlaybackViewModel *playbackViewModel READ playbackViewModel NOTIFY playbackViewModelChanged)
-        Q_PROPERTY(ScrollBehaviorViewModel *scrollBehaviorViewModel READ scrollBehaviorViewModel NOTIFY scrollBehaviorViewModelChanged)
-        Q_PROPERTY(AnimationViewModel *animationViewModel READ animationViewModel NOTIFY animationViewModelChanged)
-        Q_PROPERTY(PaletteViewModel *paletteViewModel READ paletteViewModel NOTIFY paletteViewModelChanged)
-        Q_PROPERTY(LabelSequenceViewModel *labelSequenceViewModel READ labelSequenceViewModel NOTIFY labelSequenceViewModelChanged)
+        Q_PROPERTY(TimeAlignmentViewModel *timeAlignmentViewModel READ timeAlignmentViewModel WRITE setTimeAlignmentViewModel NOTIFY timeAlignmentViewModelChanged)
+        Q_PROPERTY(PlaybackViewModel *playbackViewModel READ playbackViewModel WRITE setPlaybackViewModel NOTIFY playbackViewModelChanged)
+        Q_PROPERTY(ScrollBehaviorViewModel *scrollBehaviorViewModel READ scrollBehaviorViewModel WRITE setScrollBehaviorViewModel NOTIFY scrollBehaviorViewModelChanged)
+        Q_PROPERTY(AnimationViewModel *animationViewModel READ animationViewModel WRITE setAnimationViewModel NOTIFY animationViewModelChanged)
+        Q_PROPERTY(PaletteViewModel *paletteViewModel READ paletteViewModel WRITE setPaletteViewModel NOTIFY paletteViewModelChanged)
+        Q_PROPERTY(LabelSequenceViewModel *labelSequenceViewModel READ labelSequenceViewModel WRITE setLabelSequenceViewModel NOTIFY labelSequenceViewModelChanged)
         Q_PROPERTY(QList<LabelViewModel *> model READ model NOTIFY modelChanged)
         Q_PROPERTY(LabelViewModel *currentItem READ currentItem WRITE setCurrentItem NOTIFY currentItemChanged)
     public:

@@ -1,18 +1,19 @@
-import ScopicFlowPrivate
-
 import QtQml
 import QtQuick
 import QtQuick.Controls.Basic
 
-import "./HelperComponents"
-import "qrc:/ScopicFlow/modules/dev/sjimo/ScopicFlow/Palettes" as ScopicFlowPalette
+import "."
+import dev.sjimo.ScopicFlow.Private.Internal as ScopicFlowInternal
+import dev.sjimo.ScopicFlow.Palettes as ScopicFlowPalette
 
-LabelSequence {
+ScopicFlowInternal.LabelSequence {
     id: labelSequence
 
     readonly property QtObject defaultPalette: ScopicFlowPalette.LabelSequence {}
 
     readonly property QtObject palette: paletteViewModel?.palette?.labelSequence ?? defaultPalette
+
+    clip: true
 
     TimeManipulator {
         id: timeManipulator
@@ -44,6 +45,7 @@ LabelSequence {
         MouseArea {
             anchors.fill: parent
             acceptedButtons: Qt.LeftButton | Qt.RightButton
+            focusPolicy: Qt.StrongFocus
             property double pressedX: 0
             property int nextIndex: -1
             property bool rejectClick: false
@@ -242,6 +244,7 @@ LabelSequence {
                 MouseArea {
                     anchors.fill: parent
                     acceptedButtons: Qt.LeftButton | Qt.RightButton
+                    focusPolicy: Qt.StrongFocus
                     property double pressedDeltaX: 0
                     property bool rejectClick: false
                     DragScroller {
@@ -360,6 +363,10 @@ LabelSequence {
                         let item = labelRepeater.itemAt(labelRepeater.itemDict.get(target))
                         item.selectItem(false, false, true)
                         item.editing = true
+                    }
+                    onFocusChanged: {
+                        if (!focus)
+                            labelRect.editing = false
                     }
                 }
             }

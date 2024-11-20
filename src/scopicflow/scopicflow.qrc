@@ -1,6 +1,10 @@
 <RCC>
-    <qresource prefix="qrc:/ScopicFlow/modules/dev/sjimo/ScopicFlow/">
+    <qresource prefix="/ScopicFlow/modules/dev/sjimo/ScopicFlow">
         <file>qmldir</file>
         <file>Timeline.qml</file>
+        <file>Clavier.qml</file>
+        <file>LabelSequence.qml</file>
+        <file>PianoRoll.qml</file>
+        <file>TrackList.qml</file>
     </qresource>
 </RCC>

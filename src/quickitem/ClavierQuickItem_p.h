@@ -15,14 +15,14 @@ namespace sflow {
     class SCOPIC_FLOW_EXPORT ClavierQuickItem : public QQuickItem {
         Q_OBJECT
         Q_DECLARE_PRIVATE(ClavierQuickItem)
-        Q_PROPERTY(ClavierViewModel *clavierViewModel READ clavierViewModel NOTIFY clavierViewModelChanged)
-        Q_PROPERTY(ScrollBehaviorViewModel *scrollBehaviorViewModel READ scrollBehaviorViewModel NOTIFY scrollBehaviorViewModelChanged)
-        Q_PROPERTY(AnimationViewModel *animationViewModel READ animationViewModel NOTIFY animationViewModelChanged)
-        Q_PROPERTY(PaletteViewModel *paletteViewModel READ paletteViewModel NOTIFY paletteViewModelChanged)
+        Q_PROPERTY(ClavierViewModel *clavierViewModel READ clavierViewModel WRITE setClavierViewModel NOTIFY clavierViewModelChanged)
+        Q_PROPERTY(ScrollBehaviorViewModel *scrollBehaviorViewModel READ scrollBehaviorViewModel WRITE setScrollBehaviorViewModel NOTIFY scrollBehaviorViewModelChanged)
+        Q_PROPERTY(AnimationViewModel *animationViewModel READ animationViewModel WRITE setAnimationViewModel NOTIFY animationViewModelChanged)
+        Q_PROPERTY(PaletteViewModel *paletteViewModel READ paletteViewModel WRITE setPaletteViewModel NOTIFY paletteViewModelChanged)
         Q_PROPERTY(double keyHeight READ keyHeight NOTIFY keyHeightChanged)
         Q_PROPERTY(double viewportY READ viewportY NOTIFY viewportYChanged)
         Q_PROPERTY(int cursorNoteIndex READ cursorNoteIndex NOTIFY cursorNoteIndexChanged)
-        Q_PROPERTY(sflow::ClavierQuickItem::LabelStrategy labelStrategy READ labelStrategy NOTIFY labelStrategyChanged)
+        Q_PROPERTY(sflow::ClavierQuickItem::LabelStrategy labelStrategy READ labelStrategy WRITE setLabelStrategy NOTIFY labelStrategyChanged)
         Q_PROPERTY(QString dummyKeyName READ dummyKeyName NOTIFY keyNameUpdated)
     public:
         explicit ClavierQuickItem(QQuickItem *parent = nullptr);
@@ -68,8 +68,8 @@ namespace sflow {
         void viewportYChanged(double viewportY);
         void cursorNoteIndexChanged(int cursorNoteIndex);
         void labelStrategyChanged(sflow::ClavierQuickItem::LabelStrategy labelStrategy);
-        void noteOn(int key);
-        void noteOff(int key);
+        void notePressed(int key);
+        void noteReleased(int key);
         void noteDoubleClicked(int key);
         void contextMenuRequestedForNote(int key);
         void keyNameUpdated();

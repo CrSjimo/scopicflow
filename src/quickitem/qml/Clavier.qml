@@ -1,12 +1,11 @@
-import ScopicFlowPrivate
-
 import QtQml
 import QtQuick
 
-import './HelperComponents'
-import "qrc:/ScopicFlow/modules/dev/sjimo/ScopicFlow/Palettes" as ScopicFlowPalette
+import dev.sjimo.ScopicFlow.Private.Internal as ScopicFlowInternal
+import dev.sjimo.ScopicFlow.Palettes as ScopicFlowPalette
+import "."
 
-Clavier {
+ScopicFlowInternal.Clavier {
     id: clavier
 
     readonly property QtObject defaultPalette: ScopicFlowPalette.Clavier {}
@@ -111,16 +110,17 @@ Clavier {
                     anchors.fill: parent
                     hoverEnabled: true
                     acceptedButtons: Qt.LeftButton | Qt.RightButton
+                    focusPolicy: Qt.StrongFocus
                     onPressed: function (mouse) {
                         if (mouse.button === Qt.LeftButton) {
                             parent.color = parent.pressedColor
-                            clavier.noteOn(parent.index)
+                            clavier.notePressed(parent.index)
                         }
                     }
                     onReleased: function (mouse) {
                         if (mouse.button === Qt.LeftButton) {
                             parent.color = containsMouse ? parent.hoverColor : parent.normalColor
-                            clavier.noteOff(parent.index)
+                            clavier.noteReleased(parent.index)
                         }
                     }
                     onClicked: function (mouse) {

@@ -5,21 +5,21 @@
 
 #include <ScopicFlow/TimeAlignmentViewModel.h>
 #include <ScopicFlow/ScrollBehaviorViewModel.h>
+#include <ScopicFlow/PlaybackViewModel.h>
 #include <ScopicFlow/AnimationViewModel.h>
 #include <ScopicFlow/PaletteViewModel.h>
 
 namespace sflow {
 
-    class PlaybackViewModel;
-
     class TimelineQuickItemPrivate;
 
     class TimelineQuickItem : public QQuickItem {
         Q_OBJECT
-        Q_PROPERTY(TimeAlignmentViewModel *timeAlignmentViewModel READ timeAlignmentViewModel NOTIFY timeAlignmentViewModelChanged)
-        Q_PROPERTY(ScrollBehaviorViewModel *scrollBehaviorViewModel READ scrollBehaviorViewModel NOTIFY scrollBehaviorViewModelChanged)
-        Q_PROPERTY(AnimationViewModel *animationViewModel READ animationViewModel NOTIFY animationViewModelChanged)
-        Q_PROPERTY(PaletteViewModel *paletteViewModel READ paletteViewModel NOTIFY paletteViewModelChanged)
+        Q_PROPERTY(TimeAlignmentViewModel *timeAlignmentViewModel READ timeAlignmentViewModel WRITE setTimeAlignmentViewModel NOTIFY timeAlignmentViewModelChanged)
+        Q_PROPERTY(PlaybackViewModel *playbackViewModel READ playbackViewModel WRITE setPlaybackViewModel NOTIFY playbackViewModelChanged)
+        Q_PROPERTY(ScrollBehaviorViewModel *scrollBehaviorViewModel READ scrollBehaviorViewModel WRITE setScrollBehaviorViewModel NOTIFY scrollBehaviorViewModelChanged)
+        Q_PROPERTY(AnimationViewModel *animationViewModel READ animationViewModel WRITE setAnimationViewModel NOTIFY animationViewModelChanged)
+        Q_PROPERTY(PaletteViewModel *paletteViewModel READ paletteViewModel WRITE setPaletteViewModel NOTIFY paletteViewModelChanged)
         Q_PROPERTY(double primaryIndicatorX READ primaryIndicatorX WRITE setPrimaryIndicatorX NOTIFY primaryIndicatorXChanged)
         Q_PROPERTY(double secondaryIndicatorX READ secondaryIndicatorX NOTIFY secondaryIndicatorXChanged)
         Q_PROPERTY(double cursorIndicatorX READ cursorIndicatorX NOTIFY cursorIndicatorXChanged)
@@ -77,6 +77,7 @@ namespace sflow {
         void contextMenuRequestedForTimeline(int tick);
         void contextMenuRequestedForPositionIndicator();
 
+        void playbackViewModelChanged(PlaybackViewModel *playbackViewModel);
         void scrollBehaviorViewModelChanged(ScrollBehaviorViewModel *scrollBehaviorViewModel);
         void animationViewModelChanged(AnimationViewModel *animationViewModel);
         void paletteViewModelChanged(PaletteViewModel *paletteViewModel);

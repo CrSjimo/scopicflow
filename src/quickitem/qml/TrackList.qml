@@ -1,16 +1,17 @@
 import QtQml
 import QtQuick
-import ScopicFlowPrivate
 
-import '.'
-import './HelperComponents'
-import "qrc:/ScopicFlow/modules/dev/sjimo/ScopicFlow/Palettes" as ScopicFlowPalette
+import "."
+import dev.sjimo.ScopicFlow.Private.Internal as ScopicFlowInternal
+import dev.sjimo.ScopicFlow.Palettes as ScopicFlowPalette
 
-TrackList {
+ScopicFlowInternal.TrackList {
     id: trackList
 
     property QtObject defaultPalette: ScopicFlowPalette.TrackList {}
     property QtObject palette: paletteViewModel?.palette?.trackList ?? defaultPalette
+
+    clip: true
 
     property bool trackHandleEnabled: true
     onHeightChanged: {

@@ -2,9 +2,8 @@ import QtQml
 import QtQuick
 import QtQuick.Controls.Basic
 
-import './'
-import './HelperComponents'
-import './HelperComponents/FluentSystemIconCharset.mjs' as Charset
+import "."
+import "./FluentSystemIconCharset.mjs" as Charset
 
 Item {
 

@@ -1,13 +1,12 @@
-import ScopicFlowPrivate
-
 import QtQml
 import QtQuick
 import QtQuick.Shapes
 
-import './HelperComponents'
-import "qrc:/ScopicFlow/modules/dev/sjimo/ScopicFlow/Palettes" as ScopicFlowPalette
+import dev.sjimo.ScopicFlow.Private.Internal as ScopicFlowInternal
+import dev.sjimo.ScopicFlow.Palettes as ScopicFlowPalette
+import "."
 
-Timeline {
+ScopicFlowInternal.Timeline {
     id: timeline
 
     readonly property QtObject defaultPalette: ScopicFlowPalette.Timeline {
@@ -18,6 +17,7 @@ Timeline {
 
     backgroundColor: palette.backgroundColor
     foregroundColor: palette.foregroundColor
+    clip: true
 
     TimeManipulator {
         id: timeManipulator
@@ -83,6 +83,7 @@ Timeline {
         anchors.fill: parent
         drag.axis: Drag.XAxis
         drag.minimumX: timeline.zeroTickX - 8
+        focusPolicy: Qt.StrongFocus
 
         DragScroller {
             id: dragScroller

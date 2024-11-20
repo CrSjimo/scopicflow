@@ -1,6 +1,7 @@
-project(tst_ScopicFlow_PianoRoll)
+project(tst_ScopicFlow_integrated)
 
 set(CMAKE_AUTORCC ON)
+set(CMAKE_AUTOMOC ON)
 
 file(GLOB _src *.h *.cpp *.qrc)
 

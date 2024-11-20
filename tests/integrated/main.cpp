@@ -16,22 +16,19 @@
 #include <QFileDialog>
 #include <QSplitter>
 #include <QQuickView>
+#include <QQmlContext>
+#include <QQuickItem>
 
 #include <SVSCraftCore/musictimeline.h>
 
-#include <ScopicFlow/TimelineWidget.h>
-#include <ScopicFlow/PianoRollWidget.h>
-#include <ScopicFlow/ClavierWidget.h>
 #include <ScopicFlow/TimeAlignmentViewModel.h>
 #include <ScopicFlow/PlaybackViewModel.h>
 #include <ScopicFlow/ClavierViewModel.h>
 #include <ScopicFlow/ScrollBehaviorViewModel.h>
 #include <ScopicFlow/AnimationViewModel.h>
 #include <ScopicFlow/PaletteViewModel.h>
-#include <ScopicFlow/LabelSequenceWidget.h>
 #include <ScopicFlow/LabelSequenceViewModel.h>
 #include <ScopicFlow/LabelViewModel.h>
-#include <ScopicFlow/TrackListWidget.h>
 #include <ScopicFlow/TrackListViewModel.h>
 #include <ScopicFlow/TrackViewModel.h>
 
@@ -77,6 +74,29 @@ static QObject *loadCustomPalette(QWidget *parent) {
     return customPalette;
 }
 
+class MySlotHandler : public QObject {
+    Q_OBJECT
+public:
+    QWidget *win;
+    TimeAlignmentViewModel *timeViewModel;
+public slots:
+    void handleTimelineContextMenu(int tick) {
+        QMenu menu(win);
+        auto musicTime = timeViewModel->timeline()->create(0, 0, tick);
+        menu.addAction(QString("Set time signature at bar %1...").arg(musicTime.measure() + 1), [=] {
+            auto timeSignature = promptTimeSignature(win, timeViewModel->timeline()->timeSignatureAt(musicTime.measure()));
+            if (!timeSignature.isValid())
+                return;
+            timeViewModel->timeline()->setTimeSignature(musicTime.measure(), timeSignature);
+        });
+        auto removeAction = menu.addAction(QString("Remove time signature at bar %1").arg(musicTime.measure() + 1), [=] {
+            timeViewModel->timeline()->removeTimeSignature(musicTime.measure());
+        });
+        removeAction->setEnabled(musicTime.measure() && timeViewModel->timeline()->nearestTimeSignatureTo(musicTime.measure()) == musicTime.measure());
+        menu.exec(QCursor::pos());
+    }
+};
+
 int main(int argc, char *argv[]) {
     QApplication a(argc, argv);
     auto sf = QSurfaceFormat::defaultFormat();
@@ -84,41 +104,10 @@ int main(int argc, char *argv[]) {
     QSurfaceFormat::setDefaultFormat(sf);
 
     QMainWindow win;
-    win.resize(800, 600);
+    win.resize(1280, 800);
     auto splitter = new QSplitter;
     splitter->setOrientation(Qt::Vertical);
 
-    auto arrangementGroupWidget = new QWidget;
-    auto arrangementGroupLayout = new QGridLayout;
-    arrangementGroupLayout->setSpacing(0);
-
-    auto trackList = new TrackListWidget;
-    trackList->setFixedWidth(360);
-    auto arrangementTimeline = new TimelineWidget;
-    auto arrangementLabelSequence = new LabelSequenceWidget;
-
-    arrangementGroupLayout->addWidget(trackList, 2, 0);
-    arrangementGroupLayout->addWidget(arrangementTimeline, 0, 1);
-    arrangementGroupLayout->addWidget(arrangementLabelSequence, 1, 1);
-    arrangementGroupWidget->setLayout(arrangementGroupLayout);
-    splitter->addWidget(arrangementGroupWidget);
-
-    auto pianoRollGroupWidget = new QWidget;
-
-    auto pianoRollGroupLayout = new QGridLayout;
-    pianoRollGroupLayout->setSpacing(0);
-
-    auto clavier = new ClavierWidget;
-    auto timeline = new TimelineWidget;
-    auto pianoRoll = new PianoRollWidget;
-    auto labelSequence = new LabelSequenceWidget;
-
-    pianoRollGroupLayout->addWidget(clavier, 2, 0);
-    pianoRollGroupLayout->addWidget(timeline, 0, 1);
-    pianoRollGroupLayout->addWidget(pianoRoll, 2, 1);
-    pianoRollGroupLayout->addWidget(labelSequence, 1, 1);
-    pianoRollGroupWidget->setLayout(pianoRollGroupLayout);
-    splitter->addWidget(pianoRollGroupWidget);
 
     TimeAlignmentViewModel arrangementTimeViewModel;
     arrangementTimeViewModel.setPositionAlignment(480);
@@ -128,40 +117,15 @@ int main(int argc, char *argv[]) {
     arrangementTimeViewModel.setTimeline(&musicTimeline);
     timeViewModel.setTimeline(&musicTimeline);
 
-    arrangementTimeline->setTimeAlignmentViewModel(&arrangementTimeViewModel);
-    arrangementLabelSequence->setTimeAlignmentViewModel(&arrangementTimeViewModel);
-    timeline->setTimeAlignmentViewModel(&timeViewModel);
-    pianoRoll->setTimeAlignmentViewModel(&timeViewModel);
-    labelSequence->setTimeAlignmentViewModel(&timeViewModel);
-
     PlaybackViewModel playbackViewModel;
-    arrangementTimeline->setPlaybackViewModel(&playbackViewModel);
-    arrangementLabelSequence->setPlaybackViewModel(&playbackViewModel);
-    timeline->setPlaybackViewModel(&playbackViewModel);
-    pianoRoll->setPlaybackViewModel(&playbackViewModel);
-    labelSequence->setPlaybackViewModel(&playbackViewModel);
 
     ClavierViewModel clavierViewModel;
-    clavier->setClavierViewModel(&clavierViewModel);
-    pianoRoll->setClavierViewModel(&clavierViewModel);
 
     ScrollBehaviorViewModel scrollBehaviorViewModel;
-    timeline->setScrollBehaviorViewModel(&scrollBehaviorViewModel);
-    clavier->setScrollBehaviorViewModel(&scrollBehaviorViewModel);
-    pianoRoll->setScrollBehaviorViewModel(&scrollBehaviorViewModel);
-    labelSequence->setScrollBehaviorViewModel(&scrollBehaviorViewModel);
 
     AnimationViewModel animationViewModel;
-    timeline->setAnimationViewModel(&animationViewModel);
-    clavier->setAnimationViewModel(&animationViewModel);
-    pianoRoll->setAnimationViewModel(&animationViewModel);
-    labelSequence->setAnimationViewModel(&animationViewModel);
 
     PaletteViewModel paletteViewModel;
-    timeline->setPaletteViewModel(&paletteViewModel);
-    clavier->setPaletteViewModel(&paletteViewModel);
-    pianoRoll->setPaletteViewModel(&paletteViewModel);
-    labelSequence->setPaletteViewModel(&paletteViewModel);
 
     LabelSequenceViewModel labelSequenceViewModel;
     for (int i = 0; i < 16; i++) {
@@ -170,8 +134,6 @@ int main(int argc, char *argv[]) {
         label->setContent("test" + QString::number(i));
         labelSequenceViewModel.insertLabels({label});
     }
-    labelSequence->setLabelSequenceViewModel(&labelSequenceViewModel);
-    arrangementLabelSequence->setLabelSequenceViewModel(&labelSequenceViewModel);
 
     TrackListViewModel trackListViewModel;
     for (int i = 0; i < 4; i++) {
@@ -179,42 +141,35 @@ int main(int argc, char *argv[]) {
         track->setName("Track " + QString::number(i + 1));
         trackListViewModel.insertTracks(i, {track});
     }
-    trackList->setTrackListViewModel(&trackListViewModel);
+
+    auto v1 = new QQuickView;
+    v1->engine()->addImportPath("qrc:/ScopicFlow/modules");
+    v1->setInitialProperties({
+        {"timeAlignmentViewModel", QVariant::fromValue(&timeViewModel)},
+        {"arrangementTimeAlignmentViewModel", QVariant::fromValue(&arrangementTimeViewModel)},
+        {"trackListViewModel", QVariant::fromValue(&trackListViewModel)},
+        {"clavierViewModel", QVariant::fromValue(&clavierViewModel)},
+        {"labelSequenceViewModel", QVariant::fromValue(&labelSequenceViewModel)},
+        {"playbackViewModel", QVariant::fromValue(&playbackViewModel)},
+        {"scrollBehaviorViewModel", QVariant::fromValue(&scrollBehaviorViewModel)},
+        {"animationViewModel", QVariant::fromValue(&animationViewModel)},
+        {"paletteViewModel", QVariant::fromValue(&paletteViewModel)}
+    });
+    v1->setSource(QUrl("qrc:/main.qml"));
+    v1->setResizeMode(QQuickView::SizeRootObjectToView);
+    splitter->addWidget(QWidget::createWindowContainer(v1));
 
     win.setCentralWidget(splitter);
     win.show();
 
-    QObject::connect(timeline, &TimelineWidget::contextMenuRequestedForTimeline, [=, &win, &timeViewModel](int tick) {
-        QMenu menu(&win);
-        auto musicTime = timeViewModel.timeline()->create(0, 0, tick);
-        menu.addAction(QString("Set time signature at bar %1...").arg(musicTime.measure() + 1), [=, &win, &timeViewModel] {
-            auto timeSignature = promptTimeSignature(&win, timeViewModel.timeline()->timeSignatureAt(musicTime.measure()));
-            if (!timeSignature.isValid())
-                return;
-            timeViewModel.timeline()->setTimeSignature(musicTime.measure(), timeSignature);
-        });
-        auto removeAction = menu.addAction(QString("Remove time signature at bar %1").arg(musicTime.measure() + 1), [=, &timeViewModel] {
-            timeViewModel.timeline()->removeTimeSignature(musicTime.measure());
-        });
-        removeAction->setEnabled(musicTime.measure() && timeViewModel.timeline()->nearestTimeSignatureTo(musicTime.measure()) == musicTime.measure());
-        menu.exec(QCursor::pos());
-    });
+    auto context = qmlContext(v1->rootObject());
 
-    QObject::connect(clavier, &ClavierWidget::noteOn, [](int key) {
-        qDebug() << "note on" << key;
-    });
+    MySlotHandler o;
+    o.win = &win;
+    o.timeViewModel = &timeViewModel;
 
-    QObject::connect(clavier, &ClavierWidget::noteOff, [](int key) {
-        qDebug() << "note off" << key;
-    });
-    QObject::connect(clavier, &ClavierWidget::noteDoubleClicked, [](int key) {
-        qDebug() << "note double clicked" << key;
-    });
-    QObject::connect(clavier, &ClavierWidget::contextMenuRequestedForNote, [=, &win, &clavierViewModel](int key) {
-        QMenu menu(&win);
-        menu.addAction(QString("Note %1").arg(key));
-        menu.exec(QCursor::pos());
-    });
+    QObject::connect(context->objectForName("timeline"), SIGNAL(contextMenuRequestedForTimeline(int)), &o, SLOT(handleTimelineContextMenu(int)));
+    QObject::connect(context->objectForName("arrangementTimeline"), SIGNAL(contextMenuRequestedForTimeline(int)), &o, SLOT(handleTimelineContextMenu(int)));
 
     auto mainMenu = new QMenu("Edit");
     mainMenu->addAction("Set Position Alignment...", [&] {
@@ -242,3 +197,5 @@ int main(int argc, char *argv[]) {
 
     return a.exec();
 }
+
+#include "main.moc"

@@ -1,17 +1,18 @@
-import ScopicFlowPrivate
 import QtQml
 import QtQuick
 import QtQuick.Controls.Basic
 
 import "."
-import "./HelperComponents"
-import "qrc:/ScopicFlow/modules/dev/sjimo/ScopicFlow/Palettes" as ScopicFlowPalette
+import dev.sjimo.ScopicFlow.Private.Internal as ScopicFlowInternal
+import dev.sjimo.ScopicFlow.Palettes as ScopicFlowPalette
 
-PianoRoll {
+ScopicFlowInternal.PianoRoll {
     id: pianoRoll
     property QtObject defaultPalette: ScopicFlowPalette.PianoRoll {}
     property QtObject palette: paletteViewModel?.palette?.pianoRoll ?? defaultPalette
     property double keyHeight: clavierViewModel?.pixelDensity ?? 24
+
+    clip: true
 
     function isBlackKey(key) {
         let indexInGroup = key % 12;
@@ -62,7 +63,7 @@ PianoRoll {
 
         }
 
-        PianoRollBackground {
+        ScopicFlowInternal.PianoRollBackground {
             anchors.fill: parent
             timeAlignmentViewModel: pianoRoll.timeAlignmentViewModel
             barScaleColor: palette.barScaleColor

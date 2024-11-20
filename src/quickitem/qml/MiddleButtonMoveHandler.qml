@@ -11,6 +11,7 @@ Item {
         anchors.fill: parent
         acceptedButtons: Qt.MiddleButton
         cursorShape: undefined
+        focusPolicy: Qt.StrongFocus
 
         property double originalX: 0
         property double originalY: 0

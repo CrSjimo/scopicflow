@@ -15,10 +15,10 @@ namespace sflow {
     class TrackListQuickItem : public QQuickItem {
         Q_OBJECT
         Q_DECLARE_PRIVATE(TrackListQuickItem)
-        Q_PROPERTY(TrackListViewModel *trackListViewModel READ trackListViewModel NOTIFY trackListViewModelChanged)
-        Q_PROPERTY(ScrollBehaviorViewModel *scrollBehaviorViewModel READ scrollBehaviorViewModel NOTIFY scrollBehaviorViewModelChanged)
-        Q_PROPERTY(AnimationViewModel *animationViewModel READ animationViewModel NOTIFY animationViewModelChanged)
-        Q_PROPERTY(PaletteViewModel *paletteViewModel READ paletteViewModel NOTIFY paletteViewModelChanged)
+        Q_PROPERTY(TrackListViewModel *trackListViewModel READ trackListViewModel WRITE setTrackListViewModel NOTIFY trackListViewModelChanged)
+        Q_PROPERTY(ScrollBehaviorViewModel *scrollBehaviorViewModel READ scrollBehaviorViewModel WRITE setScrollBehaviorViewModel NOTIFY scrollBehaviorViewModelChanged)
+        Q_PROPERTY(AnimationViewModel *animationViewModel READ animationViewModel WRITE setAnimationViewModel NOTIFY animationViewModelChanged)
+        Q_PROPERTY(PaletteViewModel *paletteViewModel READ paletteViewModel WRITE setPaletteViewModel NOTIFY paletteViewModelChanged)
     public:
         explicit TrackListQuickItem(QQuickItem *parent = nullptr);
         ~TrackListQuickItem() override;

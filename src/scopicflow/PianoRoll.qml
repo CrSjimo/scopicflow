@@ -8,6 +8,7 @@ Pane {
     id: control
     property QtObject timeAlignmentViewModel: null
     property QtObject playbackViewModel: null
+    property QtObject clavierViewModel: null
     property QtObject scrollBehaviorViewModel: null
     property QtObject animationViewModel: null
     property QtObject paletteViewModel: null
@@ -15,26 +16,14 @@ Pane {
     padding: 0
     focusPolicy: Qt.StrongFocus
 
-    function mapToTick(x) {
-        return timeline.mapToTick(x)
-    }
-    function mapToX(tick) {
-        return timeline.mapToX(tick)
-    }
-    signal positionIndicatorDoubleClicked()
-    signal contextMenuRequestedForTimeline(tick: int)
-    signal contextMenuRequestedForPositionIndicator()
-
-    ScopicFlowPrivate.Timeline {
-        id: timeline
+    ScopicFlowPrivate.PianoRoll {
+        id: pianoRoll
         anchors.fill: parent
         timeAlignmentViewModel: control.timeAlignmentViewModel
         playbackViewModel: control.playbackViewModel
+        clavierViewModel: control.clavierViewModel
         scrollBehaviorViewModel: control.scrollBehaviorViewModel
         animationViewModel: control.animationViewModel
         paletteViewModel: control.paletteViewModel
-        onPositionIndicatorDoubleClicked: control.positionIndicatorDoubleClicked()
-        onContextMenuRequestedForTimeline: tick => control.contextMenuRequestedForTimeline(tick)
-        onContextMenuRequestedForPositionIndicator: control.contextMenuRequestedForPositionIndicator()
     }
 }

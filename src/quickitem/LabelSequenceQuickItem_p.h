@@ -58,6 +58,7 @@ namespace sflow {
         Q_INVOKABLE LabelViewModel *previousItem(LabelViewModel *viewModel) const;
         Q_INVOKABLE LabelViewModel *insertLabelTo(double x, const QVariant &initialValue);
         Q_INVOKABLE void removeLabel(LabelViewModel *viewModel);
+        Q_INVOKABLE void setSelectionIntermediate(bool intermediate);
 
         LabelViewModel *currentItem() const;
         void setCurrentItem(LabelViewModel *viewModel);
@@ -71,6 +72,10 @@ namespace sflow {
         void labelSequenceViewModelChanged(LabelSequenceViewModel *viewModel);
         void modelChanged();
         void currentItemChanged(LabelViewModel *viewModel);
+
+        void contextMenuRequested(int tick);
+        void contextMenuRequestedForLabel(LabelViewModel *label);
+
 
     private:
         QScopedPointer<LabelSequenceQuickItemPrivate> d_ptr;

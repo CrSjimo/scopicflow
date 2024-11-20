@@ -43,6 +43,7 @@ LabelSequence {
 
         MouseArea {
             anchors.fill: parent
+            acceptedButtons: Qt.LeftButton | Qt.RightButton
             property double pressedX: 0
             property int nextIndex: -1
             property bool rejectClick: false
@@ -103,12 +104,18 @@ LabelSequence {
                 pressedX = mouse.x
             }
             onClicked: function (mouse) {
-                if (rejectClick)
-                    return
-                labelSequence.currentItem = null
-                labelSequence.deselectAll()
+                if (mouse.button === Qt.LeftButton) {
+                    if (rejectClick)
+                        return
+                    labelSequence.currentItem = null
+                    labelSequence.deselectAll()
+                } else {
+                    labelSequence.contextMenuRequested(Math.round(mouse.x / labelSequence.timeAlignmentViewModel.pixelDensity))
+                }
             }
             onDoubleClicked: function (mouse) {
+                if (mouse.button !== Qt.LeftButton)
+                    return
                 let label = labelSequence.insertLabelTo(mouse.x, "")
                 if (!labelRepeater.itemDict.has(label))
                     return
@@ -234,6 +241,7 @@ LabelSequence {
 
                 MouseArea {
                     anchors.fill: parent
+                    acceptedButtons: Qt.LeftButton | Qt.RightButton
                     property double pressedDeltaX: 0
                     property bool rejectClick: false
                     DragScroller {
@@ -248,13 +256,19 @@ LabelSequence {
                         pressedDeltaX = mouse.x
                     }
                     onClicked: function (mouse) {
-                        if (rejectClick)
-                            return
-                        let multipleSelect = Boolean(mouse.modifiers & Qt.ControlModifier)
-                        let extendingSelect = Boolean(mouse.modifiers & Qt.ShiftModifier)
-                        labelRect.selectItem(multipleSelect, extendingSelect)
+                        if (mouse.button === Qt.LeftButton) {
+                            if (rejectClick)
+                                return
+                            let multipleSelect = Boolean(mouse.modifiers & Qt.ControlModifier)
+                            let extendingSelect = Boolean(mouse.modifiers & Qt.ShiftModifier)
+                            labelRect.selectItem(multipleSelect, extendingSelect)
+                        } else {
+                            labelSequence.contextMenuRequestedForLabel(labelRect.labelViewModel)
+                        }
                     }
                     onDoubleClicked: function (mouse) {
+                        if (mouse.button !== Qt.LeftButton)
+                            return
                         labelRect.selectItem(false, false, true)
                         labelRect.editing = true
                     }
@@ -266,7 +280,10 @@ LabelSequence {
                         }
                     }
                     onPositionChanged: function (mouse) {
-                        rejectClick = true
+                        if (!rejectClick) {
+                            rejectClick = true
+                            labelSequence.setSelectionIntermediate(true)
+                        }
                         cursorIndicatorBinding.enabled = true
                         if (!labelRect.labelViewModel.selected) {
                             let multipleSelect = Boolean(mouse.modifiers & Qt.ControlModifier)
@@ -287,6 +304,9 @@ LabelSequence {
 
                     }
                     onReleased: function (mouse) {
+                        if (rejectClick) {
+                            labelSequence.setSelectionIntermediate(false)
+                        }
                         dragScroller.running = false
                         cursorIndicatorBinding.enabled = false
                         labelSequence.playbackViewModel.cursorPosition = -1

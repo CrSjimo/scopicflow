@@ -58,10 +58,9 @@ namespace sflow {
         QColor foregroundColor() const;
         void setForegroundColor(const QColor &foregroundColor);
 
-        int mapToTick(double x) const;
-        double mapToX(int tick) const;
+        Q_INVOKABLE int mapToTick(double x) const;
+        Q_INVOKABLE double mapToX(int tick) const;
 
-        Q_INVOKABLE void handleContextMenuRequest(double x);
         Q_INVOKABLE double getAlignedX(double x) const;
         Q_INVOKABLE void setZoomedRange(double selectionX, double selectionWidth);
         Q_INVOKABLE void moveViewOnDraggingPositionIndicator(double deltaX);
@@ -73,6 +72,7 @@ namespace sflow {
         void cursorIndicatorXChanged(double x);
 
         void positionIndicatorDoubleClicked();
+        void timelineDoubleClicked(int tick);
 
         void contextMenuRequestedForTimeline(int tick);
         void contextMenuRequestedForPositionIndicator();

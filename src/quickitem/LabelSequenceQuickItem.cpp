@@ -192,6 +192,14 @@ namespace sflow {
             return;
         d->labelSequenceViewModel->removeLabels({viewModel});
     }
+    void LabelSequenceQuickItem::setSelectionIntermediate(bool intermediate) {
+        Q_D(LabelSequenceQuickItem);
+        if (!d->labelSequenceViewModel)
+            return;
+        for (auto label : d->labelSequenceViewModel->labels()) {
+            label->setIntermediate(intermediate);
+        }
+    }
     LabelViewModel *LabelSequenceQuickItem::currentItem() const {
         Q_D(const LabelSequenceQuickItem);
         if (!d->labelSequenceViewModel)

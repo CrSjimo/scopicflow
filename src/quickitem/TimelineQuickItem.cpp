@@ -296,10 +296,6 @@ namespace sflow {
         Q_D(const TimelineQuickItem);
         return d->tickToX(tick);
     }
-    void TimelineQuickItem::handleContextMenuRequest(double x) {
-        Q_D(TimelineQuickItem);
-        emit contextMenuRequestedForTimeline(d->alignTick(d->xToTick(x)));
-    }
     double TimelineQuickItem::getAlignedX(double x) const {
         Q_D(const TimelineQuickItem);
         return d->tickToX(d->alignTick(d->xToTick(x)));

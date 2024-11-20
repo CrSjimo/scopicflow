@@ -96,22 +96,39 @@ Timeline {
         onPressed: function (mouse) {
             rejectContextMenu = false;
         }
-        onClicked: function (mouse) {
-            if (mouse.button === Qt.LeftButton) {
-                timeline.primaryIndicatorX = mouse.x
-            } else if (mouse.button === Qt.RightButton && !rejectContextMenu) {
-                if (primaryIndicator.contains(mapToItem(primaryIndicator, mouse.x, mouse.y))) {
-                    timeline.contextMenuRequestedForPositionIndicator();
-                } else {
-                    timeline.handleContextMenuRequest(mouse.x)
+        Timer {
+            id: clickTimer
+            interval: 0
+            property var button: null
+            property double x: 0
+            property double y: 0
+            onTriggered: {
+                if (button === Qt.LeftButton) {
+                    timeline.primaryIndicatorX = x
+                } else if (button === Qt.RightButton && !parent.rejectContextMenu) {
+                    if (primaryIndicator.contains(mapToItem(primaryIndicator, x, y))) {
+                        timeline.contextMenuRequestedForPositionIndicator()
+                    } else {
+                        timeline.contextMenuRequestedForTimeline(timeline.mapToTick(x))
+                    }
                 }
             }
-
+        }
+        onClicked: function (mouse) {
+            clickTimer.button = mouse.button
+            clickTimer.x = mouse.x
+            clickTimer.y = mouse.y
+            clickTimer.start()
         }
         onDoubleClicked : function (mouse) {
+            if (clickTimer.running)
+                clickTimer.stop()
             if (mouse.button === Qt.LeftButton) {
-                timeline.primaryIndicatorX = mouse.x
-                timeline.positionIndicatorDoubleClicked()
+                if (primaryIndicator.contains(mapToItem(primaryIndicator, mouse.x, mouse.y))) {
+                    timeline.positionIndicatorDoubleClicked()
+                } else {
+                    timeline.timelineDoubleClicked(timeline.mapToTick(mouse.x))
+                }
             }
         }
         onPositionChanged: function (mouse) {

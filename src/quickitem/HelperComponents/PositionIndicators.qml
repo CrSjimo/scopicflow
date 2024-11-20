@@ -29,6 +29,6 @@ Item {
         anchors.bottom: parent.bottom
         width: 1
         color: parent.palette.cursorIndicatorColor
-        x: parent.timeViewModel && parent.playbackViewModel ? (parent.playbackViewModel.cursorPosition - parent.timeViewModel.start) * parent.timeViewModel.pixelDensity - 0.5 : 0
+        x: parent.timeViewModel ? (parent.timeViewModel.cursorPosition - parent.timeViewModel.start) * parent.timeViewModel.pixelDensity - 0.5 : 0
     }
 }

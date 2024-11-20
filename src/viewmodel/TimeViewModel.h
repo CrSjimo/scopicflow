@@ -18,6 +18,7 @@ namespace sflow {
         Q_PROPERTY(double pixelDensity READ pixelDensity WRITE setPixelDensity NOTIFY pixelDensityChanged)
         Q_PROPERTY(double maximumPixelDensity READ maximumPixelDensity WRITE setMaximumPixelDensity NOTIFY maximumPixelDensityChanged)
         Q_PROPERTY(double minimumPixelDensity READ minimumPixelDensity WRITE setMinimumPixelDensity NOTIFY minimumPixelDensityChanged)
+        Q_PROPERTY(int cursorPosition READ cursorPosition WRITE setCursorPosition NOTIFY cursorPositionChanged)
     public:
         explicit TimeViewModel(QObject *parent = nullptr);
         ~TimeViewModel() override;
@@ -37,6 +38,9 @@ namespace sflow {
         double minimumPixelDensity() const;
         void setMinimumPixelDensity(double minimumPixelDensity);
 
+        int cursorPosition() const;
+        void setCursorPosition(int cursorPosition);
+
         SVS::MusicTimeline *timeline() const;
         void setTimeline(SVS::MusicTimeline *timeline);
 
@@ -46,6 +50,7 @@ namespace sflow {
         void pixelDensityChanged(double pixelDensity);
         void maximumPixelDensityChanged(double maximumPixelDensity);
         void minimumPixelDensityChanged(double minimumPixelDensity);
+        void cursorPositionChanged(int cursorPosition);
         void timelineChanged();
 
     private:
@@ -54,6 +59,7 @@ namespace sflow {
         double m_pixelDensity;
         double m_maximumPixelDensity;
         double m_minimumPixelDensity;
+        int m_cursorPosition;
         SVS::MusicTimeline *m_timeline;
     };
 

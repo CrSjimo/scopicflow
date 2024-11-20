@@ -275,8 +275,9 @@ LabelSequence {
                     Connections {
                         id: cursorIndicatorBinding
                         target: labelRect.labelViewModel
+                        enabled: false
                         function onPositionChanged() {
-                            labelSequence.playbackViewModel.cursorPosition = labelRect.labelViewModel.position
+                            labelSequence.timeAlignmentViewModel.cursorPosition = labelRect.labelViewModel.position
                         }
                     }
                     onPositionChanged: function (mouse) {
@@ -309,7 +310,7 @@ LabelSequence {
                         }
                         dragScroller.running = false
                         cursorIndicatorBinding.enabled = false
-                        labelSequence.playbackViewModel.cursorPosition = -1
+                        labelSequence.timeAlignmentViewModel.cursorPosition = -1
                     }
                 }
 

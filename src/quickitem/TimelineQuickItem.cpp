@@ -178,11 +178,13 @@ namespace sflow {
                     connect(d->timeline, &SVS::MusicTimeline::changed, this, &QQuickItem::update);
                 }
             });
+            connect(d->timeAlignmentViewModel, &TimeViewModel::cursorPositionChanged, this, [=](int tick) { emit cursorIndicatorXChanged(d->tickToX(tick)); });
             if (d->timeline) {
                 connect(d->timeline, &SVS::MusicTimeline::changed, this, &QQuickItem::update);
             }
         }
         emit timeAlignmentViewModelChanged();
+        emit cursorIndicatorXChanged(cursorIndicatorX());
         update();
     }
     PlaybackViewModel *TimelineQuickItem::playbackViewModel() const {
@@ -200,11 +202,9 @@ namespace sflow {
         if (d->playbackViewModel) {
             connect(d->playbackViewModel, &PlaybackViewModel::primaryPositionChanged, this, [=](int tick) { emit primaryIndicatorXChanged(d->tickToX(tick)); });
             connect(d->playbackViewModel, &PlaybackViewModel::secondaryPositionChanged, this, [=](int tick) { emit secondaryIndicatorXChanged(d->tickToX(tick)); });
-            connect(d->playbackViewModel, &PlaybackViewModel::cursorPositionChanged, this, [=](int tick) { emit cursorIndicatorXChanged(d->tickToX(tick)); });
         }
         emit primaryIndicatorXChanged(primaryIndicatorX());
         emit secondaryIndicatorXChanged(secondaryIndicatorX());
-        emit cursorIndicatorXChanged(cursorIndicatorX());
     }
     ScrollBehaviorViewModel *TimelineQuickItem::scrollBehaviorViewModel() const {
         Q_D(const TimelineQuickItem);
@@ -266,9 +266,9 @@ namespace sflow {
     }
     double TimelineQuickItem::cursorIndicatorX() const {
         Q_D(const TimelineQuickItem);
-        if (!d->playbackViewModel)
+        if (!d->timeAlignmentViewModel)
             return -1;
-        return d->tickToX(d->playbackViewModel->cursorPosition());
+        return d->tickToX(d->timeAlignmentViewModel->cursorPosition());
     }
     QColor TimelineQuickItem::backgroundColor() const {
         Q_D(const TimelineQuickItem);

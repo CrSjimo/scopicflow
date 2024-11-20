@@ -14,6 +14,7 @@
 #include <QQmlEngine>
 #include <QQmlComponent>
 #include <QFileDialog>
+#include <QSplitter>
 
 #include <SVSCraftCore/musictimeline.h>
 
@@ -29,6 +30,9 @@
 #include <ScopicFlow/LabelSequenceWidget.h>
 #include <ScopicFlow/LabelSequenceViewModel.h>
 #include <ScopicFlow/LabelViewModel.h>
+#include <ScopicFlow/TrackListWidget.h>
+#include <ScopicFlow/TrackListViewModel.h>
+#include <ScopicFlow/TrackViewModel.h>
 
 using namespace sflow;
 
@@ -79,26 +83,59 @@ int main(int argc, char *argv[]) {
     QSurfaceFormat::setDefaultFormat(sf);
 
     QMainWindow win;
-    auto mainWidget = new QWidget;
+    win.resize(800, 600);
+    auto splitter = new QSplitter;
+    splitter->setOrientation(Qt::Vertical);
 
-    auto mainLayout = new QGridLayout;
-    mainLayout->setSpacing(0);
+    auto arrangementGroupWidget = new QWidget;
+    auto arrangementGroupLayout = new QGridLayout;
+    arrangementGroupLayout->setSpacing(0);
+
+    auto trackList = new TrackListWidget;
+    trackList->setFixedWidth(360);
+    auto arrangementTimeline = new TimelineWidget;
+    auto arrangementLabelSequence = new LabelSequenceWidget;
+
+    arrangementGroupLayout->addWidget(trackList, 2, 0);
+    arrangementGroupLayout->addWidget(arrangementTimeline, 0, 1);
+    arrangementGroupLayout->addWidget(arrangementLabelSequence, 1, 1);
+    arrangementGroupWidget->setLayout(arrangementGroupLayout);
+    splitter->addWidget(arrangementGroupWidget);
+
+    auto pianoRollGroupWidget = new QWidget;
+
+    auto pianoRollGroupLayout = new QGridLayout;
+    pianoRollGroupLayout->setSpacing(0);
 
     auto clavier = new ClavierWidget;
     auto timeline = new TimelineWidget;
     auto pianoRoll = new PianoRollWidget;
     auto labelSequence = new LabelSequenceWidget;
 
+    pianoRollGroupLayout->addWidget(clavier, 2, 0);
+    pianoRollGroupLayout->addWidget(timeline, 0, 1);
+    pianoRollGroupLayout->addWidget(pianoRoll, 2, 1);
+    pianoRollGroupLayout->addWidget(labelSequence, 1, 1);
+    pianoRollGroupWidget->setLayout(pianoRollGroupLayout);
+    splitter->addWidget(pianoRollGroupWidget);
+
+    TimeAlignmentViewModel arrangementTimeViewModel;
+    arrangementTimeViewModel.setPositionAlignment(480);
     TimeAlignmentViewModel timeViewModel;
     timeViewModel.setPositionAlignment(240);
     SVS::MusicTimeline musicTimeline;
+    arrangementTimeViewModel.setTimeline(&musicTimeline);
     timeViewModel.setTimeline(&musicTimeline);
 
+    arrangementTimeline->setTimeAlignmentViewModel(&arrangementTimeViewModel);
+    arrangementLabelSequence->setTimeAlignmentViewModel(&arrangementTimeViewModel);
     timeline->setTimeAlignmentViewModel(&timeViewModel);
     pianoRoll->setTimeAlignmentViewModel(&timeViewModel);
     labelSequence->setTimeAlignmentViewModel(&timeViewModel);
 
     PlaybackViewModel playbackViewModel;
+    arrangementTimeline->setPlaybackViewModel(&playbackViewModel);
+    arrangementLabelSequence->setPlaybackViewModel(&playbackViewModel);
     timeline->setPlaybackViewModel(&playbackViewModel);
     pianoRoll->setPlaybackViewModel(&playbackViewModel);
     labelSequence->setPlaybackViewModel(&playbackViewModel);
@@ -133,14 +170,17 @@ int main(int argc, char *argv[]) {
         labelSequenceViewModel.insertLabels({label});
     }
     labelSequence->setLabelSequenceViewModel(&labelSequenceViewModel);
+    arrangementLabelSequence->setLabelSequenceViewModel(&labelSequenceViewModel);
 
-    mainLayout->addWidget(clavier, 2, 0);
-    mainLayout->addWidget(timeline, 0, 1);
-    mainLayout->addWidget(pianoRoll, 2, 1);
-    mainLayout->addWidget(labelSequence, 1, 1);
+    TrackListViewModel trackListViewModel;
+    for (int i = 0; i < 4; i++) {
+        auto track = new TrackViewModel;
+        track->setName("Track " + QString::number(i + 1));
+        trackListViewModel.insertTracks(i, {track});
+    }
+    trackList->setTrackListViewModel(&trackListViewModel);
 
-    mainWidget->setLayout(mainLayout);
-    win.setCentralWidget(mainWidget);
+    win.setCentralWidget(splitter);
     win.show();
 
     QObject::connect(timeline, &TimelineWidget::contextMenuRequestedForTimeline, [=, &win, &timeViewModel](int tick) {

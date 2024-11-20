@@ -23,6 +23,7 @@ namespace sflow {
     m_pixelDensity(0.2),
     m_maximumPixelDensity(2.0),
     m_minimumPixelDensity(1.0 / 256.0),
+    m_cursorPosition(-1),
     m_timeline(nullptr){
 
 
@@ -73,6 +74,15 @@ namespace sflow {
         if(!qFuzzyCompare(m_minimumPixelDensity, minimumPixelDensity)) {
             m_minimumPixelDensity = minimumPixelDensity;
             emit minimumPixelDensityChanged(minimumPixelDensity);
+        }
+    }
+    int TimeViewModel::cursorPosition() const {
+        return m_cursorPosition;
+    }
+    void TimeViewModel::setCursorPosition(int cursorPosition) {
+        if (m_cursorPosition != cursorPosition) {
+            m_cursorPosition = cursorPosition;
+            emit cursorPositionChanged(cursorPosition);
         }
     }
     SVS::MusicTimeline *TimeViewModel::timeline() const {

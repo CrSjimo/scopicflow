@@ -1,0 +1,6 @@
+<RCC>
+    <qresource prefix="qrc:/ScopicFlow/modules/dev/sjimo/ScopicFlow/">
+        <file>qmldir</file>
+        <file>Timeline.qml</file>
+    </qresource>
+</RCC>

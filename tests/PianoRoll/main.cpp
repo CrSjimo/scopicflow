@@ -15,6 +15,7 @@
 #include <QQmlComponent>
 #include <QFileDialog>
 #include <QSplitter>
+#include <QQuickView>
 
 #include <SVSCraftCore/musictimeline.h>
 

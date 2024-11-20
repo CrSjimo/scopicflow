@@ -1,5 +1,5 @@
-import "./ScopicFlow/private"
+import QtQuick
 
-PianoRoll {
-
+Rectangle {
+    color: "red"
 }

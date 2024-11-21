@@ -127,6 +127,7 @@ Item {
                 Layout.fillWidth: true
                 Layout.fillHeight: true
                 Item {
+                    SplitView.fillHeight: true
                     PianoRoll {
                         id: pianoRoll
                         anchors.top: parent.top
@@ -143,6 +144,7 @@ Item {
                     }
                 }
                 Rectangle {
+                    SplitView.preferredHeight: 128
                     color: "red"
                     opacity: 0.5
                 }

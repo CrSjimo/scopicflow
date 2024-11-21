@@ -54,7 +54,7 @@ ScopicFlowInternal.PianoRoll {
             anchors.left: parent.left
             anchors.right: parent.right
             height: 128 * pianoRoll.keyHeight
-            y: pianoRoll.clavierViewModel ? Math.min(pianoRoll.topMargin, pianoRoll.height - (128 - pianoRoll.clavierViewModel.start) * pianoRoll.clavierViewModel.pixelDensity) : 0
+            y: pianoRoll.clavierViewModel ? Math.min(pianoRoll.topMargin, pianoRoll.height - (128 - pianoRoll.clavierViewModel.start) * pianoRoll.clavierViewModel.pixelDensity - pianoRoll.bottomMargin) : pianoRoll.topMargin
 
             Repeater {
                 id: keyRepeater
@@ -156,10 +156,10 @@ ScopicFlowInternal.PianoRoll {
         hoveredColor: pianoRoll.palette.scrollBarHoveredColor
         animationViewModel: pianoRoll.animationViewModel
         size: (pianoRoll.height - pianoRoll.bottomMargin - pianoRoll.topMargin) / (backgroundViewport.height)
-        position: 1 - ((pianoRoll.clavierViewModel?.start ?? 0) + pianoRoll.bottomMargin / pianoRoll.clavierViewModel.pixelDensity) / 128 - size
+        position: 1 - (pianoRoll.clavierViewModel?.start ?? 0) / 128 - size
         onPositionChanged: {
-            if (pianoRoll.clavierViewModel && Math.abs(pianoRoll.clavierViewModel.start + pianoRoll.bottomMargin / pianoRoll.clavierViewModel.pixelDensity - (1 - (position + size)) * 128) > Number.EPSILON * 100)
-                pianoRoll.clavierViewModel.start = -pianoRoll.bottomMargin / pianoRoll.clavierViewModel.pixelDensity + (1 - (position + size)) * 128
+            if (pianoRoll.clavierViewModel && Math.abs(pianoRoll.clavierViewModel.start - (1 - (position + size)) * 128) > Number.EPSILON * 100)
+                pianoRoll.clavierViewModel.start = (1 - (position + size)) * 128
         }
     }
 

@@ -67,7 +67,7 @@ ScopicFlowInternal.Clavier {
         anchors.left: parent.left
         anchors.right: parent.right
         height: 128 * clavier.keyHeight
-        y: clavier.clavierViewModel ? Math.min(clavier.topMargin, clavier.height - (128 - clavier.clavierViewModel.start) * clavier.clavierViewModel.pixelDensity) : clavier.topMargin
+        y: clavier.clavierViewModel ? Math.min(clavier.topMargin, clavier.height - (128 - clavier.clavierViewModel.start) * clavier.clavierViewModel.pixelDensity - clavier.bottomMargin) : clavier.topMargin
 
         Repeater {
             id: keyRepeater

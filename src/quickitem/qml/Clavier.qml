@@ -44,7 +44,7 @@ ScopicFlowInternal.Clavier {
 
     onHeightChanged: {
         if (clavier.clavierViewModel) {
-            clavier.clavierViewModel.start = Math.min(clavier.clavierViewModel.start, 128 - clavier.height / clavier.clavierViewModel.pixelDensity)
+            clavier.clavierViewModel.start = Math.min(clavier.clavierViewModel.start, 128 - (clavier.height - clavier.topMargin) / clavier.clavierViewModel.pixelDensity)
         }
     }
 

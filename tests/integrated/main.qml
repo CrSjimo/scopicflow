@@ -88,7 +88,7 @@ Item {
                 animationViewModel: main.animationViewModel
                 paletteViewModel: main.paletteViewModel
                 topMargin: pianoRollSplitView.y - timeline.y
-                bottomMargin: 256
+                bottomMargin: pianoRoll.bottomMargin
             }
 
             Timeline {

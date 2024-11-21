@@ -40,7 +40,7 @@ namespace sflow {
             delete barNumberTextLayouts.cbegin().value();
             barNumberTextLayouts.erase(barNumberTextLayouts.cbegin());
         }
-        layout = new QTextLayout(QLocale().toString(bar + 1));
+        layout = new QTextLayout(QString::number(bar + 1));
         layout->beginLayout();
         layout->createLine();
         layout->endLayout();
@@ -76,7 +76,7 @@ namespace sflow {
             delete timeSignatureTextLayouts.cbegin().value();
             timeSignatureTextLayouts.erase(timeSignatureTextLayouts.cbegin());
         }
-        layout = new QTextLayout(QLocale().toString(numerator) + "/" + QLocale().toString(denominator));
+        layout = new QTextLayout(QString::number(numerator) + "/" + QString::number(denominator));
         layout->beginLayout();
         layout->createLine();
         layout->endLayout();

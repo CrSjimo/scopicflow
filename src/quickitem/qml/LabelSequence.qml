@@ -110,7 +110,9 @@ ScopicFlowInternal.LabelSequence {
                     if (rejectClick)
                         return
                     labelSequence.currentItem = null
-                    labelSequence.deselectAll()
+                    let multipleSelect = Boolean(mouse.modifiers & Qt.ControlModifier)
+                    if (!multipleSelect)
+                        labelSequence.deselectAll()
                 } else {
                     labelSequence.contextMenuRequested(Math.round(mouse.x / labelSequence.timeAlignmentViewModel.pixelDensity))
                 }
@@ -364,8 +366,8 @@ ScopicFlowInternal.LabelSequence {
                         item.selectItem(false, false, true)
                         item.editing = true
                     }
-                    onFocusChanged: {
-                        if (!focus)
+                    onActiveFocusChanged: {
+                        if (!activeFocus)
                             labelRect.editing = false
                     }
                 }

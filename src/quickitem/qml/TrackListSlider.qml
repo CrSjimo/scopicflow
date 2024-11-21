@@ -44,7 +44,7 @@ Slider {
             radius: handleSize / 2
             Behavior on handleSize {
                 NumberAnimation {
-                    duration: 250 * (slider.animationViewModel?.visualEffect ?? 1)
+                    duration: 250 * (slider.animationViewModel?.visualEffectAnimationRatio ?? 1)
                     easing.type: Easing.OutCubic
                 }
             }

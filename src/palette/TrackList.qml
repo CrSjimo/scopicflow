@@ -29,4 +29,11 @@ QtObject {
     property color levelHighColor: "#ff2c00"
     property color levelBackgroundColor: "#111111"
     property color levelBorderColor: "#343a40"
+
+    property color rubberBandColor: "#7fffffff"
+    property color rubberBandBorderColor: "#535c68"
+
+    property color textEditingForegroundColor: "#ffffff"
+    property color textEditingBackgroundColor: "#6f6c6d"
+    property color textEditingBorderColor: "#3498db"
 }

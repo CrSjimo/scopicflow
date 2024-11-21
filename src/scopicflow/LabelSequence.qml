@@ -32,13 +32,6 @@ Pane {
 
         onContextMenuRequested: tick => control.contextMenuRequested(tick)
         onContextMenuRequestedForLabel: label => control.contextMenuRequestedForLabel(label)
-
-        Connections {
-            target: control
-            function onFocusChanged() {
-                labelSequence.currentItem = null
-            }
-        }
     }
 
 }

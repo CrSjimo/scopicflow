@@ -63,7 +63,13 @@ ScopicFlowInternal.Timeline {
         ShapePath {
             strokeWidth: 0
             fillColor: timeline.palette.primaryIndicatorColor
-            pathElements: indicatorPath.pathElements
+            PathLine { x: 8 / Math.sqrt(3); y: 0 }
+            PathLine { x: 24 / Math.sqrt(3); y: 0 }
+            PathArc { x: 28 / Math.sqrt(3); y: 4; radiusX: 4 / 3; radiusY: 4 / 3}
+            PathLine { x: 20 / Math.sqrt(3); y: 12 }
+            PathArc { x: 12 / Math.sqrt(3); y: 12; radiusX: 4 / 3; radiusY: 4 / 3}
+            PathLine { x: 4 / Math.sqrt(3); y: 4}
+            PathArc {x: 8 / Math.sqrt(3); y: 0; radiusX: 4 / 3; radiusY: 4 / 3}
         }
         x: timeline.primaryIndicatorX - 16 / Math.sqrt(3)
     }

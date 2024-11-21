@@ -15,6 +15,7 @@
         <file>FluentSystemIconCharset.mjs</file>
         <file>TrackListSlider.qml</file>
         <file>TrackListDial.qml</file>
+        <file>TrackListEditLabel.qml</file>
         <file>TimeManipulator.qml</file>
         <file>ClavierManipulator.qml</file>
         <file>StyledScrollBar.qml</file>

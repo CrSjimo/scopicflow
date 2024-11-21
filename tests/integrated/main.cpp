@@ -18,6 +18,7 @@
 #include <QQuickView>
 #include <QQmlContext>
 #include <QQuickItem>
+#include <QQuickWindow>
 
 #include <SVSCraftCore/musictimeline.h>
 
@@ -176,6 +177,10 @@ int main(int argc, char *argv[]) {
         auto v = QInputDialog::getInt(&win, {}, "Position alignment", timeViewModel.positionAlignment(), 1, 480);
         timeViewModel.setPositionAlignment(v);
     });
+    mainMenu->addAction("Set Arrangement Position Alignment...", [&] {
+        auto v = QInputDialog::getInt(&win, {}, "Arrangement position alignment", arrangementTimeViewModel.positionAlignment(), 1, 480);
+        arrangementTimeViewModel.setPositionAlignment(v);
+    });
     mainMenu->addAction("Set Visual Effect Animation Ratio...", [&] {
         auto v = QInputDialog::getDouble(&win, {}, "Animation ratio", animationViewModel.visualEffectAnimationRatio(), 0, 10);
         animationViewModel.setVisualEffectAnimationRatio(v);
@@ -183,6 +188,10 @@ int main(int argc, char *argv[]) {
     mainMenu->addAction("Set Scroll Animation Ratio...", [&] {
         auto v = QInputDialog::getDouble(&win, {}, "Animation ratio", animationViewModel.scrollAnimationRatio(), 0, 10);
         animationViewModel.setScrollAnimationRatio(v);
+    });
+    mainMenu->addAction("Set Color Animation Ratio...", [&] {
+        auto v = QInputDialog::getDouble(&win, {}, "Animation ratio", animationViewModel.colorAnimationRatio(), 0, 10);
+        animationViewModel.setColorAnimationRatio(v);
     });
     mainMenu->addAction("Load Custom Palette...", [&] {
         auto palette = loadCustomPalette(&win);
@@ -192,6 +201,17 @@ int main(int argc, char *argv[]) {
     });
     mainMenu->addAction("Reset to Default Palette", [&] {
         paletteViewModel.setPalette(nullptr);
+    });
+    QQuickView scrollBehaviorDialog;
+    scrollBehaviorDialog.setInitialProperties({
+        {"scrollBehaviorViewModel", QVariant::fromValue(&scrollBehaviorViewModel)},
+    });
+    scrollBehaviorDialog.setSource(QUrl("qrc:/ScrollBehaviorDialog.qml"));
+    scrollBehaviorDialog.setTitle("Set Scroll Behavior");
+    scrollBehaviorDialog.setResizeMode(QQuickView::SizeRootObjectToView);
+    scrollBehaviorDialog.resize(400, 240);
+    mainMenu->addAction("Set Scroll Behavior", [&] {
+        scrollBehaviorDialog.show();
     });
     win.menuBar()->addMenu(mainMenu);
 

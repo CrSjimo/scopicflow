@@ -38,9 +38,114 @@ ScopicFlowInternal.TrackList {
         y: -trackList.trackListViewModel?.viewportOffset ?? 0
         height: Math.max(trackList.height, trackLayoutRepeater.itemAt(trackLayoutRepeater.count - 1) ? trackLayoutRepeater.itemAt(trackLayoutRepeater.count - 1).y + 2 * trackLayoutRepeater.itemAt(trackLayoutRepeater.count - 1).height : 0, trackList.height - y)
 
+        MouseArea {
+            anchors.fill: parent
+            acceptedButtons: Qt.LeftButton | Qt.RightButton
+            cursorShape: undefined
+            focusPolicy: Qt.StrongFocus
+            property bool rejectClick: false
+            onPressed: {
+                rejectClick = false
+            }
+            onClicked: function (mouse) {
+                if (rejectClick)
+                    return
+                if (mouse.button & Qt.RightButton) {
+                    trackList.contextMenuRequestedForTrack(-1)
+                    return
+                }
+                let multipleSelect = Boolean(mouse.modifiers & Qt.ControlModifier)
+                if (!multipleSelect) {
+                    for (let i = 0; i < trackList.trackListViewModel.count; i++) {
+                        let track = trackList.trackAt(i)
+                        if (track.selected) {
+                            track.selected = false
+                        }
+                    }
+                }
+            }
+            function handlePositionChanged(x, y) {
+                rubberBand.toX = x
+                rubberBand.toY = y
+                if (!rubberBand.visible) {
+                    for (let i = 0; i < trackList.trackListViewModel.count; i++) {
+                        let track = trackList.trackAt(i)
+                        if (track.selected) {
+                            track.selected = false
+                        }
+                    }
+                    rubberBand.fromX = x
+                    rubberBand.fromY = y
+                    rubberBand.visible = true
+                }
+                rubberBand.updateSelection()
+            }
+            DragScroller {
+                id: dragScroller
+                property point viewportPoint: Qt.point(0, 0)
+                onMoved: function (_, deltaY) {
+                    if (!trackList.trackListViewModel)
+                        return
+                    let newViewportOffset = Math.max(0, trackList.trackListViewModel.viewportOffset + deltaY)
+                    if (newViewportOffset + trackList.height > backgroundRectangle.height) {
+                        newViewportOffset = backgroundRectangle.height - trackList.height
+                    }
+                    trackList.trackListViewModel.viewportOffset = newViewportOffset
+                    let point = parent.mapFromItem(trackList, viewportPoint)
+                    parent.handlePositionChanged(point.x, point.y)
+                }
+            }
+            onPositionChanged: function (mouse) {
+                rejectClick = true
+                let viewportPoint = mapToItem(trackList, mouse.x, mouse.y)
+                dragScroller.viewportPoint = viewportPoint
+                if (viewportPoint.y < 0) {
+                    dragScroller.distanceY = viewportPoint.y
+                    dragScroller.running = true
+                    return
+                } else if (viewportPoint.y > trackList.height) {
+                    dragScroller.distanceY = viewportPoint.y - trackList.height
+                    dragScroller.running = true
+                    return
+                } else {
+                    dragScroller.running = false
+                }
+                handlePositionChanged(mouse.x, mouse.y)
+            }
+            onReleased: {
+                rubberBand.visible = false
+                dragScroller.running = false
+            }
+            onDoubleClicked: {
+                trackList.trackDoubleClicked(-1)
+            }
+        }
+
         Column {
             id: trackLayout
             anchors.fill: parent
+            function indexAt (point) {
+                let item = null
+                for (let child = trackLayout.childAt(point.x, point.y); child;) {
+                    if (child.isTrackListDelegate) {
+                        item = child
+                        break
+                    }
+                    point = child.parent.mapToItem(child, point)
+                    child = child.childAt(point.x, point.y)
+                }
+                if (item)
+                    return item.index
+                if (backgroundRectangle.contains(point))
+                    return trackLayoutRepeater.count
+                if (backgroundRectangle.contains(Qt.point(point.x, 0))) {
+                    if (point.y < 0)
+                        return 0
+                    else
+                        return trackLayoutRepeater.count
+                }
+                return -1
+            }
             Repeater {
                 id: trackLayoutRepeater
                 model: trackList.trackListViewModel?.count ?? 0
@@ -61,10 +166,150 @@ ScopicFlowInternal.TrackList {
                     isLast: index === trackList.trackListViewModel.count
                     isCurrent: trackList.trackListViewModel?.currentIndex === index
 
+                    animationViewModel: trackList.animationViewModel
+
                     height: trackViewModel.rowHeight
                     onHeightChanged: {
                         trackViewModel.rowHeight = height
                         height = Qt.binding(function () { return this.trackViewModel.rowHeight })
+                    }
+                    mouseArea: MouseArea {
+
+                        anchors.fill: parent
+                        acceptedButtons: Qt.LeftButton | Qt.RightButton
+                        cursorShape: undefined
+                        focusPolicy: Qt.StrongFocus
+                        property bool rejectClick: false
+                        
+                        function handlePositionChanged(x, y, modifiers) {
+                            let point = mapToItem(trackLayout, x, y)
+                            let index = trackLayout.indexAt(point)
+                            if ((modifiers & Qt.ControlModifier) || rubberBand.visible) {
+                                if (lastIndicatorIndex !== -1) {
+                                    let handle = (lastIndicatorIndex ? trackHandlesRepeater.itemAt(lastIndicatorIndex - 1) : topTrackHandle)
+                                    handle.indicatesTarget = false
+                                }
+                                rubberBand.toX = point.x
+                                rubberBand.toY = point.y
+                                if (!rubberBand.visible) {
+                                    for (let i = 0; i < trackList.trackListViewModel.count; i++) {
+                                        let track = trackList.trackAt(i)
+                                        if (track.selected) {
+                                            track.selected = false
+                                        }
+                                    }
+                                    rubberBand.fromX = point.x
+                                    rubberBand.fromY = point.y
+                                    rubberBand.visible = true
+                                }
+                                rubberBand.updateSelection()
+                                return
+                            }
+                            if (lastIndicatorIndex !== -1) {
+                                let handle = (lastIndicatorIndex ? trackHandlesRepeater.itemAt(lastIndicatorIndex - 1) : topTrackHandle)
+                                handle.indicatesTarget = false
+                            }
+                            if (index !== -1) {
+                                let handle = (index ? trackHandlesRepeater.itemAt(index - 1) : topTrackHandle)
+                                handle.indicatesTarget = true
+                            }
+                            lastIndicatorIndex = index
+                        }
+
+                        DragScroller {
+                            id: dragScroller
+                            property point viewportPoint: Qt.point(0, 0)
+                            property int mouseModifiers: 0
+                            onMoved: function (_, deltaY) {
+                                if (!trackList.trackListViewModel)
+                                    return
+                                let newViewportOffset = Math.max(0, trackList.trackListViewModel.viewportOffset + deltaY)
+                                if (newViewportOffset + trackList.height > backgroundRectangle.height) {
+                                    newViewportOffset = backgroundRectangle.height - trackList.height
+                                }
+                                trackList.trackListViewModel.viewportOffset = newViewportOffset
+                                let point = parent.mapFromItem(trackList, viewportPoint)
+                                parent.handlePositionChanged(point.x, point.y, mouseModifiers)
+                            }
+                        }
+
+                        onPressed: function (mouse) {
+                            rejectClick = false
+                        }
+                        property int lastIndicatorIndex: -1
+                        onPositionChanged: function (mouse) {
+                            rejectClick = true
+                            if (!(mouse.modifiers & Qt.ControlModifier) && !rubberBand.visible)
+                                cursorShape = Qt.ClosedHandCursor
+                            let viewportPoint = mapToItem(trackList, mouse.x, mouse.y)
+                            dragScroller.viewportPoint = viewportPoint
+                            dragScroller.mouseModifiers = mouse.modifiers
+                            if (viewportPoint.y < 0) {
+                                dragScroller.distanceY = viewportPoint.y
+                                dragScroller.running = true
+                                return
+                            } else if (viewportPoint.y > trackList.height) {
+                                dragScroller.distanceY = viewportPoint.y - trackList.height
+                                dragScroller.running = true
+                                return
+                            } else {
+                                dragScroller.running = false
+                            }
+                            handlePositionChanged(mouse.x, mouse.y, mouse.modifiers)
+                        }
+                        onReleased: function (mouse) {
+                            cursorShape = undefined
+                            dragScroller.running = false
+                            rubberBand.visible = false
+                            if (lastIndicatorIndex !== -1) {
+                                if (mouse.button & Qt.LeftButton) {
+                                    trackList.handleTrackMoved(trackListDelegate.index, lastIndicatorIndex)
+                                } else {
+                                    trackList.contextMenuRequestedForTrackDragging(trackListDelegate.index, lastIndicatorIndex)
+                                }
+                                let handle = (lastIndicatorIndex ? trackHandlesRepeater.itemAt(lastIndicatorIndex - 1) : topTrackHandle)
+                                handle.indicatesTarget = false
+                            } else {
+                                if (rejectClick && (mouse.button & Qt.RightButton)) {
+                                    trackList.contextMenuRequestedForTrack(trackListDelegate.index)
+                                }
+                            }
+                            lastIndicatorIndex = -1
+                        }
+                        onClicked: function (mouse) {
+                            if (rejectClick)
+                                return
+                            if (mouse.button & Qt.RightButton) {
+                                trackList.trackListViewModel.currentIndex = trackListDelegate.index
+                                trackList.contextMenuRequestedForTrack(trackListDelegate.index ?? -1)
+                                return
+                            }
+                            let multipleSelect = Boolean(mouse.modifiers & Qt.ControlModifier)
+                            let extendingSelect = Boolean(mouse.modifiers & Qt.ShiftModifier)
+                            let previousSelected = trackListDelegate.trackViewModel.selected
+                            let previousSelectionCount = 0
+                            if (!multipleSelect) {
+                                for (let i = 0; i < trackList.trackListViewModel.count; i++) {
+                                    let track = trackList.trackAt(i)
+                                    if (track.selected) {
+                                        track.selected = false
+                                        previousSelectionCount++
+                                    }
+                                }
+                            }
+                            if (extendingSelect) {
+                                for (let i = trackList.trackListViewModel.currentIndex; i <= trackListDelegate.index; i++) {
+                                    trackList.trackAt(i).selected = true
+                                }
+                            } else {
+                                trackList.trackListViewModel.currentIndex = trackListDelegate.index
+                                trackListDelegate.trackViewModel.selected = previousSelectionCount > 1 || !previousSelected
+                            }
+                        }
+
+                        onDoubleClicked: function (mouse) {
+                            trackList.trackDoubleClicked(trackListDelegate.index ?? -1)
+                        }
                     }
                 }
             }
@@ -134,186 +379,56 @@ ScopicFlowInternal.TrackList {
             }
         }
 
-        MouseArea {
-            function interactionTarget (mouse, determineInteractive = true) {
-                let point = Qt.point(mouse.x, mouse.y);
-                let flag = false
-                let item = null
-                if (trackHandles.childAt(point.x, point.y))
-                    return null
-                if (!trackLayout.childAt(point.x, point.y))
-                    return backgroundRectangle
-                for (let child = trackLayout.childAt(point.x, point.y); child;) {
-                    if (child.isTrackListDelegate) {
-                        item = child
-                        if (!determineInteractive)
-                            break
-                    }
-                    flag = child.isMouseInteractionTarget
-                    point = child.parent.mapToItem(child, point)
-                    child = child.childAt(point.x, point.y)
-                }
-                if (flag)
-                    return item
-                return null
-            }
-            function indexAt (x, y) {
-                let point = Qt.point(x, y);
-                let item = null
-                for (let child = trackLayout.childAt(point.x, point.y); child;) {
-                    if (child.isTrackListDelegate) {
-                        item = child
+        Rectangle {
+            id: rubberBand
+            property double fromX: 0
+            property double fromY: 0
+            property double toX: 0
+            property double toY: 0
+            x: Math.min(fromX, toX)
+            y: Math.min(fromY, toY)
+            width: Math.abs(fromX - toX)
+            height: Math.abs(fromY - toY)
+            color: trackList.palette.rubberBandColor
+            border.width: 1
+            border.color: trackList.palette.rubberBandBorderColor
+            visible: false
+            function updateSelection() {
+                if (!visible)
+                    return
+                let fromIndex = trackLayout.indexAt(Qt.point(0, fromY))
+                let toIndex = trackLayout.indexAt(Qt.point(0, toY))
+                let startIndex = Math.min(fromIndex, toIndex)
+                let endIndex = Math.max(fromIndex, toIndex)
+                for (let i = startIndex - 1; i >= 0; i--) {
+                    if (!trackLayoutRepeater.itemAt(i).trackViewModel.selected)
                         break
-                    }
-                    point = child.parent.mapToItem(child, point)
-                    child = child.childAt(point.x, point.y)
+                    trackLayoutRepeater.itemAt(i).trackViewModel.selected = false
                 }
-                if (item)
-                    return item.index
-                if (backgroundRectangle.contains(Qt.point(x, y)))
-                    return trackLayoutRepeater.count
-                return -1
-            }
-            anchors.fill: parent
-            acceptedButtons: Qt.LeftButton | Qt.RightButton
-            cursorShape: undefined
-            property bool rejectClick: false
-            property var pressedItem: null
-
-            property double deltaTickingY: 4
-            function calculateDraggingScrollingSpeed(y) {
-                return Math.min(1, y / 256)
-            }
-            Timer {
-                id: tickingTimer
-                interval: 10
-                repeat: true
-
-                onTriggered: {
-                    if (!trackList.trackListViewModel)
-                        return
-                    let newViewportOffset = Math.max(0, trackList.trackListViewModel.viewportOffset + parent.deltaTickingY)
-                    if (newViewportOffset + trackList.height > backgroundRectangle.height) {
-                        newViewportOffset = backgroundRectangle.height - trackList.height
+                if (fromIndex < toIndex) {
+                    for (let i = toIndex; i >= fromIndex; i--) {
+                        if (i >= trackLayoutRepeater.count || i < 0)
+                            continue
+                        if (trackLayoutRepeater.itemAt(i).trackViewModel.selected)
+                            break
+                        trackLayoutRepeater.itemAt(i).trackViewModel.selected = true
                     }
-                    trackList.trackListViewModel.viewportOffset = newViewportOffset
-                }
-            }
-
-            onPressed: function (mouse) {
-                rejectClick = false
-                let item = interactionTarget(mouse)
-                if (!item) {
-                    mouse.accepted = false
                 } else {
-                    pressedItem = item
-                }
-            }
-            property int lastIndicatorIndex: -1
-            onPositionChanged: function (mouse) {
-                if (!pressedItem || typeof(pressedItem.index) !== "number")
-                    return
-                rejectClick = true
-                let index = indexAt(mouse.x, mouse.y)
-                if (mouse.modifiers & Qt.ControlModifier) {
-                    cursorShape = Qt.CrossCursor
-                    if (lastIndicatorIndex !== -1) {
-                        let handle = (lastIndicatorIndex ? trackHandlesRepeater.itemAt(lastIndicatorIndex - 1) : topTrackHandle)
-                        handle.indicatesTarget = false
-                    }
-                    if (index >= 0 && index < trackLayoutRepeater.count) {
-                        trackList.trackAt(index).selected = true
-                        trackList.trackListViewModel.currentIndex = index
-                        pressedItem = trackLayoutRepeater.itemAt(index)
-                    }
-                    return
-                }
-                cursorShape = Qt.ClosedHandCursor
-                let viewportPoint = trackList.mapFromItem(backgroundRectangle, mouse.x, mouse.y)
-                if (viewportPoint.y < 0) {
-                    deltaTickingY = -calculateDraggingScrollingSpeed(-viewportPoint.y) * tickingTimer.interval
-                    tickingTimer.start()
-                    return
-                } else if (viewportPoint.y > trackList.height) {
-                    deltaTickingY = calculateDraggingScrollingSpeed(viewportPoint.y - trackList.height) * tickingTimer.interval
-                    tickingTimer.start()
-                    return
-                } else {
-                    tickingTimer.stop()
-                }
-                if (lastIndicatorIndex !== -1) {
-                    let handle = (lastIndicatorIndex ? trackHandlesRepeater.itemAt(lastIndicatorIndex - 1) : topTrackHandle)
-                    handle.indicatesTarget = false
-                }
-                if (index !== -1) {
-                    let handle = (index ? trackHandlesRepeater.itemAt(index - 1) : topTrackHandle)
-                    handle.indicatesTarget = true
-                }
-                lastIndicatorIndex = index
-            }
-            onReleased: function (mouse) {
-                cursorShape = undefined
-                tickingTimer.stop()
-                if (lastIndicatorIndex !== -1) {
-                    if (pressedItem) {
-                        if (mouse.button & Qt.LeftButton) {
-                            trackList.handleTrackMoved(pressedItem.index, lastIndicatorIndex)
-                        } else {
-                            trackList.contextMenuRequestedForTrackDragging(pressedItem.index, lastIndicatorIndex)
-                        }
-                    }
-                    let handle = (lastIndicatorIndex ? trackHandlesRepeater.itemAt(lastIndicatorIndex - 1) : topTrackHandle)
-                    handle.indicatesTarget = false
-                } else {
-                    if (rejectClick && pressedItem && (mouse.button & Qt.RightButton)) {
-                        trackList.contextMenuRequestedForTrack(pressedItem.index)
+                    for (let i = toIndex; i <= fromIndex; i++) {
+                        if (i >= trackLayoutRepeater.count || i < 0)
+                            continue
+                        if (trackLayoutRepeater.itemAt(i).trackViewModel.selected)
+                            break
+                        trackLayoutRepeater.itemAt(i).trackViewModel.selected = true
                     }
                 }
-                lastIndicatorIndex = -1
-            }
-            onClicked: function (mouse) {
-                if (rejectClick)
-                    return
-                if (!pressedItem)
-                    return
-                if (mouse.button & Qt.RightButton) {
-                    if (typeof(pressedItem.index) === "number")
-                        trackList.trackListViewModel.currentIndex = pressedItem.index
-                    trackList.contextMenuRequestedForTrack(pressedItem.index ?? -1)
-                    return
+                for (let i = endIndex + 1; i < trackLayoutRepeater.count; i++) {
+                    if (!trackLayoutRepeater.itemAt(i).trackViewModel.selected)
+                        break
+                    trackLayoutRepeater.itemAt(i).trackViewModel.selected = false
                 }
-                let multipleSelect = Boolean(mouse.modifiers & Qt.ControlModifier)
-                let extendingSelect = Boolean(mouse.modifiers & Qt.ShiftModifier)
-                let previousSelected = typeof(pressedItem.index) === "number" && pressedItem.trackViewModel.selected
-                let previousSelectionCount = 0
-                if (!multipleSelect || typeof(pressedItem.index) !== "number") {
-                    for (let i = 0; i < trackList.trackListViewModel.count; i++) {
-                        let track = trackList.trackAt(i)
-                        if (track.selected) {
-                            track.selected = false
-                            previousSelectionCount++
-                        }
-                    }
-                }
-                if (typeof(pressedItem.index) === "number") {
-                    if (extendingSelect) {
-                        for (let i = trackList.trackListViewModel.currentIndex; i <= pressedItem.index; i++) {
-                            trackList.trackAt(i).selected = true
-                        }
-                    } else {
-                        trackList.trackListViewModel.currentIndex = pressedItem.index
-                        pressedItem.trackViewModel.selected = previousSelectionCount > 1 || !previousSelected
-                    }
-                }
-            }
-
-            onDoubleClicked: function (mouse) {
-                if (!pressedItem)
-                    return
-                trackList.trackDoubleClicked(pressedItem.index ?? -1)
             }
         }
-
     }
 
     MiddleButtonMoveHandler {

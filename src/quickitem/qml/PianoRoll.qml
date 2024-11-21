@@ -8,9 +8,13 @@ import dev.sjimo.ScopicFlow.Palettes as ScopicFlowPalette
 
 ScopicFlowInternal.PianoRoll {
     id: pianoRoll
+
+    property double topMargin: 0
+    property double bottomMargin: 0
+
     property QtObject defaultPalette: ScopicFlowPalette.PianoRoll {}
     property QtObject palette: paletteViewModel?.palette?.pianoRoll ?? defaultPalette
-    property double keyHeight: clavierViewModel?.pixelDensity ?? 24
+    readonly property double keyHeight: clavierViewModel?.pixelDensity ?? 24
 
     clip: true
 
@@ -29,6 +33,8 @@ ScopicFlowInternal.PianoRoll {
     ClavierManipulator {
         id: clavierManipulator
         anchors.fill: parent
+        anchors.topMargin: pianoRoll.topMargin
+        startOffset: -pianoRoll.bottomMargin
         clavierViewModel: pianoRoll.clavierViewModel
         animationViewModel: pianoRoll.animationViewModel
     }
@@ -38,12 +44,17 @@ ScopicFlowInternal.PianoRoll {
 
         clip: true
 
+        Rectangle {
+            anchors.fill: parent
+            color: pianoRoll.palette.blackKeyBackgroundColor
+        }
+
         Item {
             id: backgroundViewport
             anchors.left: parent.left
             anchors.right: parent.right
             height: 128 * pianoRoll.keyHeight
-            y: pianoRoll.clavierViewModel ? Math.min(0, pianoRoll.height - (128 - pianoRoll.clavierViewModel.start) * pianoRoll.clavierViewModel.pixelDensity) : 0
+            y: pianoRoll.clavierViewModel ? Math.min(pianoRoll.topMargin, pianoRoll.height - (128 - pianoRoll.clavierViewModel.start) * pianoRoll.clavierViewModel.pixelDensity) : 0
 
             Repeater {
                 id: keyRepeater
@@ -135,19 +146,20 @@ ScopicFlowInternal.PianoRoll {
     StyledScrollBar {
         id: verticalSlider
         anchors.top: parent.top
+        anchors.topMargin: pianoRoll.topMargin
         anchors.bottom: parent.bottom
-        anchors.bottomMargin: 6
+        anchors.bottomMargin: 6 + pianoRoll.bottomMargin
         anchors.right: parent.right
         orientation: Qt.Vertical
         normalColor: pianoRoll.palette.scrollBarNormalColor
         pressedColor: pianoRoll.palette.scrollBarPressedColor
         hoveredColor: pianoRoll.palette.scrollBarHoveredColor
         animationViewModel: pianoRoll.animationViewModel
-        size: pianoRoll.height / backgroundViewport.height
-        position: 1 - (pianoRoll.clavierViewModel?.start ?? 0) / 128 - size
+        size: (pianoRoll.height - pianoRoll.bottomMargin - pianoRoll.topMargin) / (backgroundViewport.height)
+        position: 1 - ((pianoRoll.clavierViewModel?.start ?? 0) + pianoRoll.bottomMargin / pianoRoll.clavierViewModel.pixelDensity) / 128 - size
         onPositionChanged: {
-            if (pianoRoll.clavierViewModel && Math.abs(pianoRoll.clavierViewModel.start - (1 - (position + size)) * 128) > Number.EPSILON * 100)
-                pianoRoll.clavierViewModel.start = (1 - (position + size)) * 128
+            if (pianoRoll.clavierViewModel && Math.abs(pianoRoll.clavierViewModel.start + pianoRoll.bottomMargin / pianoRoll.clavierViewModel.pixelDensity - (1 - (position + size)) * 128) > Number.EPSILON * 100)
+                pianoRoll.clavierViewModel.start = -pianoRoll.bottomMargin / pianoRoll.clavierViewModel.pixelDensity + (1 - (position + size)) * 128
         }
     }
 
@@ -157,6 +169,7 @@ ScopicFlowInternal.PianoRoll {
         anchors.right: parent.right
         anchors.rightMargin: 6
         anchors.bottom: parent.bottom
+        anchors.bottomMargin: pianoRoll.bottomMargin
         orientation: Qt.Horizontal
         normalColor: pianoRoll.palette.scrollBarNormalColor
         pressedColor: pianoRoll.palette.scrollBarPressedColor

@@ -12,6 +12,8 @@ Pane {
     property QtObject scrollBehaviorViewModel: null
     property QtObject animationViewModel: null
     property QtObject paletteViewModel: null
+    property double topMargin: 0
+    property double bottomMargin: 0
 
     padding: 0
     focusPolicy: Qt.StrongFocus
@@ -25,5 +27,7 @@ Pane {
         scrollBehaviorViewModel: control.scrollBehaviorViewModel
         animationViewModel: control.animationViewModel
         paletteViewModel: control.paletteViewModel
+        topMargin: control.topMargin
+        bottomMargin: control.bottomMargin
     }
 }

@@ -8,6 +8,9 @@ import "."
 ScopicFlowInternal.Clavier {
     id: clavier
 
+    property double topMargin: 0
+    property double bottomMargin: 0
+
     readonly property QtObject defaultPalette: ScopicFlowPalette.Clavier {}
     readonly property QtObject palette: paletteViewModel?.palette?.clavier ?? defaultPalette
 
@@ -48,8 +51,15 @@ ScopicFlowInternal.Clavier {
     ClavierManipulator {
         id: clavierManipulator
         anchors.fill: parent
+        anchors.topMargin: clavier.topMargin
+        startOffset: -clavier.bottomMargin
         clavierViewModel: clavier.clavierViewModel
         animationViewModel: clavier.animationViewModel
+    }
+
+    Rectangle {
+        anchors.fill: parent
+        color: clavier.palette.borderColor
     }
 
     Item {
@@ -57,7 +67,7 @@ ScopicFlowInternal.Clavier {
         anchors.left: parent.left
         anchors.right: parent.right
         height: 128 * clavier.keyHeight
-        y: clavier.clavierViewModel ? Math.min(0, clavier.height - (128 - clavier.clavierViewModel.start) * clavier.clavierViewModel.pixelDensity) : 0
+        y: clavier.clavierViewModel ? Math.min(clavier.topMargin, clavier.height - (128 - clavier.clavierViewModel.start) * clavier.clavierViewModel.pixelDensity) : clavier.topMargin
 
         Repeater {
             id: keyRepeater

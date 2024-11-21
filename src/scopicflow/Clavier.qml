@@ -16,6 +16,8 @@ Pane {
     property QtObject animationViewModel: null
     property QtObject paletteViewModel: null
     property int labelStrategy: Clavier.LabelStrategy.C
+    property double topMargin: 0
+    property double bottomMargin: 0
 
     padding: 0
     focusPolicy: Qt.StrongFocus
@@ -37,6 +39,8 @@ Pane {
         animationViewModel: control.animationViewModel
         paletteViewModel: control.paletteViewModel
         labelStrategy: control.labelStrategy
+        topMargin: control.topMargin
+        bottomMargin: control.bottomMargin
 
         onNotePressed: key => control.notePressed(key)
         onNoteReleased: key => control.noteReleased(key)

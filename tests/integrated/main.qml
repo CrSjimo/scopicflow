@@ -75,6 +75,22 @@ Item {
         GridLayout {
             columnSpacing: 0
             rowSpacing: 0
+
+            Clavier {
+                Layout.row: 0
+                Layout.rowSpan: 3
+                Layout.column: 0
+                Layout.minimumWidth: 96
+                Layout.fillHeight: true
+
+                clavierViewModel: main.clavierViewModel
+                scrollBehaviorViewModel: main.scrollBehaviorViewModel
+                animationViewModel: main.animationViewModel
+                paletteViewModel: main.paletteViewModel
+                topMargin: pianoRollSplitView.y - timeline.y
+                bottomMargin: 256
+            }
+
             Timeline {
                 id: timeline
                 Layout.row: 0
@@ -84,18 +100,6 @@ Item {
 
                 timeAlignmentViewModel: main.timeAlignmentViewModel
                 playbackViewModel: main.playbackViewModel
-                scrollBehaviorViewModel: main.scrollBehaviorViewModel
-                animationViewModel: main.animationViewModel
-                paletteViewModel: main.paletteViewModel
-            }
-
-            Clavier {
-                Layout.row: 2
-                Layout.column: 0
-                Layout.minimumWidth: 96
-                Layout.fillHeight: true
-
-                clavierViewModel: main.clavierViewModel
                 scrollBehaviorViewModel: main.scrollBehaviorViewModel
                 animationViewModel: main.animationViewModel
                 paletteViewModel: main.paletteViewModel
@@ -115,18 +119,33 @@ Item {
                 paletteViewModel: main.paletteViewModel
             }
 
-            PianoRoll {
+            SplitView {
+                id: pianoRollSplitView
+                orientation: Qt.Vertical
                 Layout.row: 2
                 Layout.column: 1
                 Layout.fillWidth: true
                 Layout.fillHeight: true
-
-                timeAlignmentViewModel: main.timeAlignmentViewModel
-                playbackViewModel: main.playbackViewModel
-                clavierViewModel: main.clavierViewModel
-                scrollBehaviorViewModel: main.scrollBehaviorViewModel
-                animationViewModel: main.animationViewModel
-                paletteViewModel: main.paletteViewModel
+                Item {
+                    PianoRoll {
+                        id: pianoRoll
+                        anchors.top: parent.top
+                        anchors.left: parent.left
+                        anchors.right: parent.right
+                        height: pianoRollSplitView.height
+                        timeAlignmentViewModel: main.timeAlignmentViewModel
+                        playbackViewModel: main.playbackViewModel
+                        clavierViewModel: main.clavierViewModel
+                        scrollBehaviorViewModel: main.scrollBehaviorViewModel
+                        animationViewModel: main.animationViewModel
+                        paletteViewModel: main.paletteViewModel
+                        bottomMargin: height - parent.height
+                    }
+                }
+                Rectangle {
+                    color: "red"
+                    opacity: 0.5
+                }
             }
         }
     }

@@ -8,6 +8,30 @@ import "."
 ScopicFlowInternal.Clavier {
     id: clavier
 
+    property QtObject clavierViewModel: null
+    property QtObject scrollBehaviorViewModel: null
+    property QtObject animationViewModel: null
+    property QtObject paletteViewModel: null
+    enum LabelStrategy {
+        None,
+        C,
+        All
+    }
+    property int labelStrategy: ScopicFlowInternal.Clavier.LabelStrategy.C
+
+    readonly property double keyHeight: animationViewModel?.pixelDensity ?? 24
+    readonly property double viewportY: clavierViewModel ? height - (128 - clavierViewModel.start) * clavierViewModel.pixelDensity : 0
+    readonly property int cursorNoteIndex: clavierViewModel?.cursorPosition ?? -1
+
+    function mapToKey(y) {
+        return 127 - Math.floor((y - viewportY) / keyHeight);
+    }
+
+    signal notePressed(key: int)
+    signal noteReleased(key: int)
+    signal noteDoubleClicked(key: int)
+    signal contextMenuRequestedForNote(key: int)
+
     property double topMargin: 0
     property double bottomMargin: 0
 
@@ -34,12 +58,12 @@ ScopicFlowInternal.Clavier {
 
     property int lastNoteIndex: -1
 
-    onCursorNoteIndexChanged: function (index) {
+    onCursorNoteIndexChanged: {
         if (lastNoteIndex >= 0)
             keyRepeater.itemAt(lastNoteIndex).isLabelVisible = false
-        if (index >= 0)
-            keyRepeater.itemAt(index).isLeftLabelVisible = true
-        lastNoteIndex = index
+        if (cursorNoteIndex >= 0)
+            keyRepeater.itemAt(cursorNoteIndex).isLeftLabelVisible = true
+        lastNoteIndex = cursorNoteIndex
     }
 
     onHeightChanged: {
@@ -74,7 +98,7 @@ ScopicFlowInternal.Clavier {
             model: 128
             Rectangle {
                 required property int index
-                readonly property string keyName: clavier.dummyKeyName + clavier.keyName(index)
+                readonly property string keyName: clavier.keyNameImpl(index, clavier.clavierViewModel?.accidentalType ?? 0)
                 readonly property bool isBlackKey: clavier.isBlackKey(index)
                 readonly property double textYOffset: (clavier.keyYFactor[index % 12] - index % 12 - 0.5) * clavier.keyHeight
                 property bool isLeftLabelVisible: false

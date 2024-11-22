@@ -131,8 +131,10 @@ ScopicFlowInternal.LabelSequence {
             onPositionChanged: function (mouse) {
                 rejectClick = true
                 rubberBand.visible = true
+                let multipleSelect = Boolean(mouse.modifiers & Qt.ControlModifier)
                 if (nextIndex === -1 && labelRepeater.count) {
-                    labelSequence.deselectAll()
+                    if (!multipleSelect)
+                        labelSequence.deselectAll()
                     labelSequence.modelChanged()
                     for (let i = 0; i < labelRepeater.count; i++) {
                         let item = labelRepeater.itemAt(i)
@@ -261,15 +263,13 @@ ScopicFlowInternal.LabelSequence {
                         pressedDeltaX = mouse.x
                     }
                     onClicked: function (mouse) {
-                        if (mouse.button === Qt.LeftButton) {
-                            if (rejectClick)
-                                return
+                        if (mouse.button === Qt.LeftButton && !rejectClick || !labelRect.labelViewModel.selected) {
                             let multipleSelect = Boolean(mouse.modifiers & Qt.ControlModifier)
                             let extendingSelect = Boolean(mouse.modifiers & Qt.ShiftModifier)
                             labelRect.selectItem(multipleSelect, extendingSelect)
-                        } else {
-                            labelSequence.contextMenuRequestedForLabel(labelRect.labelViewModel)
                         }
+                        if (mouse.button === Qt.RightButton)
+                            labelSequence.contextMenuRequestedForLabel(labelRect.labelViewModel)
                     }
                     onDoubleClicked: function (mouse) {
                         if (mouse.button !== Qt.LeftButton)

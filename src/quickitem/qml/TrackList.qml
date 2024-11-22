@@ -64,14 +64,17 @@ ScopicFlowInternal.TrackList {
                     }
                 }
             }
-            function handlePositionChanged(x, y) {
+            function handlePositionChanged(x, y, modifiers) {
                 rubberBand.toX = x
                 rubberBand.toY = y
                 if (!rubberBand.visible) {
-                    for (let i = 0; i < trackList.trackListViewModel.count; i++) {
-                        let track = trackList.trackAt(i)
-                        if (track.selected) {
-                            track.selected = false
+                    let multipleSelect = Boolean(modifiers & Qt.ControlModifier)
+                    if (!multipleSelect) {
+                        for (let i = 0; i < trackList.trackListViewModel.count; i++) {
+                            let track = trackList.trackAt(i)
+                            if (track.selected) {
+                                track.selected = false
+                            }
                         }
                     }
                     rubberBand.fromX = x
@@ -83,6 +86,7 @@ ScopicFlowInternal.TrackList {
             DragScroller {
                 id: dragScroller
                 property point viewportPoint: Qt.point(0, 0)
+                property int modifiers: 0
                 onMoved: function (_, deltaY) {
                     if (!trackList.trackListViewModel)
                         return
@@ -92,13 +96,14 @@ ScopicFlowInternal.TrackList {
                     }
                     trackList.trackListViewModel.viewportOffset = newViewportOffset
                     let point = parent.mapFromItem(trackList, viewportPoint)
-                    parent.handlePositionChanged(point.x, point.y)
+                    parent.handlePositionChanged(point.x, point.y, modifiers)
                 }
             }
             onPositionChanged: function (mouse) {
                 rejectClick = true
                 let viewportPoint = mapToItem(trackList, mouse.x, mouse.y)
                 dragScroller.viewportPoint = viewportPoint
+                dragScroller.modifiers = mouse.modifiers
                 if (viewportPoint.y < 0) {
                     dragScroller.distanceY = viewportPoint.y
                     dragScroller.running = true
@@ -110,7 +115,7 @@ ScopicFlowInternal.TrackList {
                 } else {
                     dragScroller.running = false
                 }
-                handlePositionChanged(mouse.x, mouse.y)
+                handlePositionChanged(mouse.x, mouse.y, mouse.modifiers)
             }
             onReleased: {
                 rubberBand.visible = false
@@ -184,7 +189,7 @@ ScopicFlowInternal.TrackList {
                         function handlePositionChanged(x, y, modifiers) {
                             let point = mapToItem(trackLayout, x, y)
                             let index = trackLayout.indexAt(point)
-                            if ((modifiers & Qt.ControlModifier) || rubberBand.visible) {
+                            if ((modifiers & Qt.AltModifier) || rubberBand.visible) {
                                 if (lastIndicatorIndex !== -1) {
                                     let handle = (lastIndicatorIndex ? trackHandlesRepeater.itemAt(lastIndicatorIndex - 1) : topTrackHandle)
                                     handle.indicatesTarget = false
@@ -192,10 +197,13 @@ ScopicFlowInternal.TrackList {
                                 rubberBand.toX = point.x
                                 rubberBand.toY = point.y
                                 if (!rubberBand.visible) {
-                                    for (let i = 0; i < trackList.trackListViewModel.count; i++) {
-                                        let track = trackList.trackAt(i)
-                                        if (track.selected) {
-                                            track.selected = false
+                                    let multipleSelect = Boolean(modifiers & Qt.ControlModifier)
+                                    if (!multipleSelect) {
+                                        for (let i = 0; i < trackList.trackListViewModel.count; i++) {
+                                            let track = trackList.trackAt(i)
+                                            if (track.selected) {
+                                                track.selected = false
+                                            }
                                         }
                                     }
                                     rubberBand.fromX = point.x
@@ -239,7 +247,7 @@ ScopicFlowInternal.TrackList {
                         property int lastIndicatorIndex: -1
                         onPositionChanged: function (mouse) {
                             rejectClick = true
-                            if (!(mouse.modifiers & Qt.ControlModifier) && !rubberBand.visible)
+                            if (!(mouse.modifiers & Qt.AltModifier) && !rubberBand.visible)
                                 cursorShape = Qt.ClosedHandCursor
                             let viewportPoint = mapToItem(trackList, mouse.x, mouse.y)
                             dragScroller.viewportPoint = viewportPoint
@@ -279,16 +287,11 @@ ScopicFlowInternal.TrackList {
                         onClicked: function (mouse) {
                             if (rejectClick)
                                 return
-                            if (mouse.button & Qt.RightButton) {
-                                trackList.trackListViewModel.currentIndex = trackListDelegate.index
-                                trackList.contextMenuRequestedForTrack(trackListDelegate.index ?? -1)
-                                return
-                            }
                             let multipleSelect = Boolean(mouse.modifiers & Qt.ControlModifier)
                             let extendingSelect = Boolean(mouse.modifiers & Qt.ShiftModifier)
                             let previousSelected = trackListDelegate.trackViewModel.selected
                             let previousSelectionCount = 0
-                            if (!multipleSelect) {
+                            if (!multipleSelect && (mouse.button !== Qt.RightButton || !trackListDelegate.trackViewModel.selected)) {
                                 for (let i = 0; i < trackList.trackListViewModel.count; i++) {
                                     let track = trackList.trackAt(i)
                                     if (track.selected) {
@@ -303,7 +306,10 @@ ScopicFlowInternal.TrackList {
                                 }
                             } else {
                                 trackList.trackListViewModel.currentIndex = trackListDelegate.index
-                                trackListDelegate.trackViewModel.selected = previousSelectionCount > 1 || !previousSelected
+                                trackListDelegate.trackViewModel.selected = previousSelectionCount > 1 || !previousSelected || mouse.button === Qt.RightButton
+                            }
+                            if (mouse.button & Qt.RightButton) {
+                                trackList.contextMenuRequestedForTrack(trackListDelegate.index ?? -1)
                             }
                         }
 

@@ -9,11 +9,53 @@ import dev.sjimo.ScopicFlow.Palettes as ScopicFlowPalette
 ScopicFlowInternal.LabelSequence {
     id: labelSequence
 
+    property QtObject timeAlignmentViewModel: null
+    property QtObject playbackViewModel: null
+    property QtObject scrollBehaviorViewModel: null
+    property QtObject animationViewModel: null
+    property QtObject paletteViewModel: null
+
+    function moveSelectionTo(position, viewModel) {
+        if (position != viewModel.position) {
+            let deltaPosition = position - viewModel.position
+            for (let label of selection) {
+                if (label.position + deltaPosition < 0)
+                    return
+                if (label.position + deltaPosition > timeAlignmentViewModel.end)
+                    timeAlignmentViewModel.end = label.position + deltaPosition
+            }
+            for (let label of selection) {
+                label.position = label.position + deltaPosition
+            }
+        }
+    }
+    function moveSelectedLabelsTo(x, viewModel) {
+        moveSelectionTo(locator.alignTick(locator.mapToTick(x)), viewModel)
+    }
+    function moveSelectedLabelOnDragScrolling(isBackward, viewModel) {
+        let x = isBackward ? 0 : width
+        let alignedTick
+        if (isBackward) {
+            alignedTick = locator.alignTickCeil(locator.mapToTick(x))
+        } else {
+            alignedTick = locator.alignTickFloor(locator.mapToTick(x))
+        }
+        moveSelectionTo(alignedTick, viewModel)
+    }
+
+    signal contextMenuRequested(tick: int);
+    signal contextMenuRequestedForLabel(label: QtObject);
+
     readonly property QtObject defaultPalette: ScopicFlowPalette.LabelSequence {}
 
     readonly property QtObject palette: paletteViewModel?.palette?.labelSequence ?? defaultPalette
 
     clip: true
+
+    TimeAlignmentPositionLocator {
+        id: locator
+        timeAlignmentViewModel: labelSequence.timeAlignmentViewModel
+    }
 
     TimeManipulator {
         id: timeManipulator
@@ -120,7 +162,7 @@ ScopicFlowInternal.LabelSequence {
             onDoubleClicked: function (mouse) {
                 if (mouse.button !== Qt.LeftButton)
                     return
-                let label = labelSequence.insertLabelTo(mouse.x, "")
+                let label = labelSequence.insertLabelTo(locator.alignTick(locator.mapToTick(mouse.x)) + labelSequence.timeAlignmentViewModel?.start ?? 0, "")
                 if (!labelRepeater.itemDict.has(label))
                     return
                 let item = labelRepeater.itemAt(labelRepeater.itemDict.get(label))

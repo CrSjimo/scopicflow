@@ -34,19 +34,9 @@ namespace sflow {
 
         TimeAlignmentViewModel *timeAlignmentViewModel = nullptr;
         SVS::MusicTimeline *timeline = nullptr;
-        PlaybackViewModel *playbackViewModel = nullptr;
-        ScrollBehaviorViewModel *scrollBehaviorViewModel = nullptr;
-        AnimationViewModel *animationViewModel = nullptr;
-        PaletteViewModel *paletteViewModel = nullptr;
 
         QColor backgroundColor;
         QColor foregroundColor;
-
-        double tickToX(int tick) const;
-        int xToTick(double x) const;
-        int alignTick(int tick) const;
-        int alignTickCeil(int tick) const;
-        int alignTickFloor(int tick) const;
     };
 }
 

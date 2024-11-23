@@ -16,9 +16,6 @@ namespace sflow {
         Q_OBJECT
         Q_DECLARE_PRIVATE(TrackListQuickItem)
         Q_PROPERTY(TrackListViewModel *trackListViewModel READ trackListViewModel WRITE setTrackListViewModel NOTIFY trackListViewModelChanged)
-        Q_PROPERTY(ScrollBehaviorViewModel *scrollBehaviorViewModel READ scrollBehaviorViewModel WRITE setScrollBehaviorViewModel NOTIFY scrollBehaviorViewModelChanged)
-        Q_PROPERTY(AnimationViewModel *animationViewModel READ animationViewModel WRITE setAnimationViewModel NOTIFY animationViewModelChanged)
-        Q_PROPERTY(PaletteViewModel *paletteViewModel READ paletteViewModel WRITE setPaletteViewModel NOTIFY paletteViewModelChanged)
     public:
         explicit TrackListQuickItem(QQuickItem *parent = nullptr);
         ~TrackListQuickItem() override;
@@ -26,28 +23,12 @@ namespace sflow {
         TrackListViewModel *trackListViewModel() const;
         void setTrackListViewModel(TrackListViewModel *trackListViewModel);
 
-        ScrollBehaviorViewModel *scrollBehaviorViewModel() const;
-        void setScrollBehaviorViewModel(ScrollBehaviorViewModel *scrollBehaviorViewModel);
-
-        AnimationViewModel *animationViewModel() const;
-        void setAnimationViewModel(AnimationViewModel *animationViewModel);
-
-        PaletteViewModel *paletteViewModel() const;
-        void setPaletteViewModel(PaletteViewModel *paletteViewModel);
-
         Q_INVOKABLE QObject *trackAt(int index) const;
-        Q_INVOKABLE double handlePositionAt(int index) const;
         Q_INVOKABLE void handleTrackMoved(int index, int target);
 
     signals:
         void trackListViewModelChanged(TrackListViewModel *trackListViewModel);
-        void scrollBehaviorViewModelChanged(ScrollBehaviorViewModel *scrollBehaviorViewModel);
-        void animationViewModelChanged(AnimationViewModel *animationViewModel);
-        void paletteViewModelChanged(PaletteViewModel *paletteViewModel);
         void layoutRequired();
-        void trackDoubleClicked(int index);
-        void contextMenuRequestedForTrack(int index);
-        void contextMenuRequestedForTrackDragging(int index, int target);
 
     private:
         QScopedPointer<TrackListQuickItemPrivate> d_ptr;

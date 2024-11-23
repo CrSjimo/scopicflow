@@ -12,61 +12,6 @@ namespace sflow {
         d->q_ptr = this;
     }
     LabelSequenceQuickItem::~LabelSequenceQuickItem() = default;
-    TimeAlignmentViewModel *LabelSequenceQuickItem::timeAlignmentViewModel() const {
-        Q_D(const LabelSequenceQuickItem);
-        return d->timeAlignmentViewModel;
-    }
-    void LabelSequenceQuickItem::setTimeAlignmentViewModel(TimeAlignmentViewModel *viewModel) {
-        Q_D(LabelSequenceQuickItem);
-        if (d->timeAlignmentViewModel == viewModel)
-            return;
-        d->timeAlignmentViewModel = viewModel;
-        emit timeAlignmentViewModelChanged(viewModel);
-    }
-    PlaybackViewModel *LabelSequenceQuickItem::playbackViewModel() const {
-        Q_D(const LabelSequenceQuickItem);
-        return d->playbackViewModel;
-    }
-    void LabelSequenceQuickItem::setPlaybackViewModel(PlaybackViewModel *viewModel) {
-        Q_D(LabelSequenceQuickItem);
-        if (d->playbackViewModel == viewModel)
-            return;
-        d->playbackViewModel = viewModel;
-        emit playbackViewModelChanged(viewModel);
-    }
-    ScrollBehaviorViewModel *LabelSequenceQuickItem::scrollBehaviorViewModel() const {
-        Q_D(const LabelSequenceQuickItem);
-        return d->scrollBehaviorViewModel;
-    }
-    void LabelSequenceQuickItem::setScrollBehaviorViewModel(ScrollBehaviorViewModel *viewModel) {
-        Q_D(LabelSequenceQuickItem);
-        if (d->scrollBehaviorViewModel == viewModel)
-            return;
-        d->scrollBehaviorViewModel = viewModel;
-        emit scrollBehaviorViewModelChanged(viewModel);
-    }
-    AnimationViewModel *LabelSequenceQuickItem::animationViewModel() const {
-        Q_D(const LabelSequenceQuickItem);
-        return d->animationViewModel;
-    }
-    void LabelSequenceQuickItem::setAnimationViewModel(AnimationViewModel *viewModel) {
-        Q_D(LabelSequenceQuickItem);
-        if (d->animationViewModel == viewModel)
-            return;
-        d->animationViewModel = viewModel;
-        emit animationViewModelChanged(viewModel);
-    }
-    PaletteViewModel *LabelSequenceQuickItem::paletteViewModel() const {
-        Q_D(const LabelSequenceQuickItem);
-        return d->paletteViewModel;
-    }
-    void LabelSequenceQuickItem::setPaletteViewModel(PaletteViewModel *viewModel) {
-        Q_D(LabelSequenceQuickItem);
-        if (d->paletteViewModel == viewModel)
-            return;
-        d->paletteViewModel = viewModel;
-        emit paletteViewModelChanged(viewModel);
-    }
     LabelSequenceViewModel *LabelSequenceQuickItem::labelSequenceViewModel() const {
         Q_D(const LabelSequenceQuickItem);
         return d->labelSequenceViewModel;
@@ -82,6 +27,7 @@ namespace sflow {
         if (viewModel) {
             connect(viewModel, &LabelSequenceViewModel::countChanged, this, &LabelSequenceQuickItem::modelChanged);
             connect(viewModel, &LabelSequenceViewModel::currentItemChanged, this, &LabelSequenceQuickItem::currentItemChanged);
+            connect(viewModel, &LabelSequenceViewModel::selectionChanged, this, &LabelSequenceQuickItem::selectionChanged);
         }
         emit modelChanged();
         emit currentItemChanged(viewModel ? viewModel->currentItem() : nullptr);
@@ -91,6 +37,12 @@ namespace sflow {
         if (!d->labelSequenceViewModel)
             return {};
         return d->labelSequenceViewModel->labels();
+    }
+    QList<LabelViewModel *> LabelSequenceQuickItem::selection() const {
+        Q_D(const LabelSequenceQuickItem);
+        if (!d->labelSequenceViewModel)
+            return {};
+        return d->labelSequenceViewModel->selection();
     }
     int LabelSequenceQuickItem::deselectAll() {
         Q_D(LabelSequenceQuickItem);
@@ -129,44 +81,6 @@ namespace sflow {
             }
         }
     }
-    void LabelSequenceQuickItemPrivate::moveSelectionTo(int position, LabelViewModel *viewModel) {
-        if (position  != viewModel->position()) {
-            int deltaPosition = position  - viewModel->position();
-            for (auto label : labelSequenceViewModel->selection()) {
-                if (label->position() + deltaPosition < 0)
-                    return;
-                if (label->position() + deltaPosition > timeAlignmentViewModel->end())
-                    timeAlignmentViewModel->setEnd(label->position() + deltaPosition);
-            }
-            for (auto label : labelSequenceViewModel->selection()) {
-                label->setPosition(label->position() + deltaPosition);
-            }
-        }
-    }
-    void LabelSequenceQuickItem::moveSelectedLabelsTo(double x, LabelViewModel *viewModel) {
-        Q_D(LabelSequenceQuickItem);
-        if (!d->timeAlignmentViewModel || !d->labelSequenceViewModel)
-            return;
-        auto deltaTick = x / d->timeAlignmentViewModel->pixelDensity();
-        int tick = static_cast<int>(std::round(d->timeAlignmentViewModel->start() + deltaTick));
-        int align = d->timeAlignmentViewModel->positionAlignment();
-        int alignedTick = (tick + align / 2) / align * align;
-        d->moveSelectionTo(alignedTick, viewModel);
-    }
-    void LabelSequenceQuickItem::moveSelectedLabelOnDragScrolling(bool isBackward, LabelViewModel *viewModel) {
-        Q_D(LabelSequenceQuickItem);
-        double x = isBackward ? 0 : width();
-        auto deltaTick = x / d->timeAlignmentViewModel->pixelDensity();
-        int tick = static_cast<int>(std::round(d->timeAlignmentViewModel->start() + deltaTick));
-        int align = d->timeAlignmentViewModel->positionAlignment();
-        int alignedTick;
-        if (isBackward) {
-            alignedTick = (tick + align - 1) / align * align;
-        } else {
-            alignedTick = tick / align * align;
-        }
-        d->moveSelectionTo(alignedTick, viewModel);
-    }
     LabelViewModel *LabelSequenceQuickItem::nextItem(LabelViewModel *viewModel) const {
         Q_D(const LabelSequenceQuickItem);
         return d->labelSequenceViewModel->nextItem(viewModel);
@@ -175,16 +89,12 @@ namespace sflow {
         Q_D(const LabelSequenceQuickItem);
         return d->labelSequenceViewModel->previousItem(viewModel);
     }
-    LabelViewModel *LabelSequenceQuickItem::insertLabelTo(double x, const QVariant &initialValue) {
+    LabelViewModel *LabelSequenceQuickItem::insertLabelTo(int position, const QVariant &initialValue) {
         Q_D(LabelSequenceQuickItem);
-        if (!d->timeAlignmentViewModel || !d->labelSequenceViewModel)
+        if (!d->labelSequenceViewModel)
             return nullptr;
-        auto deltaTick = x / d->timeAlignmentViewModel->pixelDensity();
-        int tick = static_cast<int>(std::round(deltaTick));
-        int align = d->timeAlignmentViewModel->positionAlignment();
-        int alignedTick = (tick + align / 2) / align * align;
         auto label = new LabelViewModel;
-        label->setPosition(alignedTick);
+        label->setPosition(position);
         label->setContent(initialValue);
         d->labelSequenceViewModel->insertLabels({label});
         d->labelSequenceViewModel->setCurrentItem(label);

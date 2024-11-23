@@ -8,6 +8,14 @@ import dev.sjimo.ScopicFlow.Palettes as ScopicFlowPalette
 ScopicFlowInternal.TrackList {
     id: trackList
 
+    property QtObject scrollBehaviorViewModel: null
+    property QtObject animationViewModel: null
+    property QtObject paletteViewModel: null
+
+    signal trackDoubleClicked(index: int);
+    signal contextMenuRequestedForTrack(index: int);
+    signal contextMenuRequestedForTrackDragging(index: int, target: int);
+
     property QtObject defaultPalette: ScopicFlowPalette.TrackList {}
     property QtObject palette: paletteViewModel?.palette?.trackList ?? defaultPalette
 

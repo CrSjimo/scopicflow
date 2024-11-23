@@ -9,15 +9,8 @@ namespace sflow {
     public:
         LabelSequenceQuickItem *q_ptr;
 
-        TimeAlignmentViewModel *timeAlignmentViewModel = nullptr;
-        PlaybackViewModel *playbackViewModel = nullptr;
-        ScrollBehaviorViewModel *scrollBehaviorViewModel = nullptr;
-        AnimationViewModel *animationViewModel = nullptr;
-        PaletteViewModel *paletteViewModel = nullptr;
-
         LabelSequenceViewModel *labelSequenceViewModel = nullptr;
 
-        void moveSelectionTo(int position, LabelViewModel *viewModel);
     };
 }
 

@@ -9,6 +9,7 @@ namespace sflow {
 
     class SCOPIC_FLOW_EXPORT TimeAlignmentViewModel : public TimeViewModel {
         Q_OBJECT
+        Q_PROPERTY(int positionAlignment READ positionAlignment WRITE setPositionAlignment NOTIFY positionAlignmentChanged)
     public:
         explicit TimeAlignmentViewModel(QObject *parent = nullptr);
         ~TimeAlignmentViewModel() override;

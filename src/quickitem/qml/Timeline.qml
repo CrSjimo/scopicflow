@@ -9,6 +9,66 @@ import "."
 ScopicFlowInternal.Timeline {
     id: timeline
 
+    property QtObject playbackViewModel: null
+    property QtObject scrollBehaviorViewModel: null
+    property QtObject animationViewModel: null
+    property QtObject paletteViewModel: null
+
+    readonly property double primaryIndicatorX: locator.mapToX(playbackViewModel?.primaryPosition ?? 0)
+    readonly property double secondaryIndicatorX: locator.mapToX(playbackViewModel?.secondaryPosition ?? 0)
+    readonly property double cursorIndicatorX: locator.mapToX(playbackViewModel?.cursorPosition ?? -1)
+
+    function setIndicatorPosition(x) {
+        if (!timeAlignmentViewModel || !playbackViewModel)
+            return
+        let tick = locator.alignTick(Math.max(0, locator.mapToTick(x)))
+        if (locator.mapToX(tick) < 0)
+            tick += timeAlignmentViewModel.positionAlignment
+        else if (locator.mapToX(tick) > width)
+            tick -= timeAlignmentViewModel.positionAlignment
+        playbackViewModel.primaryPosition = playbackViewModel.secondaryPosition = tick
+    }
+
+    function setZoomedRange(selectionX, selectionWidth) {
+        if (!timeAlignmentViewModel)
+            return
+        let start = locator.mapToTick(selectionX)
+        let end = locator.mapToTick(selectionX + selectionWidth)
+        if (end - start < timeAlignmentViewModel.positionAlignment)
+            return
+        timeAlignmentViewModel.start = start
+        timeAlignmentViewModel.pixelDensity = Math.max(timeAlignmentViewModel.minimumPixelDensity, Math.min(width / (end - start), timeAlignmentViewModel.maximumPixelDensity))
+    }
+
+    function moveViewOnDraggingPositionIndicator(deltaX) {
+        if (!timeAlignmentViewModel || !playbackViewModel)
+            return
+        let newStart = Math.max(0.0, timeAlignmentViewModel.start + deltaX / timeAlignmentViewModel.pixelDensity)
+        let newEnd = newStart + width / timeAlignmentViewModel.pixelDensity
+        timeAlignmentViewModel.start = newStart
+        timeAlignmentViewModel.end = Math.max(timeAlignmentViewModel.end, newEnd)
+        if (deltaX < 0) {
+            let tick = locator.alignTickCeil(Math.max(0, locator.mapToTick(0)))
+            playbackViewModel.primaryPosition = playbackViewModel.secondaryPosition = tick
+        } else {
+            let tick = locator.alignTickFloor(Math.max(0, locator.mapToTick(width)))
+            playbackViewModel.primaryPosition = playbackViewModel.secondaryPosition = tick
+        }
+    }
+
+    function mapToTick(x) {
+        return locator.mapToTick(x)
+    }
+
+    function mapToX(tick) {
+        return locator.mapToX(tick)
+    }
+
+    signal positionIndicatorDoubleClicked()
+    signal timelineDoubleClicked(tick: int)
+    signal contextMenuRequestedForTimeline(tick: int)
+    signal contextMenuRequestedForPositionIndicator()
+
     readonly property QtObject defaultPalette: ScopicFlowPalette.Timeline {
 
     }
@@ -18,6 +78,11 @@ ScopicFlowInternal.Timeline {
     backgroundColor: palette.backgroundColor
     foregroundColor: palette.foregroundColor
     clip: true
+
+    TimeAlignmentPositionLocator {
+        id: locator
+        timeAlignmentViewModel: timeline.timeAlignmentViewModel
+    }
 
     TimeManipulator {
         id: timeManipulator
@@ -98,10 +163,10 @@ ScopicFlowInternal.Timeline {
             }
         }
 
-        property bool rejectContextMenu: false;
+        property bool rejectContextMenu: false
 
         onPressed: function (mouse) {
-            rejectContextMenu = false;
+            rejectContextMenu = false
         }
         Timer {
             id: clickTimer
@@ -111,7 +176,7 @@ ScopicFlowInternal.Timeline {
             property double y: 0
             onTriggered: {
                 if (button === Qt.LeftButton) {
-                    timeline.primaryIndicatorX = x
+                    timeline.setIndicatorPosition(x)
                 } else if (button === Qt.RightButton && !parent.rejectContextMenu) {
                     if (primaryIndicator.contains(mapToItem(primaryIndicator, x, y))) {
                         timeline.contextMenuRequestedForPositionIndicator()
@@ -147,12 +212,12 @@ ScopicFlowInternal.Timeline {
                     dragScroller.distanceX = mouse.x - timeline.width
                     dragScroller.running = true
                 } else {
-                    timeline.primaryIndicatorX = mouse.x
+                    timeline.setIndicatorPosition(mouse.x)
                     dragScroller.running = false
                 }
 
             } else if (pressedButtons & Qt.RightButton) {
-                let alignedX = Math.min(Math.max(0, timeline.getAlignedX(mouse.x)), timeline.width)
+                let alignedX = Math.min(Math.max(0, locator.alignedX(mouse.x)), timeline.width)
                 if (!selectionRect.visible) {
                     cursorShape = Qt.OpenHandCursor
                     selectionRect.visible = true

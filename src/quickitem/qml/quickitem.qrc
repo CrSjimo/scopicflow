@@ -21,5 +21,6 @@
         <file>StyledScrollBar.qml</file>
         <file>PositionIndicators.qml</file>
         <file>DragScroller.qml</file>
+        <file>TimeAlignmentPositionLocator.qml</file>
     </qresource>
 </RCC>

@@ -103,36 +103,6 @@ namespace sflow {
         timeSignatureTextNodes.insert(k, textNode);
         return textNode;
     }
-    double TimelineQuickItemPrivate::tickToX(int tick) const {
-        if (!timeAlignmentViewModel)
-            return 0;
-        auto deltaTick = tick - timeAlignmentViewModel->start();
-        return deltaTick * timeAlignmentViewModel->pixelDensity();
-    }
-    int TimelineQuickItemPrivate::xToTick(double x) const {
-        if (!timeAlignmentViewModel)
-            return 0;
-        auto deltaTick = x / timeAlignmentViewModel->pixelDensity();
-        return static_cast<int>(std::round(timeAlignmentViewModel->start() + deltaTick));
-    }
-    int TimelineQuickItemPrivate::alignTick(int tick) const {
-        if (!timeAlignmentViewModel)
-            return tick;
-        int align = timeAlignmentViewModel->positionAlignment();
-        return (tick + align / 2) / align * align;
-    }
-    int TimelineQuickItemPrivate::alignTickCeil(int tick) const {
-        if (!timeAlignmentViewModel)
-            return tick;
-        int align = timeAlignmentViewModel->positionAlignment();
-        return (tick + align - 1) / align * align;
-    }
-    int TimelineQuickItemPrivate::alignTickFloor(int tick) const {
-        if (!timeAlignmentViewModel)
-            return tick;
-        int align = timeAlignmentViewModel->positionAlignment();
-        return (tick) / align * align;
-    }
 
     TimelineQuickItem::TimelineQuickItem(QQuickItem *parent) : QQuickItem(parent), d_ptr(new TimelineQuickItemPrivate) {
         Q_D(TimelineQuickItem);
@@ -161,18 +131,8 @@ namespace sflow {
         d->timeline = nullptr;
         if (d->timeAlignmentViewModel) {
             d->timeline = d->timeAlignmentViewModel->timeline();
-            connect(d->timeAlignmentViewModel, &TimeViewModel::startChanged, this, [=] {
-                emit primaryIndicatorXChanged(primaryIndicatorX());
-                emit secondaryIndicatorXChanged(secondaryIndicatorX());
-                emit cursorIndicatorXChanged(cursorIndicatorX());
-                update();
-            });
-            connect(d->timeAlignmentViewModel, &TimeViewModel::pixelDensityChanged, this, [=] {
-                emit primaryIndicatorXChanged(primaryIndicatorX());
-                emit secondaryIndicatorXChanged(secondaryIndicatorX());
-                emit cursorIndicatorXChanged(cursorIndicatorX());
-                update();
-            });
+            connect(d->timeAlignmentViewModel, &TimeViewModel::startChanged, this, &QQuickItem::update);
+            connect(d->timeAlignmentViewModel, &TimeViewModel::pixelDensityChanged, this, &QQuickItem::update);
             connect(d->timeAlignmentViewModel, &TimeViewModel::timelineChanged, this, [=] {
                 if (d->timeline) {
                    disconnect(d->timeline, nullptr, this, nullptr);
@@ -182,98 +142,12 @@ namespace sflow {
                     connect(d->timeline, &SVS::MusicTimeline::changed, this, &QQuickItem::update);
                 }
             });
-            connect(d->timeAlignmentViewModel, &TimeViewModel::cursorPositionChanged, this, [=](int tick) { emit cursorIndicatorXChanged(d->tickToX(tick)); });
             if (d->timeline) {
                 connect(d->timeline, &SVS::MusicTimeline::changed, this, &QQuickItem::update);
             }
         }
         emit timeAlignmentViewModelChanged();
-        emit cursorIndicatorXChanged(cursorIndicatorX());
         update();
-    }
-    PlaybackViewModel *TimelineQuickItem::playbackViewModel() const {
-        Q_D(const TimelineQuickItem);
-        return d->playbackViewModel;
-    }
-    void TimelineQuickItem::setPlaybackViewModel(PlaybackViewModel *playbackViewModel) {
-        Q_D(TimelineQuickItem);
-        if (d->playbackViewModel == playbackViewModel)
-            return;
-        if (d->playbackViewModel) {
-            disconnect(d->playbackViewModel, nullptr, this, nullptr);
-        }
-        d->playbackViewModel = playbackViewModel;
-        if (d->playbackViewModel) {
-            connect(d->playbackViewModel, &PlaybackViewModel::primaryPositionChanged, this, [=](int tick) { emit primaryIndicatorXChanged(d->tickToX(tick)); });
-            connect(d->playbackViewModel, &PlaybackViewModel::secondaryPositionChanged, this, [=](int tick) { emit secondaryIndicatorXChanged(d->tickToX(tick)); });
-        }
-        emit primaryIndicatorXChanged(primaryIndicatorX());
-        emit secondaryIndicatorXChanged(secondaryIndicatorX());
-        emit playbackViewModelChanged(playbackViewModel);
-    }
-    ScrollBehaviorViewModel *TimelineQuickItem::scrollBehaviorViewModel() const {
-        Q_D(const TimelineQuickItem);
-        return d->scrollBehaviorViewModel;
-    }
-    void TimelineQuickItem::setScrollBehaviorViewModel(ScrollBehaviorViewModel *scrollBehaviorViewModel) {
-        Q_D(TimelineQuickItem);
-        if (d->scrollBehaviorViewModel != scrollBehaviorViewModel) {
-            d->scrollBehaviorViewModel = scrollBehaviorViewModel;
-            emit scrollBehaviorViewModelChanged(scrollBehaviorViewModel);
-        }
-    }
-    AnimationViewModel *TimelineQuickItem::animationViewModel() const {
-        Q_D(const TimelineQuickItem);
-        return d->animationViewModel;
-    }
-    void TimelineQuickItem::setAnimationViewModel(AnimationViewModel *animationViewModel) {
-        Q_D(TimelineQuickItem);
-        if (d->animationViewModel == animationViewModel)
-            return;
-        d->animationViewModel = animationViewModel;
-        emit animationViewModelChanged(animationViewModel);
-    }
-    PaletteViewModel *TimelineQuickItem::paletteViewModel() const {
-        Q_D(const TimelineQuickItem);
-        return d->paletteViewModel;
-    }
-    void TimelineQuickItem::setPaletteViewModel(PaletteViewModel *paletteViewModel) {
-        Q_D(TimelineQuickItem);
-        if (d->paletteViewModel == paletteViewModel)
-            return;
-        d->paletteViewModel = paletteViewModel;
-        emit paletteViewModelChanged(paletteViewModel);
-        
-    }
-    double TimelineQuickItem::primaryIndicatorX() const {
-        Q_D(const TimelineQuickItem);
-        if (!d->playbackViewModel)
-            return 0;
-        return d->tickToX(d->playbackViewModel->primaryPosition());
-    }
-    void TimelineQuickItem::setPrimaryIndicatorX(double primaryIndicatorX) {
-        Q_D(TimelineQuickItem);
-        if (!d->timeAlignmentViewModel || !d->playbackViewModel)
-            return;
-        int tick = d->alignTick(std::max(0, d->xToTick(primaryIndicatorX)));
-        if (d->tickToX(tick) < 0)
-            tick += d->timeAlignmentViewModel->positionAlignment();
-        else if (d->tickToX(tick) > width())
-            tick -= d->timeAlignmentViewModel->positionAlignment();
-        d->playbackViewModel->setPrimaryPosition(tick);
-        d->playbackViewModel->setSecondaryPosition(tick);
-    }
-    double TimelineQuickItem::secondaryIndicatorX() const {
-        Q_D(const TimelineQuickItem);
-        if (!d->playbackViewModel)
-            return 0;
-        return d->tickToX(d->playbackViewModel->secondaryPosition());
-    }
-    double TimelineQuickItem::cursorIndicatorX() const {
-        Q_D(const TimelineQuickItem);
-        if (!d->timeAlignmentViewModel)
-            return -1;
-        return d->tickToX(d->timeAlignmentViewModel->cursorPosition());
     }
     QColor TimelineQuickItem::backgroundColor() const {
         Q_D(const TimelineQuickItem);
@@ -292,51 +166,6 @@ namespace sflow {
         Q_D(TimelineQuickItem);
         d->foregroundColor = foregroundColor;
         update();
-    }
-    int TimelineQuickItem::mapToTick(double x) const {
-        Q_D(const TimelineQuickItem);
-        return d->xToTick(x);
-    }
-    double TimelineQuickItem::mapToX(int tick) const {
-        Q_D(const TimelineQuickItem);
-        return d->tickToX(tick);
-    }
-    double TimelineQuickItem::getAlignedX(double x) const {
-        Q_D(const TimelineQuickItem);
-        return d->tickToX(d->alignTick(d->xToTick(x)));
-    }
-    void TimelineQuickItem::setZoomedRange(double selectionX, double selectionWidth) {
-        Q_D(TimelineQuickItem);
-        if (!d->timeAlignmentViewModel)
-            return;
-        int start = d->xToTick(selectionX);
-        int end = d->xToTick(selectionX + selectionWidth);
-        if (end - start < d->timeAlignmentViewModel->positionAlignment())
-            return;
-        d->timeAlignmentViewModel->setStart(start);
-        d->timeAlignmentViewModel->setPixelDensity(
-            qBound(d->timeAlignmentViewModel->minimumPixelDensity(), width() / (end - start),
-                   d->timeAlignmentViewModel->maximumPixelDensity()));
-    }
-    void TimelineQuickItem::moveViewOnDraggingPositionIndicator(double deltaX) {
-        Q_D(TimelineQuickItem);
-        if (!d->playbackViewModel)
-            return;
-        auto newStart = std::max(0.0, d->timeAlignmentViewModel->start() +
-                                          deltaX / d->timeAlignmentViewModel->pixelDensity());
-        auto newEnd = newStart + width() / d->timeAlignmentViewModel->pixelDensity();
-        if (newEnd > d->timeAlignmentViewModel->end())
-            d->timeAlignmentViewModel->setEnd(newEnd);
-        d->timeAlignmentViewModel->setStart(newStart);
-        if (deltaX < 0) {
-            int tick = d->alignTickCeil(std::max(0, d->xToTick(0)));
-            d->playbackViewModel->setPrimaryPosition(tick);
-            d->playbackViewModel->setSecondaryPosition(tick);
-        } else {
-            int tick = d->alignTickFloor(std::max(0, d->xToTick(width())));
-            d->playbackViewModel->setPrimaryPosition(tick);
-            d->playbackViewModel->setSecondaryPosition(tick);
-        }
     }
 
     static inline bool isOnScale(const SVS::PersistentMusicTime &time, int barScaleIntervalExp2, bool doDrawBeatScale) {

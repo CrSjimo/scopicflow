@@ -17,7 +17,7 @@ ScopicFlowInternal.Clavier {
         C,
         All
     }
-    property int labelStrategy: ScopicFlowInternal.Clavier.LabelStrategy.C
+    property int labelStrategy: Clavier.LabelStrategy.C
 
     readonly property double keyHeight: animationViewModel?.pixelDensity ?? 24
     readonly property double viewportY: clavierViewModel ? height - (128 - clavierViewModel.start) * clavierViewModel.pixelDensity : 0

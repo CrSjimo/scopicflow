@@ -6,8 +6,15 @@ import "."
 import dev.sjimo.ScopicFlow.Private.Internal as ScopicFlowInternal
 import dev.sjimo.ScopicFlow.Palettes as ScopicFlowPalette
 
-ScopicFlowInternal.PianoRoll {
+Item {
     id: pianoRoll
+
+    property QtObject timeAlignmentViewModel: null
+    property QtObject playbackViewModel: null
+    property QtObject clavierViewModel: null
+    property QtObject scrollBehaviorViewModel: null
+    property QtObject animationViewModel: null
+    property QtObject paletteViewModel: null
 
     property double topMargin: 0
     property double bottomMargin: 0

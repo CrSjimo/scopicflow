@@ -4,8 +4,56 @@
 #include <iterator>
 
 #include <ScopicFlow/LabelViewModel.h>
+#include <ScopicFlow/private/SelectableViewModelManipulator_p.h>
 
 namespace sflow {
+
+    class LabelSequenceViewModelManipulatorInterface : public SelectableViewModelManipulatorInterface {
+    public:
+        Q_INVOKABLE explicit LabelSequenceViewModelManipulatorInterface(QObject *viewModel) {
+            m_viewModel = static_cast<LabelSequenceViewModel *>(viewModel);
+        }
+        void setSelected(QObject *item, bool selected) override {
+            static_cast<LabelViewModel *>(item)->setSelected(selected);
+        }
+        bool isSelected(QObject *item) const override {
+            return static_cast<LabelViewModel *>(item)->selected();
+        }
+        QObject *nextItem(QObject *item) const override {
+            return m_viewModel->nextItem(static_cast<LabelViewModel *>(item));
+        }
+        QObject *previousItem(QObject *item) const override {
+            return m_viewModel->previousItem(static_cast<LabelViewModel *>(item));
+        }
+        QObject *firstItem() const override {
+            return m_viewModel->m_labels.cbegin()->second;
+        }
+        QObject *lastItem() const override {
+            return m_viewModel->m_labels.crbegin()->second;
+        }
+        QObject *currentItem() const override {
+            return m_viewModel->m_currentItem;
+        }
+        void setCurrentItem(QObject *item) override {
+            m_viewModel->setCurrentItem(static_cast<LabelViewModel *>(item));
+        }
+        QObjectList selection() const override {
+            QObjectList ret;
+            ret.reserve(m_viewModel->m_selection.size());
+            std::copy(m_viewModel->m_selection.cbegin(), m_viewModel->m_selection.cend(), std::back_inserter(ret));
+            return ret;
+        }
+        int compareOrder(QObject *item1, QObject *item2) const override {
+            return static_cast<LabelViewModel *>(item1)->position() - static_cast<LabelViewModel *>(item2)->position();
+        }
+        QObject *viewModel() const override {
+            return m_viewModel;
+        }
+
+    private:
+        LabelSequenceViewModel *m_viewModel;
+    };
+
     LabelSequenceViewModel::LabelSequenceViewModel(QObject *parent) : QObject(parent), m_currentItem(nullptr) {
     }
     LabelSequenceViewModel::~LabelSequenceViewModel() = default;

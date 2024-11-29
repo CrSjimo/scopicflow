@@ -11,6 +11,7 @@
 namespace sflow {
 
     class LabelViewModel;
+    class LabelSequenceViewModelManipulatorInterface;
 
     class SCOPIC_FLOW_EXPORT LabelSequenceViewModel : public QObject {
         Q_OBJECT
@@ -39,6 +40,7 @@ namespace sflow {
         void selectionChanged();
 
     private:
+        friend class LabelSequenceViewModelManipulatorInterface;
         std::multimap<int, LabelViewModel *> m_labels;
         QHash<LabelViewModel *, int> m_positions;
         QSet<LabelViewModel *> m_selection;

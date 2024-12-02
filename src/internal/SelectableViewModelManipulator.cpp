@@ -55,7 +55,7 @@ namespace sflow {
             }
             return;
         }
-        if (!(modifiers & Qt::ControlModifier) && !(button == Qt::RightButton && m_interface->isSelected(m_interface->currentItem()))) {
+        if (!(modifiers & Qt::ControlModifier) && !(button == Qt::RightButton && m_interface->isSelected(item))) {
             for (auto o : m_interface->selection())
                 m_interface->setSelected(o, false);
         }

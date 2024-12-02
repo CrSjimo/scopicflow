@@ -252,8 +252,10 @@ ScopicFlowInternal.TrackList {
                         property int lastIndicatorIndex: -1
                         onPositionChanged: function (mouse) {
                             rejectClick = true
-                            if (!(mouse.modifiers & Qt.AltModifier) && !rubberBand.visible)
+                            if (!(mouse.modifiers & Qt.AltModifier) && !rubberBand.visible) {
+                                selectionManipulator.select(trackListDelegate.indexObject, Qt.RightButton, mouse.modifiers)
                                 cursorShape = Qt.ClosedHandCursor
+                            }
                             let viewportPoint = mapToItem(trackList, mouse.x, mouse.y)
                             dragScroller.viewportPoint = viewportPoint
                             dragScroller.mouseModifiers = mouse.modifiers

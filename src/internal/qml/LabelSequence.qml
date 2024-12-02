@@ -64,6 +64,11 @@ ScopicFlowInternal.LabelSequence {
         animationViewModel: labelSequence.animationViewModel
     }
 
+    ScopicFlowInternal.SelectableViewModelManipulator {
+        id: selectionManipulator
+        viewModel: labelSequence.labelSequenceViewModel
+    }
+
     Rectangle {
         anchors.fill: parent
         anchors.leftMargin: -1
@@ -273,20 +278,6 @@ ScopicFlowInternal.LabelSequence {
                     }
                 }
 
-                function selectItem (multipleSelect, extendingSelect, overrideSelect = false) {
-                    let previousSelected = labelViewModel.selected
-                    let previousSelectionCount = 0
-                    if (!multipleSelect) {
-                        previousSelectionCount = labelSequence.deselectAll()
-                    }
-                    if (extendingSelect) {
-                        labelSequence.extendSelection(labelViewModel)
-                    } else {
-                        labelViewModel.selected = overrideSelect || previousSelectionCount > 1 || !previousSelected
-                        labelSequence.currentItem = labelViewModel
-                    }
-                }
-
                 MouseArea {
                     anchors.fill: parent
                     acceptedButtons: Qt.LeftButton | Qt.RightButton
@@ -305,13 +296,9 @@ ScopicFlowInternal.LabelSequence {
                         pressedDeltaX = mouse.x
                     }
                     onClicked: function (mouse) {
-                        if (mouse.button === Qt.LeftButton && !rejectClick || !labelRect.labelViewModel.selected) {
-                            let multipleSelect = Boolean(mouse.modifiers & Qt.ControlModifier)
-                            let extendingSelect = Boolean(mouse.modifiers & Qt.ShiftModifier)
-                            labelRect.selectItem(multipleSelect, extendingSelect)
-                        }
-                        if (mouse.button === Qt.RightButton)
-                            labelSequence.contextMenuRequestedForLabel(labelRect.labelViewModel)
+                        if (rejectClick)
+                            return
+                        selectionManipulator.select(labelRect.labelViewModel, mouse.button, mouse.modifiers)
                     }
                     onDoubleClicked: function (mouse) {
                         if (mouse.button !== Qt.LeftButton)
@@ -333,11 +320,7 @@ ScopicFlowInternal.LabelSequence {
                             labelSequence.setSelectionIntermediate(true)
                         }
                         cursorIndicatorBinding.enabled = true
-                        if (!labelRect.labelViewModel.selected) {
-                            let multipleSelect = Boolean(mouse.modifiers & Qt.ControlModifier)
-                            let extendingSelect = Boolean(mouse.modifiers & Qt.ShiftModifier)
-                            labelRect.selectItem(multipleSelect, extendingSelect)
-                        }
+                        selectionManipulator.select(labelRect.labelViewModel, Qt.RightButton, mouse.modifiers)
                         let parentX = labelRect.mapToItem(labelSequence, mouse.x, mouse.y).x
                         if (parentX < 0) {
                             dragScroller.distanceX = parentX

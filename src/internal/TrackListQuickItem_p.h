@@ -24,6 +24,7 @@ namespace sflow {
         void setTrackListViewModel(TrackListViewModel *trackListViewModel);
 
         Q_INVOKABLE QObject *trackAt(int index) const;
+        Q_INVOKABLE QObject *indexObjectAt(int index) const;
         Q_INVOKABLE void handleTrackMoved(int index, int target);
 
     signals:

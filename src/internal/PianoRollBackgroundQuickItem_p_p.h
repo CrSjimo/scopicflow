@@ -10,7 +10,7 @@ namespace sflow {
         PianoRollBackgroundQuickItem *q_ptr;
 
         TimeAlignmentViewModel *timeAlignmentViewModel = nullptr;
-        SVS::MusicTimeline *timeline = nullptr;
+        QPointer<SVS::MusicTimeline> timeline = nullptr;
 
         QColor beatScaleColor;
         QColor barScaleColor;

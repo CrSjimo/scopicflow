@@ -9,8 +9,9 @@
 namespace sflow {
 
     class LabelSequenceViewModelManipulatorInterface : public SelectableViewModelManipulatorInterface {
+        Q_OBJECT
     public:
-        Q_INVOKABLE explicit LabelSequenceViewModelManipulatorInterface(QObject *viewModel) {
+        Q_INVOKABLE explicit LabelSequenceViewModelManipulatorInterface(QObject *viewModel, QObject *parent) : SelectableViewModelManipulatorInterface(parent) {
             m_viewModel = static_cast<LabelSequenceViewModel *>(viewModel);
         }
         void setSelected(QObject *item, bool selected) override {
@@ -53,6 +54,14 @@ namespace sflow {
     private:
         LabelSequenceViewModel *m_viewModel;
     };
+
+    namespace {
+        struct _ {
+            _() {
+                SelectableViewModelManipulator::registerViewModelInterface(LabelSequenceViewModel::staticMetaObject.className(), &LabelSequenceViewModelManipulatorInterface::staticMetaObject);
+            }
+        } _;
+    }
 
     LabelSequenceViewModel::LabelSequenceViewModel(QObject *parent) : QObject(parent), m_currentItem(nullptr) {
     }
@@ -160,4 +169,5 @@ namespace sflow {
         }
         return (--it)->second;
     }
-} // sflow
+}
+#include "LabelSequenceViewModel.moc"

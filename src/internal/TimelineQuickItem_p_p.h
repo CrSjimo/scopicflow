@@ -33,7 +33,7 @@ namespace sflow {
         TimelineQuickItem *q_ptr;
 
         TimeAlignmentViewModel *timeAlignmentViewModel = nullptr;
-        SVS::MusicTimeline *timeline = nullptr;
+        QPointer<SVS::MusicTimeline> timeline = nullptr;
 
         QColor backgroundColor;
         QColor foregroundColor;

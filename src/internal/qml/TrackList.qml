@@ -38,6 +38,11 @@ ScopicFlowInternal.TrackList {
         duration: (trackList.animationViewModel?.scrollAnimationRatio ?? 1) * 250
     }
 
+    ScopicFlowInternal.SelectableViewModelManipulator {
+        id: selectionManipulator
+        viewModel: trackList.trackListViewModel
+    }
+
     Rectangle {
         id: backgroundRectangle
         anchors.left: parent.left
@@ -58,18 +63,9 @@ ScopicFlowInternal.TrackList {
             onClicked: function (mouse) {
                 if (rejectClick)
                     return
+                selectionManipulator.select(null, mouse.button, mouse.modifiers)
                 if (mouse.button & Qt.RightButton) {
                     trackList.contextMenuRequestedForTrack(-1)
-                    return
-                }
-                let multipleSelect = Boolean(mouse.modifiers & Qt.ControlModifier)
-                if (!multipleSelect) {
-                    for (let i = 0; i < trackList.trackListViewModel.count; i++) {
-                        let track = trackList.trackAt(i)
-                        if (track.selected) {
-                            track.selected = false
-                        }
-                    }
                 }
             }
             function handlePositionChanged(x, y, modifiers) {
@@ -166,6 +162,7 @@ ScopicFlowInternal.TrackList {
                     id: trackListDelegate
                     readonly property bool isTrackListDelegate: true
                     required property int index
+                    readonly property QtObject indexObject: trackList.indexObjectAt(index)
                     trackViewModel: trackList.trackAt(index)
                     Connections {
                         target: trackList
@@ -295,27 +292,7 @@ ScopicFlowInternal.TrackList {
                         onClicked: function (mouse) {
                             if (rejectClick)
                                 return
-                            let multipleSelect = Boolean(mouse.modifiers & Qt.ControlModifier)
-                            let extendingSelect = Boolean(mouse.modifiers & Qt.ShiftModifier)
-                            let previousSelected = trackListDelegate.trackViewModel.selected
-                            let previousSelectionCount = 0
-                            if (!multipleSelect && (mouse.button !== Qt.RightButton || !trackListDelegate.trackViewModel.selected)) {
-                                for (let i = 0; i < trackList.trackListViewModel.count; i++) {
-                                    let track = trackList.trackAt(i)
-                                    if (track.selected) {
-                                        track.selected = false
-                                        previousSelectionCount++
-                                    }
-                                }
-                            }
-                            if (extendingSelect) {
-                                for (let i = trackList.trackListViewModel.currentIndex; i <= trackListDelegate.index; i++) {
-                                    trackList.trackAt(i).selected = true
-                                }
-                            } else {
-                                trackList.trackListViewModel.currentIndex = trackListDelegate.index
-                                trackListDelegate.trackViewModel.selected = previousSelectionCount > 1 || !previousSelected || mouse.button === Qt.RightButton
-                            }
+                            selectionManipulator.select(trackListDelegate.indexObject, mouse.button, mouse.modifiers)
                             if (mouse.button & Qt.RightButton) {
                                 trackList.contextMenuRequestedForTrack(trackListDelegate.index ?? -1)
                             }

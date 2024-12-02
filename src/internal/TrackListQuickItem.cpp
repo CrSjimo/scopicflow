@@ -45,6 +45,12 @@ namespace sflow {
             return nullptr;
         return d->trackListViewModel->trackAt(index);
     }
+    QObject *TrackListQuickItem::indexObjectAt(int index) const {
+        Q_D(const TrackListQuickItem);
+        if (!d->trackListViewModel)
+            return nullptr;
+        return d->trackListViewModel->indexObjectAt(index);
+    }
 
     void TrackListQuickItem::handleTrackMoved(int index, int target) {
         Q_D(TrackListQuickItem);

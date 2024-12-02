@@ -9,8 +9,11 @@ namespace sflow {
 
     class TrackViewModel;
 
+    class TrackListViewModelPrivate;
+
     class SCOPIC_FLOW_EXPORT TrackListViewModel : public QObject {
         Q_OBJECT
+        Q_DECLARE_PRIVATE(TrackListViewModel)
         Q_PROPERTY(int currentIndex READ currentIndex WRITE setCurrentIndex NOTIFY currentIndexChanged)
         Q_PROPERTY(int count READ count NOTIFY countChanged)
         Q_PROPERTY(bool intermediate READ intermediate WRITE setIntermediate NOTIFY intermediateChanged)
@@ -36,6 +39,8 @@ namespace sflow {
 
         TrackViewModel *trackAt(int index) const;
 
+        QObject *indexObjectAt(int index);
+
     signals:
         void currentIndexChanged(int index);
         void countChanged(int count);
@@ -47,10 +52,7 @@ namespace sflow {
         void tracksRotated(int index, int count, int middleIndex);
 
     private:
-        QList<TrackViewModel *> m_tracks;
-        int m_currentIndex;
-        bool m_intermediate;
-        double m_viewportOffset;
+        QScopedPointer<TrackListViewModelPrivate> d_ptr;
     };
 
 } // sflow

@@ -8,6 +8,7 @@ namespace sflow {
     class SelectableViewModelManipulatorInterface : public QObject {
         Q_OBJECT
     public:
+        explicit SelectableViewModelManipulatorInterface(QObject *parent = nullptr);
         virtual void setSelected(QObject *item, bool selected) = 0;
         virtual bool isSelected(QObject *item) const = 0;
         virtual QObject *nextItem(QObject *item) const = 0;

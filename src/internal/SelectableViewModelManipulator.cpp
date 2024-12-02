@@ -11,6 +11,8 @@ namespace sflow {
 
     static QHash<QString, const QMetaObject *> m_registry;
 
+    SelectableViewModelManipulatorInterface::SelectableViewModelManipulatorInterface(QObject *parent) : QObject(parent) {
+    }
     SelectableViewModelManipulator::SelectableViewModelManipulator(QObject *parent) : QObject(parent), m_interface(nullptr) {
     }
     SelectableViewModelManipulator::~SelectableViewModelManipulator() = default;
@@ -20,6 +22,11 @@ namespace sflow {
         return nullptr;
     }
     void SelectableViewModelManipulator::setViewModel(QObject *viewModel) {
+        delete m_interface;
+        m_interface = nullptr;
+        if (!viewModel) {
+            return;
+        }
         QString className = viewModel->metaObject()->className();
         auto metaObject = m_registry.value(className);
         if (!metaObject) {
@@ -27,7 +34,8 @@ namespace sflow {
                 engine->throwError(QString("Unknown view model class"));
             return;
         }
-        m_interface = qobject_cast<SelectableViewModelManipulatorInterface *>(metaObject->newInstance(viewModel, this));
+        auto obj = metaObject->newInstance(viewModel, static_cast<QObject *>(this));
+        m_interface = qobject_cast<SelectableViewModelManipulatorInterface *>(obj);
         if (!m_interface) {
             if (auto engine = qjsEngine(this))
                 engine->throwError(QString("Invalid meta object of interface"));
@@ -53,17 +61,17 @@ namespace sflow {
         }
         if (modifiers & Qt::ShiftModifier) {
             if (!m_interface->currentItem()) {
-
+                m_interface->setCurrentItem(item);
             }
             int order = m_interface->compareOrder(m_interface->currentItem(), item);
-            if (order > 0) {
-                for (auto o = m_interface->currentItem();; o = m_interface->nextItem(o)) {
+            if (order < 0) {
+                for (auto o = m_interface->currentItem(); o; o = m_interface->nextItem(o)) {
                     m_interface->setSelected(o, true);
                     if (o == item)
                         break;
                 }
             } else {
-                for (auto o = m_interface->currentItem();; o = m_interface->previousItem(o)) {
+                for (auto o = m_interface->currentItem(); o; o = m_interface->previousItem(o)) {
                     m_interface->setSelected(o, true);
                     if (o == item)
                         break;
@@ -71,6 +79,7 @@ namespace sflow {
             }
             return;
         }
+        m_interface->setCurrentItem(item);
         if (modifiers & Qt::ControlModifier) {
             if (button == Qt::RightButton) {
                 m_interface->setSelected(item, true);

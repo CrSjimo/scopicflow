@@ -15,6 +15,7 @@ QtObject {
     property color labelEditingTextColor: "#ffffff"
 
     property color rubberBandColor: "#7fffffff"
+    property color rubberBandBorderColor: "#535c68"
 
     property color primaryIndicatorColor: "#cc4455"
     property color secondaryIndicatorColor: "#7fcc4455"

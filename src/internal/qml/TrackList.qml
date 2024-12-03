@@ -69,9 +69,7 @@ ScopicFlowInternal.TrackList {
                 }
             }
             function handlePositionChanged(x, y, modifiers) {
-                rubberBand.toX = x
-                rubberBand.toY = y
-                if (!rubberBand.visible) {
+                if (!rubberBandLayer.started) {
                     let multipleSelect = Boolean(modifiers & Qt.ControlModifier)
                     if (!multipleSelect) {
                         for (let i = 0; i < trackList.trackListViewModel.count; i++) {
@@ -81,11 +79,11 @@ ScopicFlowInternal.TrackList {
                             }
                         }
                     }
-                    rubberBand.fromX = x
-                    rubberBand.fromY = y
-                    rubberBand.visible = true
+                    rubberBandLayer.startSelection(Qt.point(x, y))
+                } else {
+                    rubberBandLayer.updateSelection(Qt.point(x, y))
                 }
-                rubberBand.updateSelection()
+
             }
             DragScroller {
                 id: dragScroller
@@ -122,7 +120,7 @@ ScopicFlowInternal.TrackList {
                 handlePositionChanged(mouse.x, mouse.y, mouse.modifiers)
             }
             onReleased: {
-                rubberBand.visible = false
+                rubberBandLayer.endSelection()
                 dragScroller.running = false
             }
             onDoubleClicked: {
@@ -182,6 +180,13 @@ ScopicFlowInternal.TrackList {
                     onHeightChanged: {
                         trackViewModel.rowHeight = height
                         height = Qt.binding(function () { return this.trackViewModel.rowHeight })
+                        rubberBandLayer.insertItem(indexObject, Qt.rect(0, y, 1 << 20, height))
+                    }
+                    onYChanged: {
+                        rubberBandLayer.insertItem(indexObject, Qt.rect(0, y, 1 << 20, height))
+                    }
+                    Component.onDestruction: {
+                        rubberBandLayer.removeItem(indexObject)
                     }
                     mouseArea: MouseArea {
 
@@ -194,14 +199,12 @@ ScopicFlowInternal.TrackList {
                         function handlePositionChanged(x, y, modifiers) {
                             let point = mapToItem(trackLayout, x, y)
                             let index = trackLayout.indexAt(point)
-                            if ((modifiers & Qt.AltModifier) || rubberBand.visible) {
+                            if ((modifiers & Qt.AltModifier) || rubberBandLayer.started) {
                                 if (lastIndicatorIndex !== -1) {
                                     let handle = (lastIndicatorIndex ? trackHandlesRepeater.itemAt(lastIndicatorIndex - 1) : topTrackHandle)
                                     handle.indicatesTarget = false
                                 }
-                                rubberBand.toX = point.x
-                                rubberBand.toY = point.y
-                                if (!rubberBand.visible) {
+                                if (!rubberBandLayer.started) {
                                     let multipleSelect = Boolean(modifiers & Qt.ControlModifier)
                                     if (!multipleSelect) {
                                         for (let i = 0; i < trackList.trackListViewModel.count; i++) {
@@ -211,11 +214,10 @@ ScopicFlowInternal.TrackList {
                                             }
                                         }
                                     }
-                                    rubberBand.fromX = point.x
-                                    rubberBand.fromY = point.y
-                                    rubberBand.visible = true
+                                    rubberBandLayer.startSelection(point)
+                                } else {
+                                    rubberBandLayer.updateSelection(point)
                                 }
-                                rubberBand.updateSelection()
                                 return
                             }
                             if (lastIndicatorIndex !== -1) {
@@ -252,7 +254,7 @@ ScopicFlowInternal.TrackList {
                         property int lastIndicatorIndex: -1
                         onPositionChanged: function (mouse) {
                             rejectClick = true
-                            if (!(mouse.modifiers & Qt.AltModifier) && !rubberBand.visible) {
+                            if (!(mouse.modifiers & Qt.AltModifier) && !rubberBandLayer.started) {
                                 selectionManipulator.select(trackListDelegate.indexObject, Qt.RightButton, mouse.modifiers)
                                 cursorShape = Qt.ClosedHandCursor
                             }
@@ -275,7 +277,7 @@ ScopicFlowInternal.TrackList {
                         onReleased: function (mouse) {
                             cursorShape = undefined
                             dragScroller.running = false
-                            rubberBand.visible = false
+                            rubberBandLayer.endSelection()
                             if (lastIndicatorIndex !== -1) {
                                 if (mouse.button & Qt.LeftButton) {
                                     trackList.handleTrackMoved(trackListDelegate.index, lastIndicatorIndex)
@@ -372,54 +374,14 @@ ScopicFlowInternal.TrackList {
             }
         }
 
-        Rectangle {
-            id: rubberBand
-            property double fromX: 0
-            property double fromY: 0
-            property double toX: 0
-            property double toY: 0
-            x: Math.min(fromX, toX)
-            y: Math.min(fromY, toY)
-            width: Math.abs(fromX - toX)
-            height: Math.abs(fromY - toY)
-            color: trackList.palette.rubberBandColor
-            border.width: 1
-            border.color: trackList.palette.rubberBandBorderColor
-            visible: false
-            function updateSelection() {
-                if (!visible)
-                    return
-                let fromIndex = trackLayout.indexAt(Qt.point(0, fromY))
-                let toIndex = trackLayout.indexAt(Qt.point(0, toY))
-                let startIndex = Math.min(fromIndex, toIndex)
-                let endIndex = Math.max(fromIndex, toIndex)
-                for (let i = startIndex - 1; i >= 0; i--) {
-                    if (!trackLayoutRepeater.itemAt(i).trackViewModel.selected)
-                        break
-                    trackLayoutRepeater.itemAt(i).trackViewModel.selected = false
-                }
-                if (fromIndex < toIndex) {
-                    for (let i = toIndex; i >= fromIndex; i--) {
-                        if (i >= trackLayoutRepeater.count || i < 0)
-                            continue
-                        if (trackLayoutRepeater.itemAt(i).trackViewModel.selected)
-                            break
-                        trackLayoutRepeater.itemAt(i).trackViewModel.selected = true
-                    }
-                } else {
-                    for (let i = toIndex; i <= fromIndex; i++) {
-                        if (i >= trackLayoutRepeater.count || i < 0)
-                            continue
-                        if (trackLayoutRepeater.itemAt(i).trackViewModel.selected)
-                            break
-                        trackLayoutRepeater.itemAt(i).trackViewModel.selected = true
-                    }
-                }
-                for (let i = endIndex + 1; i < trackLayoutRepeater.count; i++) {
-                    if (!trackLayoutRepeater.itemAt(i).trackViewModel.selected)
-                        break
-                    trackLayoutRepeater.itemAt(i).trackViewModel.selected = false
-                }
+        ScopicFlowInternal.RubberBandLayer {
+            id: rubberBandLayer
+            anchors.fill: parent
+            selectionManipulator: selectionManipulator
+            rubberBand: Rectangle {
+                color: trackList.palette.rubberBandColor
+                border.width: 1
+                border.color: trackList.palette.rubberBandBorderColor
             }
         }
     }

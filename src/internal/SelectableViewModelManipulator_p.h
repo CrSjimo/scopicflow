@@ -32,6 +32,10 @@ namespace sflow {
         QObject *viewModel() const;
         void setViewModel(QObject *viewModel);
 
+        inline SelectableViewModelManipulatorInterface *interface() const {
+            return m_interface;
+        }
+
         Q_INVOKABLE void select(QObject *item, int button, int modifiers) const;
 
         static void registerViewModelInterface(const QString &className, const QMetaObject *metaObject);

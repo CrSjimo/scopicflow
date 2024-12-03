@@ -94,48 +94,9 @@ ScopicFlowInternal.LabelSequence {
             acceptedButtons: Qt.LeftButton | Qt.RightButton
             focusPolicy: Qt.StrongFocus
             property double pressedX: 0
-            property int nextIndex: -1
             property bool rejectClick: false
             function doDragRubberBand(targetX) {
-                if (targetX >= pressedX) {
-                    rubberBand.x = pressedX
-                    rubberBand.width = targetX - pressedX
-                    for (let i = nextIndex - 1; i >= 0; i--) {
-                        let item = labelRepeater.itemAt(i)
-                        if (item.labelViewModel.selected)
-                            item.labelViewModel.selected = false
-                        else
-                            break
-                    }
-                    for (let i = nextIndex; i < labelRepeater.count; i++) {
-                        let item = labelRepeater.itemAt(i)
-                        if (targetX >= item.x)
-                            item.labelViewModel.selected = true
-                        else if (item.labelViewModel.selected)
-                            item.labelViewModel.selected = false
-                        else
-                            break
-                    }
-                } else {
-                    rubberBand.x = targetX
-                    rubberBand.width = pressedX - targetX
-                    for (let i = nextIndex; i < labelRepeater.count; i++) {
-                        let item = labelRepeater.itemAt(i)
-                        if (item.labelViewModel.selected)
-                            item.labelViewModel.selected = false
-                        else
-                            break
-                    }
-                    for (let i = nextIndex - 1; i >= 0; i--) {
-                        let item = labelRepeater.itemAt(i)
-                        if (targetX <= item.x + item.width)
-                            item.labelViewModel.selected = true
-                        else if (item.labelViewModel.selected)
-                            item.labelViewModel.selected = false
-                        else
-                            break
-                    }
-                }
+                rubberBandLayer.updateSelection(Qt.point(targetX, height))
             }
             DragScroller {
                 id: dragScroller
@@ -177,24 +138,11 @@ ScopicFlowInternal.LabelSequence {
             }
             onPositionChanged: function (mouse) {
                 rejectClick = true
-                rubberBand.visible = true
-                let multipleSelect = Boolean(mouse.modifiers & Qt.ControlModifier)
-                if (nextIndex === -1 && labelRepeater.count) {
-                    if (!multipleSelect)
-                        labelSequence.deselectAll()
-                    labelSequence.modelChanged()
-                    for (let i = 0; i < labelRepeater.count; i++) {
-                        let item = labelRepeater.itemAt(i)
-                        if (item.x >= pressedX) {
-                            nextIndex = i
-                            break
-                        }
-                    }
-                    if (nextIndex === -1)
-                        nextIndex = labelRepeater.count
+                if (!rubberBandLayer.started) {
+                    selectionManipulator.select(null, Qt.RightButton, mouse.modifiers)
+                    rubberBandLayer.startSelection(Qt.point(mouse.x, 0))
                 }
                 let parentX = mapToItem(labelSequence, mouse.x, mouse.y).x
-                let deltaX = 0
                 if (parentX < 0) {
                     dragScroller.distanceX = parentX
                     dragScroller.running = true
@@ -207,8 +155,7 @@ ScopicFlowInternal.LabelSequence {
                 }
             }
             onReleased: function (mouse) {
-                nextIndex = -1
-                rubberBand.visible = false
+                rubberBandLayer.endSelection()
                 dragScroller.running = false
             }
         }
@@ -263,6 +210,15 @@ ScopicFlowInternal.LabelSequence {
                 }
                 width: labelEdit.visible ? labelEdit.width : labelText.width + 8
                 clip: true
+                onXChanged: {
+                    rubberBandLayer.insertItem(labelViewModel, Qt.rect(x, 0, width, 1 << 20))
+                }
+                onWidthChanged: {
+                    rubberBandLayer.insertItem(labelViewModel, Qt.rect(x, 0, width, 1 << 20))
+                }
+                Component.onDestruction: {
+                    rubberBandLayer.removeItem(labelViewModel)
+                }
                 Text {
                     id: labelText
                     anchors.left: parent.left
@@ -399,13 +355,16 @@ ScopicFlowInternal.LabelSequence {
             }
         }
 
-        Rectangle {
-            id: rubberBand
-            anchors.top: parent.top
-            anchors.bottom: parent.bottom
+        ScopicFlowInternal.RubberBandLayer {
+            id: rubberBandLayer
+            anchors.fill: parent
+            selectionManipulator: selectionManipulator
             z: 2
-            color: labelSequence.palette.rubberBandColor
-            visible: false
+            rubberBand: Rectangle {
+                color: labelSequence.palette.rubberBandColor
+                border.width: 1
+                border.color: labelSequence.palette.rubberBandBorderColor
+            }
         }
     }
 

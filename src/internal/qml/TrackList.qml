@@ -12,6 +12,8 @@ ScopicFlowInternal.TrackList {
     property QtObject animationViewModel: null
     property QtObject paletteViewModel: null
 
+    property Component trackExtraDelegate: null
+
     signal trackDoubleClicked(index: int);
     signal contextMenuRequestedForTrack(index: int);
     signal contextMenuRequestedForTrackDragging(index: int, target: int);
@@ -162,6 +164,7 @@ ScopicFlowInternal.TrackList {
                     required property int index
                     readonly property QtObject indexObject: trackList.indexObjectAt(index)
                     trackViewModel: trackList.trackAt(index)
+                    trackExtraDelegate: trackList.trackExtraDelegate
                     Connections {
                         target: trackList
                         function onLayoutRequired() { trackListDelegate.trackViewModel = trackList.trackAt(trackListDelegate.index) }

@@ -13,4 +13,9 @@
 #  endif
 #endif
 
+#ifndef Q_MOC_RUN
+#  define SFLOW_VIEWMODEL_SIGNAL
+#  define SFLOW_VIEWMODEL_SET_FUNC
+#endif
+
 #endif //SCOPIC_FLOW_SCOPICFLOWGLOBAL_H

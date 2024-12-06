@@ -105,6 +105,12 @@ scopic_flow_add_library(ScopicFlow AUTOGEN
     QT_INCLUDE_PRIVATE Core Gui Widgets Qml Quick QuickWidgets
 )
 
+find_path(INTERVAL_TREE_INCLUDE_DIRS "interval-tree/interval_tree.hpp" REQUIRED)
+
+target_include_directories(ScopicFlow PUBLIC
+    "$<BUILD_INTERFACE:${INTERVAL_TREE_INCLUDE_DIRS}>"
+)
+
 if(SCOPIC_FLOW_INSTALL)
     # Add install target
     set(_install_dir ${CMAKE_INSTALL_LIBDIR}/cmake/${SCOPIC_FLOW_INSTALL_NAME})

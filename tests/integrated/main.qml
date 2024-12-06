@@ -38,6 +38,25 @@ Item {
                     scrollBehaviorViewModel: main.scrollBehaviorViewModel
                     animationViewModel: main.animationViewModel
                     paletteViewModel: main.paletteViewModel
+                    trackExtraDelegate: Rectangle {
+                        required property QtObject trackViewModel
+                        anchors.fill: parent
+                        clip: true
+                        color: "red"
+                        Text {
+                            anchors.centerIn: parent
+                            text: "Custom Track Extra Delegate\n" +
+                                `name = ${parent.trackViewModel.name}\n` +
+                                "msr = " +
+                                (parent.trackViewModel.mute ? "[M]" : "") +
+                                (parent.trackViewModel.solo ? "[S]" : "") +
+                                (parent.trackViewModel.record ? "[R]" : "") + "\n" +
+                                `gain = ${parent.trackViewModel.gain}\n` +
+                                `pan = ${parent.trackViewModel.pan}\n` +
+                                `selected = ${parent.trackViewModel.selected}\n` +
+                                `intermediate = ${parent.trackViewModel.intermediate}`
+                        }
+                    }
                 }
             }
             ColumnLayout {

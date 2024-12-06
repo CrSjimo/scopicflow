@@ -1,4 +1,5 @@
 import QtQml
+import QtQml.Models
 import QtQuick
 import QtQuick.Controls.Basic
 
@@ -20,6 +21,12 @@ Item {
     required property string trackNumber
     required property QtObject trackViewModel
 
+    onTrackViewModelChanged: {
+        dummyModel.clear()
+        if (trackListDelegate.trackViewModel)
+            dummyModel.append({trackViewModel: trackListDelegate.trackViewModel})
+    }
+
     property bool isCurrent: false
     property bool isLast: false
 
@@ -27,6 +34,7 @@ Item {
 
     property QtObject animationViewModel: null
     property Component mouseArea: null
+    property Component trackExtraDelegate: null
 
     NumberAnimation on height {
         id: fitHeightAnimation
@@ -86,9 +94,9 @@ Item {
             }
         }
 
-        Repeater {
-            model: 1
-            delegate: trackListDelegate.mouseArea
+        Loader {
+            sourceComponent: trackListDelegate.mouseArea
+            anchors.fill: parent
         }
 
         TrackListButton {
@@ -129,7 +137,6 @@ Item {
             anchors.left: parent.left
             anchors.leftMargin: 48
             spacing: 8
-            readonly property bool isMouseInteractionTarget: true
             Row {
                 id: controlsFirstRow
                 spacing: 4
@@ -184,7 +191,6 @@ Item {
             id: controlsSecondRow
             spacing: 0
             visible: opacity !== 0.0
-            readonly property bool isMouseInteractionTarget: true
             Behavior on opacity {
                 NumberAnimation {
                     duration: (trackListDelegate.animationViewModel?.visualEffectAnimationRatio ?? 1.0) * 250
@@ -197,7 +203,6 @@ Item {
             }
             Row {
                 spacing: 4
-                readonly property bool isMouseInteractionTarget: true
                 FluentSystemIcon {
                     anchors.verticalCenter: gainSlider.verticalCenter
                     icon: 'cellular_data_1_20_regular'
@@ -264,7 +269,6 @@ Item {
             }
             Row {
                 spacing: 8
-                readonly property bool isMouseInteractionTarget: true
                 FluentSystemIcon {
                     height: 24
                     icon: 'live_20_regular'
@@ -316,6 +320,21 @@ Item {
                         trackListDelegate.trackViewModel.pan = parseInt(text) * 0.01
                     }
                 }
+            }
+        }
+
+        Item {
+            x: 48
+            y: 80
+            width: parent.width - 72
+            height: Math.max(parent.height - 88, 0)
+            ListModel {
+                id: dummyModel
+            }
+            Repeater {
+                anchors.fill: parent
+                model: dummyModel
+                delegate: trackListDelegate.trackExtraDelegate
             }
         }
 

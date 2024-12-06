@@ -11,6 +11,8 @@ Pane {
     property QtObject animationViewModel: null
     property QtObject paletteViewModel: null
 
+    property Component trackExtraDelegate: null
+
     padding: 0
     focusPolicy: Qt.StrongFocus
 
@@ -24,6 +26,7 @@ Pane {
         scrollBehaviorViewModel: control.scrollBehaviorViewModel
         animationViewModel: control.animationViewModel
         paletteViewModel: control.paletteViewModel
+        trackExtraDelegate: control.trackExtraDelegate
 
         onTrackDoubleClicked: index => control.trackDoubleClicked(index)
         onContextMenuRequestedForTrack: index => control.contextMenuRequestedForTrack(index)

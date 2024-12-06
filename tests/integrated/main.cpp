@@ -32,6 +32,7 @@
 #include <ScopicFlow/LabelViewModel.h>
 #include <ScopicFlow/TrackListViewModel.h>
 #include <ScopicFlow/TrackViewModel.h>
+#include <ScopicFlow/NoteViewModel.h>
 
 using namespace sflow;
 
@@ -109,6 +110,7 @@ int main(int argc, char *argv[]) {
     auto splitter = new QSplitter;
     splitter->setOrientation(Qt::Vertical);
 
+    NoteViewModel _;
 
     TimeAlignmentViewModel arrangementTimeViewModel;
     arrangementTimeViewModel.setPositionAlignment(480);

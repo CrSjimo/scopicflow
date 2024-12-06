@@ -126,13 +126,13 @@ ScopicFlowInternal.LabelSequence {
                 }
             }
             onDoubleClicked: function (mouse) {
-                if (mouse.button !== Qt.LeftButton)
+                if (mouse.button !== Qt.LeftButton || mouse.modifiers)
                     return
                 let label = labelSequence.insertLabelTo(locator.alignTick(locator.mapToTick(mouse.x)) + labelSequence.timeAlignmentViewModel?.start ?? 0, "")
                 if (!labelRepeater.itemDict.has(label))
                     return
                 let item = labelRepeater.itemAt(labelRepeater.itemDict.get(label))
-                item.selectItem(false, false, true)
+                selectionManipulator.select(item.labelViewModel, Qt.LeftButton, 0)
                 item.editing = true
 
             }
@@ -257,9 +257,9 @@ ScopicFlowInternal.LabelSequence {
                         selectionManipulator.select(labelRect.labelViewModel, mouse.button, mouse.modifiers)
                     }
                     onDoubleClicked: function (mouse) {
-                        if (mouse.button !== Qt.LeftButton)
+                        if (mouse.button !== Qt.LeftButton || mouse.modifiers)
                             return
-                        labelRect.selectItem(false, false, true)
+                        selectionManipulator.select(labelRect.labelViewModel, Qt.LeftButton, 0)
                         labelRect.editing = true
                     }
                     Connections {
@@ -335,7 +335,7 @@ ScopicFlowInternal.LabelSequence {
                             return
                         labelSequence.currentItem = target
                         let item = labelRepeater.itemAt(labelRepeater.itemDict.get(target))
-                        item.selectItem(false, false, true)
+                        selectionManipulator.select(item.labelViewModel, Qt.LeftButton, 0)
                         item.editing = true
                     }
                     Keys.onTabPressed: {
@@ -344,7 +344,7 @@ ScopicFlowInternal.LabelSequence {
                             return
                         labelSequence.currentItem = target
                         let item = labelRepeater.itemAt(labelRepeater.itemDict.get(target))
-                        item.selectItem(false, false, true)
+                        selectionManipulator.select(item.labelViewModel, Qt.LeftButton, 0)
                         item.editing = true
                     }
                     onActiveFocusChanged: {

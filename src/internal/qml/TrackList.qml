@@ -414,6 +414,7 @@ ScopicFlowInternal.TrackList {
                 newViewportOffset = backgroundRectangle.height - trackList.height
             }
             if (isPhysicalWheel) {
+                viewportOffsetAnimation.stop()
                 viewportOffsetAnimation.to = newViewportOffset
                 viewportOffsetAnimation.start()
             } else {

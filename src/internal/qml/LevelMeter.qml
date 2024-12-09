@@ -55,7 +55,7 @@ Item {
             anchors.right: parent.right
             anchors.top: parent.top
 
-            height: Math.max(0, levelMeter.value / levelMeter.minimum * parent.height)
+            height: Math.min(Math.max(0, levelMeter.value / levelMeter.minimum), 1) * parent.height
             color: levelMeter.backgroundColor
         }
 

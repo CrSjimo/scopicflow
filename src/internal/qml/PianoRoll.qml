@@ -2,9 +2,8 @@ import QtQml
 import QtQuick
 import QtQuick.Controls.Basic
 
-import "."
-import dev.sjimo.ScopicFlow.Private.Internal as ScopicFlowInternal
-import dev.sjimo.ScopicFlow.Palettes as ScopicFlowPalette
+import dev.sjimo.ScopicFlow.Internal
+import dev.sjimo.ScopicFlow.Palette as ScopicFlowPalette
 
 Item {
     id: pianoRoll
@@ -81,12 +80,12 @@ Item {
 
         }
 
-        ScopicFlowInternal.PianoRollScale {
+        PianoRollScale {
             anchors.fill: parent
             timeAlignmentViewModel: pianoRoll.timeAlignmentViewModel
-            barScaleColor: palette.barScaleColor
-            beatScaleColor: palette.beatScaleColor
-            segmentScaleColor: palette.segmentScaleColor
+            barScaleColor: pianoRoll.palette.barScaleColor
+            beatScaleColor: pianoRoll.palette.beatScaleColor
+            segmentScaleColor: pianoRoll.palette.segmentScaleColor
         }
     }
 

@@ -4,7 +4,7 @@
 #include <QQuickItem>
 #include <QQmlComponent>
 
-#include <ScopicFlow/private/SelectableViewModelManipulator_p.h>
+#include <ScopicFlowInternal/private/SelectableViewModelManipulator_p.h>
 
 namespace sflow {
 
@@ -12,6 +12,7 @@ namespace sflow {
 
     class RubberBandLayerQuickItem : public QQuickItem {
         Q_OBJECT
+        QML_NAMED_ELEMENT(RubberBandLayer)
         Q_DECLARE_PRIVATE(RubberBandLayerQuickItem)
         Q_PROPERTY(SelectableViewModelManipulator *selectionManipulator READ selectionManipulator WRITE setSelectionManipulator NOTIFY selectionManipulatorChanged)
         Q_PROPERTY(QQmlComponent *rubberBand READ rubberBand WRITE setRubberBand NOTIFY rubberBandChanged)

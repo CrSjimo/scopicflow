@@ -2,7 +2,7 @@
 
 #include <algorithm>
 
-#include <ScopicFlow/private/SelectableViewModelManipulator_p.h>
+#include <ScopicFlow/private/SelectableViewModelManipulatorInterface_p.h>
 #include <ScopicFlow/TrackViewModel.h>
 #include <ScopicFlow/private/TrackListViewModel_p.h>
 
@@ -84,7 +84,7 @@ namespace sflow {
     namespace {
         struct _ {
             _() {
-                SelectableViewModelManipulator::registerViewModelInterface(TrackListViewModel::staticMetaObject.className(), &TrackListViewModelManipulatorInterface::staticMetaObject);
+                SelectableViewModelManipulatorInterface::registerViewModelInterface(TrackListViewModel::staticMetaObject.className(), &TrackListViewModelManipulatorInterface::staticMetaObject);
             }
         } _;
     }

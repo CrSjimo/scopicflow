@@ -2,7 +2,7 @@ import QtQml
 import QtQuick
 import QtQuick.Controls.Basic
 
-import "./Private" as ScopicFlowPrivate
+import dev.sjimo.ScopicFlow.Internal as ScopicFlowInternal
 
 Pane {
     id: control
@@ -18,7 +18,7 @@ Pane {
     padding: 0
     focusPolicy: Qt.StrongFocus
 
-    ScopicFlowPrivate.PianoRoll {
+    ScopicFlowInternal.PianoRoll {
         id: pianoRoll
         anchors.fill: parent
         timeAlignmentViewModel: control.timeAlignmentViewModel

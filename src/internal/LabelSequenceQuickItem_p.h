@@ -17,6 +17,7 @@ namespace sflow {
 
     class LabelSequenceQuickItem : public QQuickItem {
         Q_OBJECT
+        QML_NAMED_ELEMENT(LabelSequenceInternal)
         Q_DECLARE_PRIVATE(LabelSequenceQuickItem)
         Q_PROPERTY(LabelSequenceViewModel *labelSequenceViewModel READ labelSequenceViewModel WRITE setLabelSequenceViewModel NOTIFY labelSequenceViewModelChanged)
         Q_PROPERTY(QList<LabelViewModel *> model READ model NOTIFY modelChanged)

@@ -4,10 +4,6 @@
 #include <ScopicFlow/TrackViewModel.h>
 
 namespace sflow {
-
-    namespace {
-        auto _ = qmlRegisterType<TrackListQuickItem>("dev.sjimo.ScopicFlow.Private.Internal", 1, 0, "TrackList");
-    }
     
     TrackListQuickItem::TrackListQuickItem(QQuickItem *parent) : QQuickItem(parent), d_ptr(new TrackListQuickItemPrivate) {
         Q_D(TrackListQuickItem);

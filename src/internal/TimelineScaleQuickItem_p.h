@@ -11,6 +11,7 @@ namespace sflow {
 
     class TimelineScaleQuickItem : public QQuickItem {
         Q_OBJECT
+        QML_NAMED_ELEMENT(TimelineScale)
         Q_PROPERTY(TimeAlignmentViewModel *timeAlignmentViewModel READ timeAlignmentViewModel WRITE setTimeAlignmentViewModel NOTIFY timeAlignmentViewModelChanged)
         Q_PROPERTY(QColor color READ color WRITE setColor NOTIFY colorChanged)
         Q_DECLARE_PRIVATE(TimelineScaleQuickItem)

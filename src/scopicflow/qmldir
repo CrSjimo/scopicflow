@@ -1,7 +1,0 @@
-module dev.sjimo.ScopicFlow
-
-Timeline 1.0 Timeline.qml
-Clavier 1.0 Clavier.qml
-LabelSequence 1.0 LabelSequence.qml
-PianoRoll 1.0 PianoRoll.qml
-TrackList 1.0 TrackList.qml

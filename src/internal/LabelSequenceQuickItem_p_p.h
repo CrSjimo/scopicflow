@@ -1,7 +1,7 @@
 #ifndef SCOPIC_FLOW_LABELSEQUENCEQUICKITEM_P_P_H
 #define SCOPIC_FLOW_LABELSEQUENCEQUICKITEM_P_P_H
 
-#include <ScopicFlow/private/LabelSequenceQuickItem_p.h>
+#include <ScopicFlowInternal/private/LabelSequenceQuickItem_p.h>
 
 namespace sflow {
     class LabelSequenceQuickItemPrivate {

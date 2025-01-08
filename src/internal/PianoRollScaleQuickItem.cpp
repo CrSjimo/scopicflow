@@ -8,10 +8,6 @@
 
 namespace sflow {
 
-    namespace {
-        auto _ = qmlRegisterType<PianoRollScaleQuickItem>("dev.sjimo.ScopicFlow.Private.Internal", 1, 0, "PianoRollScale");
-    }
-
     double PianoRollScaleQuickItemPrivate::tickToX(int tick) const {
         if (!timeAlignmentViewModel)
             return 0;

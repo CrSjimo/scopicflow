@@ -1,7 +1,7 @@
 #ifndef SCOPIC_FLOW_RUBBERBANDLAYERQUICKITEM_P_P_H
 #define SCOPIC_FLOW_RUBBERBANDLAYERQUICKITEM_P_P_H
 
-#include <ScopicFlow/private/RubberBandLayerQuickItem_p.h>
+#include <ScopicFlowInternal/private/RubberBandLayerQuickItem_p.h>
 
 namespace sflow {
     class RubberBandLayerQuickItemPrivate {

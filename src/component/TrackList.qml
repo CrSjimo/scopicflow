@@ -2,7 +2,7 @@ import QtQml
 import QtQuick
 import QtQuick.Controls.Basic
 
-import "./Private" as ScopicFlowPrivate
+import dev.sjimo.ScopicFlow.Internal as ScopicFlowInternal
 
 Pane {
     id: control
@@ -20,7 +20,7 @@ Pane {
     signal contextMenuRequestedForTrack(index: int)
     signal contextMenuRequestedForTrackDragging(index: int, target: int)
 
-    ScopicFlowPrivate.TrackList {
+    ScopicFlowInternal.TrackList {
         anchors.fill: parent
         trackListViewModel: control.trackListViewModel
         scrollBehaviorViewModel: control.scrollBehaviorViewModel

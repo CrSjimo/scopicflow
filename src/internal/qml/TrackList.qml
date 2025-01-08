@@ -1,11 +1,10 @@
 import QtQml
 import QtQuick
 
-import "."
-import dev.sjimo.ScopicFlow.Private.Internal as ScopicFlowInternal
-import dev.sjimo.ScopicFlow.Palettes as ScopicFlowPalette
+import dev.sjimo.ScopicFlow.Internal
+import dev.sjimo.ScopicFlow.Palette as ScopicFlowPalette
 
-ScopicFlowInternal.TrackList {
+TrackListInternal {
     id: trackList
 
     property QtObject scrollBehaviorViewModel: null
@@ -40,7 +39,7 @@ ScopicFlowInternal.TrackList {
         duration: (trackList.animationViewModel?.scrollAnimationRatio ?? 1) * 250
     }
 
-    ScopicFlowInternal.SelectableViewModelManipulator {
+    SelectableViewModelManipulator {
         id: selectionManipulator
         viewModel: trackList.trackListViewModel
     }
@@ -377,7 +376,7 @@ ScopicFlowInternal.TrackList {
             }
         }
 
-        ScopicFlowInternal.RubberBandLayer {
+        RubberBandLayer {
             id: rubberBandLayer
             anchors.fill: parent
             selectionManipulator: selectionManipulator

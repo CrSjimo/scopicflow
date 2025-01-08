@@ -1,7 +1,7 @@
 #ifndef SCOPIC_FLOW_PIANOROLLSCALEQUICKITEM_P_P_H
 #define SCOPIC_FLOW_PIANOROLLSCALEQUICKITEM_P_P_H
 
-#include <ScopicFlow/private/PianoRollScaleQuickItem_p.h>
+#include <ScopicFlowInternal/private/PianoRollScaleQuickItem_p.h>
 
 namespace sflow {
     class PianoRollScaleQuickItemPrivate {

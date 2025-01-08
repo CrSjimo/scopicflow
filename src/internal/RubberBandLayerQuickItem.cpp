@@ -1,11 +1,9 @@
 #include "RubberBandLayerQuickItem_p.h"
 #include "RubberBandLayerQuickItem_p_p.h"
 
-namespace sflow {
+#include <ScopicFlow/private/SelectableViewModelManipulatorInterface_p.h>
 
-    namespace {
-        auto _ = qmlRegisterType<RubberBandLayerQuickItem>("dev.sjimo.ScopicFlow.Private.Internal", 1, 0, "RubberBandLayer");
-    }
+namespace sflow {
 
     RubberBandLayerQuickItem::RubberBandLayerQuickItem(QQuickItem *parent) : d_ptr(new RubberBandLayerQuickItemPrivate) {
     }

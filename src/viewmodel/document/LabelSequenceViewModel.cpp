@@ -4,7 +4,7 @@
 #include <iterator>
 
 #include <ScopicFlow/LabelViewModel.h>
-#include <ScopicFlow/private/SelectableViewModelManipulator_p.h>
+#include <ScopicFlow/private/SelectableViewModelManipulatorInterface_p.h>
 
 namespace sflow {
 
@@ -58,7 +58,7 @@ namespace sflow {
     namespace {
         struct _ {
             _() {
-                SelectableViewModelManipulator::registerViewModelInterface(LabelSequenceViewModel::staticMetaObject.className(), &LabelSequenceViewModelManipulatorInterface::staticMetaObject);
+                SelectableViewModelManipulatorInterface::registerViewModelInterface(LabelSequenceViewModel::staticMetaObject.className(), &LabelSequenceViewModelManipulatorInterface::staticMetaObject);
             }
         } _;
     }

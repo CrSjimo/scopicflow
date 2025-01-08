@@ -2,13 +2,12 @@ import QtQml
 import QtQuick
 import QtQuick.Controls.Basic
 
-import "./Private" as ScopicFlowPrivate
+import dev.sjimo.ScopicFlow.Internal as ScopicFlowInternal
 
 Pane {
     id: control
     property QtObject timeAlignmentViewModel: null
     property QtObject playbackViewModel: null
-    property QtObject labelSequenceViewModel: null
     property QtObject scrollBehaviorViewModel: null
     property QtObject animationViewModel: null
     property QtObject paletteViewModel: null
@@ -16,22 +15,26 @@ Pane {
     padding: 0
     focusPolicy: Qt.StrongFocus
 
-    signal contextMenuRequested(tick: int)
-    signal contextMenuRequestedForLabel(label: QtObject)
+    function mapToTick(x) {
+        return timeline.mapToTick(x)
+    }
+    function mapToX(tick) {
+        return timeline.mapToX(tick)
+    }
+    signal positionIndicatorDoubleClicked()
+    signal contextMenuRequestedForTimeline(tick: int)
+    signal contextMenuRequestedForPositionIndicator()
 
-    ScopicFlowPrivate.LabelSequence {
-        id: labelSequence
+    ScopicFlowInternal.Timeline {
+        id: timeline
         anchors.fill: parent
-
         timeAlignmentViewModel: control.timeAlignmentViewModel
         playbackViewModel: control.playbackViewModel
-        labelSequenceViewModel: control.labelSequenceViewModel
         scrollBehaviorViewModel: control.scrollBehaviorViewModel
         animationViewModel: control.animationViewModel
         paletteViewModel: control.paletteViewModel
-
-        onContextMenuRequested: tick => control.contextMenuRequested(tick)
-        onContextMenuRequestedForLabel: label => control.contextMenuRequestedForLabel(label)
+        onPositionIndicatorDoubleClicked: control.positionIndicatorDoubleClicked()
+        onContextMenuRequestedForTimeline: tick => control.contextMenuRequestedForTimeline(tick)
+        onContextMenuRequestedForPositionIndicator: control.contextMenuRequestedForPositionIndicator()
     }
-
 }

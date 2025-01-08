@@ -11,6 +11,7 @@ namespace sflow {
 
     class PianoRollScaleQuickItem : public QQuickItem {
         Q_OBJECT
+        QML_NAMED_ELEMENT(PianoRollScale)
         Q_DECLARE_PRIVATE(PianoRollScaleQuickItem)
         Q_PROPERTY(TimeAlignmentViewModel *timeAlignmentViewModel READ timeAlignmentViewModel WRITE setTimeAlignmentViewModel NOTIFY timeAlignmentViewModelChanged)
         Q_PROPERTY(QColor beatScaleColor READ beatScaleColor WRITE setBeatScaleColor NOTIFY beatScaleColorChanged)

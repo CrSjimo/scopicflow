@@ -1,18 +1,11 @@
 #include "SelectableViewModelManipulator_p.h"
 
-#include <QHash>
 #include <QQmlEngine>
+
+#include <ScopicFlow/private/SelectableViewModelManipulatorInterface_p.h>
 
 namespace sflow {
 
-    namespace {
-        auto _ = qmlRegisterType<SelectableViewModelManipulator>("dev.sjimo.ScopicFlow.Private.Internal", 1, 0, "SelectableViewModelManipulator");
-    }
-
-    static QHash<QString, const QMetaObject *> m_registry;
-
-    SelectableViewModelManipulatorInterface::SelectableViewModelManipulatorInterface(QObject *parent) : QObject(parent) {
-    }
     SelectableViewModelManipulator::SelectableViewModelManipulator(QObject *parent) : QObject(parent), m_interface(nullptr) {
     }
     SelectableViewModelManipulator::~SelectableViewModelManipulator() = default;
@@ -28,7 +21,7 @@ namespace sflow {
             return;
         }
         QString className = viewModel->metaObject()->className();
-        auto metaObject = m_registry.value(className);
+        auto metaObject = SelectableViewModelManipulatorInterface::getInterface(className);
         if (!metaObject) {
             if (auto engine = qjsEngine(this))
                 engine->throwError(QString("Unknown view model class"));
@@ -89,8 +82,5 @@ namespace sflow {
             return;
         }
         m_interface->setSelected(item, true);
-    }
-    void SelectableViewModelManipulator::registerViewModelInterface(const QString &className, const QMetaObject *metaObject) {
-        m_registry.insert(className, metaObject);
     }
 }

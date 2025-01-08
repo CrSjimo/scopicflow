@@ -2,7 +2,7 @@ import QtQml
 import QtQuick
 import QtQuick.Controls.Basic
 
-import "./Private" as ScopicFlowPrivate
+import dev.sjimo.ScopicFlow.Internal as ScopicFlowInternal
 
 Pane {
     id: control
@@ -31,7 +31,7 @@ Pane {
     signal noteDoubleClicked(key: int)
     signal contextMenuRequestedForNote(key: int)
 
-    ScopicFlowPrivate.Clavier {
+    ScopicFlowInternal.Clavier {
         id: clavier
         anchors.fill: parent
         clavierViewModel: control.clavierViewModel

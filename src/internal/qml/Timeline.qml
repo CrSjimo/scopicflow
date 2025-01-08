@@ -2,9 +2,8 @@ import QtQml
 import QtQuick
 import QtQuick.Shapes
 
-import dev.sjimo.ScopicFlow.Private.Internal as ScopicFlowInternal
-import dev.sjimo.ScopicFlow.Palettes as ScopicFlowPalette
-import "."
+import dev.sjimo.ScopicFlow.Internal
+import dev.sjimo.ScopicFlow.Palette as ScopicFlowPalette
 
 Item {
     id: timeline
@@ -86,7 +85,7 @@ Item {
         color: timeline.palette.backgroundColor
     }
 
-    ScopicFlowInternal.TimelineScale {
+    TimelineScale {
         id: timelineScale
         anchors.fill: parent
         color: timeline.palette.foregroundColor

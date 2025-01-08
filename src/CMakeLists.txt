@@ -13,7 +13,7 @@ set(SCOPIC_FLOW_BUILD_INCLUDE_DIR ${CMAKE_CURRENT_BINARY_DIR}/../etc/include)
 # CMake API
 # ----------------------------------
 macro(scopic_flow_add_library _target)
-    set(options AUTOGEN NO_SYNC_INCLUDE NO_WIN_RC)
+    set(options AUTOGEN NO_SYNC_INCLUDE NO_WIN_RC STATIC)
     set(oneValueArgs SYNC_INCLUDE_PREFIX PREFIX)
     set(multiValueArgs SYNC_INCLUDE_OPTIONS)
     cmake_parse_arguments(FUNC "${options}" "${oneValueArgs}" "${multiValueArgs}" ${ARGN})
@@ -24,7 +24,7 @@ macro(scopic_flow_add_library _target)
         set(CMAKE_AUTORCC ON)
     endif()
 
-    if(SCOPIC_FLOW_BUILD_STATIC)
+    if(FUNC_STATIC OR SCOPIC_FLOW_BUILD_STATIC)
         set(_type STATIC)
     else()
         set(_type SHARED)
@@ -96,20 +96,10 @@ endmacro()
 # Main Project
 # ----------------------------------
 
-file(GLOB_RECURSE _src *.h *.cpp *.qrc)
-
-scopic_flow_add_library(ScopicFlow AUTOGEN
-    SOURCES ${_src}
-    LINKS svscraft::Core
-    QT_LINKS Core Gui Widgets Qml Quick QuickWidgets
-    QT_INCLUDE_PRIVATE Core Gui Widgets Qml Quick QuickWidgets
-)
-
-find_path(INTERVAL_TREE_INCLUDE_DIRS "interval-tree/interval_tree.hpp" REQUIRED)
-
-target_include_directories(ScopicFlow PUBLIC
-    "$<BUILD_INTERFACE:${INTERVAL_TREE_INCLUDE_DIRS}>"
-)
+add_subdirectory(internal)
+add_subdirectory(component)
+add_subdirectory(palette)
+add_subdirectory(viewmodel)
 
 if(SCOPIC_FLOW_INSTALL)
     # Add install target

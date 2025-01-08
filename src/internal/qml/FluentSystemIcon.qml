@@ -9,6 +9,6 @@ Text {
 
     FontLoader {
         id: fluentSystemIcons
-        source: "qrc:/ScopicFlow/assets/FluentSystemIcons-Resizable.ttf"
+        source: "../assets/FluentSystemIcons-Resizable.ttf"
     }
 }

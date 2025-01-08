@@ -12,10 +12,6 @@
 
 namespace sflow {
 
-    namespace {
-        auto _ = qmlRegisterType<TimelineScaleQuickItem>("dev.sjimo.ScopicFlow.Private.Internal", 1, 0, "TimelineScale");
-    }
-
     ScaleSGNode::~ScaleSGNode() {
         for (auto p : barNumberTextLayouts)
             delete p;

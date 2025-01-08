@@ -2,28 +2,15 @@
 #define SCOPIC_FLOW_SELECTABLEVIEWMODELMANIPULATOR_P_H
 
 #include <QObject>
+#include <qqmlintegration.h>
 
 namespace sflow {
 
-    class SelectableViewModelManipulatorInterface : public QObject {
-        Q_OBJECT
-    public:
-        explicit SelectableViewModelManipulatorInterface(QObject *parent = nullptr);
-        virtual void setSelected(QObject *item, bool selected) = 0;
-        virtual bool isSelected(QObject *item) const = 0;
-        virtual QObject *nextItem(QObject *item) const = 0;
-        virtual QObject *previousItem(QObject *item) const = 0;
-        virtual QObject *firstItem() const = 0;
-        virtual QObject *lastItem() const = 0;
-        virtual QObject *currentItem() const = 0;
-        virtual void setCurrentItem(QObject *item) = 0;
-        virtual QObjectList selection() const = 0;
-        virtual int compareOrder(QObject *item1, QObject *item2) const = 0;
-        virtual QObject *viewModel() const = 0;
-    };
+    class SelectableViewModelManipulatorInterface;
 
     class SelectableViewModelManipulator : public QObject {
         Q_OBJECT
+        QML_ELEMENT
         Q_PROPERTY(QObject *viewModel READ viewModel WRITE setViewModel NOTIFY viewModelChanged)
     public:
         explicit SelectableViewModelManipulator(QObject *parent = nullptr);
@@ -37,8 +24,6 @@ namespace sflow {
         }
 
         Q_INVOKABLE void select(QObject *item, int button, int modifiers) const;
-
-        static void registerViewModelInterface(const QString &className, const QMetaObject *metaObject);
 
     signals:
         void viewModelChanged();

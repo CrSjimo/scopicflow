@@ -3,10 +3,6 @@
 
 namespace sflow {
 
-    namespace {
-        auto _ = qmlRegisterType<LabelSequenceQuickItem>("dev.sjimo.ScopicFlow.Private.Internal", 1, 0, "LabelSequence");
-    }
-
     LabelSequenceQuickItem::LabelSequenceQuickItem(QQuickItem *parent) : d_ptr(new LabelSequenceQuickItemPrivate) {
         Q_D(LabelSequenceQuickItem);
         d->q_ptr = this;

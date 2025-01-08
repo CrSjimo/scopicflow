@@ -2,11 +2,10 @@ import QtQml
 import QtQuick
 import QtQuick.Controls.Basic
 
-import "."
-import dev.sjimo.ScopicFlow.Private.Internal as ScopicFlowInternal
-import dev.sjimo.ScopicFlow.Palettes as ScopicFlowPalette
+import dev.sjimo.ScopicFlow.Internal
+import dev.sjimo.ScopicFlow.Palette as ScopicFlowPalette
 
-ScopicFlowInternal.LabelSequence {
+LabelSequenceInternal {
     id: labelSequence
 
     property QtObject timeAlignmentViewModel: null
@@ -64,7 +63,7 @@ ScopicFlowInternal.LabelSequence {
         animationViewModel: labelSequence.animationViewModel
     }
 
-    ScopicFlowInternal.SelectableViewModelManipulator {
+    SelectableViewModelManipulator {
         id: selectionManipulator
         viewModel: labelSequence.labelSequenceViewModel
     }
@@ -355,7 +354,7 @@ ScopicFlowInternal.LabelSequence {
             }
         }
 
-        ScopicFlowInternal.RubberBandLayer {
+        RubberBandLayer {
             id: rubberBandLayer
             anchors.fill: parent
             selectionManipulator: selectionManipulator

@@ -14,6 +14,7 @@ namespace sflow {
 
     class TrackListQuickItem : public QQuickItem {
         Q_OBJECT
+        QML_NAMED_ELEMENT(TrackListInternal)
         Q_DECLARE_PRIVATE(TrackListQuickItem)
         Q_PROPERTY(TrackListViewModel *trackListViewModel READ trackListViewModel WRITE setTrackListViewModel NOTIFY trackListViewModelChanged)
     public:

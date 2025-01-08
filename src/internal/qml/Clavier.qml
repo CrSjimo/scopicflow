@@ -1,9 +1,8 @@
 import QtQml
 import QtQuick
 
-import dev.sjimo.ScopicFlow.Private.Internal as ScopicFlowInternal
-import dev.sjimo.ScopicFlow.Palettes as ScopicFlowPalette
-import "."
+import dev.sjimo.ScopicFlow.Internal
+import dev.sjimo.ScopicFlow.Palette as ScopicFlowPalette
 
 Item {
     id: clavier
@@ -97,7 +96,7 @@ Item {
                 readonly property bool isBlackKey: clavier.isBlackKey(index)
                 property bool isLeftLabelVisible: false
                 readonly property bool isRightLabelVisible: clavier.labelStrategy === Clavier.All || clavier.labelStrategy === Clavier.C && index % 12 === 0
-                readonly property string keyName: ScopicFlowInternal.ClavierHelper.keyNameImpl(index, clavier.clavierViewModel?.accidentalType ?? 0)
+                readonly property string keyName: ClavierHelper.keyNameImpl(index, clavier.clavierViewModel?.accidentalType ?? 0)
                 readonly property color normalColor: isBlackKey ? clavier.palette.blackKeyBackgroundColor : clavier.palette.whiteKeyBackgroundColor
                 readonly property color pressedColor: isBlackKey ? clavier.palette.blackKeyPressedColor : clavier.palette.whiteKeyPressedColor
                 readonly property double textYOffset: (clavier.keyYFactor[index % 12] - index % 12 - 0.5) * clavier.keyHeight

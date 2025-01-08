@@ -4,7 +4,7 @@
 #include <QVariantAnimation>
 #include <QSGNode>
 
-#include <ScopicFlow/private/TimelineScaleQuickItem_p.h>
+#include <ScopicFlowInternal/private/TimelineScaleQuickItem_p.h>
 
 class QSGTextNode;
 

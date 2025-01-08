@@ -1,7 +1,7 @@
 #ifndef SCOPIC_FLOW_TRACKLISTQUICKITEM_P_P_H
 #define SCOPIC_FLOW_TRACKLISTQUICKITEM_P_P_H
 
-#include <ScopicFlow/private/TrackListQuickItem_p.h>
+#include <ScopicFlowInternal/private/TrackListQuickItem_p.h>
 
 namespace sflow {
     class TrackListQuickItemPrivate {

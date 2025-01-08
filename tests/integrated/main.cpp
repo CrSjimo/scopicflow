@@ -19,6 +19,7 @@
 #include <QQmlContext>
 #include <QQuickItem>
 #include <QQuickWindow>
+#include <QQmlEngineExtensionPlugin>
 
 #include <SVSCraftCore/musictimeline.h>
 
@@ -146,7 +147,7 @@ int main(int argc, char *argv[]) {
     }
 
     auto v1 = new QQuickView;
-    v1->engine()->addImportPath("qrc:/ScopicFlow/modules");
+    v1->engine()->addImportPath("qrc:/");
     v1->setInitialProperties({
         {"timeAlignmentViewModel", QVariant::fromValue(&timeViewModel)},
         {"arrangementTimeAlignmentViewModel", QVariant::fromValue(&arrangementTimeViewModel)},
@@ -158,7 +159,7 @@ int main(int argc, char *argv[]) {
         {"animationViewModel", QVariant::fromValue(&animationViewModel)},
         {"paletteViewModel", QVariant::fromValue(&paletteViewModel)}
     });
-    v1->setSource(QUrl("qrc:/main.qml"));
+    v1->setSource(QUrl("qrc:/dev/sjimo/ScopicFlow/Test/main.qml"));
     v1->setResizeMode(QQuickView::SizeRootObjectToView);
     splitter->addWidget(QWidget::createWindowContainer(v1));
 
@@ -208,7 +209,7 @@ int main(int argc, char *argv[]) {
     scrollBehaviorDialog.setInitialProperties({
         {"scrollBehaviorViewModel", QVariant::fromValue(&scrollBehaviorViewModel)},
     });
-    scrollBehaviorDialog.setSource(QUrl("qrc:/ScrollBehaviorDialog.qml"));
+    scrollBehaviorDialog.setSource(QUrl("qrc:/dev/sjimo/ScopicFlow/Test/ScrollBehaviorDialog.qml"));
     scrollBehaviorDialog.setTitle("Set Scroll Behavior");
     scrollBehaviorDialog.setResizeMode(QQuickView::SizeRootObjectToView);
     scrollBehaviorDialog.resize(400, 240);

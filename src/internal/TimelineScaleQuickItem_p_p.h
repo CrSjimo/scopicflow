@@ -1,10 +1,10 @@
-#ifndef SCOPIC_FLOW_TIMELINEQUICKITEM_P_P_H
-#define SCOPIC_FLOW_TIMELINEQUICKITEM_P_P_H
+#ifndef SCOPIC_FLOW_TIMELINESCALEQUICKITEM_P_P_H
+#define SCOPIC_FLOW_TIMELINESCALEQUICKITEM_P_P_H
 
 #include <QVariantAnimation>
-#include <qsgnode.h>
+#include <QSGNode>
 
-#include <ScopicFlow/private/TimelineQuickItem_p.h>
+#include <ScopicFlow/private/TimelineScaleQuickItem_p.h>
 
 class QSGTextNode;
 
@@ -12,9 +12,9 @@ namespace sflow {
 
     class ScaleSGNode : public QSGNode {
     public:
-        explicit ScaleSGNode(TimelineQuickItemPrivate *d) : d(d) {}
+        explicit ScaleSGNode(TimelineScaleQuickItemPrivate *d) : d(d) {}
         ~ScaleSGNode() override;
-        TimelineQuickItemPrivate *d;
+        TimelineScaleQuickItemPrivate *d;
 
         QTextLayout *createTextLayoutForBarNumber(int bar);
         QSGTextNode *createTextNodeForBarNumber(int bar, const QColor &color);
@@ -27,17 +27,16 @@ namespace sflow {
         QHash<qint64, QSGTextNode *> timeSignatureTextNodes;
     };
 
-    class TimelineQuickItemPrivate {
-        Q_DECLARE_PUBLIC(TimelineQuickItem)
+    class TimelineScaleQuickItemPrivate {
+        Q_DECLARE_PUBLIC(TimelineScaleQuickItem)
     public:
-        TimelineQuickItem *q_ptr;
+        TimelineScaleQuickItem *q_ptr;
 
         TimeAlignmentViewModel *timeAlignmentViewModel = nullptr;
         QPointer<SVS::MusicTimeline> timeline = nullptr;
 
-        QColor backgroundColor;
-        QColor foregroundColor;
+        QColor color;
     };
 }
 
-#endif //SCOPIC_FLOW_TIMELINEQUICKITEM_P_P_H
+#endif //SCOPIC_FLOW_TIMELINESCALEQUICKITEM_P_P_H

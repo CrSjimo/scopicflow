@@ -81,7 +81,7 @@ Item {
 
         }
 
-        ScopicFlowInternal.PianoRollBackground {
+        ScopicFlowInternal.PianoRollScale {
             anchors.fill: parent
             timeAlignmentViewModel: pianoRoll.timeAlignmentViewModel
             barScaleColor: palette.barScaleColor

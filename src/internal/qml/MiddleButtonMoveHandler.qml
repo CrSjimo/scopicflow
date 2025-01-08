@@ -15,18 +15,8 @@ Item {
 
         property double originalX: 0
         property double originalY: 0
-
         property double deltaTickingX: 0
         property double deltaTickingY: 0
-        Timer {
-            id: tickingTimer
-            interval: 10
-            repeat: true
-
-            onTriggered: {
-                handler.moved(parent.deltaTickingX, parent.deltaTickingY)
-            }
-        }
         function calculateScrollingSpeed(x) {
             return Math.sign(x) * Math.min(1, Math.abs(x / 256))
         }
@@ -53,6 +43,16 @@ Item {
         onReleased: function (mouse) {
             tickingTimer.stop()
             cursorShape = undefined
+        }
+
+        Timer {
+            id: tickingTimer
+            interval: 10
+            repeat: true
+
+            onTriggered: {
+                handler.moved(parent.deltaTickingX, parent.deltaTickingY)
+            }
         }
 
     }

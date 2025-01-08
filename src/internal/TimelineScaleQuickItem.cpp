@@ -1,21 +1,19 @@
-#include "TimelineQuickItem_p.h"
-#include "TimelineQuickItem_p_p.h"
+#include "TimelineScaleQuickItem_p.h"
+#include "TimelineScaleQuickItem_p_p.h"
 
 #include <cmath>
 
 #include <QSGSimpleRectNode>
-#include <QQuickWindow>
 #include <QSGTextNode>
 
 #include <SVSCraftCore/musictimeline.h>
 
 #include <ScopicFlow/TimeAlignmentViewModel.h>
-#include <ScopicFlow/PlaybackViewModel.h>
 
 namespace sflow {
 
     namespace {
-        auto _ = qmlRegisterType<TimelineQuickItem>("dev.sjimo.ScopicFlow.Private.Internal", 1, 0, "Timeline");
+        auto _ = qmlRegisterType<TimelineScaleQuickItem>("dev.sjimo.ScopicFlow.Private.Internal", 1, 0, "TimelineScale");
     }
 
     ScaleSGNode::~ScaleSGNode() {
@@ -104,21 +102,20 @@ namespace sflow {
         return textNode;
     }
 
-    TimelineQuickItem::TimelineQuickItem(QQuickItem *parent) : QQuickItem(parent), d_ptr(new TimelineQuickItemPrivate) {
-        Q_D(TimelineQuickItem);
+    TimelineScaleQuickItem::TimelineScaleQuickItem(QQuickItem *parent) : QQuickItem(parent), d_ptr(new TimelineScaleQuickItemPrivate) {
+        Q_D(TimelineScaleQuickItem);
         d->q_ptr = this;
         setFlag(ItemHasContents, true);
-        connect(this, &TimelineQuickItem::backgroundColorChanged, this, &QQuickItem::update);
-        connect(this, &TimelineQuickItem::foregroundColorChanged, this, &QQuickItem::update);
+        connect(this, &TimelineScaleQuickItem::colorChanged, this, &QQuickItem::update);
     }
-    TimelineQuickItem::~TimelineQuickItem() = default;
+    TimelineScaleQuickItem::~TimelineScaleQuickItem() = default;
 
-    TimeAlignmentViewModel *TimelineQuickItem::timeAlignmentViewModel() const {
-        Q_D(const TimelineQuickItem);
+    TimeAlignmentViewModel *TimelineScaleQuickItem::timeAlignmentViewModel() const {
+        Q_D(const TimelineScaleQuickItem);
         return d->timeAlignmentViewModel;
     }
-    void TimelineQuickItem::setTimeAlignmentViewModel(TimeAlignmentViewModel *timeAlignmentViewModel) {
-        Q_D(TimelineQuickItem);
+    void TimelineScaleQuickItem::setTimeAlignmentViewModel(TimeAlignmentViewModel *timeAlignmentViewModel) {
+        Q_D(TimelineScaleQuickItem);
         if (d->timeAlignmentViewModel == timeAlignmentViewModel)
             return;
         if (d->timeAlignmentViewModel) {
@@ -149,22 +146,13 @@ namespace sflow {
         emit timeAlignmentViewModelChanged();
         update();
     }
-    QColor TimelineQuickItem::backgroundColor() const {
-        Q_D(const TimelineQuickItem);
-        return d->backgroundColor;
+    QColor TimelineScaleQuickItem::color() const {
+        Q_D(const TimelineScaleQuickItem);
+        return d->color;
     }
-    void TimelineQuickItem::setBackgroundColor(const QColor &backgroundColor) {
-        Q_D(TimelineQuickItem);
-        d->backgroundColor = backgroundColor;
-        update();
-    }
-    QColor TimelineQuickItem::foregroundColor() const {
-        Q_D(const TimelineQuickItem);
-        return d->foregroundColor;
-    }
-    void TimelineQuickItem::setForegroundColor(const QColor &foregroundColor) {
-        Q_D(TimelineQuickItem);
-        d->foregroundColor = foregroundColor;
+    void TimelineScaleQuickItem::setColor(const QColor &foregroundColor) {
+        Q_D(TimelineScaleQuickItem);
+        d->color = foregroundColor;
         update();
     }
 
@@ -192,26 +180,17 @@ namespace sflow {
         time = time.timeline()->create((time.measure() / interval + 1) * interval, 0, 0);
     }
 
-    QSGNode *TimelineQuickItem::updatePaintNode(QSGNode *node, UpdatePaintNodeData *) {
-        Q_D(TimelineQuickItem);
-        QSGSimpleRectNode *rectNode;
+    QSGNode *TimelineScaleQuickItem::updatePaintNode(QSGNode *node, UpdatePaintNodeData *) {
+        Q_D(TimelineScaleQuickItem);
         ScaleSGNode *scaleNode;
         if (!node) {
             node = new QSGNode;
-            node->appendChildNode(rectNode = new QSGSimpleRectNode);
-            rectNode->setFlag(QSGNode::OwnedByParent);
         } else {
-            rectNode = static_cast<QSGSimpleRectNode *>(node->childAtIndex(0));
-            auto oldScaleNode = node->childAtIndex(1);
+            auto oldScaleNode = node->childAtIndex(0);
             delete oldScaleNode;
         }
         node->appendChildNode(scaleNode = new ScaleSGNode(d));
         scaleNode->setFlag(QSGNode::OwnedByParent);
-        if (d->backgroundColor.isValid())
-            rectNode->setColor(d->backgroundColor);
-        else
-            rectNode->setColor(Qt::black);
-        rectNode->setRect(boundingRect());
 
         if (!d->timeAlignmentViewModel || !d->timeAlignmentViewModel->timeline())
             return node;
@@ -228,7 +207,7 @@ namespace sflow {
         }
 
         QList<QPair<float, bool>> xList;
-        auto foregroundColor = d->foregroundColor.isValid() ? d->foregroundColor : Qt::white;
+        auto foregroundColor = d->color.isValid() ? d->color : Qt::white;
 
         for (;; moveForward(musicTime, barScaleIntervalExp2, doDrawBeatScale)) {
             double deltaTick = musicTime.totalTick() - d->timeAlignmentViewModel->start();

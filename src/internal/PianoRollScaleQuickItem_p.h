@@ -1,5 +1,5 @@
-#ifndef SCOPIC_FLOW_PIANOROLLBACKGROUNDQUICKITEM_P_H
-#define SCOPIC_FLOW_PIANOROLLBACKGROUNDQUICKITEM_P_H
+#ifndef SCOPIC_FLOW_PIANOROLLSCALEQUICKITEM_P_H
+#define SCOPIC_FLOW_PIANOROLLSCALEQUICKITEM_P_H
 
 #include <QQuickItem>
 
@@ -7,18 +7,18 @@
 
 namespace sflow {
 
-    class PianoRollBackgroundQuickItemPrivate;
+    class PianoRollScaleQuickItemPrivate;
 
-    class SCOPIC_FLOW_EXPORT PianoRollBackgroundQuickItem : public QQuickItem {
+    class PianoRollScaleQuickItem : public QQuickItem {
         Q_OBJECT
-        Q_DECLARE_PRIVATE(PianoRollBackgroundQuickItem)
+        Q_DECLARE_PRIVATE(PianoRollScaleQuickItem)
         Q_PROPERTY(TimeAlignmentViewModel *timeAlignmentViewModel READ timeAlignmentViewModel WRITE setTimeAlignmentViewModel NOTIFY timeAlignmentViewModelChanged)
         Q_PROPERTY(QColor beatScaleColor READ beatScaleColor WRITE setBeatScaleColor NOTIFY beatScaleColorChanged)
         Q_PROPERTY(QColor barScaleColor READ barScaleColor WRITE setBarScaleColor NOTIFY barScaleColorChanged)
         Q_PROPERTY(QColor segmentScaleColor READ segmentScaleColor WRITE setSegmentScaleColor NOTIFY segmentScaleColorChanged)
     public:
-        explicit PianoRollBackgroundQuickItem(QQuickItem *parent = nullptr);
-        ~PianoRollBackgroundQuickItem() override;
+        explicit PianoRollScaleQuickItem(QQuickItem *parent = nullptr);
+        ~PianoRollScaleQuickItem() override;
 
         TimeAlignmentViewModel *timeAlignmentViewModel() const;
         void setTimeAlignmentViewModel(TimeAlignmentViewModel *viewModel);
@@ -42,9 +42,9 @@ namespace sflow {
         void segmentScaleColorChanged(const QColor &color);
 
     private:
-        QScopedPointer<PianoRollBackgroundQuickItemPrivate> d_ptr;
+        QScopedPointer<PianoRollScaleQuickItemPrivate> d_ptr;
     };
 
 } // sflow
 
-#endif //SCOPIC_FLOW_PIANOROLLBACKGROUNDQUICKITEM_P_H
+#endif //SCOPIC_FLOW_PIANOROLLSCALEQUICKITEM_P_H

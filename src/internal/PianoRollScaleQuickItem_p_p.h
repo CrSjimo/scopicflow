@@ -1,13 +1,13 @@
-#ifndef SCOPIC_FLOW_PIANOROLLBACKGROUNDQUICKITEM_P_P_H
-#define SCOPIC_FLOW_PIANOROLLBACKGROUNDQUICKITEM_P_P_H
+#ifndef SCOPIC_FLOW_PIANOROLLSCALEQUICKITEM_P_P_H
+#define SCOPIC_FLOW_PIANOROLLSCALEQUICKITEM_P_P_H
 
-#include <ScopicFlow/private/PianoRollBackgroundQuickItem_p.h>
+#include <ScopicFlow/private/PianoRollScaleQuickItem_p.h>
 
 namespace sflow {
-    class PianoRollBackgroundQuickItemPrivate {
-        Q_DECLARE_PUBLIC(PianoRollBackgroundQuickItem)
+    class PianoRollScaleQuickItemPrivate {
+        Q_DECLARE_PUBLIC(PianoRollScaleQuickItem)
     public:
-        PianoRollBackgroundQuickItem *q_ptr;
+        PianoRollScaleQuickItem *q_ptr;
 
         TimeAlignmentViewModel *timeAlignmentViewModel = nullptr;
         QPointer<SVS::MusicTimeline> timeline = nullptr;
@@ -25,4 +25,4 @@ namespace sflow {
     };
 }
 
-#endif //SCOPIC_FLOW_PIANOROLLBACKGROUNDQUICKITEM_P_P_H
+#endif //SCOPIC_FLOW_PIANOROLLSCALEQUICKITEM_P_P_H

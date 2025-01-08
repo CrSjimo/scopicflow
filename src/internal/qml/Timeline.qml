@@ -6,9 +6,10 @@ import dev.sjimo.ScopicFlow.Private.Internal as ScopicFlowInternal
 import dev.sjimo.ScopicFlow.Palettes as ScopicFlowPalette
 import "."
 
-ScopicFlowInternal.Timeline {
+Item {
     id: timeline
 
+    property QtObject timeAlignmentViewModel: null
     property QtObject playbackViewModel: null
     property QtObject scrollBehaviorViewModel: null
     property QtObject animationViewModel: null
@@ -28,7 +29,6 @@ ScopicFlowInternal.Timeline {
             tick -= timeAlignmentViewModel.positionAlignment
         playbackViewModel.primaryPosition = playbackViewModel.secondaryPosition = tick
     }
-
     function setZoomedRange(selectionX, selectionWidth) {
         if (!timeAlignmentViewModel)
             return
@@ -39,7 +39,6 @@ ScopicFlowInternal.Timeline {
         timeAlignmentViewModel.start = start
         timeAlignmentViewModel.pixelDensity = Math.max(timeAlignmentViewModel.minimumPixelDensity, Math.min(width / (end - start), timeAlignmentViewModel.maximumPixelDensity))
     }
-
     function moveViewOnDraggingPositionIndicator(deltaX) {
         if (!timeAlignmentViewModel || !playbackViewModel)
             return
@@ -56,14 +55,6 @@ ScopicFlowInternal.Timeline {
         }
     }
 
-    function mapToTick(x) {
-        return locator.mapToTick(x)
-    }
-
-    function mapToX(tick) {
-        return locator.mapToX(tick)
-    }
-
     signal positionIndicatorDoubleClicked()
     signal timelineDoubleClicked(tick: int)
     signal contextMenuRequestedForTimeline(tick: int)
@@ -75,8 +66,6 @@ ScopicFlowInternal.Timeline {
 
     readonly property QtObject palette: paletteViewModel?.palette?.timeline ?? defaultPalette
 
-    backgroundColor: palette.backgroundColor
-    foregroundColor: palette.foregroundColor
     clip: true
 
     TimeAlignmentPositionLocator {
@@ -92,10 +81,24 @@ ScopicFlowInternal.Timeline {
     }
 
     Rectangle {
+        id: backgroundRect
+        anchors.fill: parent
+        color: timeline.palette.backgroundColor
+    }
+
+    ScopicFlowInternal.TimelineScale {
+        id: timelineScale
+        anchors.fill: parent
+        color: timeline.palette.foregroundColor
+        timeAlignmentViewModel: timeline.timeAlignmentViewModel
+    }
+
+
+    Rectangle {
         id: selectionRect
         anchors.bottom: parent.bottom
         anchors.top: parent.top
-        color: Qt.rgba(timeline.foregroundColor.r, timeline.foregroundColor.g, timeline.foregroundColor.b, 0.5 * timeline.foregroundColor.a)
+        color: Qt.rgba(timelineScale.color.r, timelineScale.color.g, timelineScale.color.b, 0.5 * timelineScale.color.a)
         visible: false
         property int start: 0
     }
@@ -156,14 +159,14 @@ ScopicFlowInternal.Timeline {
         drag.minimumX: timeline.zeroTickX - 8
         focusPolicy: Qt.StrongFocus
 
+        property bool rejectContextMenu: false
+
         DragScroller {
             id: dragScroller
             onMoved: function (deltaX) {
                 timeline.moveViewOnDraggingPositionIndicator(deltaX)
             }
         }
-
-        property bool rejectContextMenu: false
 
         onPressed: function (mouse) {
             rejectContextMenu = false
@@ -181,7 +184,7 @@ ScopicFlowInternal.Timeline {
                     if (primaryIndicator.contains(mapToItem(primaryIndicator, x, y))) {
                         timeline.contextMenuRequestedForPositionIndicator()
                     } else {
-                        timeline.contextMenuRequestedForTimeline(timeline.mapToTick(x))
+                        timeline.contextMenuRequestedForTimeline(locator.mapToTick(x))
                     }
                 }
             }
@@ -199,7 +202,7 @@ ScopicFlowInternal.Timeline {
                 if (primaryIndicator.contains(mapToItem(primaryIndicator, mouse.x, mouse.y))) {
                     timeline.positionIndicatorDoubleClicked()
                 } else {
-                    timeline.timelineDoubleClicked(timeline.mapToTick(mouse.x))
+                    timeline.timelineDoubleClicked(locator.mapToTick(mouse.x))
                 }
             }
         }

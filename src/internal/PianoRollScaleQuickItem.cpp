@@ -1,5 +1,5 @@
-#include "PianoRollBackgroundQuickItem_p.h"
-#include "PianoRollBackgroundQuickItem_p_p.h"
+#include "PianoRollScaleQuickItem_p.h"
+#include "PianoRollScaleQuickItem_p_p.h"
 
 #include <QSGGeometryNode>
 #include <QSGVertexColorMaterial>
@@ -9,29 +9,29 @@
 namespace sflow {
 
     namespace {
-        auto _ = qmlRegisterType<PianoRollBackgroundQuickItem>("dev.sjimo.ScopicFlow.Private.Internal", 1, 0, "PianoRollBackground");
+        auto _ = qmlRegisterType<PianoRollScaleQuickItem>("dev.sjimo.ScopicFlow.Private.Internal", 1, 0, "PianoRollScale");
     }
 
-    double PianoRollBackgroundQuickItemPrivate::tickToX(int tick) const {
+    double PianoRollScaleQuickItemPrivate::tickToX(int tick) const {
         if (!timeAlignmentViewModel)
             return 0;
         auto deltaTick = tick - timeAlignmentViewModel->start();
         return deltaTick * timeAlignmentViewModel->pixelDensity();
     }
 
-    PianoRollBackgroundQuickItem::PianoRollBackgroundQuickItem(QQuickItem *parent) : QQuickItem(parent), d_ptr(new PianoRollBackgroundQuickItemPrivate) {
-        Q_D(PianoRollBackgroundQuickItem);
+    PianoRollScaleQuickItem::PianoRollScaleQuickItem(QQuickItem *parent) : QQuickItem(parent), d_ptr(new PianoRollScaleQuickItemPrivate) {
+        Q_D(PianoRollScaleQuickItem);
         d->q_ptr = this;
         setFlag(ItemHasContents, true);
     }
-    PianoRollBackgroundQuickItem::~PianoRollBackgroundQuickItem() = default;
+    PianoRollScaleQuickItem::~PianoRollScaleQuickItem() = default;
 
-    TimeAlignmentViewModel *PianoRollBackgroundQuickItem::timeAlignmentViewModel() const {
-        Q_D(const PianoRollBackgroundQuickItem);
+    TimeAlignmentViewModel *PianoRollScaleQuickItem::timeAlignmentViewModel() const {
+        Q_D(const PianoRollScaleQuickItem);
         return d->timeAlignmentViewModel;
     }
-    void PianoRollBackgroundQuickItem::setTimeAlignmentViewModel(TimeAlignmentViewModel *viewModel) {
-        Q_D(PianoRollBackgroundQuickItem);
+    void PianoRollScaleQuickItem::setTimeAlignmentViewModel(TimeAlignmentViewModel *viewModel) {
+        Q_D(PianoRollScaleQuickItem);
         if (d->timeAlignmentViewModel == viewModel) {
             return;
         }
@@ -63,41 +63,41 @@ namespace sflow {
         }
         update();
     }
-    QColor PianoRollBackgroundQuickItem::beatScaleColor() const {
-        Q_D(const PianoRollBackgroundQuickItem);
+    QColor PianoRollScaleQuickItem::beatScaleColor() const {
+        Q_D(const PianoRollScaleQuickItem);
         return d->beatScaleColor;
     }
-    void PianoRollBackgroundQuickItem::setBeatScaleColor(const QColor &color) {
-        Q_D(PianoRollBackgroundQuickItem);
+    void PianoRollScaleQuickItem::setBeatScaleColor(const QColor &color) {
+        Q_D(PianoRollScaleQuickItem);
         if (d->beatScaleColor != color) {
             d->beatScaleColor = color;
             emit beatScaleColorChanged(color);
         }
     }
-    QColor PianoRollBackgroundQuickItem::barScaleColor() const {
-        Q_D(const PianoRollBackgroundQuickItem);
+    QColor PianoRollScaleQuickItem::barScaleColor() const {
+        Q_D(const PianoRollScaleQuickItem);
         return d->barScaleColor;
     }
-    void PianoRollBackgroundQuickItem::setBarScaleColor(const QColor &color) {
-        Q_D(PianoRollBackgroundQuickItem);
+    void PianoRollScaleQuickItem::setBarScaleColor(const QColor &color) {
+        Q_D(PianoRollScaleQuickItem);
         if (d->barScaleColor != color) {
             d->barScaleColor = color;
             emit barScaleColorChanged(color);
         }
     }
-    QColor PianoRollBackgroundQuickItem::segmentScaleColor() const {
-        Q_D(const PianoRollBackgroundQuickItem);
+    QColor PianoRollScaleQuickItem::segmentScaleColor() const {
+        Q_D(const PianoRollScaleQuickItem);
         return d->segmentScaleColor;
     }
-    void PianoRollBackgroundQuickItem::setSegmentScaleColor(const QColor &color) {
-        Q_D(PianoRollBackgroundQuickItem);
+    void PianoRollScaleQuickItem::setSegmentScaleColor(const QColor &color) {
+        Q_D(PianoRollScaleQuickItem);
         if (d->segmentScaleColor != color) {
             d->segmentScaleColor = color;
             emit segmentScaleColorChanged(color);
         }
     }
-    QSGNode *PianoRollBackgroundQuickItem::updatePaintNode(QSGNode *node, UpdatePaintNodeData *update_paint_node_data) {
-        Q_D(PianoRollBackgroundQuickItem);
+    QSGNode *PianoRollScaleQuickItem::updatePaintNode(QSGNode *node, UpdatePaintNodeData *update_paint_node_data) {
+        Q_D(PianoRollScaleQuickItem);
         if (!d->timeAlignmentViewModel || !d->timeline) {
             delete node;
             return nullptr;
@@ -133,15 +133,15 @@ namespace sflow {
                     nextRatio >>= 1;
                 calculatedSegmentRatio = nextRatio;
             }
-            d->xList.emplace_back(d->tickToX(d->timeline->create(bar, 0, 0).totalTick()), PianoRollBackgroundQuickItemPrivate::Bar);
+            d->xList.emplace_back(d->tickToX(d->timeline->create(bar, 0, 0).totalTick()), PianoRollScaleQuickItemPrivate::Bar);
             if (calculatedSegmentRatio == 0)
                 continue;
             for (int tick = ticksPerBeat / calculatedSegmentRatio; tick < ticksPerBar; tick += ticksPerBeat / calculatedSegmentRatio) {
                 auto musicTime = d->timeline->create(bar, 0, tick);
                 if (musicTime.tick() == 0) {
-                    d->xList.emplace_back(d->tickToX(musicTime.totalTick()), PianoRollBackgroundQuickItemPrivate::Beat);
+                    d->xList.emplace_back(d->tickToX(musicTime.totalTick()), PianoRollScaleQuickItemPrivate::Beat);
                 } else {
-                    d->xList.emplace_back(d->tickToX(musicTime.totalTick()), PianoRollBackgroundQuickItemPrivate::Segment);
+                    d->xList.emplace_back(d->tickToX(musicTime.totalTick()), PianoRollScaleQuickItemPrivate::Segment);
                 }
             }
         }
@@ -156,7 +156,7 @@ namespace sflow {
         barScaleGeometry->setLineWidth(1);
         for (int i = 0; i < d->xList.size(); i++) {
             const auto &[x, type] = d->xList.at(i);
-            auto color = type == PianoRollBackgroundQuickItemPrivate::Bar ? barScaleColor : type == PianoRollBackgroundQuickItemPrivate::Beat ? beatScaleColor : segmentScaleColor;
+            auto color = type == PianoRollScaleQuickItemPrivate::Bar ? barScaleColor : type == PianoRollScaleQuickItemPrivate::Beat ? beatScaleColor : segmentScaleColor;
             barScaleGeometry->vertexDataAsColoredPoint2D()[i * 2].set(x, 0, color.red(), color.green(), color.blue(), color.alpha());
             barScaleGeometry->vertexDataAsColoredPoint2D()[i * 2 + 1].set(x, height(), color.red(), color.green(), color.blue(), color.alpha());
         }

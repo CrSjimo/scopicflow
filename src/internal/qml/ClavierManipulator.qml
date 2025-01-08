@@ -1,42 +1,13 @@
+import QtQml
 import QtQuick
 
 Item {
     id: clavierManipulator
+    visible: false
+
     property var clavierViewModel: null
     property var animationViewModel: null
     property double startOffset: 0
-
-    visible: false
-
-    property double _start: 0
-    Behavior on _start {
-        id: startBehavior
-        NumberAnimation {
-            duration: (clavierManipulator.animationViewModel?.scrollAnimationRatio ?? 1.0) * 250
-            easing.type: Easing.OutCubic
-        }
-    }
-    on_StartChanged: {
-        clavierViewModel.start = _start
-    }
-    property double _pixelDensity: 0
-    Behavior on _pixelDensity {
-        id: pixelDensityBehavior
-        NumberAnimation {
-            duration: (clavierManipulator.animationViewModel?.scrollAnimationRatio ?? 1.0) * 250
-            easing.type: Easing.OutCubic
-        }
-    }
-    property bool _currentAnimationFixStartToZero: false
-    property bool _currentAnimationEnsureEnd: false
-    property double _centerY: 0
-    on_PixelDensityChanged: {
-        let newStart = _currentAnimationFixStartToZero ? 0 : _currentAnimationEnsureEnd ? 128 - height / _pixelDensity : Math.max(0.0, clavierViewModel.start + (height - _centerY) / clavierViewModel.pixelDensity - (height - _centerY) / _pixelDensity)
-        newStart = Math.min(newStart, 128 - height / _pixelDensity)
-        clavierViewModel.start = newStart
-        clavierViewModel.pixelDensity = _pixelDensity
-
-    }
 
     function moveViewBy(deltaY, animated = false) {
         if (!clavierViewModel)
@@ -47,9 +18,9 @@ Item {
             clavierViewModel.start = newStart
         } else {
             startBehavior.enabled = false
-            _start = clavierViewModel.start
+            d.start = clavierViewModel.start
             startBehavior.enabled = true
-            _start = newStart
+            d.start = newStart
         }
     }
 
@@ -63,13 +34,50 @@ Item {
             clavierViewModel.start = newStart
             clavierViewModel.pixelDensity = newPixelDensity
         } else {
-            _currentAnimationFixStartToZero = ratio < 1 && Math.abs(clavierViewModel.start) < Number.EPSILON
-            _currentAnimationEnsureEnd = ratio < 1 && Math.abs(clavierViewModel.start - (128 - height / clavierViewModel.pixelDensity)) < Number.EPSILON
+            d.currentAnimationFixStartToZero = ratio < 1 && Math.abs(clavierViewModel.start) < Number.EPSILON
+            d.currentAnimationEnsureEnd = ratio < 1 && Math.abs(clavierViewModel.start - (128 - height / clavierViewModel.pixelDensity)) < Number.EPSILON
             pixelDensityBehavior.enabled = false
-            _pixelDensity = clavierViewModel.pixelDensity
+            d.pixelDensity = clavierViewModel.pixelDensity
             pixelDensityBehavior.enabled = true
-            _centerY = centerY
-            _pixelDensity = newPixelDensity
+            d.centerY = centerY
+            d.pixelDensity = newPixelDensity
+        }
+    }
+
+    QtObject {
+        id: d
+
+        property double start: 0
+        property double pixelDensity: 0
+        property bool currentAnimationFixStartToZero: false
+        property bool currentAnimationEnsureEnd: false
+        property double centerY: 0
+
+        onStartChanged: {
+            clavierManipulator.clavierViewModel.start = start
+        }
+
+        onPixelDensityChanged: {
+            let newStart = currentAnimationFixStartToZero ? 0 : currentAnimationEnsureEnd ? 128 - clavierManipulator.height / pixelDensity : Math.max(0.0, clavierManipulator.clavierViewModel.start + (clavierManipulator.height - centerY) / clavierManipulator.clavierViewModel.pixelDensity - (clavierManipulator.height - centerY) / pixelDensity)
+            newStart = Math.min(newStart, 128 - clavierManipulator.height / pixelDensity)
+            clavierManipulator.clavierViewModel.start = newStart
+            clavierManipulator.clavierViewModel.pixelDensity = pixelDensity
+
+        }
+
+        Behavior on start {
+            id: startBehavior
+            NumberAnimation {
+                duration: (clavierManipulator.animationViewModel?.scrollAnimationRatio ?? 1.0) * 250
+                easing.type: Easing.OutCubic
+            }
+        }
+        Behavior on pixelDensity {
+            id: pixelDensityBehavior
+            NumberAnimation {
+                duration: (clavierManipulator.animationViewModel?.scrollAnimationRatio ?? 1.0) * 250
+                easing.type: Easing.OutCubic
+            }
         }
     }
 }

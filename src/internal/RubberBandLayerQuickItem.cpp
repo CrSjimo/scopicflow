@@ -40,14 +40,17 @@ namespace sflow {
         Q_D(const RubberBandLayerQuickItem);
         return d->started;
     }
-    void RubberBandLayerQuickItem::insertItem(QObject *item, const QRectF &rect) {
+    void RubberBandLayerQuickItem::insertItem(const QVariant &item, const QRectF &rect) {
         Q_D(RubberBandLayerQuickItem);
-        d->itemRects.insert(item, rect);
+        if (!d->selectionManipulator || !d->selectionManipulator->interface())
+            return;
+        d->itemRects.insert(d->selectionManipulator->interface()->getId(item), rect);
     }
-    void RubberBandLayerQuickItem::removeItem(QObject *item) {
+    void RubberBandLayerQuickItem::removeItem(const QVariant &item) {
         Q_D(RubberBandLayerQuickItem);
-        d->itemRects.remove(item);
-        d->taggedItems.remove(item);
+        auto id = d->selectionManipulator->interface()->getId(item);
+        d->itemRects.remove(id);
+        d->taggedItems.remove(id);
     }
     void RubberBandLayerQuickItem::startSelection(const QPointF &startPos) {
         Q_D(RubberBandLayerQuickItem);
@@ -81,25 +84,27 @@ namespace sflow {
         QRectF rubberBandRect(d->rubberBandItem->x(), d->rubberBandItem->y(), d->rubberBandItem->width(), d->rubberBandItem->height());
         // TODO: Current implementation is high in time complexity. Optimize it in future
         // Step 1: toggle-select ALL(not covered by rubber band && tagged)
-        QList<QObject *> disjointItems;
-        for (auto item : d->taggedItems) {
-            auto itemRect = d->itemRects.value(item);
+        QList<qsizetype> disjointItemIds;
+        for (auto itemId : d->taggedItems) {
+            auto itemRect = d->itemRects.value(itemId);
             if (!rubberBandRect.intersects(itemRect)) {
+                auto item = d->selectionManipulator->interface()->fromId(itemId);
                 selectionInterface->setSelected(item, !selectionInterface->isSelected(item));
-                disjointItems.append(item);
+                disjointItemIds.append(itemId);
             }
         }
         // Step 2: remove tag from ALL(not covered by rubber band && tagged)
-        for (auto item : disjointItems) {
-            d->taggedItems.remove(item);
+        for (auto itemId : disjointItemIds) {
+            d->taggedItems.remove(itemId);
         }
         // Step 3: toggle-select ALL(covered by rubber band && not tagged)
         for (auto p = d->itemRects.constKeyValueBegin(); p != d->itemRects.constKeyValueEnd(); p++) {
-            auto [item, itemRect] = *p;
-            if (!d->taggedItems.contains(item) && rubberBandRect.intersects(itemRect)) {
+            auto [itemId, itemRect] = *p;
+            if (!d->taggedItems.contains(itemId) && rubberBandRect.intersects(itemRect)) {
+                auto item = d->selectionManipulator->interface()->fromId(itemId);
                 selectionInterface->setSelected(item, !selectionInterface->isSelected(item));
                 // Step 4: tag ALL(covered by rubber band && not tagged)
-                d->taggedItems.insert(item);
+                d->taggedItems.insert(itemId);
             }
         }
     }

@@ -35,13 +35,13 @@ namespace sflow {
             return;
         }
     }
-    void SelectableViewModelManipulator::select(QObject *item, int button, int modifiers) const {
+    void SelectableViewModelManipulator::select(const QVariant &item, int button, int modifiers) const {
         if (!m_interface) {
             if (auto engine = qjsEngine(this))
                 engine->throwError(QString("View model is not set"));
             return;
         }
-        if (!item) {
+        if (!m_interface->isValidItem(item)) {
             if (!(modifiers & Qt::ControlModifier) && !(modifiers & Qt::ShiftModifier)) {
                 for (auto o : m_interface->selection())
                     m_interface->setSelected(o, false);
@@ -53,18 +53,18 @@ namespace sflow {
                 m_interface->setSelected(o, false);
         }
         if (modifiers & Qt::ShiftModifier) {
-            if (!m_interface->currentItem()) {
+            if (!m_interface->isValidItem(m_interface->currentItem())) {
                 m_interface->setCurrentItem(item);
             }
             int order = m_interface->compareOrder(m_interface->currentItem(), item);
             if (order < 0) {
-                for (auto o = m_interface->currentItem(); o; o = m_interface->nextItem(o)) {
+                for (auto o = m_interface->currentItem(); m_interface->isValidItem(o); o = m_interface->nextItem(o)) {
                     m_interface->setSelected(o, true);
                     if (o == item)
                         break;
                 }
             } else {
-                for (auto o = m_interface->currentItem(); o; o = m_interface->previousItem(o)) {
+                for (auto o = m_interface->currentItem(); m_interface->isValidItem(o); o = m_interface->previousItem(o)) {
                     m_interface->setSelected(o, true);
                     if (o == item)
                         break;

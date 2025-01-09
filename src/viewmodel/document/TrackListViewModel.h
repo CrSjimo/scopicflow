@@ -39,8 +39,6 @@ namespace sflow {
 
         TrackViewModel *trackAt(int index) const;
 
-        QObject *indexObjectAt(int index);
-
     signals:
         void currentIndexChanged(int index);
         void countChanged(int count);

@@ -161,7 +161,6 @@ TrackListInternal {
                     id: trackListDelegate
                     readonly property bool isTrackListDelegate: true
                     required property int index
-                    readonly property QtObject indexObject: trackList.indexObjectAt(index)
                     trackViewModel: trackList.trackAt(index)
                     trackExtraDelegate: trackList.trackExtraDelegate
                     Connections {
@@ -182,13 +181,13 @@ TrackListInternal {
                     onHeightChanged: {
                         trackViewModel.rowHeight = height
                         height = Qt.binding(function () { return this.trackViewModel.rowHeight })
-                        rubberBandLayer.insertItem(indexObject, Qt.rect(0, y, 1 << 20, height))
+                        rubberBandLayer.insertItem(index, Qt.rect(0, y, 1 << 20, height))
                     }
                     onYChanged: {
-                        rubberBandLayer.insertItem(indexObject, Qt.rect(0, y, 1 << 20, height))
+                        rubberBandLayer.insertItem(index, Qt.rect(0, y, 1 << 20, height))
                     }
                     Component.onDestruction: {
-                        rubberBandLayer.removeItem(indexObject)
+                        rubberBandLayer.removeItem(index)
                     }
                     mouseArea: MouseArea {
 
@@ -257,7 +256,7 @@ TrackListInternal {
                         onPositionChanged: function (mouse) {
                             rejectClick = true
                             if (!(mouse.modifiers & Qt.AltModifier) && !rubberBandLayer.started) {
-                                selectionManipulator.select(trackListDelegate.indexObject, Qt.RightButton, mouse.modifiers)
+                                selectionManipulator.select(trackListDelegate.index, Qt.RightButton, mouse.modifiers)
                                 cursorShape = Qt.ClosedHandCursor
                             }
                             let viewportPoint = mapToItem(trackList, mouse.x, mouse.y)
@@ -298,7 +297,7 @@ TrackListInternal {
                         onClicked: function (mouse) {
                             if (rejectClick)
                                 return
-                            selectionManipulator.select(trackListDelegate.indexObject, mouse.button, mouse.modifiers)
+                            selectionManipulator.select(trackListDelegate.index, mouse.button, mouse.modifiers)
                             if (mouse.button & Qt.RightButton) {
                                 trackList.contextMenuRequestedForTrack(trackListDelegate.index ?? -1)
                             }

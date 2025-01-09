@@ -14,38 +14,49 @@ namespace sflow {
         Q_INVOKABLE explicit LabelSequenceViewModelManipulatorInterface(QObject *viewModel, QObject *parent) : SelectableViewModelManipulatorInterface(parent) {
             m_viewModel = static_cast<LabelSequenceViewModel *>(viewModel);
         }
-        void setSelected(QObject *item, bool selected) override {
-            static_cast<LabelViewModel *>(item)->setSelected(selected);
+        void setSelected(const QVariant &item, bool selected) override {
+            item.value<LabelViewModel *>()->setSelected(selected);
         }
-        bool isSelected(QObject *item) const override {
-            return static_cast<LabelViewModel *>(item)->selected();
+        bool isSelected(const QVariant &item) const override {
+            return item.value<LabelViewModel *>()->selected();
         }
-        QObject *nextItem(QObject *item) const override {
-            return m_viewModel->nextItem(static_cast<LabelViewModel *>(item));
+        QVariant nextItem(const QVariant &item) const override {
+            return QVariant::fromValue(m_viewModel->nextItem(item.value<LabelViewModel *>()));
         }
-        QObject *previousItem(QObject *item) const override {
-            return m_viewModel->previousItem(static_cast<LabelViewModel *>(item));
+        QVariant previousItem(const QVariant &item) const override {
+            return QVariant::fromValue(m_viewModel->previousItem(item.value<LabelViewModel *>()));
         }
-        QObject *firstItem() const override {
-            return m_viewModel->m_labels.cbegin()->second;
+        QVariant firstItem() const override {
+            return QVariant::fromValue(m_viewModel->m_labels.cbegin()->second);
         }
-        QObject *lastItem() const override {
-            return m_viewModel->m_labels.crbegin()->second;
+        QVariant lastItem() const override {
+            return QVariant::fromValue(m_viewModel->m_labels.crbegin()->second);
         }
-        QObject *currentItem() const override {
-            return m_viewModel->m_currentItem;
+        QVariant currentItem() const override {
+            return QVariant::fromValue(m_viewModel->m_currentItem);
         }
-        void setCurrentItem(QObject *item) override {
-            m_viewModel->setCurrentItem(static_cast<LabelViewModel *>(item));
+        void setCurrentItem(const QVariant &item) override {
+            m_viewModel->setCurrentItem(item.value<LabelViewModel *>());
         }
-        QObjectList selection() const override {
-            QObjectList ret;
+        QVariantList selection() const override {
+            QVariantList ret;
             ret.reserve(m_viewModel->m_selection.size());
-            std::copy(m_viewModel->m_selection.cbegin(), m_viewModel->m_selection.cend(), std::back_inserter(ret));
+            std::transform(m_viewModel->m_selection.cbegin(), m_viewModel->m_selection.cend(), std::back_inserter(ret), [](auto item) {
+                return QVariant::fromValue(item);
+            });
             return ret;
         }
-        int compareOrder(QObject *item1, QObject *item2) const override {
-            return static_cast<LabelViewModel *>(item1)->position() - static_cast<LabelViewModel *>(item2)->position();
+        int compareOrder(const QVariant &item1, const QVariant &item2) const override {
+            return item1.value<LabelViewModel *>()->position() - item2.value<LabelViewModel *>()->position();
+        }
+        bool isValidItem(const QVariant &item) const override {
+            return static_cast<bool>(item.value<LabelViewModel *>());
+        }
+        qsizetype getId(const QVariant &item) const override {
+            return reinterpret_cast<qsizetype>(item.value<LabelViewModel *>());
+        }
+        QVariant fromId(qsizetype id) const override {
+            return QVariant::fromValue(reinterpret_cast<LabelViewModel *>(id));
         }
         QObject *viewModel() const override {
             return m_viewModel;

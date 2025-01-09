@@ -23,7 +23,7 @@ namespace sflow {
             return m_interface;
         }
 
-        Q_INVOKABLE void select(QObject *item, int button, int modifiers) const;
+        Q_INVOKABLE void select(const QVariant &item, int button, int modifiers) const;
 
     signals:
         void viewModelChanged();

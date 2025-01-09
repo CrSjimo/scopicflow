@@ -30,8 +30,8 @@ namespace sflow {
 
         bool started() const;
 
-        Q_INVOKABLE void insertItem(QObject *item, const QRectF &rect);
-        Q_INVOKABLE void removeItem(QObject *item);
+        Q_INVOKABLE void insertItem(const QVariant &item, const QRectF &rect);
+        Q_INVOKABLE void removeItem(const QVariant &item);
 
         Q_INVOKABLE void startSelection(const QPointF &startPos);
         Q_INVOKABLE void updateSelection(const QPointF &pos);

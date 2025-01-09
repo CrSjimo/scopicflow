@@ -12,8 +12,6 @@ namespace sflow {
         int currentIndex = 0;
         bool intermediate = false;
         double viewportOffset = 0;
-
-        QObjectList indexObjects;
     };
 }
 

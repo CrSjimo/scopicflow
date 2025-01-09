@@ -1,9 +1,10 @@
 #ifndef SCOPIC_FLOW_SELECTABLEVIEWMODELMANIPULATORINTERFACE_P_H
 #define SCOPIC_FLOW_SELECTABLEVIEWMODELMANIPULATORINTERFACE_H
 
-#include <QObject>
+#  include <QObject>
+#  include <QVariant>
 
-#include <ScopicFlow/ScopicFlowGlobal.h>
+#  include <ScopicFlow/ScopicFlowGlobal.h>
 
 namespace sflow {
 
@@ -11,16 +12,27 @@ namespace sflow {
         Q_OBJECT
     public:
         explicit SelectableViewModelManipulatorInterface(QObject *parent = nullptr);
-        virtual void setSelected(QObject *item, bool selected) = 0;
-        virtual bool isSelected(QObject *item) const = 0;
-        virtual QObject *nextItem(QObject *item) const = 0;
-        virtual QObject *previousItem(QObject *item) const = 0;
-        virtual QObject *firstItem() const = 0;
-        virtual QObject *lastItem() const = 0;
-        virtual QObject *currentItem() const = 0;
-        virtual void setCurrentItem(QObject *item) = 0;
-        virtual QObjectList selection() const = 0;
-        virtual int compareOrder(QObject *item1, QObject *item2) const = 0;
+
+        virtual void setSelected(const QVariant &item, bool selected) = 0;
+        virtual bool isSelected(const QVariant &item) const = 0;
+
+        virtual QVariant nextItem(const QVariant &item) const = 0;
+        virtual QVariant previousItem(const QVariant &item) const = 0;
+        virtual QVariant firstItem() const = 0;
+        virtual QVariant lastItem() const = 0;
+
+        virtual QVariant currentItem() const = 0;
+        virtual void setCurrentItem(const QVariant &item) = 0;
+
+        virtual QVariantList selection() const = 0;
+
+        virtual int compareOrder(const QVariant &item1, const QVariant &item2) const = 0;
+
+        virtual bool isValidItem(const QVariant &item) const = 0;
+
+        virtual qsizetype getId(const QVariant &item) const = 0;
+        virtual QVariant fromId(qsizetype id) const = 0;
+
         virtual QObject *viewModel() const = 0;
 
         static void registerViewModelInterface(const QString &className, const QMetaObject *metaObject);

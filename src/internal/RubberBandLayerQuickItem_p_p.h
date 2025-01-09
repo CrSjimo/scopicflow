@@ -18,8 +18,8 @@ namespace sflow {
 
         bool started = false;
 
-        QHash<QObject *, QRectF> itemRects;
-        QSet<QObject *> taggedItems;
+        QHash<qsizetype, QRectF> itemRects;
+        QSet<qsizetype> taggedItems;
     };
 }
 

@@ -8,70 +8,65 @@
 
 namespace sflow {
 
-    class TrackListViewModelIndexObject : public QObject {
-    public:
-        explicit TrackListViewModelIndexObject(int index, QObject *parent = nullptr) : QObject(parent), m_index(index) {
-        }
-
-        int index() const {
-            return m_index;
-        }
-
-    private:
-        int m_index;
-    };
-
     class TrackListViewModelManipulatorInterface : public SelectableViewModelManipulatorInterface {
         Q_OBJECT
     public:
         Q_INVOKABLE explicit TrackListViewModelManipulatorInterface(QObject *viewModel, QObject *parent = nullptr) : SelectableViewModelManipulatorInterface(parent) {
             m_viewModel = static_cast<TrackListViewModel *>(viewModel);
         }
-        void setSelected(QObject *item, bool selected) override {
-            if (auto track = m_viewModel->trackAt(static_cast<TrackListViewModelIndexObject *>(item)->index())) {
+        void setSelected(const QVariant &item, bool selected) override {
+            if (auto track = m_viewModel->trackAt(item.toInt())) {
                 track->setSelected(selected);
             }
         }
-        bool isSelected(QObject *item) const override {
-            if (auto track = m_viewModel->trackAt(static_cast<TrackListViewModelIndexObject *>(item)->index())) {
+        bool isSelected(const QVariant &item) const override {
+            if (auto track = m_viewModel->trackAt(item.toInt())) {
                 return track->selected();
             }
             return false;
         }
-        QObject *nextItem(QObject *item) const override {
-            auto nextIndex = static_cast<TrackListViewModelIndexObject *>(item)->index() + 1;
-            return m_viewModel->indexObjectAt(nextIndex);
+        QVariant nextItem(const QVariant &item) const override {
+            return item.toInt() + 1;
         }
-        QObject *previousItem(QObject *item) const override {
-            auto previousIndex = static_cast<TrackListViewModelIndexObject *>(item)->index() - 1;
-            return m_viewModel->indexObjectAt(previousIndex);
+        QVariant previousItem(const QVariant &item) const override {
+            return item.toInt() - 1;
         }
-        QObject *firstItem() const override {
-            return m_viewModel->indexObjectAt(0);
+        QVariant firstItem() const override {
+            return 0;
         }
-        QObject *lastItem() const override {
-            return m_viewModel->indexObjectAt(m_viewModel->count() - 1);
+        QVariant lastItem() const override {
+            return m_viewModel->count() - 1;
         }
-        QObject *currentItem() const override {
-            return m_viewModel->indexObjectAt(m_viewModel->currentIndex());
+        QVariant currentItem() const override {
+            return m_viewModel->currentIndex();
         }
-        void setCurrentItem(QObject *item) override {
-            m_viewModel->setCurrentIndex(static_cast<TrackListViewModelIndexObject *>(item)->index());
+        void setCurrentItem(const QVariant &item) override {
+            m_viewModel->setCurrentIndex(item.toInt());
         }
-        QObjectList selection() const override {
-            QObjectList list;
+        QVariantList selection() const override {
+            QVariantList list;
             for (int i = 0; i < m_viewModel->count(); i++) {
                 auto track = m_viewModel->trackAt(i);
                 if (track->selected()) {
-                    list.append(m_viewModel->indexObjectAt(i));
+                    list.append(i);
                 }
             }
             return list;
         }
-        int compareOrder(QObject *item1, QObject *item2) const override {
-            auto index1 = static_cast<TrackListViewModelIndexObject *>(item1)->index();
-            auto index2 = static_cast<TrackListViewModelIndexObject *>(item2)->index();
+        int compareOrder(const QVariant &item1, const QVariant &item2) const override {
+            auto index1 = item1.toInt();
+            auto index2 = item2.toInt();
             return index1 - index2;
+        }
+        bool isValidItem(const QVariant &item) const override {
+            auto index = item.toInt();
+            return index >= 0 && index < m_viewModel->count();
+        }
+        qsizetype getId(const QVariant &item) const override {
+            return item.toInt();
+        }
+        QVariant fromId(qsizetype id) const override {
+            return static_cast<int>(id);
         }
         QObject *viewModel() const override {
             return m_viewModel;
@@ -170,16 +165,6 @@ namespace sflow {
     TrackViewModel *TrackListViewModel::trackAt(int index) const {
         Q_D(const TrackListViewModel);
         return d->tracks.at(index);
-    }
-    QObject *TrackListViewModel::indexObjectAt(int index) {
-        Q_D(TrackListViewModel);
-        if (index < 0 || index >= d->tracks.size()) {
-            return nullptr;
-        }
-        if (index >= d->indexObjects.size()) {
-            d->indexObjects.resize(index + 1);
-        }
-        return d->indexObjects[index] ? d->indexObjects[index] : (d->indexObjects[index] = new TrackListViewModelIndexObject(index, this));
     }
 }
 #include "TrackListViewModel.moc"

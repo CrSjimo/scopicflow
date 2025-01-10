@@ -31,7 +31,8 @@
 #include <ScopicFlow/PaletteViewModel.h>
 #include <ScopicFlow/LabelSequenceViewModel.h>
 #include <ScopicFlow/LabelViewModel.h>
-#include <ScopicFlow/TrackListViewModel.h>
+#include <ScopicFlow/ListViewModel.h>
+#include <ScopicFlow/TrackListLayoutViewModel.h>
 #include <ScopicFlow/TrackViewModel.h>
 #include <ScopicFlow/NoteViewModel.h>
 
@@ -139,12 +140,16 @@ int main(int argc, char *argv[]) {
         labelSequenceViewModel.insertLabels({label});
     }
 
-    TrackListViewModel trackListViewModel;
+    ListViewModel trackListViewModel;
+    QObjectList tracks;
     for (int i = 0; i < 4; i++) {
         auto track = new TrackViewModel;
         track->setName("Track " + QString::number(i + 1));
-        trackListViewModel.insertTracks(i, {track});
+        tracks.append(track);
     }
+    trackListViewModel.setItems(tracks);
+
+    TrackListLayoutViewModel trackListLayoutViewModel;
 
     auto v1 = new QQuickView;
     v1->engine()->addImportPath("qrc:/");
@@ -152,6 +157,7 @@ int main(int argc, char *argv[]) {
         {"timeAlignmentViewModel", QVariant::fromValue(&timeViewModel)},
         {"arrangementTimeAlignmentViewModel", QVariant::fromValue(&arrangementTimeViewModel)},
         {"trackListViewModel", QVariant::fromValue(&trackListViewModel)},
+        {"trackListLayoutViewModel", QVariant::fromValue(&trackListLayoutViewModel)},
         {"clavierViewModel", QVariant::fromValue(&clavierViewModel)},
         {"labelSequenceViewModel", QVariant::fromValue(&labelSequenceViewModel)},
         {"playbackViewModel", QVariant::fromValue(&playbackViewModel)},

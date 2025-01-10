@@ -4,36 +4,92 @@ import QtQuick
 import dev.sjimo.ScopicFlow.Internal
 import dev.sjimo.ScopicFlow.Palette as ScopicFlowPalette
 
-TrackListInternal {
+Item {
     id: trackList
+    clip: true
 
+    property QtObject trackListViewModel: null
+    property QtObject trackListLayoutViewModel: null
     property QtObject scrollBehaviorViewModel: null
     property QtObject animationViewModel: null
     property QtObject paletteViewModel: null
-
+    property QtObject defaultPalette: ScopicFlowPalette.TrackList {}
     property Component trackExtraDelegate: null
+
+    readonly property QtObject palette: paletteViewModel?.palette?.trackList ?? defaultPalette
+    property bool trackHandleEnabled: true
 
     signal trackDoubleClicked(index: int);
     signal contextMenuRequestedForTrack(index: int);
     signal contextMenuRequestedForTrackDragging(index: int, target: int);
-
-    property QtObject defaultPalette: ScopicFlowPalette.TrackList {}
-    property QtObject palette: paletteViewModel?.palette?.trackList ?? defaultPalette
-
-    clip: true
-
-    property bool trackHandleEnabled: true
+    
+    function moveTrack(index, target) {
+        if (!trackListViewModel)
+            return
+        let handle = trackListViewModel.handle
+        let currentItem = handle.itemAt(handle.currentIndex)
+        if (!handle.itemAt(index).selected) {
+            if (target > index) {
+                handle.rotateItems(index, target - index, index + 1)
+            } else {
+                handle.rotateItems(target, index + 1 - target, index)
+            }
+        } else {
+            handle.intermediate = true
+            let continuousSelectionStart = -1
+            let nextTarget = target
+            let i
+            for (i = target; i < handle.count; i++) {
+                if (handle.itemAt(i).selected && continuousSelectionStart === -1) {
+                    continuousSelectionStart = i
+                } else if (!handle.itemAt(i).selected) {
+                    if (continuousSelectionStart !== -1) {
+                        handle.rotateItems(nextTarget, i - nextTarget, continuousSelectionStart)
+                        nextTarget = nextTarget + i - continuousSelectionStart
+                        continuousSelectionStart = -1
+                    }
+                }
+            }
+            if (continuousSelectionStart !== -1) {
+                    handle.rotateItems(nextTarget, i - nextTarget, continuousSelectionStart)
+            }
+            continuousSelectionStart = -1
+            nextTarget = target
+            for (i = target - 1; i >= 0; i--) {
+                if (handle.itemAt(i).selected && continuousSelectionStart === -1) {
+                    continuousSelectionStart = i
+                } else if (!handle.itemAt(i).selected) {
+                    if (continuousSelectionStart !== -1) {
+                            handle.rotateItems(i + 1, nextTarget - i - 1, continuousSelectionStart + 1)
+                        nextTarget = nextTarget + i - continuousSelectionStart
+                        continuousSelectionStart = -1
+                    }
+                }
+            }
+            if (continuousSelectionStart !== -1) {
+                    handle.rotateItems(i + 1, nextTarget - i - 1, continuousSelectionStart + 1)
+            }
+            handle.intermediate = false
+        }
+        for (let i = 0; i < handle.count; i++) {
+            if (handle.itemAt(i) === currentItem) {
+                handle.currentIndex = i
+                break
+            }
+        }
+    }
+    
     onHeightChanged: {
         if (!trackList.trackListViewModel)
             return
-        if (trackList.trackListViewModel.viewportOffset + trackList.height > backgroundRectangle.height) {
-            trackList.trackListViewModel.viewportOffset = backgroundRectangle.height - trackList.height
+        if (trackList.trackListLayoutViewModel.viewportOffset + trackList.height > backgroundRectangle.height) {
+            trackList.trackListLayoutViewModel.viewportOffset = backgroundRectangle.height - trackList.height
         }
     }
 
     NumberAnimation {
         id: viewportOffsetAnimation
-        target: trackListViewModel
+        target: trackList.trackListLayoutViewModel
         property: "viewportOffset"
         easing.type: Easing.OutCubic
         duration: (trackList.animationViewModel?.scrollAnimationRatio ?? 1) * 250
@@ -49,7 +105,7 @@ TrackListInternal {
         anchors.left: parent.left
         anchors.right: parent.right
         color: trackList.palette.backgroundColor
-        y: -trackList.trackListViewModel?.viewportOffset ?? 0
+        y: -trackList.trackListLayoutViewModel?.viewportOffset ?? 0
         height: Math.max(trackList.height, trackLayoutRepeater.itemAt(trackLayoutRepeater.count - 1) ? trackLayoutRepeater.itemAt(trackLayoutRepeater.count - 1).y + 2 * trackLayoutRepeater.itemAt(trackLayoutRepeater.count - 1).height : 0, trackList.height - y)
 
         MouseArea {
@@ -71,15 +127,7 @@ TrackListInternal {
             }
             function handlePositionChanged(x, y, modifiers) {
                 if (!rubberBandLayer.started) {
-                    let multipleSelect = Boolean(modifiers & Qt.ControlModifier)
-                    if (!multipleSelect) {
-                        for (let i = 0; i < trackList.trackListViewModel.count; i++) {
-                            let track = trackList.trackAt(i)
-                            if (track.selected) {
-                                track.selected = false
-                            }
-                        }
-                    }
+                    selectionManipulator.select(null, Qt.RightButton, modifiers)
                     rubberBandLayer.startSelection(Qt.point(x, y))
                 } else {
                     rubberBandLayer.updateSelection(Qt.point(x, y))
@@ -93,11 +141,11 @@ TrackListInternal {
                 onMoved: function (_, deltaY) {
                     if (!trackList.trackListViewModel)
                         return
-                    let newViewportOffset = Math.max(0, trackList.trackListViewModel.viewportOffset + deltaY)
+                    let newViewportOffset = Math.max(0, trackList.trackListLayoutViewModel.viewportOffset + deltaY)
                     if (newViewportOffset + trackList.height > backgroundRectangle.height) {
                         newViewportOffset = backgroundRectangle.height - trackList.height
                     }
-                    trackList.trackListViewModel.viewportOffset = newViewportOffset
+                    trackList.trackListLayoutViewModel.viewportOffset = newViewportOffset
                     let point = parent.mapFromItem(trackList, viewportPoint)
                     parent.handlePositionChanged(point.x, point.y, modifiers)
                 }
@@ -132,6 +180,8 @@ TrackListInternal {
         Column {
             id: trackLayout
             anchors.fill: parent
+
+            // 获取 point 位置处音轨的 index
             function indexAt (point) {
                 let item = null
                 for (let child = trackLayout.childAt(point.x, point.y); child;) {
@@ -156,24 +206,21 @@ TrackListInternal {
             }
             Repeater {
                 id: trackLayoutRepeater
-                model: trackList.trackListViewModel?.count ?? 0
+                // model 只能用 count 并通过索引获取 trackViewModel，不能直接用 items，不然拖动音轨的时候旧的组件会被销毁导致出 bug
+                model: trackList.trackListViewModel?.handle.count ?? 0
                 TrackListDelegate {
                     id: trackListDelegate
                     readonly property bool isTrackListDelegate: true
                     required property int index
-                    trackViewModel: trackList.trackAt(index)
+                    trackViewModel: trackList.trackListViewModel.handle.items[index]
                     trackExtraDelegate: trackList.trackExtraDelegate
-                    Connections {
-                        target: trackList
-                        function onLayoutRequired() { trackListDelegate.trackViewModel = trackList.trackAt(trackListDelegate.index) }
-                    }
                     anchors.left: parent.left
                     anchors.right: parent.right
                     palette: trackList.palette
                     trackNumber: index + 1
 
-                    isLast: index === trackList.trackListViewModel.count
-                    isCurrent: trackList.trackListViewModel?.currentIndex === index
+                    isLast: index === trackList.trackListViewModel?.handle.count
+                    isCurrent: trackList.trackListViewModel?.handle.currentIndex === index
 
                     animationViewModel: trackList.animationViewModel
 
@@ -206,15 +253,7 @@ TrackListInternal {
                                     handle.indicatesTarget = false
                                 }
                                 if (!rubberBandLayer.started) {
-                                    let multipleSelect = Boolean(modifiers & Qt.ControlModifier)
-                                    if (!multipleSelect) {
-                                        for (let i = 0; i < trackList.trackListViewModel.count; i++) {
-                                            let track = trackList.trackAt(i)
-                                            if (track.selected) {
-                                                track.selected = false
-                                            }
-                                        }
-                                    }
+                                    selectionManipulator.select(null, Qt.RightButton, modifiers)
                                     rubberBandLayer.startSelection(point)
                                 } else {
                                     rubberBandLayer.updateSelection(point)
@@ -239,11 +278,11 @@ TrackListInternal {
                             onMoved: function (_, deltaY) {
                                 if (!trackList.trackListViewModel)
                                     return
-                                let newViewportOffset = Math.max(0, trackList.trackListViewModel.viewportOffset + deltaY)
+                                let newViewportOffset = Math.max(0, trackList.trackListLayoutViewModel.viewportOffset + deltaY)
                                 if (newViewportOffset + trackList.height > backgroundRectangle.height) {
                                     newViewportOffset = backgroundRectangle.height - trackList.height
                                 }
-                                trackList.trackListViewModel.viewportOffset = newViewportOffset
+                                trackList.trackListLayoutViewModel.viewportOffset = newViewportOffset
                                 let point = parent.mapFromItem(trackList, viewportPoint)
                                 parent.handlePositionChanged(point.x, point.y, mouseModifiers)
                             }
@@ -281,7 +320,7 @@ TrackListInternal {
                             rubberBandLayer.endSelection()
                             if (lastIndicatorIndex !== -1) {
                                 if (mouse.button & Qt.LeftButton) {
-                                    trackList.handleTrackMoved(trackListDelegate.index, lastIndicatorIndex)
+                                    trackList.moveTrack(trackListDelegate.index, lastIndicatorIndex)
                                 } else {
                                     trackList.contextMenuRequestedForTrackDragging(trackListDelegate.index, lastIndicatorIndex)
                                 }
@@ -330,15 +369,11 @@ TrackListInternal {
                 Rectangle {
                     id: trackHandle
                     required property int index
-                    property var trackViewModel: trackList.trackAt(index)
+                    property QtObject trackViewModel: trackList.trackListViewModel.handle.items[index]
                     property bool indicatesTarget: false
-                    Connections {
-                        target: trackList
-                        function onLayoutRequired() { trackHandle.trackViewModel = trackList.trackAt(trackHandle.index) }
-                    }
                     anchors.left: parent.left
                     anchors.right: parent.right
-                    y: trackLayoutRepeater.itemAt(index).y + trackLayoutRepeater.itemAt(index).height - 2
+                    y: index < trackLayoutRepeater.count ? trackLayoutRepeater.itemAt(index).y + trackLayoutRepeater.itemAt(index).height - 2 : 0
                     opacity: indicatesTarget || trackHandleMouseArea.containsPressed || trackHandleMouseArea.originalY !== -1
                     Behavior on opacity {
                         NumberAnimation {
@@ -352,7 +387,7 @@ TrackListInternal {
                     MouseArea {
                         id: trackHandleMouseArea
                         anchors.fill: parent
-                        cursorShape: Qt.SplitVCursor
+                        cursorShape: rubberBandLayer.started ? undefined : Qt.SplitVCursor
                         property double originalY: -1
                         enabled: trackList.trackHandleEnabled
                         hoverEnabled: true
@@ -393,11 +428,11 @@ TrackListInternal {
         onMoved: function (_, deltaY) {
             if (!trackList.trackListViewModel)
                 return
-            let newViewportOffset = Math.max(0, trackList.trackListViewModel.viewportOffset + deltaY)
+            let newViewportOffset = Math.max(0, trackList.trackListLayoutViewModel.viewportOffset + deltaY)
             if (newViewportOffset + trackList.height > backgroundRectangle.height) {
                 newViewportOffset = backgroundRectangle.height - trackList.height
             }
-            trackList.trackListViewModel.viewportOffset = newViewportOffset
+            trackList.trackListLayoutViewModel.viewportOffset = newViewportOffset
         }
     }
 
@@ -407,7 +442,7 @@ TrackListInternal {
         onMoved: function (_, deltaY, isPhysicalWheel) {
             if (!trackList.trackListViewModel)
                 return
-            let newViewportOffset = Math.max(0, trackList.trackListViewModel.viewportOffset + deltaY)
+            let newViewportOffset = Math.max(0, trackList.trackListLayoutViewModel.viewportOffset + deltaY)
             if (newViewportOffset + trackList.height > backgroundRectangle.height) {
                 newViewportOffset = backgroundRectangle.height - trackList.height
             }
@@ -416,10 +451,9 @@ TrackListInternal {
                 viewportOffsetAnimation.to = newViewportOffset
                 viewportOffsetAnimation.start()
             } else {
-                trackList.trackListViewModel.viewportOffset = newViewportOffset
+                trackList.trackListLayoutViewModel.viewportOffset = newViewportOffset
             }
         }
     }
-
 
 }

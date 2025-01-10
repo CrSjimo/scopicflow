@@ -10,6 +10,7 @@ Item {
     required property QtObject arrangementTimeAlignmentViewModel
     required property QtObject clavierViewModel
     required property QtObject trackListViewModel
+    required property QtObject trackListLayoutViewModel
     required property QtObject labelSequenceViewModel
     required property QtObject playbackViewModel
     required property QtObject scrollBehaviorViewModel
@@ -35,6 +36,7 @@ Item {
                     Layout.fillHeight: true
                     Layout.fillWidth: true
                     trackListViewModel: main.trackListViewModel
+                    trackListLayoutViewModel: main.trackListLayoutViewModel
                     scrollBehaviorViewModel: main.scrollBehaviorViewModel
                     animationViewModel: main.animationViewModel
                     paletteViewModel: main.paletteViewModel

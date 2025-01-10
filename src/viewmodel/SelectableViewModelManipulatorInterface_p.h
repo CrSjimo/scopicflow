@@ -39,6 +39,13 @@ namespace sflow {
         static const QMetaObject *getInterface(const QString &className);
     };
 
+    template<class ViewModel, class Interface>
+    struct SelectableViewModelManipulatorInterfaceRegistry {
+        inline SelectableViewModelManipulatorInterfaceRegistry() {
+            SelectableViewModelManipulatorInterface::registerViewModelInterface(ViewModel::staticMetaObject.className(), &Interface::staticMetaObject);
+        }
+    };
+
 }
 
 #endif //SCOPIC_FLOW_SELECTABLEVIEWMODELMANIPULATORINTERFACE_P_H

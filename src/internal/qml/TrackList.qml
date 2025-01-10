@@ -168,7 +168,8 @@ Item {
                 }
                 handlePositionChanged(mouse.x, mouse.y, mouse.modifiers)
             }
-            onReleased: {
+            onReleased: canceled()
+            onCanceled: {
                 rubberBandLayer.endSelection()
                 dragScroller.running = false
             }
@@ -333,6 +334,16 @@ Item {
                             }
                             lastIndicatorIndex = -1
                         }
+                        onCanceled: {
+                            cursorShape = undefined
+                            dragScroller.running = false
+                            rubberBandLayer.endSelection()
+                            if (lastIndicatorIndex !== -1) {
+                                let handle = (lastIndicatorIndex ? trackHandlesRepeater.itemAt(lastIndicatorIndex - 1) : topTrackHandle)
+                                handle.indicatesTarget = false
+                            }
+                            lastIndicatorIndex = -1
+                        }
                         onClicked: function (mouse) {
                             if (rejectClick)
                                 return
@@ -402,7 +413,8 @@ Item {
                                 trackHandle.trackViewModel.rowHeight = newHeight
                             }
                         }
-                        onReleased: function (mouse) {
+                        onReleased: canceled()
+                        onCanceled: {
                             originalY = -1
                         }
                     }
@@ -425,6 +437,7 @@ Item {
     MiddleButtonMoveHandler {
         anchors.fill: parent
         viewModel: trackList.scrollBehaviorViewModel
+        direction: Qt.Vertical
         onMoved: function (_, deltaY) {
             if (!trackList.trackListViewModel)
                 return

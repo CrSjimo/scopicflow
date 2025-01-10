@@ -388,6 +388,7 @@ LabelSequenceInternal {
     MiddleButtonMoveHandler {
         anchors.fill: parent
         viewModel: labelSequence.scrollBehaviorViewModel
+        direction: Qt.Horizontal
         onMoved: function (x) {
             timeManipulator.moveViewBy(x)
         }

@@ -237,7 +237,7 @@ Item {
                 }
             }
         }
-        onReleased: function() {
+        onReleased: {
             dragScroller.running = false
             cursorShape = Qt.ArrowCursor
             if (selectionRect.visible) {
@@ -246,6 +246,11 @@ Item {
                 selectionRect.visible = false
                 rejectContextMenu = true
             }
+        }
+        onCanceled: {
+            dragScroller.running = false
+            cursorShape = Qt.ArrowCursor
+            selectionRect.visible = false
         }
     }
 
@@ -263,6 +268,7 @@ Item {
     MiddleButtonMoveHandler {
         anchors.fill: parent
         viewModel: timeline.scrollBehaviorViewModel
+        direction: Qt.Horizontal
         onMoved: function (x) {
             timeManipulator.moveViewBy(x)
         }

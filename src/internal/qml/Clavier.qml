@@ -189,6 +189,7 @@ Item {
     MiddleButtonMoveHandler {
         anchors.fill: parent
         viewModel: clavier.scrollBehaviorViewModel
+        direction: Qt.Vertical
 
         onMoved: (_, y) => {
             clavierManipulator.moveViewBy(y);

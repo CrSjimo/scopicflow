@@ -1,7 +1,10 @@
 #include "ListViewModel.h"
 #include "ListViewModel_p.h"
 
+#include <algorithm>
+
 #include <ScopicFlow/private/SelectableViewModelManipulatorInterface_p.h>
+#include <ScopicFlow/private/ViewModelHelper_p.h>
 
 namespace sflow {
 
@@ -13,12 +16,12 @@ namespace sflow {
         }
         void setSelected(const QVariant &item, bool selected) override {
             if (auto obj = handle->itemAt(item.toInt())) {
-                obj->setProperty("selected", selected);
+                obj->setProperty(handle->d_func()->selectedProperty, selected);
             }
         }
         bool isSelected(const QVariant &item) const override {
             if (auto obj = handle->itemAt(item.toInt())) {
-                return obj->property("selected").toBool();
+                return obj->property(handle->d_func()->selectedProperty).toBool();
             }
             return false;
         }
@@ -44,7 +47,7 @@ namespace sflow {
             QVariantList list;
             for (int i = 0; i < handle->count(); i++) {
                 auto obj = handle->itemAt(i);
-                if (obj->property("selected").toBool()) {
+                if (obj->property(handle->d_func()->selectedProperty).toBool()) {
                     list.append(i);
                 }
             }
@@ -68,7 +71,7 @@ namespace sflow {
             return static_cast<int>(id);
         }
         QObject *viewModel() const override {
-            return handle->d_ptr->q_ptr;
+            return handle->d_func()->q_ptr;
         }
 
     private:
@@ -132,11 +135,34 @@ namespace sflow {
         }
         return d->items.at(index);
     }
+    void ListViewModelPrivate::handleItemSelectedChanged() {
+        Q_Q(ListViewModel);
+        auto item = q->sender();
+        if (item->property(selectedProperty).toBool()) {
+            emit q->itemSelected(item);
+        } else {
+            emit q->itemDeselected(item);
+        }
+    }
 
-    ListViewModel::ListViewModel(QObject *parent) : QObject(parent), d_ptr(new ListViewModelPrivate) {
+    static QMetaMethod handleItemSelectedChangedMetaMethod;
+
+    ListViewModel::ListViewModel(QObject *parent, const QString &selectedProperty) : QObject(parent), d_ptr(new ListViewModelPrivate) {
         Q_D(ListViewModel);
         d->q_ptr = this;
         d->handle = new ListViewModelQmlHandle(d);
+        d->selectedProperty = selectedProperty.toUtf8();
+        if (!handleItemSelectedChangedMetaMethod.isValid()) {
+            for (int i = staticMetaObject.methodOffset(); i < staticMetaObject.methodCount(); i++) {
+                auto method = staticMetaObject.method(i);
+                if (method.name() == "handleItemSelectedChanged") {
+                    handleItemSelectedChangedMetaMethod = method;
+                }
+                if (handleItemSelectedChangedMetaMethod.isValid())
+                    break;
+            }
+        }
+        Q_ASSERT(handleItemSelectedChangedMetaMethod.isValid());
     }
 
     ListViewModel::~ListViewModel() = default;
@@ -170,7 +196,13 @@ namespace sflow {
     void ListViewModel::setItems(const QObjectList &items) {
         Q_D(ListViewModel);
         auto oldSize = d->items.size();
+        for (auto item : d->items) {
+            disconnect(item, nullptr, this, nullptr);
+        }
         d->items = items;
+        for (auto item : d->items) {
+            ViewModelHelper::connectPropertyNotify(item, d->selectedProperty, this, handleItemSelectedChangedMetaMethod);
+        }
         if (oldSize != items.size())
             emit d->handle->countChanged();
         emit d->handle->itemsChanged();
@@ -178,13 +210,13 @@ namespace sflow {
     QObjectList ListViewModel::selection() const {
         Q_D(const ListViewModel);
         QObjectList ret;
-        std::copy_if(d->items.cbegin(), d->items.cend(), std::back_inserter(ret), [](QObject *item) {
-            return item->property("selected").toBool();
+        std::copy_if(d->items.cbegin(), d->items.cend(), std::back_inserter(ret), [d](QObject *item) {
+            return item->property(d->selectedProperty).toBool();
         });
         return ret;
     }
 }
 
 #include "ListViewModel.moc"
-#include <moc_ListViewModel.cpp>
+#include "moc_ListViewModel.cpp"
 #include "moc_ListViewModel_p.cpp"

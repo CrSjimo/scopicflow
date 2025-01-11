@@ -43,6 +43,15 @@ namespace sflow {
                 method.invoke(o, arg);
             });
         }
+
+        static void connectPropertyNotify(QObject *sender, const char *propertyName, QObject *receiver, const QMetaMethod &slotMethod) {
+            auto index = sender->metaObject()->indexOfProperty(propertyName);
+            auto property = sender->metaObject()->property(index);
+            if (!property.hasNotifySignal())
+                return;
+            QObject::connect(sender, property.notifySignal(), receiver, slotMethod);
+
+        }
     };
 }
 

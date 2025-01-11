@@ -65,6 +65,9 @@ namespace sflow {
             d->rubberBandItem->setWidth(0);
             d->rubberBandItem->setHeight(0);
         }
+        if (d->selectionManipulator && d->selectionManipulator->interface()) {
+            d->selectionManipulator->interface()->viewModel()->setProperty("intermediate", true);
+        }
         emit startedChanged(true);
     }
     void RubberBandLayerQuickItem::updateSelection(const QPointF &pos) {
@@ -117,6 +120,9 @@ namespace sflow {
             d->rubberBandItem->setVisible(false);
         }
         d->taggedItems.clear();
+        if (d->selectionManipulator && d->selectionManipulator->interface()) {
+            d->selectionManipulator->interface()->viewModel()->setProperty("intermediate", false);
+        }
         emit startedChanged(false);
     }
 }

@@ -3,6 +3,7 @@
 #include <QQmlEngine>
 
 #include <ScopicFlow/private/SelectableViewModelManipulatorInterface_p.h>
+#include <ScopicFlowInternal/private/ScopedIntermediate_p.h>
 
 namespace sflow {
 
@@ -41,6 +42,7 @@ namespace sflow {
                 engine->throwError(QString("View model is not set"));
             return;
         }
+        ScopedIntermediate scopedIntermediate(m_interface->viewModel());
         if (!m_interface->isValidItem(item)) {
             if (!(modifiers & Qt::ControlModifier) && !(modifiers & Qt::ShiftModifier)) {
                 for (auto o : m_interface->selection())

@@ -15,8 +15,9 @@ namespace sflow {
         Q_OBJECT
         Q_DECLARE_PRIVATE(ListViewModel)
         Q_PRIVATE_PROPERTY(ListViewModel::d_func(), ListViewModelQmlHandle *handle MEMBER handle CONSTANT)
+        Q_PRIVATE_SLOT(d_func(), void handleItemSelectedChanged())
     public:
-        explicit ListViewModel(QObject *parent = nullptr);
+        explicit ListViewModel(QObject *parent = nullptr, const QString &selectedProperty = "selected");
         ~ListViewModel() override;
 
         int currentIndex() const;
@@ -34,6 +35,8 @@ namespace sflow {
         void currentIndexChanged(int index);
         void intermediateChanged(bool intermediate);
         void itemsRotated(int index, int count, int middleIndex);
+        void itemSelected(QObject *item);
+        void itemDeselected(QObject *item);
 
     private:
         friend class ListViewModelManipulatorInterface;

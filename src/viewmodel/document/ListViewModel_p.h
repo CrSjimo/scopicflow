@@ -7,13 +7,12 @@ namespace sflow {
 
     class ListViewModelQmlHandle : public QObject {
         Q_OBJECT
-        Q_DECLARE_PRIVATE(ListViewModel)
         Q_PROPERTY(int count READ count NOTIFY countChanged)
         Q_PROPERTY(int currentIndex READ currentIndex WRITE setCurrentIndex NOTIFY currentIndexChanged)
         Q_PROPERTY(bool intermediate READ intermediate WRITE setIntermediate NOTIFY intermediateChanged)
         Q_PROPERTY(QObjectList items READ items NOTIFY itemsChanged)
     public:
-        ListViewModelPrivate *d_ptr;
+        Q_DECLARE_PRIVATE(ListViewModel)
         explicit ListViewModelQmlHandle(ListViewModelPrivate *d);
         ~ListViewModelQmlHandle() override;
 
@@ -35,6 +34,10 @@ namespace sflow {
         void currentIndexChanged();
         void intermediateChanged();
         void itemsChanged();
+
+    private:
+        ListViewModelPrivate *d_ptr;
+
     };
 
     class ListViewModelPrivate {
@@ -43,9 +46,13 @@ namespace sflow {
         ListViewModel *q_ptr;
         ListViewModelQmlHandle *handle{};
 
+        QByteArray selectedProperty;
+
         QObjectList items;
         int currentIndex{};
         bool intermediate{};
+
+        void handleItemSelectedChanged();
 
     };
 }

@@ -5,6 +5,12 @@ foreach(_file IN LISTS _qml_files_abs)
     file(RELATIVE_PATH _rel_path ${CMAKE_CURRENT_SOURCE_DIR} ${_file})
     list(APPEND _qml_files ${_rel_path})
 endforeach()
+file(GLOB_RECURSE _resource_files_abs assets/*)
+set(_resource_files)
+foreach(_file IN LISTS _resource_files_abs)
+    file(RELATIVE_PATH _rel_path ${CMAKE_CURRENT_SOURCE_DIR} ${_file})
+    list(APPEND _resource_files ${_rel_path})
+endforeach()
 
 scopic_flow_add_library(ScopicFlowInternal AUTOGEN STATIC
     SOURCES ${_src}
@@ -16,8 +22,7 @@ scopic_flow_add_library(ScopicFlowInternal AUTOGEN STATIC
 qt_add_qml_module(ScopicFlowInternal
     URI dev.sjimo.ScopicFlow.Internal
     QML_FILES ${_qml_files}
-    RESOURCES
-        assets/FluentSystemIcons-Resizable.ttf
+    RESOURCES ${_resource_files}
 )
 
 find_path(INTERVAL_TREE_INCLUDE_DIRS "interval-tree/interval_tree.hpp" REQUIRED)

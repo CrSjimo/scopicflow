@@ -3,8 +3,7 @@ import QtQml.Models
 import QtQuick
 import QtQuick.Controls.Basic
 
-import "."
-import "./FluentSystemIconCharset.mjs" as Charset
+import dev.sjimo.ScopicFlow.Internal
 
 Item {
 

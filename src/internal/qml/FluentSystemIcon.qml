@@ -1,9 +1,10 @@
 import QtQuick
-import './FluentSystemIconCharset.mjs' as Charset
+
+import dev.sjimo.ScopicFlow.Internal
 
 Text {
     font.family: fluentSystemIcons.font.family
-    text: Charset.get(icon)
+    text: FluentSystemIconCharset.get(icon)
 
     required property string icon
 

@@ -164,10 +164,11 @@ Item {
                         bottomMargin: height - parent.height
                     }
                 }
-                Rectangle {
+                Pane {
                     SplitView.preferredHeight: 128
-                    color: "red"
+                    focusPolicy: Qt.StrongFocus
                     opacity: 0.5
+                    padding: 0
                 }
             }
         }

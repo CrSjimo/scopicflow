@@ -38,7 +38,7 @@ Item {
         }
         Shape {
             anchors.fill: parent
-            visible: (handler.direction & Qt.Vertical) && (handler.deltaTickingY < 0 || handler.deltaTickingX === 0 && handler.deltaTickingY === 0)
+            visible: (handler.direction & Qt.Vertical) && (handler.deltaTickingY < 0 || (handler.deltaTickingX === 0 || !(handler.direction & Qt.Horizontal)) && handler.deltaTickingY === 0)
             ShapePath {
                 strokeColor: "black"
                 strokeWidth: 1
@@ -51,7 +51,7 @@ Item {
         }
         Shape {
             anchors.fill: parent
-            visible: (handler.direction & Qt.Horizontal) && (handler.deltaTickingX > 0 || handler.deltaTickingX === 0 && handler.deltaTickingY === 0)
+            visible: (handler.direction & Qt.Horizontal) && (handler.deltaTickingX > 0 || handler.deltaTickingX === 0 && (handler.deltaTickingY === 0 || !(handler.direction & Qt.Vertical)))
             ShapePath {
                 strokeColor: "black"
                 strokeWidth: 1
@@ -64,7 +64,7 @@ Item {
         }
         Shape {
             anchors.fill: parent
-            visible: (handler.direction & Qt.Vertical) && (handler.deltaTickingY > 0 || handler.deltaTickingX === 0 && handler.deltaTickingY === 0)
+            visible: (handler.direction & Qt.Vertical) && (handler.deltaTickingY > 0 || (handler.deltaTickingX === 0 || !(handler.direction & Qt.Horizontal)) && handler.deltaTickingY === 0)
             ShapePath {
                 strokeColor: "black"
                 strokeWidth: 1
@@ -77,7 +77,7 @@ Item {
         }
         Shape {
             anchors.fill: parent
-            visible: (handler.direction & Qt.Horizontal) && (handler.deltaTickingX < 0 || handler.deltaTickingX === 0 && handler.deltaTickingY === 0)
+            visible: (handler.direction & Qt.Horizontal) && (handler.deltaTickingX < 0 || handler.deltaTickingX === 0 && (handler.deltaTickingY === 0 || !(handler.direction & Qt.Vertical)))
             ShapePath {
                 strokeColor: "black"
                 strokeWidth: 1

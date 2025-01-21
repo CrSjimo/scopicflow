@@ -42,6 +42,10 @@ Item {
         duration: 250 * (trackListDelegate.animationViewModel?.visualEffectAnimationRatio ?? 1)
     }
 
+    function fitHeight() {
+        fitHeightAnimation.start()
+    }
+
     Rectangle {
         anchors.fill: parent
         anchors.leftMargin: -1
@@ -96,38 +100,6 @@ Item {
         Loader {
             sourceComponent: trackListDelegate.mouseArea
             anchors.fill: parent
-        }
-
-        TrackListButton {
-            id: fitHeightButton
-            width: 16
-            height: 16
-            palette: trackListDelegate.palette
-            animationViewModel: trackListDelegate.animationViewModel
-            anchors.left: selectionIndicator.right
-            anchors.leftMargin: 18
-            anchors.bottom: parent.bottom
-            anchors.bottomMargin: 8
-            checkable: false
-            opacity: hovered ? 1.0 : 0.0
-            Behavior on opacity {
-                NumberAnimation {
-                    duration: 250 * (trackListDelegate.animationViewModel?.visualEffectAnimationRatio ?? 1.0)
-                    easing.type: Easing.OutCubic
-                }
-            }
-            visible: trackListDelegate.height !== 80
-            rotation: trackListDelegate.height > 80 ? 0 : 180
-            contentItem: FluentSystemIcon {
-                icon: 'chevron_up_20_filled'
-                color: trackListDelegate.palette.foregroundColor
-                horizontalAlignment: Text.AlignHCenter
-                verticalAlignment: Text.AlignVCenter
-            }
-            onClicked: {
-                fitHeightAnimation.start()
-            }
-            toolTip: "Fit height"
         }
 
         Row {

@@ -414,6 +414,10 @@ Item {
                             }
                         }
                         onReleased: canceled()
+                        onDoubleClicked: {
+                            let delegate = trackLayoutRepeater.itemAt(trackHandle.index)
+                            delegate.fitHeight()
+                        }
                         onCanceled: {
                             originalY = -1
                         }

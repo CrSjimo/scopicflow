@@ -167,6 +167,25 @@ Item {
             if (pianoRoll.clavierViewModel && Math.abs(pianoRoll.clavierViewModel.start - (1 - (position + size)) * 128) > Number.EPSILON * 100)
                 pianoRoll.clavierViewModel.start = (1 - (position + size)) * 128
         }
+        onStartDragged: (pos) => {
+            if (!pianoRoll.clavierViewModel)
+                return
+            let newSize = position + size - pos
+            let newPixelDensity = (pianoRoll.height - pianoRoll.bottomMargin - pianoRoll.topMargin) / 128 / newSize
+            if (newPixelDensity <= pianoRoll.clavierViewModel.minimumPixelDensity || newPixelDensity >= pianoRoll.clavierViewModel.maximumPixelDensity)
+                return
+            pianoRoll.clavierViewModel.pixelDensity = newPixelDensity
+        }
+        onEndDragged: (pos) => {
+            if (!pianoRoll.clavierViewModel)
+                return
+            let newSize = pos - position
+            let newPixelDensity = (pianoRoll.height - pianoRoll.bottomMargin - pianoRoll.topMargin) / 128 / newSize
+            if (newPixelDensity <= pianoRoll.clavierViewModel.minimumPixelDensity || newPixelDensity >= pianoRoll.clavierViewModel.maximumPixelDensity)
+                return
+            pianoRoll.clavierViewModel.start = (1 - pos) * 128
+            pianoRoll.clavierViewModel.pixelDensity = newPixelDensity
+        }
     }
 
     StyledScrollBar {
@@ -186,6 +205,25 @@ Item {
         onPositionChanged: {
             if (pianoRoll.timeAlignmentViewModel && Math.abs(pianoRoll.timeAlignmentViewModel.start - position * pianoRoll.timeAlignmentViewModel.end) > Number.EPSILON * 100)
                 pianoRoll.timeAlignmentViewModel.start = position * pianoRoll.timeAlignmentViewModel.end
+        }
+        onStartDragged: (pos) => {
+            if (!pianoRoll.timeAlignmentViewModel)
+                return
+            let newSize = position + size - pos
+            let newPixelDensity = pianoRoll.width / pianoRoll.timeAlignmentViewModel.end / newSize
+            if (newPixelDensity <= pianoRoll.timeAlignmentViewModel.minimumPixelDensity || newPixelDensity >= pianoRoll.timeAlignmentViewModel.maximumPixelDensity)
+                return
+            pianoRoll.timeAlignmentViewModel.start = pianoRoll.timeAlignmentViewModel.end * pos
+            pianoRoll.timeAlignmentViewModel.pixelDensity = newPixelDensity
+        }
+        onEndDragged: (pos) => {
+            if (!pianoRoll.timeAlignmentViewModel)
+                return
+            let newSize = pos - position
+            let newPixelDensity = pianoRoll.width / pianoRoll.timeAlignmentViewModel.end / newSize
+            if (newPixelDensity <= pianoRoll.timeAlignmentViewModel.minimumPixelDensity || newPixelDensity >= pianoRoll.timeAlignmentViewModel.maximumPixelDensity)
+                return
+            pianoRoll.timeAlignmentViewModel.pixelDensity = newPixelDensity
         }
     }
 

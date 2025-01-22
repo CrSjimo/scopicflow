@@ -6,8 +6,10 @@
 
 #include <QHash>
 #include <QSet>
+#include <QVariant>
 
 #include <ScopicFlow/PointSequenceViewModel.h>
+#include <ScopicFlow/private/SliceableViewModelQmlHandle_p.h>
 
 namespace sflow {
 
@@ -75,7 +77,7 @@ namespace sflow {
         }
     };
 
-    class PointSequenceViewModelQmlHandle : public QObject {
+    class PointSequenceViewModelQmlHandle : public SliceableViewModelQmlHandle {
         Q_OBJECT
         Q_PROPERTY(QObject *currentItem READ currentItem WRITE setCurrentItem NOTIFY currentItemChanged)
         Q_PROPERTY(bool intermediate READ intermediate WRITE setIntermediate NOTIFY intermediateChanged)
@@ -92,14 +94,12 @@ namespace sflow {
 
         Q_INVOKABLE void insertItem(QObject *item);
         Q_INVOKABLE void removeItem(QObject *item);
-        Q_INVOKABLE QObjectList slice(int position, int length);
+        Q_INVOKABLE QObjectList slice(int position, int length) override;
+        Q_INVOKABLE int itemPosition(QObject *item) const override;
 
     signals:
         void currentItemChanged();
         void intermediateChanged();
-        void itemInserted(QObject *item);
-        void itemRemoved(QObject *item);
-        void itemUpdated(QObject *item, int oldPosition);
 
     private:
         PointSequenceViewModelPrivate *d_ptr;

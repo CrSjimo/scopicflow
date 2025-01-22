@@ -64,7 +64,7 @@ namespace sflow {
         PointSequenceViewModelQmlHandle *handle;
     };
 
-    PointSequenceViewModelQmlHandle::PointSequenceViewModelQmlHandle(PointSequenceViewModelPrivate *d) : QObject(d->q_ptr), d_ptr(d) {
+    PointSequenceViewModelQmlHandle::PointSequenceViewModelQmlHandle(PointSequenceViewModelPrivate *d) : SliceableViewModelQmlHandle(d->q_ptr), d_ptr(d) {
     }
     PointSequenceViewModelQmlHandle::~PointSequenceViewModelQmlHandle() = default;
     QObject *PointSequenceViewModelQmlHandle::currentItem() const {
@@ -107,6 +107,10 @@ namespace sflow {
         Q_D(PointSequenceViewModel);
         return d->container.slice(position, length);
     }
+    int PointSequenceViewModelQmlHandle::itemPosition(QObject *item) const {
+        Q_D(const PointSequenceViewModel);
+        return item->property(d->positionProperty).toInt();
+    }
 
 
     static QMetaMethod handleItemSelectedChangedMetaMethod;
@@ -141,9 +145,8 @@ namespace sflow {
     void PointSequenceViewModelPrivate::handleItemPositionChanged() {
         Q_Q(PointSequenceViewModel);
         auto item = q->sender();
-        auto oldPosition = container.m_positions.value(item);
         container.insertItem(item, item->property(positionProperty).toInt());
-        emit handle->itemUpdated(item, oldPosition);
+        emit handle->itemUpdated(item);
     }
 
 

@@ -31,7 +31,8 @@ namespace sflow {
         if (rubberBand) {
             auto obj = rubberBand->create(qmlContext(this));
             auto item = qobject_cast<QQuickItem *>(obj);
-            item->setParentItem(this);
+            if (item)
+                item->setParentItem(this);
             d->rubberBandItem = item;
         }
         emit rubberBandChanged();

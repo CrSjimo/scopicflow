@@ -3,9 +3,10 @@
 
 #include <QQuickItem>
 
-#include <ScopicFlow/TimeAlignmentViewModel.h>
-
 namespace sflow {
+
+    class TimeViewModel;
+    class TimeLayoutViewModel;
 
     class PianoRollScaleQuickItemPrivate;
 
@@ -13,7 +14,8 @@ namespace sflow {
         Q_OBJECT
         QML_NAMED_ELEMENT(PianoRollScale)
         Q_DECLARE_PRIVATE(PianoRollScaleQuickItem)
-        Q_PROPERTY(TimeAlignmentViewModel *timeAlignmentViewModel READ timeAlignmentViewModel WRITE setTimeAlignmentViewModel NOTIFY timeAlignmentViewModelChanged)
+        Q_PROPERTY(TimeViewModel *timeViewModel READ timeViewModel WRITE setTimeViewModel NOTIFY timeViewModelChanged)
+        Q_PROPERTY(TimeLayoutViewModel *timeLayoutViewModel READ timeLayoutViewModel WRITE setTimeLayoutViewModel NOTIFY timeLayoutViewModelChanged)
         Q_PROPERTY(QColor beatScaleColor READ beatScaleColor WRITE setBeatScaleColor NOTIFY beatScaleColorChanged)
         Q_PROPERTY(QColor barScaleColor READ barScaleColor WRITE setBarScaleColor NOTIFY barScaleColorChanged)
         Q_PROPERTY(QColor segmentScaleColor READ segmentScaleColor WRITE setSegmentScaleColor NOTIFY segmentScaleColorChanged)
@@ -21,8 +23,11 @@ namespace sflow {
         explicit PianoRollScaleQuickItem(QQuickItem *parent = nullptr);
         ~PianoRollScaleQuickItem() override;
 
-        TimeAlignmentViewModel *timeAlignmentViewModel() const;
-        void setTimeAlignmentViewModel(TimeAlignmentViewModel *viewModel);
+        TimeViewModel *timeViewModel() const;
+        void setTimeViewModel(TimeViewModel *timeViewModel);
+
+        TimeLayoutViewModel *timeLayoutViewModel() const;
+        void setTimeLayoutViewModel(TimeLayoutViewModel *timeLayoutViewModel);
 
         QColor beatScaleColor() const;
         void setBeatScaleColor(const QColor &color);
@@ -37,10 +42,11 @@ namespace sflow {
         QSGNode *updatePaintNode(QSGNode *node, UpdatePaintNodeData *) override;
 
     signals:
-        void timeAlignmentViewModelChanged(TimeAlignmentViewModel *viewModel);
-        void beatScaleColorChanged(const QColor &color);
-        void barScaleColorChanged(const QColor &color);
-        void segmentScaleColorChanged(const QColor &color);
+        void timeViewModelChanged();
+        void timeLayoutViewModelChanged();
+        void beatScaleColorChanged();
+        void barScaleColorChanged();
+        void segmentScaleColorChanged();
 
     private:
         QScopedPointer<PianoRollScaleQuickItemPrivate> d_ptr;

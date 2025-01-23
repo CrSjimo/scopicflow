@@ -8,7 +8,8 @@
 
 #include <SVSCraftCore/musictimeline.h>
 
-#include <ScopicFlow/TimeAlignmentViewModel.h>
+#include <ScopicFlow/TimeViewModel.h>
+#include <ScopicFlow/TimeLayoutViewModel.h>
 
 namespace sflow {
 
@@ -106,31 +107,31 @@ namespace sflow {
     }
     TimelineScaleQuickItem::~TimelineScaleQuickItem() = default;
 
-    TimeAlignmentViewModel *TimelineScaleQuickItem::timeAlignmentViewModel() const {
+    TimeViewModel *TimelineScaleQuickItem::timeViewModel() const {
         Q_D(const TimelineScaleQuickItem);
-        return d->timeAlignmentViewModel;
+        return d->timeViewModel;
     }
-    void TimelineScaleQuickItem::setTimeAlignmentViewModel(TimeAlignmentViewModel *timeAlignmentViewModel) {
+    void TimelineScaleQuickItem::setTimeViewModel(TimeViewModel *viewModel) {
         Q_D(TimelineScaleQuickItem);
-        if (d->timeAlignmentViewModel == timeAlignmentViewModel)
+        if (d->timeViewModel == viewModel) {
             return;
-        if (d->timeAlignmentViewModel) {
-            disconnect(d->timeAlignmentViewModel, nullptr, this, nullptr);
+        }
+        if (d->timeViewModel) {
+            disconnect(d->timeViewModel, nullptr, this, nullptr);
         }
         if (d->timeline) {
             disconnect(d->timeline, nullptr, this, nullptr);
         }
-        d->timeAlignmentViewModel = timeAlignmentViewModel;
+        d->timeViewModel = viewModel;
         d->timeline = nullptr;
-        if (d->timeAlignmentViewModel) {
-            d->timeline = d->timeAlignmentViewModel->timeline();
-            connect(d->timeAlignmentViewModel, &TimeViewModel::startChanged, this, &QQuickItem::update);
-            connect(d->timeAlignmentViewModel, &TimeViewModel::pixelDensityChanged, this, &QQuickItem::update);
-            connect(d->timeAlignmentViewModel, &TimeViewModel::timelineChanged, this, [=] {
+        if (viewModel) {
+            d->timeline = viewModel->timeline();
+            connect(viewModel, &TimeViewModel::startChanged, this, &QQuickItem::update);
+            connect(viewModel, &TimeViewModel::timelineChanged, this, [=] {
                 if (d->timeline) {
-                   disconnect(d->timeline, nullptr, this, nullptr);
+                    disconnect(d->timeline, nullptr, this, nullptr);
                 }
-                d->timeline = d->timeAlignmentViewModel->timeline();
+                d->timeline = viewModel->timeline();
                 if (d->timeline) {
                     connect(d->timeline, &SVS::MusicTimeline::changed, this, &QQuickItem::update);
                 }
@@ -139,7 +140,27 @@ namespace sflow {
                 connect(d->timeline, &SVS::MusicTimeline::changed, this, &QQuickItem::update);
             }
         }
-        emit timeAlignmentViewModelChanged();
+        emit timeViewModelChanged();
+        update();
+    }
+    TimeLayoutViewModel *TimelineScaleQuickItem::timeLayoutViewModel() const {
+        Q_D(const TimelineScaleQuickItem);
+        return d->timeLayoutViewModel;
+    }
+    void TimelineScaleQuickItem::setTimeLayoutViewModel(TimeLayoutViewModel *viewModel) {
+        Q_D(TimelineScaleQuickItem);
+        if (d->timeLayoutViewModel == viewModel) {
+            return;
+        }
+        if (d->timeLayoutViewModel) {
+            disconnect(d->timeLayoutViewModel, nullptr, this, nullptr);
+        }
+        d->timeLayoutViewModel = viewModel;
+        if (viewModel) {
+            connect(viewModel, &TimeLayoutViewModel::pixelDensityChanged, this, &QQuickItem::update);
+            connect(viewModel, &TimeLayoutViewModel::positionAlignmentChanged, this, &QQuickItem::update);
+        }
+        emit timeLayoutViewModelChanged();
         update();
     }
     QColor TimelineScaleQuickItem::color() const {
@@ -188,15 +209,15 @@ namespace sflow {
         node->appendChildNode(scaleNode = new ScaleSGNode(d));
         scaleNode->setFlag(QSGNode::OwnedByParent);
 
-        if (!d->timeAlignmentViewModel || !d->timeAlignmentViewModel->timeline())
+        if (!d->timeViewModel || !d->timeLayoutViewModel || !d->timeViewModel->timeline())
             return node;
         double minimumScaleDistance = 48;
-        bool doDrawBeatScale = d->timeAlignmentViewModel->pixelDensity() * 480 > minimumScaleDistance;
+        bool doDrawBeatScale = d->timeLayoutViewModel->pixelDensity() * 480 > minimumScaleDistance;
 
-        int barScaleIntervalExp2 = std::ceil(std::log2(minimumScaleDistance / (d->timeAlignmentViewModel->pixelDensity() * 480 * 4))); // TODO consider variable time signature
+        int barScaleIntervalExp2 = std::ceil(std::log2(minimumScaleDistance / (d->timeLayoutViewModel->pixelDensity() * 480 * 4))); // TODO consider variable time signature
         barScaleIntervalExp2 = std::max(0, barScaleIntervalExp2);
 
-        auto musicTime = d->timeAlignmentViewModel->timeline()->create(0, 0, static_cast<int>(d->timeAlignmentViewModel->start()));
+        auto musicTime = d->timeViewModel->timeline()->create(0, 0, static_cast<int>(d->timeViewModel->start()));
         if (!isOnScale(musicTime, barScaleIntervalExp2, doDrawBeatScale)) {
             moveForward(musicTime, barScaleIntervalExp2, doDrawBeatScale);
             moveBackward(musicTime, barScaleIntervalExp2, doDrawBeatScale);
@@ -206,8 +227,8 @@ namespace sflow {
         auto foregroundColor = d->color.isValid() ? d->color : Qt::white;
 
         for (;; moveForward(musicTime, barScaleIntervalExp2, doDrawBeatScale)) {
-            double deltaTick = musicTime.totalTick() - d->timeAlignmentViewModel->start();
-            double x = deltaTick * d->timeAlignmentViewModel->pixelDensity();
+            double deltaTick = musicTime.totalTick() - d->timeViewModel->start();
+            double x = deltaTick * d->timeLayoutViewModel->pixelDensity();
             if (x > width())
                 break;
             bool isEmphasized = musicTime.beat() == 0;
@@ -223,10 +244,10 @@ namespace sflow {
             textNode->setMatrix(transform);
             scaleNode->appendChildNode(textNode);
 
-            if (d->timeAlignmentViewModel->timeline()->nearestTimeSignatureTo(musicTime.measure()) != musicTime.measure())
+            if (d->timeViewModel->timeline()->nearestTimeSignatureTo(musicTime.measure()) != musicTime.measure())
                 continue;
 
-            auto timeSignature = d->timeAlignmentViewModel->timeline()->timeSignatureAt(musicTime.measure());
+            auto timeSignature = d->timeViewModel->timeline()->timeSignatureAt(musicTime.measure());
             textNode = scaleNode->createTextNodeForTimeSignature(timeSignature.numerator(), timeSignature.denominator(), foregroundColor);
             transform.translate(8 + barNumberLayout->maximumWidth(), 0);
             textNode->setMatrix(transform);
@@ -254,3 +275,5 @@ namespace sflow {
     }
 
 }
+
+#include "moc_TimelineScaleQuickItem_p.cpp"

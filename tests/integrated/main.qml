@@ -6,8 +6,10 @@ import dev.sjimo.ScopicFlow
 
 Item {
     id: main
-    required property QtObject timeAlignmentViewModel
-    required property QtObject arrangementTimeAlignmentViewModel
+    required property QtObject timeViewModel
+    required property QtObject arrangementTimeViewModel
+    required property QtObject timeLayoutViewModel
+    required property QtObject arrangementTimeLayoutViewModel
     required property QtObject clavierViewModel
     required property QtObject trackListViewModel
     required property QtObject trackListLayoutViewModel
@@ -68,7 +70,8 @@ Item {
                     Layout.minimumHeight: 24
                     Layout.fillWidth: true
 
-                    timeAlignmentViewModel: main.arrangementTimeAlignmentViewModel
+                    timeViewModel: main.arrangementTimeViewModel
+                    timeLayoutViewModel: main.arrangementTimeLayoutViewModel
                     playbackViewModel: main.playbackViewModel
                     scrollBehaviorViewModel: main.scrollBehaviorViewModel
                     animationViewModel: main.animationViewModel
@@ -79,7 +82,8 @@ Item {
                     Layout.minimumHeight: 16
                     Layout.fillWidth: true
 
-                    timeAlignmentViewModel: main.arrangementTimeAlignmentViewModel
+                    timeViewModel: main.arrangementTimeViewModel
+                    timeLayoutViewModel: main.arrangementTimeLayoutViewModel
                     playbackViewModel: main.playbackViewModel
                     labelSequenceViewModel: main.labelSequenceViewModel
                     scrollBehaviorViewModel: main.scrollBehaviorViewModel
@@ -119,7 +123,8 @@ Item {
                 Layout.minimumHeight: 24
                 Layout.fillWidth: true
 
-                timeAlignmentViewModel: main.timeAlignmentViewModel
+                timeViewModel: main.timeViewModel
+                timeLayoutViewModel: main.timeLayoutViewModel
                 playbackViewModel: main.playbackViewModel
                 scrollBehaviorViewModel: main.scrollBehaviorViewModel
                 animationViewModel: main.animationViewModel
@@ -132,7 +137,8 @@ Item {
                 Layout.minimumHeight: 16
                 Layout.fillWidth: true
 
-                timeAlignmentViewModel: main.timeAlignmentViewModel
+                timeViewModel: main.timeViewModel
+                timeLayoutViewModel: main.timeLayoutViewModel
                 playbackViewModel: main.playbackViewModel
                 labelSequenceViewModel: main.labelSequenceViewModel
                 scrollBehaviorViewModel: main.scrollBehaviorViewModel
@@ -155,7 +161,9 @@ Item {
                         anchors.left: parent.left
                         anchors.right: parent.right
                         height: pianoRollSplitView.height
-                        timeAlignmentViewModel: main.timeAlignmentViewModel
+
+                        timeViewModel: main.timeViewModel
+                        timeLayoutViewModel: main.timeLayoutViewModel
                         playbackViewModel: main.playbackViewModel
                         clavierViewModel: main.clavierViewModel
                         scrollBehaviorViewModel: main.scrollBehaviorViewModel

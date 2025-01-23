@@ -1,34 +1,35 @@
 import QtQml
 
 QtObject {
-    property QtObject timeAlignmentViewModel: null
+    property QtObject timeViewModel: null
+    property QtObject timeLayoutViewModel: null
 
     function mapToTick(x) {
-        if (!timeAlignmentViewModel)
+        if (!timeViewModel || !timeLayoutViewModel)
             return 0
-        return Math.round(timeAlignmentViewModel.start + x / timeAlignmentViewModel.pixelDensity)
+        return Math.round(timeViewModel.start + x / timeLayoutViewModel.pixelDensity)
     }
     function mapToX(tick) {
-        if (!timeAlignmentViewModel)
+        if (!timeViewModel || !timeLayoutViewModel)
             return 0
-        return (tick - timeAlignmentViewModel.start) * timeAlignmentViewModel.pixelDensity
+        return (tick - timeViewModel.start) * timeLayoutViewModel.pixelDensity
     }
     function alignTick(tick) {
-        if (!timeAlignmentViewModel)
+        if (!timeViewModel || !timeLayoutViewModel)
             return tick
-        let align = timeAlignmentViewModel.positionAlignment
+        let align = timeLayoutViewModel.positionAlignment
         return Math.floor((tick + align / 2) / align) * align
     }
     function alignTickCeil(tick) {
-        if (!timeAlignmentViewModel)
+        if (!timeViewModel || !timeLayoutViewModel)
             return tick
-        let align = timeAlignmentViewModel.positionAlignment
+        let align = timeLayoutViewModel.positionAlignment
         return Math.floor((tick + align - 1) / align) * align
     }
     function alignTickFloor(tick) {
-        if (!timeAlignmentViewModel)
+        if (!timeViewModel || !timeLayoutViewModel)
             return tick
-        let align = timeAlignmentViewModel.positionAlignment
+        let align = timeLayoutViewModel.positionAlignment
         return Math.floor(tick / align) * align
     }
     function alignedX(x) {

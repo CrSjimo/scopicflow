@@ -6,7 +6,8 @@ import dev.sjimo.ScopicFlow.Internal as ScopicFlowInternal
 
 Pane {
     id: control
-    property QtObject timeAlignmentViewModel: null
+    property QtObject timeViewModel: null
+    property QtObject timeLayoutViewModel: null
     property QtObject playbackViewModel: null
     property QtObject scrollBehaviorViewModel: null
     property QtObject animationViewModel: null
@@ -28,7 +29,8 @@ Pane {
     ScopicFlowInternal.Timeline {
         id: timeline
         anchors.fill: parent
-        timeAlignmentViewModel: control.timeAlignmentViewModel
+        timeViewModel: control.timeViewModel
+        timeLayoutViewModel: control.timeLayoutViewModel
         playbackViewModel: control.playbackViewModel
         scrollBehaviorViewModel: control.scrollBehaviorViewModel
         animationViewModel: control.animationViewModel

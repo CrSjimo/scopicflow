@@ -8,7 +8,8 @@ import dev.sjimo.ScopicFlow.Palette as ScopicFlowPalette
 LabelSequenceInternal {
     id: labelSequence
 
-    property QtObject timeAlignmentViewModel: null
+    property QtObject timeViewModel: null
+    property QtObject timeLayoutViewModel: null
     property QtObject playbackViewModel: null
     property QtObject scrollBehaviorViewModel: null
     property QtObject animationViewModel: null
@@ -20,8 +21,8 @@ LabelSequenceInternal {
             for (let label of selection) {
                 if (label.position + deltaPosition < 0)
                     return
-                if (label.position + deltaPosition > timeAlignmentViewModel.end)
-                    timeAlignmentViewModel.end = label.position + deltaPosition
+                if (label.position + deltaPosition > timeViewModel.end)
+                    timeViewModel.end = label.position + deltaPosition
             }
             for (let label of selection) {
                 label.position = label.position + deltaPosition
@@ -53,13 +54,15 @@ LabelSequenceInternal {
 
     TimeAlignmentPositionLocator {
         id: locator
-        timeAlignmentViewModel: labelSequence.timeAlignmentViewModel
+        timeViewModel: labelSequence.timeViewModel
+        timeLayoutViewModel: labelSequence.timeLayoutViewModel
     }
 
     TimeManipulator {
         id: timeManipulator
         anchors.fill: parent
-        timeViewModel: labelSequence.timeAlignmentViewModel
+        timeViewModel: labelSequence.timeViewModel
+        timeLayoutViewModel: labelSequence.timeLayoutViewModel
         animationViewModel: labelSequence.animationViewModel
     }
 
@@ -79,9 +82,9 @@ LabelSequenceInternal {
 
     Item {
         id: viewport
-        readonly property double start: labelSequence.timeAlignmentViewModel?.start ?? 0
-        readonly property double end: labelSequence.timeAlignmentViewModel?.end ?? 0
-        readonly property double pixelDensity: labelSequence.timeAlignmentViewModel?.pixelDensity ?? 0
+        readonly property double start: labelSequence.timeViewModel?.start ?? 0
+        readonly property double end: labelSequence.timeViewModel?.end ?? 0
+        readonly property double pixelDensity: labelSequence.timeLayoutViewModel?.pixelDensity ?? 0
         anchors.top: parent.top
         anchors.bottom: parent.bottom
         x: -start * pixelDensity
@@ -121,13 +124,13 @@ LabelSequenceInternal {
                     if (!multipleSelect)
                         labelSequence.deselectAll()
                 } else {
-                    labelSequence.contextMenuRequested(Math.round(mouse.x / labelSequence.timeAlignmentViewModel.pixelDensity))
+                    labelSequence.contextMenuRequested(Math.round(mouse.x / labelSequence.timeLayoutViewModel.pixelDensity))
                 }
             }
             onDoubleClicked: function (mouse) {
                 if (mouse.button !== Qt.LeftButton || mouse.modifiers)
                     return
-                let label = labelSequence.insertLabelTo(locator.alignTick(locator.mapToTick(mouse.x)) + labelSequence.timeAlignmentViewModel?.start ?? 0, "")
+                let label = labelSequence.insertLabelTo(locator.alignTick(locator.mapToTick(mouse.x)) + labelSequence.timeViewModel?.start ?? 0, "")
                 if (!labelRepeater.itemDict.has(label))
                     return
                 let item = labelRepeater.itemAt(labelRepeater.itemDict.get(label))
@@ -266,7 +269,7 @@ LabelSequenceInternal {
                         target: labelRect.labelViewModel
                         enabled: false
                         function onPositionChanged() {
-                            labelSequence.timeAlignmentViewModel.cursorPosition = labelRect.labelViewModel.position
+                            labelSequence.timeLayoutViewModel.cursorPosition = labelRect.labelViewModel.position
                         }
                     }
                     onPositionChanged: function (mouse) {
@@ -295,7 +298,7 @@ LabelSequenceInternal {
                         }
                         dragScroller.running = false
                         cursorIndicatorBinding.enabled = false
-                        labelSequence.timeAlignmentViewModel.cursorPosition = -1
+                        labelSequence.timeLayoutViewModel.cursorPosition = -1
                     }
                 }
 
@@ -370,7 +373,8 @@ LabelSequenceInternal {
     PositionIndicators {
         anchors.fill: parent
         palette: labelSequence.palette
-        timeViewModel: labelSequence.timeAlignmentViewModel
+        timeViewModel: labelSequence.timeViewModel
+        timeLayoutViewModel: labelSequence.timeLayoutViewModel
         playbackViewModel: labelSequence.playbackViewModel
     }
 

@@ -4,6 +4,8 @@
 #include <QVariantAnimation>
 #include <QSGNode>
 
+#include <SVSCraftCore/musictimeline.h>
+
 #include <ScopicFlowInternal/private/TimelineScaleQuickItem_p.h>
 
 class QSGTextNode;
@@ -32,7 +34,8 @@ namespace sflow {
     public:
         TimelineScaleQuickItem *q_ptr;
 
-        TimeAlignmentViewModel *timeAlignmentViewModel = nullptr;
+        TimeViewModel *timeViewModel = nullptr;
+        TimeLayoutViewModel *timeLayoutViewModel = nullptr;
         QPointer<SVS::MusicTimeline> timeline = nullptr;
 
         QColor color;

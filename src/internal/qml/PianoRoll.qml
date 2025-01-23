@@ -8,7 +8,8 @@ import dev.sjimo.ScopicFlow.Palette as ScopicFlowPalette
 Item {
     id: pianoRoll
 
-    property QtObject timeAlignmentViewModel: null
+    property QtObject timeViewModel: null
+    property QtObject timeLayoutViewModel: null
     property QtObject playbackViewModel: null
     property QtObject clavierViewModel: null
     property QtObject scrollBehaviorViewModel: null
@@ -32,7 +33,8 @@ Item {
     TimeManipulator {
         id: timeManipulator
         anchors.fill: parent
-        timeViewModel: pianoRoll.timeAlignmentViewModel
+        timeViewModel: pianoRoll.timeViewModel
+        timeLayoutViewModel: pianoRoll.timeLayoutViewModel
         animationViewModel: pianoRoll.animationViewModel
     }
 
@@ -82,7 +84,8 @@ Item {
 
         PianoRollScale {
             anchors.fill: parent
-            timeAlignmentViewModel: pianoRoll.timeAlignmentViewModel
+            timeViewModel: pianoRoll.timeViewModel
+            timeLayoutViewModel: pianoRoll.timeLayoutViewModel
             barScaleColor: pianoRoll.palette.barScaleColor
             beatScaleColor: pianoRoll.palette.beatScaleColor
             segmentScaleColor: pianoRoll.palette.segmentScaleColor
@@ -91,9 +94,9 @@ Item {
 
     Item {
         id: notes
-        readonly property double start: pianoRoll.timeAlignmentViewModel?.start ?? 0
-        readonly property double end: pianoRoll.timeAlignmentViewModel?.end ?? 0
-        readonly property double pixelDensity: pianoRoll.timeAlignmentViewModel?.pixelDensity ?? 0
+        readonly property double start: pianoRoll.timeViewModel?.start ?? 0
+        readonly property double end: pianoRoll.timeViewModel?.end ?? 0
+        readonly property double pixelDensity: pianoRoll.timeLayoutViewModel?.pixelDensity ?? 0
         anchors.left: parent.left
         anchors.right: parent.right
         height: 128 * pianoRoll.keyHeight
@@ -145,7 +148,8 @@ Item {
     PositionIndicators {
         anchors.fill: parent
         palette: pianoRoll.palette
-        timeViewModel: pianoRoll.timeAlignmentViewModel
+        timeViewModel: pianoRoll.timeViewModel
+        timeLayoutViewModel: pianoRoll.timeLayoutViewModel
         playbackViewModel: pianoRoll.playbackViewModel
     }
 
@@ -200,30 +204,30 @@ Item {
         pressedColor: pianoRoll.palette.scrollBarPressedColor
         hoveredColor: pianoRoll.palette.scrollBarHoveredColor
         animationViewModel: pianoRoll.animationViewModel
-        size: pianoRoll.timeAlignmentViewModel ? pianoRoll.width / pianoRoll.timeAlignmentViewModel.pixelDensity / pianoRoll.timeAlignmentViewModel.end : 0
-        position: pianoRoll.timeAlignmentViewModel ? pianoRoll.timeAlignmentViewModel.start / pianoRoll.timeAlignmentViewModel.end : 0
+        size: pianoRoll.timeViewModel && pianoRoll.timeLayoutViewModel ? pianoRoll.width / pianoRoll.timeLayoutViewModel.pixelDensity / pianoRoll.timeViewModel.end : 0
+        position: pianoRoll.timeViewModel ? pianoRoll.timeViewModel.start / pianoRoll.timeViewModel.end : 0
         onPositionChanged: {
-            if (pianoRoll.timeAlignmentViewModel && Math.abs(pianoRoll.timeAlignmentViewModel.start - position * pianoRoll.timeAlignmentViewModel.end) > Number.EPSILON * 100)
-                pianoRoll.timeAlignmentViewModel.start = position * pianoRoll.timeAlignmentViewModel.end
+            if (pianoRoll.timeViewModel && Math.abs(pianoRoll.timeViewModel.start - position * pianoRoll.timeViewModel.end) > Number.EPSILON * 100)
+                pianoRoll.timeViewModel.start = position * pianoRoll.timeViewModel.end
         }
         onStartDragged: (pos) => {
-            if (!pianoRoll.timeAlignmentViewModel)
+            if (!pianoRoll.timeViewModel || !pianoRoll.timeLayoutViewModel)
                 return
             let newSize = position + size - pos
-            let newPixelDensity = pianoRoll.width / pianoRoll.timeAlignmentViewModel.end / newSize
-            if (newPixelDensity <= pianoRoll.timeAlignmentViewModel.minimumPixelDensity || newPixelDensity >= pianoRoll.timeAlignmentViewModel.maximumPixelDensity)
+            let newPixelDensity = pianoRoll.width / pianoRoll.timeViewModel.end / newSize
+            if (newPixelDensity <= pianoRoll.timeLayoutViewModel.minimumPixelDensity || newPixelDensity >= pianoRoll.timeLayoutViewModel.maximumPixelDensity)
                 return
-            pianoRoll.timeAlignmentViewModel.start = pianoRoll.timeAlignmentViewModel.end * pos
-            pianoRoll.timeAlignmentViewModel.pixelDensity = newPixelDensity
+            pianoRoll.timeViewModel.start = pianoRoll.timeViewModel.end * pos
+            pianoRoll.timeLayoutViewModel.pixelDensity = newPixelDensity
         }
         onEndDragged: (pos) => {
-            if (!pianoRoll.timeAlignmentViewModel)
+            if (!pianoRoll.timeViewModel || !pianoRoll.timeLayoutViewModel)
                 return
             let newSize = pos - position
-            let newPixelDensity = pianoRoll.width / pianoRoll.timeAlignmentViewModel.end / newSize
-            if (newPixelDensity <= pianoRoll.timeAlignmentViewModel.minimumPixelDensity || newPixelDensity >= pianoRoll.timeAlignmentViewModel.maximumPixelDensity)
+            let newPixelDensity = pianoRoll.width / pianoRoll.timeViewModel.end / newSize
+            if (newPixelDensity <= pianoRoll.timeLayoutViewModel.minimumPixelDensity || newPixelDensity >= pianoRoll.timeLayoutViewModel.maximumPixelDensity)
                 return
-            pianoRoll.timeAlignmentViewModel.pixelDensity = newPixelDensity
+            pianoRoll.timeLayoutViewModel.pixelDensity = newPixelDensity
         }
     }
 

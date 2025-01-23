@@ -3,11 +3,6 @@
 
 #include <QQuickItem>
 
-#include <ScopicFlow/TimeAlignmentViewModel.h>
-#include <ScopicFlow/PlaybackViewModel.h>
-#include <ScopicFlow/ScrollBehaviorViewModel.h>
-#include <ScopicFlow/AnimationViewModel.h>
-#include <ScopicFlow/PaletteViewModel.h>
 #include <ScopicFlow/LabelSequenceViewModel.h>
 #include <ScopicFlow/LabelViewModel.h>
 

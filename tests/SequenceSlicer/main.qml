@@ -7,7 +7,8 @@ import dev.sjimo.ScopicFlow.Internal as Internal
 
 Item {
     id: main
-    required property QtObject timeAlignmentViewModel
+    required property QtObject timeViewModel
+    required property QtObject timeLayoutViewModel
     required property QtObject playbackViewModel
     required property QtObject scrollBehaviorViewModel
     required property QtObject animationViewModel
@@ -22,7 +23,8 @@ Item {
             Layout.fillWidth: true
             Layout.minimumHeight: 24
 
-            timeAlignmentViewModel: main.timeAlignmentViewModel
+            timeViewModel: main.timeViewModel
+            timeLayoutViewModel: main.timeLayoutViewModel
             playbackViewModel: main.playbackViewModel
             scrollBehaviorViewModel: main.scrollBehaviorViewModel
             animationViewModel: main.animationViewModel
@@ -35,7 +37,7 @@ Item {
             columns: 16
             Internal.SequenceSlicer {
                 model: main.pointSequenceViewModel
-                timeViewModel: main.timeAlignmentViewModel
+                timeViewModel: main.timeViewModel
                 sliceWidth: timeline.width
                 sectionLength: 1920
                 delegate: Text {

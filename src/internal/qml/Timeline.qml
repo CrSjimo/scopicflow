@@ -8,7 +8,8 @@ import dev.sjimo.ScopicFlow.Palette as ScopicFlowPalette
 Item {
     id: timeline
 
-    property QtObject timeAlignmentViewModel: null
+    property QtObject timeViewModel: null
+    property QtObject timeLayoutViewModel: null
     property QtObject playbackViewModel: null
     property QtObject scrollBehaviorViewModel: null
     property QtObject animationViewModel: null
@@ -19,32 +20,32 @@ Item {
     readonly property double cursorIndicatorX: locator.mapToX(playbackViewModel?.cursorPosition ?? -1)
 
     function setIndicatorPosition(x) {
-        if (!timeAlignmentViewModel || !playbackViewModel)
+        if (!timeViewModel || !timeLayoutViewModel || !playbackViewModel)
             return
         let tick = locator.alignTick(Math.max(0, locator.mapToTick(x)))
         if (locator.mapToX(tick) < 0)
-            tick += timeAlignmentViewModel.positionAlignment
+            tick += timeLayoutViewModel.positionAlignment
         else if (locator.mapToX(tick) > width)
-            tick -= timeAlignmentViewModel.positionAlignment
+            tick -= timeLayoutViewModel.positionAlignment
         playbackViewModel.primaryPosition = playbackViewModel.secondaryPosition = tick
     }
     function setZoomedRange(selectionX, selectionWidth) {
-        if (!timeAlignmentViewModel)
+        if (!timeViewModel || !timeLayoutViewModel)
             return
         let start = locator.mapToTick(selectionX)
         let end = locator.mapToTick(selectionX + selectionWidth)
-        if (end - start < timeAlignmentViewModel.positionAlignment)
+        if (end - start < timeLayoutViewModel.positionAlignment)
             return
-        timeAlignmentViewModel.start = start
-        timeAlignmentViewModel.pixelDensity = Math.max(timeAlignmentViewModel.minimumPixelDensity, Math.min(width / (end - start), timeAlignmentViewModel.maximumPixelDensity))
+        timeViewModel.start = start
+        timeLayoutViewModel.pixelDensity = Math.max(timeLayoutViewModel.minimumPixelDensity, Math.min(width / (end - start), timeLayoutViewModel.maximumPixelDensity))
     }
     function moveViewOnDraggingPositionIndicator(deltaX) {
-        if (!timeAlignmentViewModel || !playbackViewModel)
+        if (!timeViewModel || !timeLayoutViewModel || !playbackViewModel)
             return
-        let newStart = Math.max(0.0, timeAlignmentViewModel.start + deltaX / timeAlignmentViewModel.pixelDensity)
-        let newEnd = newStart + width / timeAlignmentViewModel.pixelDensity
-        timeAlignmentViewModel.start = newStart
-        timeAlignmentViewModel.end = Math.max(timeAlignmentViewModel.end, newEnd)
+        let newStart = Math.max(0.0, timeViewModel.start + deltaX / timeLayoutViewModel.pixelDensity)
+        let newEnd = newStart + width / timeLayoutViewModel.pixelDensity
+        timeViewModel.start = newStart
+        timeViewModel.end = Math.max(timeViewModel.end, newEnd)
         if (deltaX < 0) {
             let tick = locator.alignTickCeil(Math.max(0, locator.mapToTick(0)))
             playbackViewModel.primaryPosition = playbackViewModel.secondaryPosition = tick
@@ -69,13 +70,15 @@ Item {
 
     TimeAlignmentPositionLocator {
         id: locator
-        timeAlignmentViewModel: timeline.timeAlignmentViewModel
+        timeViewModel: timeline.timeViewModel
+        timeLayoutViewModel: timeline.timeLayoutViewModel
     }
 
     TimeManipulator {
         id: timeManipulator
         anchors.fill: parent
-        timeViewModel: timeline.timeAlignmentViewModel
+        timeViewModel: timeline.timeViewModel
+        timeLayoutViewModel: timeline.timeLayoutViewModel
         animationViewModel: timeline.animationViewModel
     }
 
@@ -89,7 +92,8 @@ Item {
         id: timelineScale
         anchors.fill: parent
         color: timeline.palette.foregroundColor
-        timeAlignmentViewModel: timeline.timeAlignmentViewModel
+        timeViewModel: timeline.timeViewModel
+        timeLayoutViewModel: timeline.timeLayoutViewModel
     }
 
 

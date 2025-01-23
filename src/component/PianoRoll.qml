@@ -6,7 +6,8 @@ import dev.sjimo.ScopicFlow.Internal as ScopicFlowInternal
 
 Pane {
     id: control
-    property QtObject timeAlignmentViewModel: null
+    property QtObject timeViewModel: null
+    property QtObject timeLayoutViewModel: null
     property QtObject playbackViewModel: null
     property QtObject clavierViewModel: null
     property QtObject scrollBehaviorViewModel: null
@@ -21,7 +22,8 @@ Pane {
     ScopicFlowInternal.PianoRoll {
         id: pianoRoll
         anchors.fill: parent
-        timeAlignmentViewModel: control.timeAlignmentViewModel
+        timeViewModel: control.timeViewModel
+        timeLayoutViewModel: control.timeLayoutViewModel
         playbackViewModel: control.playbackViewModel
         clavierViewModel: control.clavierViewModel
         scrollBehaviorViewModel: control.scrollBehaviorViewModel

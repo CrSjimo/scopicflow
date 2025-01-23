@@ -16,7 +16,8 @@
 
 #include <SVSCraftCore/musictimeline.h>
 
-#include <ScopicFlow/TimeAlignmentViewModel.h>
+#include <ScopicFlow/TimeViewModel.h>
+#include <ScopicFlow/TimeLayoutViewModel.h>
 #include <ScopicFlow/PlaybackViewModel.h>
 #include <ScopicFlow/ScrollBehaviorViewModel.h>
 #include <ScopicFlow/AnimationViewModel.h>
@@ -36,12 +37,10 @@ int main(int argc, char *argv[]) {
     auto splitter = new QSplitter;
     splitter->setOrientation(Qt::Vertical);
 
-    TimeAlignmentViewModel arrangementTimeViewModel;
-    arrangementTimeViewModel.setPositionAlignment(480);
-    TimeAlignmentViewModel timeViewModel;
-    timeViewModel.setPositionAlignment(240);
+    TimeViewModel timeViewModel;
+    TimeLayoutViewModel timeLayoutViewModel;
+    timeLayoutViewModel.setPositionAlignment(240);
     SVS::MusicTimeline musicTimeline;
-    arrangementTimeViewModel.setTimeline(&musicTimeline);
     timeViewModel.setTimeline(&musicTimeline);
 
     PlaybackViewModel playbackViewModel;
@@ -64,7 +63,8 @@ int main(int argc, char *argv[]) {
     auto v1 = new QQuickView;
     v1->engine()->addImportPath("qrc:/");
     v1->setInitialProperties({
-        {"timeAlignmentViewModel", QVariant::fromValue(&timeViewModel)},
+        {"timeViewModel", QVariant::fromValue(&timeViewModel)},
+        {"timeLayoutViewModel", QVariant::fromValue(&timeLayoutViewModel)},
         {"playbackViewModel", QVariant::fromValue(&playbackViewModel)},
         {"scrollBehaviorViewModel", QVariant::fromValue(&scrollBehaviorViewModel)},
         {"animationViewModel", QVariant::fromValue(&animationViewModel)},

@@ -4,15 +4,16 @@
 #include <QSGGeometryNode>
 #include <QSGVertexColorMaterial>
 
-#include <SVSCraftCore/musictimeline.h>
+#include <ScopicFlow/TimeViewModel.h>
+#include <ScopicFlow/TimeLayoutViewModel.h>
 
 namespace sflow {
 
     double PianoRollScaleQuickItemPrivate::tickToX(int tick) const {
-        if (!timeAlignmentViewModel)
+        if (!timeViewModel || !timeLayoutViewModel)
             return 0;
-        auto deltaTick = tick - timeAlignmentViewModel->start();
-        return deltaTick * timeAlignmentViewModel->pixelDensity();
+        auto deltaTick = tick - timeViewModel->start();
+        return deltaTick * timeLayoutViewModel->pixelDensity();
     }
 
     PianoRollScaleQuickItem::PianoRollScaleQuickItem(QQuickItem *parent) : QQuickItem(parent), d_ptr(new PianoRollScaleQuickItemPrivate) {
@@ -22,29 +23,27 @@ namespace sflow {
     }
     PianoRollScaleQuickItem::~PianoRollScaleQuickItem() = default;
 
-    TimeAlignmentViewModel *PianoRollScaleQuickItem::timeAlignmentViewModel() const {
+    TimeViewModel *PianoRollScaleQuickItem::timeViewModel() const {
         Q_D(const PianoRollScaleQuickItem);
-        return d->timeAlignmentViewModel;
+        return d->timeViewModel;
     }
-    void PianoRollScaleQuickItem::setTimeAlignmentViewModel(TimeAlignmentViewModel *viewModel) {
+    void PianoRollScaleQuickItem::setTimeViewModel(TimeViewModel *viewModel) {
         Q_D(PianoRollScaleQuickItem);
-        if (d->timeAlignmentViewModel == viewModel) {
+        if (d->timeViewModel == viewModel) {
             return;
         }
-        if (d->timeAlignmentViewModel) {
-            disconnect(d->timeAlignmentViewModel, nullptr, this, nullptr);
+        if (d->timeViewModel) {
+            disconnect(d->timeViewModel, nullptr, this, nullptr);
         }
         if (d->timeline) {
             disconnect(d->timeline, nullptr, this, nullptr);
         }
-        d->timeAlignmentViewModel = viewModel;
+        d->timeViewModel = viewModel;
         d->timeline = nullptr;
         if (viewModel) {
             d->timeline = viewModel->timeline();
-            connect(viewModel, &TimeAlignmentViewModel::startChanged, this, &QQuickItem::update);
-            connect(viewModel, &TimeAlignmentViewModel::pixelDensityChanged, this, &QQuickItem::update);
-            connect(viewModel, &TimeAlignmentViewModel::positionAlignmentChanged, this, &QQuickItem::update);
-            connect(viewModel, &TimeAlignmentViewModel::timelineChanged, this, [=] {
+            connect(viewModel, &TimeViewModel::startChanged, this, &QQuickItem::update);
+            connect(viewModel, &TimeViewModel::timelineChanged, this, [=] {
                 if (d->timeline) {
                     disconnect(d->timeline, nullptr, this, nullptr);
                 }
@@ -57,6 +56,27 @@ namespace sflow {
                 connect(d->timeline, &SVS::MusicTimeline::changed, this, &QQuickItem::update);
             }
         }
+        emit timeViewModelChanged();
+        update();
+    }
+    TimeLayoutViewModel *PianoRollScaleQuickItem::timeLayoutViewModel() const {
+        Q_D(const PianoRollScaleQuickItem);
+        return d->timeLayoutViewModel;
+    }
+    void PianoRollScaleQuickItem::setTimeLayoutViewModel(TimeLayoutViewModel *viewModel) {
+        Q_D(PianoRollScaleQuickItem);
+        if (d->timeLayoutViewModel == viewModel) {
+            return;
+        }
+        if (d->timeLayoutViewModel) {
+            disconnect(d->timeLayoutViewModel, nullptr, this, nullptr);
+        }
+        d->timeLayoutViewModel = viewModel;
+        if (viewModel) {
+            connect(viewModel, &TimeLayoutViewModel::pixelDensityChanged, this, &QQuickItem::update);
+            connect(viewModel, &TimeLayoutViewModel::positionAlignmentChanged, this, &QQuickItem::update);
+        }
+        emit timeLayoutViewModelChanged();
         update();
     }
     QColor PianoRollScaleQuickItem::beatScaleColor() const {
@@ -67,7 +87,7 @@ namespace sflow {
         Q_D(PianoRollScaleQuickItem);
         if (d->beatScaleColor != color) {
             d->beatScaleColor = color;
-            emit beatScaleColorChanged(color);
+            emit beatScaleColorChanged();
         }
     }
     QColor PianoRollScaleQuickItem::barScaleColor() const {
@@ -78,7 +98,7 @@ namespace sflow {
         Q_D(PianoRollScaleQuickItem);
         if (d->barScaleColor != color) {
             d->barScaleColor = color;
-            emit barScaleColorChanged(color);
+            emit barScaleColorChanged();
         }
     }
     QColor PianoRollScaleQuickItem::segmentScaleColor() const {
@@ -89,12 +109,12 @@ namespace sflow {
         Q_D(PianoRollScaleQuickItem);
         if (d->segmentScaleColor != color) {
             d->segmentScaleColor = color;
-            emit segmentScaleColorChanged(color);
+            emit segmentScaleColorChanged();
         }
     }
     QSGNode *PianoRollScaleQuickItem::updatePaintNode(QSGNode *node, UpdatePaintNodeData *update_paint_node_data) {
         Q_D(PianoRollScaleQuickItem);
-        if (!d->timeAlignmentViewModel || !d->timeline) {
+        if (!d->timeViewModel || !d->timeLayoutViewModel || !d->timeline) {
             delete node;
             return nullptr;
         }
@@ -107,8 +127,8 @@ namespace sflow {
 
         d->xList.clear();
 
-        int startTick = static_cast<int>(d->timeAlignmentViewModel->start()) / d->timeAlignmentViewModel->positionAlignment() * d->timeAlignmentViewModel->positionAlignment();
-        int endTick = d->timeAlignmentViewModel->start() + width() / d->timeAlignmentViewModel->pixelDensity();
+        int startTick = static_cast<int>(d->timeViewModel->start()) / d->timeLayoutViewModel->positionAlignment() * d->timeLayoutViewModel->positionAlignment();
+        int endTick = d->timeViewModel->start() + width() / d->timeLayoutViewModel->pixelDensity();
 
         int startBar = d->timeline->create(0, 0, startTick).measure();
         int endBar = d->timeline->create(0, 0, endTick).measure() + 1;
@@ -118,12 +138,12 @@ namespace sflow {
             static const double minimumScaleDistance = 4;
             int ticksPerBeat = currentTimeSignature.ticksPerBeat(480);
             int ticksPerBar = currentTimeSignature.ticksPerBar(480);
-            if (d->timeAlignmentViewModel->positionAlignment() == 1 || ticksPerBeat % d->timeAlignmentViewModel->positionAlignment() != 0) {
+            if (d->timeLayoutViewModel->positionAlignment() == 1 || ticksPerBeat % d->timeLayoutViewModel->positionAlignment() != 0) {
                 calculatedSegmentRatio = 1;
             } else {
-                calculatedSegmentRatio = ticksPerBeat / d->timeAlignmentViewModel->positionAlignment();
+                calculatedSegmentRatio = ticksPerBeat / d->timeLayoutViewModel->positionAlignment();
             }
-            while (calculatedSegmentRatio && ticksPerBeat / calculatedSegmentRatio * d->timeAlignmentViewModel->pixelDensity() < minimumScaleDistance) {
+            while (calculatedSegmentRatio && ticksPerBeat / calculatedSegmentRatio * d->timeLayoutViewModel->pixelDensity() < minimumScaleDistance) {
                 int nextRatio = calculatedSegmentRatio & -calculatedSegmentRatio;
                 if (nextRatio == calculatedSegmentRatio)
                     nextRatio >>= 1;
@@ -165,3 +185,5 @@ namespace sflow {
     }
     
 }
+
+#include "moc_PianoRollScaleQuickItem_p.cpp"

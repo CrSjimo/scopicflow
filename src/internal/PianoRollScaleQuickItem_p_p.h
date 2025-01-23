@@ -3,13 +3,16 @@
 
 #include <ScopicFlowInternal/private/PianoRollScaleQuickItem_p.h>
 
+#include <SVSCraftCore/musictimeline.h>
+
 namespace sflow {
     class PianoRollScaleQuickItemPrivate {
         Q_DECLARE_PUBLIC(PianoRollScaleQuickItem)
     public:
         PianoRollScaleQuickItem *q_ptr;
 
-        TimeAlignmentViewModel *timeAlignmentViewModel = nullptr;
+        TimeViewModel *timeViewModel = nullptr;
+        TimeLayoutViewModel *timeLayoutViewModel = nullptr;
         QPointer<SVS::MusicTimeline> timeline = nullptr;
 
         QColor beatScaleColor;

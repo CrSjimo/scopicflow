@@ -23,7 +23,8 @@
 
 #include <SVSCraftCore/musictimeline.h>
 
-#include <ScopicFlow/TimeAlignmentViewModel.h>
+#include <ScopicFlow/TimeViewModel.h>
+#include <ScopicFlow/TimeLayoutViewModel.h>
 #include <ScopicFlow/PlaybackViewModel.h>
 #include <ScopicFlow/ClavierViewModel.h>
 #include <ScopicFlow/ScrollBehaviorViewModel.h>
@@ -82,7 +83,7 @@ class MySlotHandler : public QObject {
     Q_OBJECT
 public:
     QWidget *win;
-    TimeAlignmentViewModel *timeViewModel;
+    TimeViewModel *timeViewModel;
 public slots:
     void handleTimelineContextMenu(int tick) {
         QMenu menu(win);
@@ -114,13 +115,18 @@ int main(int argc, char *argv[]) {
 
     NoteViewModel _;
 
-    TimeAlignmentViewModel arrangementTimeViewModel;
-    arrangementTimeViewModel.setPositionAlignment(480);
-    TimeAlignmentViewModel timeViewModel;
-    timeViewModel.setPositionAlignment(240);
+    TimeLayoutViewModel timeLayoutViewModel;
+    timeLayoutViewModel.setPositionAlignment(240);
+
+    TimeLayoutViewModel arrangementTimeLayoutViewModel;
+    arrangementTimeLayoutViewModel.setPositionAlignment(480);
+
     SVS::MusicTimeline musicTimeline;
-    arrangementTimeViewModel.setTimeline(&musicTimeline);
+
+    TimeViewModel timeViewModel;
     timeViewModel.setTimeline(&musicTimeline);
+    TimeViewModel arrangementTimeViewModel;
+    arrangementTimeViewModel.setTimeline(&musicTimeline);
 
     PlaybackViewModel playbackViewModel;
 
@@ -154,8 +160,10 @@ int main(int argc, char *argv[]) {
     auto v1 = new QQuickView;
     v1->engine()->addImportPath("qrc:/");
     v1->setInitialProperties({
-        {"timeAlignmentViewModel", QVariant::fromValue(&timeViewModel)},
-        {"arrangementTimeAlignmentViewModel", QVariant::fromValue(&arrangementTimeViewModel)},
+        {"timeViewModel", QVariant::fromValue(&timeViewModel)},
+        {"arrangementTimeViewModel", QVariant::fromValue(&arrangementTimeViewModel)},
+        {"timeLayoutViewModel", QVariant::fromValue(&timeLayoutViewModel)},
+        {"arrangementTimeLayoutViewModel", QVariant::fromValue(&arrangementTimeLayoutViewModel)},
         {"trackListViewModel", QVariant::fromValue(&trackListViewModel)},
         {"trackListLayoutViewModel", QVariant::fromValue(&trackListLayoutViewModel)},
         {"clavierViewModel", QVariant::fromValue(&clavierViewModel)},
@@ -183,12 +191,12 @@ int main(int argc, char *argv[]) {
 
     auto mainMenu = new QMenu("Edit");
     mainMenu->addAction("Set Position Alignment...", [&] {
-        auto v = QInputDialog::getInt(&win, {}, "Position alignment", timeViewModel.positionAlignment(), 1, 480);
-        timeViewModel.setPositionAlignment(v);
+        auto v = QInputDialog::getInt(&win, {}, "Position alignment", timeLayoutViewModel.positionAlignment(), 1, 480);
+        timeLayoutViewModel.setPositionAlignment(v);
     });
     mainMenu->addAction("Set Arrangement Position Alignment...", [&] {
-        auto v = QInputDialog::getInt(&win, {}, "Arrangement position alignment", arrangementTimeViewModel.positionAlignment(), 1, 480);
-        arrangementTimeViewModel.setPositionAlignment(v);
+        auto v = QInputDialog::getInt(&win, {}, "Arrangement position alignment", arrangementTimeLayoutViewModel.positionAlignment(), 1, 480);
+        arrangementTimeLayoutViewModel.setPositionAlignment(v);
     });
     mainMenu->addAction("Set Visual Effect Animation Ratio...", [&] {
         auto v = QInputDialog::getDouble(&win, {}, "Animation ratio", animationViewModel.visualEffectAnimationRatio(), 0, 10);

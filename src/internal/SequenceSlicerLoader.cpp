@@ -101,7 +101,8 @@ namespace sflow {
         Q_D(SequenceSlicerLoader);
         if (d->handle == handle)
             return;
-        disconnect(d->handle, nullptr, this, nullptr);
+        if (d->handle)
+            disconnect(d->handle, nullptr, this, nullptr);
         d->handle = qobject_cast<SliceableViewModelQmlHandle *>(handle);
         connect(d->handle, &SliceableViewModelQmlHandle::itemInserted, this, [=](QObject *item) {
             d->handleItemInserted(item);

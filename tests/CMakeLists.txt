@@ -1,1 +1,3 @@
 add_subdirectory(integrated)
+
+add_subdirectory(SequenceSlicer)

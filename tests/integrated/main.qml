@@ -69,7 +69,6 @@ Item {
                 spacing: 0
                 Timeline {
                     id: arrangementTimeline
-                    Layout.minimumHeight: 24
                     Layout.fillWidth: true
 
                     timeViewModel: main.arrangementTimeViewModel
@@ -122,7 +121,6 @@ Item {
                 id: timeline
                 Layout.row: 0
                 Layout.column: 1
-                Layout.minimumHeight: 24
                 Layout.fillWidth: true
 
                 timeViewModel: main.timeViewModel

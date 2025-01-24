@@ -67,6 +67,7 @@ Item {
     readonly property QtObject palette: paletteViewModel?.palette?.timeline ?? defaultPalette
 
     clip: true
+    implicitHeight: 24
 
     TimeAlignmentPositionLocator {
         id: locator

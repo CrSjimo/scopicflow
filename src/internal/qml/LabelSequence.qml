@@ -50,6 +50,13 @@ Item {
     clip: true
     implicitHeight: 20
 
+    Component {
+        id: labelViewModelComponent
+        LabelViewModel {
+
+        }
+    }
+
     TimeAlignmentPositionLocator {
         id: locator
         timeViewModel: labelSequence.timeViewModel
@@ -133,7 +140,7 @@ Item {
             function onClicked(mouse) {
                 if (mouse.button === Qt.RightButton) {
                     let selection = labelSequence.labelSequenceViewModel.handle.selection
-                    if (triggered && selection.length)
+                    if (dragged && selection.length)
                         labelSequence.contextMenuRequestedForLabel(selection[0])
                     else
                         labelSequence.contextMenuRequested(Math.round(mouse.x / labelSequence.timeLayoutViewModel.pixelDensity))
@@ -154,7 +161,14 @@ Item {
                 selectionManipulator.select(null, mouse.button, mouse.modifiers)
             }
             onDoubleClicked: (mouse) => {
-
+                if (mouse.button !== Qt.LeftButton || mouse.modifiers)
+                    return
+                let label = labelViewModelComponent.createObject(null, {
+                    position: locator.alignTick(locator.mapToTick(mouse.x)) + labelSequence.timeViewModel?.start ?? 0
+                })
+                labelSequence.labelSequenceViewModel.handle.insertItem(label)
+                selectionManipulator.select(label, Qt.LeftButton, 0)
+                labelSequence.labelSequenceLayoutViewModel.editing = true
             }
             onReleased: canceled()
             onCanceled: rubberBandQuasiMouseArea.onCanceled()

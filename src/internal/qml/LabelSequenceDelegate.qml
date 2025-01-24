@@ -14,8 +14,9 @@ Rectangle {
     readonly property bool editing: popup.opened
 
     implicitWidth: labelText.width + 8
+    visible: !editing
 
-    readonly property bool editingRequired: labelSequenceLayoutViewModel?.editing && labelSequenceViewModel.handle.currentItem === model
+    readonly property bool editingRequired: (labelSequenceLayoutViewModel?.editing ?? false) && labelSequenceViewModel.handle.currentItem === model
 
     border.width: 1
     radius: 2
@@ -75,6 +76,8 @@ Rectangle {
         onClosed: {
             if (!labelEdit.escaped)
                 labelRect.model.content = labelEdit.text
+            if (!labelRect.model.content.length)
+                labelRect.labelSequenceViewModel.handle.removeItem(labelRect.model)
         }
         TextField {
             id: labelEdit

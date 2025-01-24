@@ -13,7 +13,7 @@ namespace sflow {
         for (auto itemModel : items.keys()) {
             if (itemModelSet.contains(itemModel))
                 continue;
-            delete items.value(itemModel);
+            items.value(itemModel)->deleteLater();
             items.remove(itemModel);
         }
         for (auto itemModel : itemModels) {
@@ -31,7 +31,7 @@ namespace sflow {
     void SequenceSlicerLoaderPrivate::handleHandleChanged() {
         auto itemModels = items.keys();
         for (auto itemModel : itemModels) {
-            delete items.value(itemModel);
+            items.value(itemModel)->deleteLater();
         }
         items.clear();
         handleRangeChanged();
@@ -48,7 +48,7 @@ namespace sflow {
     }
     void SequenceSlicerLoaderPrivate::handleItemRemoved(QObject *itemModel) {
         if (items.contains(itemModel)) {
-            delete items.value(itemModel);
+            items.value(itemModel)->deleteLater();
             items.remove(itemModel);
         }
     }
@@ -61,7 +61,7 @@ namespace sflow {
             }
         } else {
             if (items.contains(itemModel)) {
-                delete items.value(itemModel);
+                items.value(itemModel)->deleteLater();
                 items.remove(itemModel);
             }
         }
@@ -105,15 +105,17 @@ namespace sflow {
         if (d->handle)
             disconnect(d->handle, nullptr, this, nullptr);
         d->handle = qobject_cast<SliceableViewModelQmlHandle *>(handle);
-        connect(d->handle, &SliceableViewModelQmlHandle::itemInserted, this, [=](QObject *item) {
-            d->handleItemInserted(item);
-        });
-        connect(d->handle, &SliceableViewModelQmlHandle::itemRemoved, this, [=](QObject *item) {
-            d->handleItemRemoved(item);
-        });
-        connect(d->handle, &SliceableViewModelQmlHandle::itemUpdated, this, [=](QObject *item) {
-            d->handleItemUpdated(item);
-        });
+        if (d->handle) {
+            connect(d->handle, &SliceableViewModelQmlHandle::itemInserted, this, [=](QObject *item) {
+                d->handleItemInserted(item);
+            });
+            connect(d->handle, &SliceableViewModelQmlHandle::itemRemoved, this, [=](QObject *item) {
+                d->handleItemRemoved(item);
+            });
+            connect(d->handle, &SliceableViewModelQmlHandle::itemUpdated, this, [=](QObject *item) {
+                d->handleItemUpdated(item);
+            });
+        }
         d->handleHandleChanged();
         emit handleChanged();
     }

@@ -49,6 +49,8 @@ namespace sflow {
     }
     void RubberBandLayerQuickItem::removeItem(const QVariant &item) {
         Q_D(RubberBandLayerQuickItem);
+        if (!d->selectionManipulator || !d->selectionManipulator->interface())
+            return;
         auto id = d->selectionManipulator->interface()->getId(item);
         d->itemRects.remove(id);
         d->taggedItems.remove(id);

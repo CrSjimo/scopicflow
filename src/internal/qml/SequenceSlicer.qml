@@ -13,7 +13,7 @@ SequenceSlicerLoader {
     property double rightOutBound: 0
     property int sectionLength: 32768
 
-    handle: model.handle
+    handle: model?.handle ?? null
     range: [
         timeViewModel ? Math.floor((timeViewModel.start - leftOutBound / timeLayoutViewModel.pixelDensity) / sectionLength) * sectionLength : 0,
         timeViewModel ? Math.ceil((timeViewModel.start + sliceWidth / timeLayoutViewModel.pixelDensity + rightOutBound / timeLayoutViewModel.pixelDensity) / sectionLength) * sectionLength : 0

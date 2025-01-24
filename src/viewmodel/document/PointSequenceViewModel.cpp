@@ -64,6 +64,10 @@ namespace sflow {
         PointSequenceViewModelQmlHandle *handle;
     };
 
+    namespace {
+        SelectableViewModelManipulatorInterfaceRegistry<PointSequenceViewModel, PointSequenceViewModelManipulatorInterface> _;
+    }
+
     PointSequenceViewModelQmlHandle::PointSequenceViewModelQmlHandle(PointSequenceViewModelPrivate *d) : SliceableViewModelQmlHandle(d->q_ptr), d_ptr(d) {
     }
     PointSequenceViewModelQmlHandle::~PointSequenceViewModelQmlHandle() = default;

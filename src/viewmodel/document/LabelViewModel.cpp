@@ -1,43 +1,35 @@
 #include "LabelViewModel.h"
 
+#include <ScopicFlow/private/ViewModelHelper_p.h>
+
 namespace sflow {
-    LabelViewModel::LabelViewModel(QObject *parent) : QObject(parent), m_position(0), m_selected(false), m_intermediate(false) {
+    LabelViewModel::LabelViewModel(QObject *parent) : QQmlPropertyMap(this, parent) {
+        ViewModelHelper::initializeProperties(this);
+        ViewModelHelper::connectValueChanged(this);
     }
     LabelViewModel::~LabelViewModel() = default;
     int LabelViewModel::position() const {
-        return m_position;
+        return value("position").toInt();
     }
     void LabelViewModel::setPosition(int position) {
-        if (m_position != position) {
-            m_position = position;
-            emit positionChanged(position);
-        }
+        insert("position", position);
     }
-    QVariant LabelViewModel::content() const {
-        return m_content;
+    QString LabelViewModel::content() const {
+        return value("content").toString();
     }
-    void LabelViewModel::setContent(const QVariant &content) {
-        if (m_content != content) {
-            m_content = content;
-            emit contentChanged(content);
-        }
+    void LabelViewModel::setContent(const QString &content) {
+        insert("content", content);
     }
     bool LabelViewModel::selected() const {
-        return m_selected;
+        return value("selected").toBool();
     }
     void LabelViewModel::setSelected(bool selected) {
-        if (m_selected != selected) {
-            m_selected = selected;
-            emit selectedChanged(selected);
-        }
+        insert("selected", selected);
     }
     bool LabelViewModel::intermediate() const {
-        return m_intermediate;
+        return value("intermediate").toBool();
     }
     void LabelViewModel::setIntermediate(bool intermediate) {
-        if (m_intermediate != intermediate) {
-            m_intermediate = intermediate;
-            emit intermediateChanged(intermediate);
-        }
+        insert("intermediate", intermediate);
     }
 }

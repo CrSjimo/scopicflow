@@ -30,12 +30,13 @@
 #include <ScopicFlow/ScrollBehaviorViewModel.h>
 #include <ScopicFlow/AnimationViewModel.h>
 #include <ScopicFlow/PaletteViewModel.h>
-#include <ScopicFlow/LabelSequenceViewModel.h>
+#include <ScopicFlow/PointSequenceViewModel.h>
 #include <ScopicFlow/LabelViewModel.h>
 #include <ScopicFlow/ListViewModel.h>
 #include <ScopicFlow/TrackListLayoutViewModel.h>
 #include <ScopicFlow/TrackViewModel.h>
 #include <ScopicFlow/NoteViewModel.h>
+#include <ScopicFlow/LabelSequenceLayoutViewModel.h>
 
 using namespace sflow;
 
@@ -138,12 +139,12 @@ int main(int argc, char *argv[]) {
 
     PaletteViewModel paletteViewModel;
 
-    LabelSequenceViewModel labelSequenceViewModel;
-    for (int i = 0; i < 16; i++) {
+    PointSequenceViewModel labelSequenceViewModel;
+    for (int i = 0; i < 4096; i++) {
         auto label = new LabelViewModel;
         label->setPosition(i * 480);
         label->setContent("test" + QString::number(i));
-        labelSequenceViewModel.insertLabels({label});
+        labelSequenceViewModel.insertItem(label);
     }
 
     ListViewModel trackListViewModel;
@@ -156,6 +157,9 @@ int main(int argc, char *argv[]) {
     trackListViewModel.setItems(tracks);
 
     TrackListLayoutViewModel trackListLayoutViewModel;
+
+    LabelSequenceLayoutViewModel labelSequenceLayoutViewModel;
+    LabelSequenceLayoutViewModel arrangementLabelSequenceLayoutViewModel;
 
     auto v1 = new QQuickView;
     v1->engine()->addImportPath("qrc:/");
@@ -171,7 +175,9 @@ int main(int argc, char *argv[]) {
         {"playbackViewModel", QVariant::fromValue(&playbackViewModel)},
         {"scrollBehaviorViewModel", QVariant::fromValue(&scrollBehaviorViewModel)},
         {"animationViewModel", QVariant::fromValue(&animationViewModel)},
-        {"paletteViewModel", QVariant::fromValue(&paletteViewModel)}
+        {"paletteViewModel", QVariant::fromValue(&paletteViewModel)},
+        {"labelSequenceLayoutViewModel", QVariant::fromValue(&labelSequenceLayoutViewModel)},
+        {"arrangementLabelSequenceLayoutViewModel", QVariant::fromValue(&arrangementLabelSequenceLayoutViewModel)}
     });
     v1->setSource(QUrl("qrc:/dev/sjimo/ScopicFlow/Test/main.qml"));
     v1->setResizeMode(QQuickView::SizeRootObjectToView);
@@ -229,6 +235,9 @@ int main(int argc, char *argv[]) {
     scrollBehaviorDialog.resize(400, 240);
     mainMenu->addAction("Set Scroll Behavior", [&] {
         scrollBehaviorDialog.show();
+    });
+    mainMenu->addAction("Run GC", [=] {
+        v1->engine()->collectGarbage();
     });
     win.menuBar()->addMenu(mainMenu);
 

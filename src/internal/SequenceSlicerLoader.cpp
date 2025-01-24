@@ -70,9 +70,10 @@ namespace sflow {
         Q_Q(SequenceSlicerLoader);
         if (!delegate)
             return nullptr;
-        auto item = qobject_cast<QQuickItem *>(delegate->createWithInitialProperties({{"model", QVariant::fromValue(itemModel)}}, qmlContext(q)));
-        if (item)
-            item->setParentItem(q->parentItem());
+        auto item = qobject_cast<QQuickItem *>(delegate->createWithInitialProperties({
+            {"model", QVariant::fromValue(itemModel)},
+            {"parent", QVariant::fromValue(q->parentItem())}
+        }, qmlContext(q)));
         return item;
     }
 

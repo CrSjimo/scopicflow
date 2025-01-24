@@ -36,6 +36,8 @@ namespace sflow {
 
         double rowHeight() const;
 
+        QColor color() const;
+
     public slots:
         SFLOW_VIEWMODEL_SET_FUNC void setName(const QString &value);
         SFLOW_VIEWMODEL_SET_FUNC void setMute(bool mute);
@@ -48,6 +50,7 @@ namespace sflow {
         SFLOW_VIEWMODEL_SET_FUNC void setRightLevel(double rightLevel);
         SFLOW_VIEWMODEL_SET_FUNC void setSelected(bool selected);
         SFLOW_VIEWMODEL_SET_FUNC void setRowHeight(double rowHeight);
+        SFLOW_VIEWMODEL_SET_FUNC void setColor(const QColor &color);
 
     signals:
         SFLOW_VIEWMODEL_SIGNAL void nameChanged(const QString &name);

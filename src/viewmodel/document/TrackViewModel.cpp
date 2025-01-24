@@ -2,6 +2,8 @@
 
 #include <limits>
 
+#include <QColor>
+
 #include <ScopicFlow/private/ViewModelHelper_p.h>
 
 namespace sflow {
@@ -79,5 +81,11 @@ namespace sflow {
     }
     void TrackViewModel::setRowHeight(double rowHeight) {
         insert("rowHeight", rowHeight);
+    }
+    QColor TrackViewModel::color() const {
+        return value("color").value<QColor>();
+    }
+    void TrackViewModel::setColor(const QColor &color) {
+        insert("color", color);
     }
 }

@@ -9,6 +9,7 @@ Item {
     property string text: ""
     property string editText: text
     property QtObject validator: null
+    readonly property bool editing: popup.opened
 
     signal editingFinished(text: string)
 
@@ -21,45 +22,45 @@ Item {
         color: editLabel.palette.foregroundColor
         visible: !labelEdit.visible
     }
-    TextField {
-        id: labelEdit
-        anchors.top: parent.top
-        anchors.bottom: parent.bottom
-        validator: editLabel.validator
-        background: Rectangle {
-            color: editLabel.palette.textEditingBackgroundColor
-            radius: 2
-            border.width: 1
-            border.color: editLabel.palette.textEditingBorderColor
+    Popup {
+        id: popup
+        padding: 0
+        background: Item {}
+        height: parent.height
+        onOpened: {
+            labelEdit.text = editLabel.editText
+            labelEdit.forceActiveFocus()
         }
-        color: editLabel.palette.textEditingForegroundColor
-        text: editLabel.editText
-        leftPadding: 4
-        topPadding: 0
-        bottomPadding: 0
-        rightPadding: 16
-        visible: false
-        property bool escaped: false
-        Keys.onEscapePressed: {
-            escaped = true
-            visible = false
-            focus = false
+        onClosed: {
+            if (!labelEdit.escaped)
+                editLabel.editingFinished(labelEdit.text)
+            labelEdit.escaped = false
         }
-        Keys.onReturnPressed: {
-            visible = false
-            focus = false
-        }
-        onVisibleChanged: {
-            if (!visible) {
-                if (!escaped)
-                    editLabel.editingFinished(text)
-                else
-                    escaped = false
+        TextField {
+            id: labelEdit
+            anchors.top: parent.top
+            anchors.bottom: parent.bottom
+            validator: editLabel.validator
+            background: Rectangle {
+                color: editLabel.palette.textEditingBackgroundColor
+                radius: 2
+                border.width: 1
+                border.color: editLabel.palette.textEditingBorderColor
             }
-        }
-        onActiveFocusChanged: {
-            if (!activeFocus)
-                visible = false
+            color: editLabel.palette.textEditingForegroundColor
+            text: editLabel.editText
+            leftPadding: 4
+            topPadding: 0
+            bottomPadding: 0
+            rightPadding: 16
+            property bool escaped: false
+            Keys.onEscapePressed: {
+                escaped = true
+                popup.close()
+            }
+            Keys.onReturnPressed: {
+                popup.close()
+            }
         }
     }
 
@@ -67,8 +68,7 @@ Item {
         anchors.fill: parent
         focusPolicy: Qt.StrongFocus
         onDoubleClicked: {
-            labelEdit.visible = true
-            labelEdit.focus = true
+            popup.open()
         }
     }
 

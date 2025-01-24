@@ -1,26 +1,27 @@
 #ifndef SCOPIC_FLOW_TRACKLISTLAYOUTVIEWMODEL_H
 #define SCOPIC_FLOW_TRACKLISTLAYOUTVIEWMODEL_H
 
-#include <QQmlPropertyMap>
+#include <QObject>
 
 #include <ScopicFlow/ScopicFlowGlobal.h>
 
 namespace sflow {
 
-    class SCOPIC_FLOW_EXPORT TrackListLayoutViewModel : public QQmlPropertyMap {
+    class SCOPIC_FLOW_EXPORT TrackListLayoutViewModel : public QObject {
         Q_OBJECT
-
+        Q_PROPERTY(double viewportOffset READ viewportOffset WRITE setViewportOffset NOTIFY viewportOffsetChanged)
     public:
         explicit TrackListLayoutViewModel(QObject *parent = nullptr);
         ~TrackListLayoutViewModel() override;
 
         double viewportOffset() const;
-
-    public slots:
-        SFLOW_VIEWMODEL_SET_FUNC void setViewportOffset(double value);
+        void setViewportOffset(double value);
 
     signals:
-        SFLOW_VIEWMODEL_SIGNAL void viewportOffsetChanged(double value);
+        void viewportOffsetChanged(double value);
+
+    private:
+        double m_viewportOffset;
 
     };
 

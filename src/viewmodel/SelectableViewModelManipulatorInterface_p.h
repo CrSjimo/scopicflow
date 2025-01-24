@@ -1,10 +1,10 @@
 #ifndef SCOPIC_FLOW_SELECTABLEVIEWMODELMANIPULATORINTERFACE_P_H
 #define SCOPIC_FLOW_SELECTABLEVIEWMODELMANIPULATORINTERFACE_H
 
-#  include <QObject>
-#  include <QVariant>
+#include <QObject>
+#include <QVariant>
 
-#  include <ScopicFlow/ScopicFlowGlobal.h>
+#include <ScopicFlow/ScopicFlowGlobal.h>
 
 namespace sflow {
 
@@ -37,6 +37,9 @@ namespace sflow {
 
         static void registerViewModelInterface(const QString &className, const QMetaObject *metaObject);
         static const QMetaObject *getInterface(const QString &className);
+        static inline const QMetaObject *getInterface(QObject *viewModel) {
+            return getInterface(viewModel->metaObject()->className());
+        }
     };
 
     template<class ViewModel, class Interface>

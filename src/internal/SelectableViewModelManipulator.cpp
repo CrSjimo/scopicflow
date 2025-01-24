@@ -21,8 +21,7 @@ namespace sflow {
         if (!viewModel) {
             return;
         }
-        QString className = viewModel->metaObject()->className();
-        auto metaObject = SelectableViewModelManipulatorInterface::getInterface(className);
+        auto metaObject = SelectableViewModelManipulatorInterface::getInterface(viewModel);
         if (!metaObject) {
             if (auto engine = qjsEngine(this))
                 engine->throwError(QString("Unknown view model class"));

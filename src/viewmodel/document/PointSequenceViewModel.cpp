@@ -19,16 +19,16 @@ namespace sflow {
             return item.value<QObject *>()->property(handle->d_func()->selectedProperty).toBool();
         }
         QVariant nextItem(const QVariant &item) const override {
-            return QVariant::fromValue(handle->d_func()->container.nextItem(item.value<QObject *>()));
+            return QVariant::fromValue(handle->nextItem(item.value<QObject *>()));
         }
         QVariant previousItem(const QVariant &item) const override {
-            return QVariant::fromValue(handle->d_func()->container.previousItem(item.value<QObject *>()));
+            return QVariant::fromValue(handle->previousItem(item.value<QObject *>()));
         }
         QVariant firstItem() const override {
-            return QVariant::fromValue(handle->d_func()->container.firstItem());
+            return QVariant::fromValue(handle->firstItem());
         }
         QVariant lastItem() const override {
-            return QVariant::fromValue(handle->d_func()->container.lastItem());
+            return QVariant::fromValue(handle->lastItem());
         }
         QVariant currentItem() const override {
             return QVariant::fromValue(handle->currentItem());
@@ -91,6 +91,26 @@ namespace sflow {
             emit d->q_ptr->intermediateChanged(intermediate);
         }
     }
+    QObject *PointSequenceViewModelQmlHandle::previousItem(QObject *item) const {
+        Q_D(const PointSequenceViewModel);
+        return d->container.previousItem(item);
+    }
+    QObject *PointSequenceViewModelQmlHandle::nextItem(QObject *item) const {
+        Q_D(const PointSequenceViewModel);
+        return d->container.nextItem(item);
+    }
+    inline QObject *PointSequenceViewModelQmlHandle::firstItem() const {
+        Q_D(const PointSequenceViewModel);
+        return d->container.firstItem();
+    }
+    inline QObject *PointSequenceViewModelQmlHandle::lastItem() const {
+        Q_D(const PointSequenceViewModel);
+        return d->container.lastItem();
+    }
+    QObjectList PointSequenceViewModelQmlHandle::selection() const {
+        Q_D(const PointSequenceViewModel);
+        return QObjectList(d->selection.cbegin(), d->selection.cend());
+    }
     void PointSequenceViewModelQmlHandle::insertItem(QObject *item) {
         Q_D(PointSequenceViewModel);
         d->insertItem(item);
@@ -141,6 +161,7 @@ namespace sflow {
             selection.remove(item);
             emit q->itemRemoved(item);
         }
+        emit handle->selectionChanged();
     }
     void PointSequenceViewModelPrivate::handleItemPositionChanged() {
         Q_Q(PointSequenceViewModel);

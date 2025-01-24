@@ -81,6 +81,7 @@ namespace sflow {
         Q_OBJECT
         Q_PROPERTY(QObject *currentItem READ currentItem WRITE setCurrentItem NOTIFY currentItemChanged)
         Q_PROPERTY(bool intermediate READ intermediate WRITE setIntermediate NOTIFY intermediateChanged)
+        Q_PROPERTY(QObjectList selection READ selection NOTIFY selectionChanged)
     public:
         Q_DECLARE_PRIVATE(PointSequenceViewModel)
         explicit PointSequenceViewModelQmlHandle(PointSequenceViewModelPrivate *d);
@@ -92,6 +93,13 @@ namespace sflow {
         bool intermediate() const;
         void setIntermediate(bool intermediate);
 
+        Q_INVOKABLE QObject *previousItem(QObject *item) const;
+        Q_INVOKABLE QObject *nextItem(QObject *item) const;
+        Q_INVOKABLE QObject *firstItem() const;
+        Q_INVOKABLE QObject *lastItem() const;
+
+        QObjectList selection() const;
+
         Q_INVOKABLE void insertItem(QObject *item);
         Q_INVOKABLE void removeItem(QObject *item);
         Q_INVOKABLE QObjectList slice(int position, int length) override;
@@ -100,10 +108,10 @@ namespace sflow {
     signals:
         void currentItemChanged();
         void intermediateChanged();
+        void selectionChanged();
 
     private:
         PointSequenceViewModelPrivate *d_ptr;
-
     };
 
     class PointSequenceViewModelPrivate {

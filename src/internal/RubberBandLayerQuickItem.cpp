@@ -114,10 +114,10 @@ namespace sflow {
             }
         }
     }
-    void RubberBandLayerQuickItem::endSelection() {
+    QRectF RubberBandLayerQuickItem::endSelection() {
         Q_D(RubberBandLayerQuickItem);
         if (!d->started)
-            return;
+            return {};
         d->started = false;
         if (d->rubberBandItem) {
             d->rubberBandItem->setVisible(false);
@@ -127,5 +127,6 @@ namespace sflow {
             d->selectionManipulator->interface()->viewModel()->setProperty("intermediate", false);
         }
         emit startedChanged(false);
+        return {d->rubberBandItem->x(), d->rubberBandItem->y(), d->rubberBandItem->width(), d->rubberBandItem->height()};
     }
 }

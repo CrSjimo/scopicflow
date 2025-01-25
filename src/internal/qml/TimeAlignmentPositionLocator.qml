@@ -1,6 +1,7 @@
 import QtQml
+import QtQuick
 
-QtObject {
+Item {
     property QtObject timeViewModel: null
     property QtObject timeLayoutViewModel: null
 
@@ -19,6 +20,16 @@ QtObject {
             return tick
         let align = timeLayoutViewModel.positionAlignment
         return Math.floor((tick + align / 2) / align) * align
+    }
+    function alignTickVisible(tick) {
+        if (!timeViewModel || !timeLayoutViewModel)
+            return 0
+        tick = alignTick(Math.max(0, tick))
+        if (mapToX(tick) < 0)
+            tick += timeLayoutViewModel.positionAlignment
+        else if (locator.mapToX(tick) > width)
+            tick -= timeLayoutViewModel.positionAlignment
+        return tick
     }
     function alignTickCeil(tick) {
         if (!timeViewModel || !timeLayoutViewModel)

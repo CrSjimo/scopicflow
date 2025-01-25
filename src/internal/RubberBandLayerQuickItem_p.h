@@ -35,7 +35,7 @@ namespace sflow {
 
         Q_INVOKABLE void startSelection(const QPointF &startPos);
         Q_INVOKABLE void updateSelection(const QPointF &pos);
-        Q_INVOKABLE void endSelection();
+        Q_INVOKABLE QRectF endSelection();
 
     signals:
         void selectionManipulatorChanged();

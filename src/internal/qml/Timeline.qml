@@ -22,12 +22,7 @@ Item {
     function setIndicatorPosition(x) {
         if (!timeViewModel || !timeLayoutViewModel || !playbackViewModel)
             return
-        let tick = locator.alignTick(Math.max(0, locator.mapToTick(x)))
-        if (locator.mapToX(tick) < 0)
-            tick += timeLayoutViewModel.positionAlignment
-        else if (locator.mapToX(tick) > width)
-            tick -= timeLayoutViewModel.positionAlignment
-        playbackViewModel.primaryPosition = playbackViewModel.secondaryPosition = tick
+        playbackViewModel.primaryPosition = playbackViewModel.secondaryPosition = locator.alignTickVisible(locator.mapToTick(x))
     }
     function setZoomedRange(selectionX, selectionWidth) {
         if (!timeViewModel || !timeLayoutViewModel)
@@ -42,17 +37,8 @@ Item {
     function moveViewOnDraggingPositionIndicator(deltaX) {
         if (!timeViewModel || !timeLayoutViewModel || !playbackViewModel)
             return
-        let newStart = Math.max(0.0, timeViewModel.start + deltaX / timeLayoutViewModel.pixelDensity)
-        let newEnd = newStart + width / timeLayoutViewModel.pixelDensity
-        timeViewModel.start = newStart
-        timeViewModel.end = Math.max(timeViewModel.end, newEnd)
-        if (deltaX < 0) {
-            let tick = locator.alignTickCeil(Math.max(0, locator.mapToTick(0)))
-            playbackViewModel.primaryPosition = playbackViewModel.secondaryPosition = tick
-        } else {
-            let tick = locator.alignTickFloor(Math.max(0, locator.mapToTick(width)))
-            playbackViewModel.primaryPosition = playbackViewModel.secondaryPosition = tick
-        }
+        timeManipulator.moveViewBy(deltaX)
+        setIndicatorPosition(deltaX < 0 ? 0 : width)
     }
 
     signal positionIndicatorDoubleClicked()
@@ -71,6 +57,7 @@ Item {
 
     TimeAlignmentPositionLocator {
         id: locator
+        anchors.fill: parent
         timeViewModel: timeline.timeViewModel
         timeLayoutViewModel: timeline.timeLayoutViewModel
     }
@@ -97,15 +84,21 @@ Item {
         timeLayoutViewModel: timeline.timeLayoutViewModel
     }
 
-
-    Rectangle {
-        id: selectionRect
-        anchors.bottom: parent.bottom
+    Item {
+        id: rubberBandLayerViewport
         anchors.top: parent.top
-        color: Qt.rgba(timelineScale.color.r, timelineScale.color.g, timelineScale.color.b, 0.5 * timelineScale.color.a)
-        visible: false
-        property int start: 0
+        anchors.bottom: parent.bottom
+        x: -(timeline.timeViewModel?.start ?? 0) * (timeline.timeLayoutViewModel?.pixelDensity ?? 0)
+        width: (timeline.timeViewModel?.end ?? 0) * (timeline.timeLayoutViewModel?.pixelDensity ?? 0)
+        RubberBandLayer {
+            id: rubberBandLayer
+            anchors.fill: parent
+            rubberBand: Rectangle {
+                color: Qt.rgba(timelineScale.color.r, timelineScale.color.g, timelineScale.color.b, 0.5 * timelineScale.color.a)
+            }
+        }
     }
+
 
     Shape {
         id: secondaryIndicator
@@ -157,6 +150,7 @@ Item {
     }
 
     MouseArea {
+        id: mouseArea
         acceptedButtons: Qt.LeftButton | Qt.RightButton
         anchors.fill: parent
         drag.axis: Drag.XAxis
@@ -164,44 +158,64 @@ Item {
         focusPolicy: Qt.StrongFocus
 
         property bool rejectContextMenu: false
+        property double pressedX: 0
+
+        function handlePositionChanged(x, button) {
+            if (button === Qt.LeftButton) {
+                timeline.setIndicatorPosition(x)
+            } else {
+                rejectContextMenu = true
+                if (!rubberBandLayer.started) {
+                    rubberBandLayer.startSelection(mapToItem(rubberBandLayerViewport, locator.mapToX(locator.alignTickVisible(locator.mapToTick(pressedX))), 0))
+                }
+                rubberBandLayer.updateSelection(mapToItem(rubberBandLayerViewport, locator.mapToX(locator.alignTickVisible(locator.mapToTick(x))), timeline.height))
+            }
+        }
 
         DragScroller {
             id: dragScroller
+            property int button: 0
             onMoved: function (deltaX) {
-                timeline.moveViewOnDraggingPositionIndicator(deltaX)
+                timeManipulator.moveViewBy(deltaX)
+                mouseArea.handlePositionChanged(deltaX < 0 ? 0 : timeline.width, button)
             }
         }
 
         onPressed: function (mouse) {
             rejectContextMenu = false
+            pressedX = mouse.x
         }
-        Timer {
-            id: clickTimer
-            interval: 0
-            property var button: null
-            property double x: 0
-            property double y: 0
-            onTriggered: {
-                if (button === Qt.LeftButton) {
-                    timeline.setIndicatorPosition(x)
-                } else if (button === Qt.RightButton && !parent.rejectContextMenu) {
-                    if (primaryIndicator.contains(mapToItem(primaryIndicator, x, y))) {
-                        timeline.contextMenuRequestedForPositionIndicator()
-                    } else {
-                        timeline.contextMenuRequestedForTimeline(locator.mapToTick(x))
-                    }
+        onPositionChanged: function (mouse) {
+            dragScroller.button = mouse.buttons
+            dragScroller.determine(mouse.x, timeline.width, 0, 0, (triggered) => {
+                if (triggered)
+                    return
+                handlePositionChanged(mouse.x, mouse.buttons)
+            })
+        }
+        onReleased: {
+            dragScroller.running = false
+            cursorShape = Qt.ArrowCursor
+            let rect = mapFromItem(rubberBandLayerViewport, rubberBandLayer.endSelection())
+            timeline.setZoomedRange(rect.x, rect.width)
+        }
+        onCanceled: {
+            dragScroller.running = false
+            cursorShape = Qt.ArrowCursor
+            rubberBandLayer.endSelection()
+        }
+        onClicked: function (mouse) {
+            if (mouse.button === Qt.LeftButton) {
+                timeline.setIndicatorPosition(mouse.x)
+            } else if (mouse.button === Qt.RightButton && !rejectContextMenu) {
+                if (primaryIndicator.contains(mapToItem(primaryIndicator, mouse.x, mouse.y))) {
+                    timeline.contextMenuRequestedForPositionIndicator()
+                } else {
+                    timeline.contextMenuRequestedForTimeline(locator.mapToTick(mouse.x))
                 }
             }
         }
-        onClicked: function (mouse) {
-            clickTimer.button = mouse.button
-            clickTimer.x = mouse.x
-            clickTimer.y = mouse.y
-            clickTimer.start()
-        }
         onDoubleClicked : function (mouse) {
-            if (clickTimer.running)
-                clickTimer.stop()
             if (mouse.button === Qt.LeftButton) {
                 if (primaryIndicator.contains(mapToItem(primaryIndicator, mouse.x, mouse.y))) {
                     timeline.positionIndicatorDoubleClicked()
@@ -209,53 +223,6 @@ Item {
                     timeline.timelineDoubleClicked(locator.mapToTick(mouse.x))
                 }
             }
-        }
-        onPositionChanged: function (mouse) {
-            if (pressedButtons & Qt.LeftButton) {
-                if (mouse.x < 0) {
-                    dragScroller.distanceX = mouse.x
-                    dragScroller.running = true
-                } else if (mouse.x >= timeline.width) {
-                    dragScroller.distanceX = mouse.x - timeline.width
-                    dragScroller.running = true
-                } else {
-                    timeline.setIndicatorPosition(mouse.x)
-                    dragScroller.running = false
-                }
-
-            } else if (pressedButtons & Qt.RightButton) {
-                let alignedX = Math.min(Math.max(0, locator.alignedX(mouse.x)), timeline.width)
-                if (!selectionRect.visible) {
-                    cursorShape = Qt.OpenHandCursor
-                    selectionRect.visible = true
-                    selectionRect.start = alignedX
-                    selectionRect.x = selectionRect.start
-                    selectionRect.width = 0
-                } else {
-                    if (alignedX > selectionRect.start) {
-                        selectionRect.x = selectionRect.start
-                        selectionRect.width = alignedX - selectionRect.start
-                    } else {
-                        selectionRect.width = selectionRect.start - alignedX
-                        selectionRect.x = alignedX
-                    }
-                }
-            }
-        }
-        onReleased: {
-            dragScroller.running = false
-            cursorShape = Qt.ArrowCursor
-            if (selectionRect.visible) {
-                if (selectionRect.width)
-                    timeline.setZoomedRange(selectionRect.x, selectionRect.width)
-                selectionRect.visible = false
-                rejectContextMenu = true
-            }
-        }
-        onCanceled: {
-            dragScroller.running = false
-            cursorShape = Qt.ArrowCursor
-            selectionRect.visible = false
         }
     }
 

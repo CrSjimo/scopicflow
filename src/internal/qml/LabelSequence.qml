@@ -59,6 +59,7 @@ Item {
 
     TimeAlignmentPositionLocator {
         id: locator
+        anchors.fill: parent
         timeViewModel: labelSequence.timeViewModel
         timeLayoutViewModel: labelSequence.timeLayoutViewModel
     }
@@ -122,16 +123,11 @@ Item {
                     rubberBandLayer.startSelection(Qt.point(pressedX, 0))
                 }
                 let parentX = viewport.mapToItem(labelSequence, mouse.x, mouse.y).x
-                if (parentX < 0) {
-                    rubberBandDragScroller.distanceX = parentX
-                    rubberBandDragScroller.running = true
-                } else if (parentX > labelSequence.width) {
-                    rubberBandDragScroller.distanceX = parentX - labelSequence.width
-                    rubberBandDragScroller.running = true
-                } else {
-                    doDragRubberBand(mouse.x)
-                    rubberBandDragScroller.running = false
-                }
+                rubberBandDragScroller.determine(parentX, labelSequence.width, 0, 0, (triggered) => {
+                    if (!triggered) {
+                        doDragRubberBand(mouse.x)
+                    }
+                })
             }
             function onCanceled() {
                 rubberBandLayer.endSelection()
@@ -164,7 +160,7 @@ Item {
                 if (mouse.button !== Qt.LeftButton || mouse.modifiers)
                     return
                 let label = labelViewModelComponent.createObject(null, {
-                    position: locator.alignTick(locator.mapToTick(mouse.x)) + labelSequence.timeViewModel?.start ?? 0
+                    position: locator.alignTick(locator.mapToTick(mouse.x)) + labelSequence.timeViewModel?.start ?? 0 // FIXME
                 })
                 labelSequence.labelSequenceViewModel.handle.insertItem(label)
                 selectionManipulator.select(label, Qt.LeftButton, 0)
@@ -230,16 +226,11 @@ Item {
                             cursorIndicatorBinding.enabled = true
                             selectionManipulator.select(labelRect.model, Qt.RightButton, mouse.modifiers)
                             let parentX = labelRect.mapToItem(labelSequence, mouse.x, mouse.y).x
-                            if (parentX < 0) {
-                                labelDragScroller.distanceX = parentX
-                                labelDragScroller.running = true
-                            } else if (parentX > labelSequence.width) {
-                                labelDragScroller.distanceX = parentX - labelSequence.width
-                                labelDragScroller.running = true
-                            } else {
-                                labelSequence.moveSelectedLabelsTo(parentX - pressedDeltaX, labelRect.model)
-                                labelDragScroller.running = false
-                            }
+                            labelDragScroller.determine(parentX, labelSequence.width, 0, 0, (triggered) => {
+                                if (!triggered) {
+                                    labelSequence.moveSelectedLabelsTo(parentX - pressedDeltaX, labelRect.model)
+                                }
+                            })
                         }
                         onReleased: canceled()
                         onCanceled: {

@@ -28,14 +28,14 @@ Item {
         if (!clavierViewModel)
             return
         let newPixelDensity = Math.min(Math.max(clavierViewModel.minimumPixelDensity, clavierViewModel.pixelDensity * ratio), clavierViewModel.maximumPixelDensity)
-        let newStart = Math.max(0, clavierViewModel.start + (height - centerY) / clavierViewModel.pixelDensity - (height - centerY) / newPixelDensity)
-        newStart = Math.min(newStart, 128 - height / newPixelDensity)
+        let newStart = Math.max(0, clavierViewModel.start + (height - centerY + startOffset) / clavierViewModel.pixelDensity - (height - centerY + startOffset) / newPixelDensity)
+        newStart = Math.min(newStart, 128 - (height + startOffset) / newPixelDensity)
         if (!animated) {
             clavierViewModel.start = newStart
             clavierViewModel.pixelDensity = newPixelDensity
         } else {
             d.currentAnimationFixStartToZero = ratio < 1 && Math.abs(clavierViewModel.start) < Number.EPSILON
-            d.currentAnimationEnsureEnd = ratio < 1 && Math.abs(clavierViewModel.start - (128 - height / clavierViewModel.pixelDensity)) < Number.EPSILON
+            d.currentAnimationEnsureEnd = ratio < 1 && Math.abs(clavierViewModel.start - (128 - (height + startOffset) / clavierViewModel.pixelDensity)) < Number.EPSILON
             pixelDensityBehavior.enabled = false
             d.pixelDensity = clavierViewModel.pixelDensity
             pixelDensityBehavior.enabled = true
@@ -58,8 +58,8 @@ Item {
         }
 
         onPixelDensityChanged: {
-            let newStart = currentAnimationFixStartToZero ? 0 : currentAnimationEnsureEnd ? 128 - clavierManipulator.height / pixelDensity : Math.max(0.0, clavierManipulator.clavierViewModel.start + (clavierManipulator.height - centerY) / clavierManipulator.clavierViewModel.pixelDensity - (clavierManipulator.height - centerY) / pixelDensity)
-            newStart = Math.min(newStart, 128 - clavierManipulator.height / pixelDensity)
+            let newStart = currentAnimationFixStartToZero ? 0 : currentAnimationEnsureEnd ? 128 - (clavierManipulator.height + clavierManipulator.startOffset) / pixelDensity : Math.max(0.0, clavierManipulator.clavierViewModel.start + (clavierManipulator.height - centerY + clavierManipulator.startOffset) / clavierManipulator.clavierViewModel.pixelDensity - (clavierManipulator.height - centerY + clavierManipulator.startOffset) / pixelDensity)
+            newStart = Math.min(newStart, 128 - (clavierManipulator.height + clavierManipulator.startOffset) / pixelDensity)
             clavierManipulator.clavierViewModel.start = newStart
             clavierManipulator.clavierViewModel.pixelDensity = pixelDensity
 

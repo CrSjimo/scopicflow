@@ -8,6 +8,26 @@ Item {
 
     signal moved(deltaX: double, deltaY: double)
 
+    function determine(x, width, y, height, callback) {
+        let xTriggered = true
+        if (x < 0)
+            distanceX = x
+        else if (x > width)
+            distanceX = x - width
+        else
+            xTriggered = false
+        let yTriggered = true
+        if (y < 0)
+            distanceY = y
+        else if (y > height)
+            distanceY = y - height
+        else
+            yTriggered = false
+        running = xTriggered || yTriggered
+        if (callback)
+            callback(xTriggered, yTriggered)
+    }
+
     Timer {
         id: tickingTimer
         interval: 10

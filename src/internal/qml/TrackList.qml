@@ -17,7 +17,6 @@ Item {
     property Component trackExtraDelegate: null
 
     readonly property QtObject palette: paletteViewModel?.palette?.trackList ?? defaultPalette
-    property bool trackHandleEnabled: true
 
     signal trackDoubleClicked(index: int);
     signal contextMenuRequestedForTrack(index: int);
@@ -82,8 +81,8 @@ Item {
     onHeightChanged: {
         if (!trackList.trackListViewModel)
             return
-        if (trackList.trackListLayoutViewModel.viewportOffset + trackList.height > backgroundRectangle.height) {
-            trackList.trackListLayoutViewModel.viewportOffset = backgroundRectangle.height - trackList.height
+        if (trackList.trackListLayoutViewModel.viewportOffset + trackList.height > viewport.height) {
+            trackList.trackListLayoutViewModel.viewportOffset = viewport.height - trackList.height
         }
     }
 
@@ -100,30 +99,62 @@ Item {
         viewModel: trackList.trackListViewModel
     }
 
+    TrackListLocator {
+        id: trackListLocator
+        trackListViewModel: trackList.trackListViewModel
+    }
+
+    TrackListManipulator {
+        id: trackListManipulator
+        anchors.fill: parent
+        trackListLayoutViewModel: trackList.trackListLayoutViewModel
+        animationViewModel: trackList.animationViewModel
+        viewportHeight: trackListLocator.viewportHeight
+    }
+
     Rectangle {
-        id: backgroundRectangle
+        id: background
+        anchors.fill: parent
+        color: trackList.palette.backgroundColor
+    }
+
+    DragScroller {
+        id: dragScroller
+        property point viewportPoint: Qt.point(0, 0)
+        property int modifiers: 0
+        signal positionChanged(x: double, y: double, modifiers: int)
+        onMoved: (_, deltaY) => {
+            trackListManipulator.moveViewBy(deltaY)
+            positionChanged(viewportPoint.x, deltaY > 0 ? trackList.height : 0, modifiers)
+        }
+    }
+
+    Item {
+        id: viewport
         anchors.left: parent.left
         anchors.right: parent.right
-        color: trackList.palette.backgroundColor
         y: -trackList.trackListLayoutViewModel?.viewportOffset ?? 0
-        height: Math.max(trackList.height, trackLayoutRepeater.itemAt(trackLayoutRepeater.count - 1) ? trackLayoutRepeater.itemAt(trackLayoutRepeater.count - 1).y + 2 * trackLayoutRepeater.itemAt(trackLayoutRepeater.count - 1).height : 0, trackList.height - y)
+        height: trackListLocator.viewportHeight
 
-        MouseArea {
+        Item {
+            id: rubberBandQuasiMouseArea
             anchors.fill: parent
-            acceptedButtons: Qt.LeftButton | Qt.RightButton
-            cursorShape: undefined
-            focusPolicy: Qt.StrongFocus
-            property bool rejectClick: false
-            onPressed: {
-                rejectClick = false
-            }
-            onClicked: function (mouse) {
-                if (rejectClick)
-                    return
-                selectionManipulator.select(null, mouse.button, mouse.modifiers)
-                if (mouse.button & Qt.RightButton) {
-                    trackList.contextMenuRequestedForTrack(-1)
+            property bool dragged: false
+            property point pressedPoint: Qt.point(0, 0)
+            property bool pressed: false
+
+            Connections {
+                target: dragScroller
+                enabled: rubberBandQuasiMouseArea.pressed
+                function onPositionChanged(x, y, modifiers) {
+                    let point = rubberBandQuasiMouseArea.mapFromItem(trackList, x, y)
+                    rubberBandQuasiMouseArea.handlePositionChanged(point.x, point.y, modifiers)
                 }
+            }
+
+            function onPressed (mouse) {
+                dragged = false
+                pressedPoint = Qt.point(mouse.x, mouse.y)
             }
             function handlePositionChanged(x, y, modifiers) {
                 if (!rubberBandLayer.started) {
@@ -134,53 +165,51 @@ Item {
                 }
 
             }
-            DragScroller {
-                id: dragScroller
-                property point viewportPoint: Qt.point(0, 0)
-                property int modifiers: 0
-                onMoved: function (_, deltaY) {
-                    if (!trackList.trackListViewModel)
-                        return
-                    let newViewportOffset = Math.max(0, trackList.trackListLayoutViewModel.viewportOffset + deltaY)
-                    if (newViewportOffset + trackList.height > backgroundRectangle.height) {
-                        newViewportOffset = backgroundRectangle.height - trackList.height
-                    }
-                    trackList.trackListLayoutViewModel.viewportOffset = newViewportOffset
-                    let point = parent.mapFromItem(trackList, viewportPoint)
-                    parent.handlePositionChanged(point.x, point.y, modifiers)
-                }
-            }
-            onPositionChanged: function (mouse) {
-                rejectClick = true
+            function onPositionChanged (mouse) {
+                dragged = true
                 let viewportPoint = mapToItem(trackList, mouse.x, mouse.y)
                 dragScroller.viewportPoint = viewportPoint
                 dragScroller.modifiers = mouse.modifiers
-                if (viewportPoint.y < 0) {
-                    dragScroller.distanceY = viewportPoint.y
-                    dragScroller.running = true
-                    return
-                } else if (viewportPoint.y > trackList.height) {
-                    dragScroller.distanceY = viewportPoint.y - trackList.height
-                    dragScroller.running = true
-                    return
-                } else {
-                    dragScroller.running = false
-                }
-                handlePositionChanged(mouse.x, mouse.y, mouse.modifiers)
+                dragScroller.determine(0, 0, viewportPoint.y, trackList.height, (_, triggered) => {
+                    if (!triggered)
+                        handlePositionChanged(mouse.x, mouse.y, mouse.modifiers)
+                })
             }
-            onReleased: canceled()
-            onCanceled: {
+            function onCanceled () {
                 rubberBandLayer.endSelection()
                 dragScroller.running = false
+            }
+        }
+
+        MouseArea {
+            id: backMouseArea
+            anchors.fill: parent
+            acceptedButtons: Qt.LeftButton | Qt.RightButton
+            cursorShape: undefined
+
+            onPressedChanged: rubberBandQuasiMouseArea.pressed = pressed
+            onPressed: (mouse) => rubberBandQuasiMouseArea.onPressed(mouse)
+            onPositionChanged: (mouse) => rubberBandQuasiMouseArea.onPositionChanged(mouse)
+            onReleased: canceled()
+            onCanceled: rubberBandQuasiMouseArea.onCanceled()
+
+            onClicked: function (mouse) {
+                if (rubberBandQuasiMouseArea.dragged)
+                    return
+                selectionManipulator.select(null, mouse.button, mouse.modifiers)
+                if (mouse.button & Qt.RightButton) {
+                    trackList.contextMenuRequestedForTrack(-1)
+                }
             }
             onDoubleClicked: {
                 trackList.trackDoubleClicked(-1)
             }
         }
 
-        Column {
+        Item {
             id: trackLayout
             anchors.fill: parent
+            property bool dragging: false
 
             // 获取 point 位置处音轨的 index
             function indexAt (point) {
@@ -195,9 +224,9 @@ Item {
                 }
                 if (item)
                     return item.index
-                if (backgroundRectangle.contains(point))
+                if (viewport.contains(point))
                     return trackLayoutRepeater.count
-                if (backgroundRectangle.contains(Qt.point(point.x, 0))) {
+                if (viewport.contains(Qt.point(point.x, 0))) {
                     if (point.y < 0)
                         return 0
                     else
@@ -226,6 +255,7 @@ Item {
                     animationViewModel: trackList.animationViewModel
 
                     height: trackViewModel.rowHeight
+                    y: trackListLocator.map[index] ?? 0
                     onHeightChanged: {
                         trackViewModel.rowHeight = height
                         height = Qt.binding(function () { return this.trackViewModel.rowHeight })
@@ -238,97 +268,65 @@ Item {
                         rubberBandLayer.removeItem(index)
                     }
                     mouseArea: MouseArea {
-
+                        id: trackMouseArea
                         anchors.fill: parent
                         acceptedButtons: Qt.LeftButton | Qt.RightButton
                         cursorShape: undefined
                         focusPolicy: Qt.StrongFocus
-                        property bool rejectClick: false
+                        property bool dragged: false
+                        property int lastIndicatorIndex: -1
+
+                        Connections {
+                            target: dragScroller
+                            enabled: trackMouseArea.pressed
+                            function onPositionChanged(x, y, modifiers) {
+                                let point = trackMouseArea.mapFromItem(trackList, x, y)
+                                trackMouseArea.handlePositionChanged(point.x, point.y, modifiers)
+                            }
+                        }
+
+                        onPressedChanged: trackLayout.dragging = pressed
                         
                         function handlePositionChanged(x, y, modifiers) {
                             let point = mapToItem(trackLayout, x, y)
                             let index = trackLayout.indexAt(point)
-                            if ((modifiers & Qt.AltModifier) || rubberBandLayer.started) {
-                                if (lastIndicatorIndex !== -1) {
-                                    let handle = (lastIndicatorIndex ? trackHandlesRepeater.itemAt(lastIndicatorIndex - 1) : topTrackHandle)
-                                    handle.indicatesTarget = false
-                                }
-                                if (!rubberBandLayer.started) {
-                                    selectionManipulator.select(null, Qt.RightButton, modifiers)
-                                    rubberBandLayer.startSelection(point)
-                                } else {
-                                    rubberBandLayer.updateSelection(point)
-                                }
-                                return
-                            }
                             if (lastIndicatorIndex !== -1) {
-                                let handle = (lastIndicatorIndex ? trackHandlesRepeater.itemAt(lastIndicatorIndex - 1) : topTrackHandle)
+                                let handle = trackHandlesRepeater.itemAt(lastIndicatorIndex)
                                 handle.indicatesTarget = false
                             }
                             if (index !== -1) {
-                                let handle = (index ? trackHandlesRepeater.itemAt(index - 1) : topTrackHandle)
+                                let handle = trackHandlesRepeater.itemAt(index)
                                 handle.indicatesTarget = true
                             }
                             lastIndicatorIndex = index
                         }
 
-                        DragScroller {
-                            id: dragScroller
-                            property point viewportPoint: Qt.point(0, 0)
-                            property int mouseModifiers: 0
-                            onMoved: function (_, deltaY) {
-                                if (!trackList.trackListViewModel)
-                                    return
-                                let newViewportOffset = Math.max(0, trackList.trackListLayoutViewModel.viewportOffset + deltaY)
-                                if (newViewportOffset + trackList.height > backgroundRectangle.height) {
-                                    newViewportOffset = backgroundRectangle.height - trackList.height
-                                }
-                                trackList.trackListLayoutViewModel.viewportOffset = newViewportOffset
-                                let point = parent.mapFromItem(trackList, viewportPoint)
-                                parent.handlePositionChanged(point.x, point.y, mouseModifiers)
-                            }
-                        }
-
                         onPressed: function (mouse) {
-                            rejectClick = false
+                            dragged = false
                         }
-                        property int lastIndicatorIndex: -1
                         onPositionChanged: function (mouse) {
-                            rejectClick = true
-                            if (!(mouse.modifiers & Qt.AltModifier) && !rubberBandLayer.started) {
-                                selectionManipulator.select(trackListDelegate.index, Qt.RightButton, mouse.modifiers)
-                                cursorShape = Qt.ClosedHandCursor
-                            }
+                            dragged = true
                             let viewportPoint = mapToItem(trackList, mouse.x, mouse.y)
                             dragScroller.viewportPoint = viewportPoint
-                            dragScroller.mouseModifiers = mouse.modifiers
-                            if (viewportPoint.y < 0) {
-                                dragScroller.distanceY = viewportPoint.y
-                                dragScroller.running = true
-                                return
-                            } else if (viewportPoint.y > trackList.height) {
-                                dragScroller.distanceY = viewportPoint.y - trackList.height
-                                dragScroller.running = true
-                                return
-                            } else {
-                                dragScroller.running = false
-                            }
-                            handlePositionChanged(mouse.x, mouse.y, mouse.modifiers)
+                            dragScroller.modifiers = mouse.modifiers
+                            dragScroller.determine(0, 0, viewportPoint.y, trackList.height, (_, triggered) => {
+                                if (!triggered)
+                                    handlePositionChanged(mouse.x, mouse.y, mouse.modifiers)
+                            })
                         }
                         onReleased: function (mouse) {
                             cursorShape = undefined
                             dragScroller.running = false
-                            rubberBandLayer.endSelection()
                             if (lastIndicatorIndex !== -1) {
                                 if (mouse.button & Qt.LeftButton) {
                                     trackList.moveTrack(trackListDelegate.index, lastIndicatorIndex)
                                 } else {
                                     trackList.contextMenuRequestedForTrackDragging(trackListDelegate.index, lastIndicatorIndex)
                                 }
-                                let handle = (lastIndicatorIndex ? trackHandlesRepeater.itemAt(lastIndicatorIndex - 1) : topTrackHandle)
+                                let handle = trackHandlesRepeater.itemAt(lastIndicatorIndex)
                                 handle.indicatesTarget = false
                             } else {
-                                if (rejectClick && (mouse.button & Qt.RightButton)) {
+                                if (dragged && (mouse.button & Qt.RightButton)) {
                                     trackList.contextMenuRequestedForTrack(trackListDelegate.index)
                                 }
                             }
@@ -339,13 +337,13 @@ Item {
                             dragScroller.running = false
                             rubberBandLayer.endSelection()
                             if (lastIndicatorIndex !== -1) {
-                                let handle = (lastIndicatorIndex ? trackHandlesRepeater.itemAt(lastIndicatorIndex - 1) : topTrackHandle)
+                                let handle = trackHandlesRepeater.itemAt(lastIndicatorIndex)
                                 handle.indicatesTarget = false
                             }
                             lastIndicatorIndex = -1
                         }
                         onClicked: function (mouse) {
-                            if (rejectClick)
+                            if (dragged)
                                 return
                             selectionManipulator.select(trackListDelegate.index, mouse.button, mouse.modifiers)
                             if (mouse.button & Qt.RightButton) {
@@ -364,28 +362,18 @@ Item {
         Item {
             id: trackHandles
             anchors.fill: parent
-            Rectangle {
-                id: topTrackHandle
-                property bool indicatesTarget: false
-                anchors.left: parent.left
-                anchors.right: parent.right
-                y:  -2
-                opacity: indicatesTarget
-                height: 4
-                color: trackList.palette.primaryColor
-            }
             Repeater {
                 id: trackHandlesRepeater
-                model: trackLayoutRepeater.count
+                model: trackLayoutRepeater.count + 1
                 Rectangle {
                     id: trackHandle
                     required property int index
-                    property QtObject trackViewModel: trackList.trackListViewModel.handle.items[index]
+                    property QtObject trackViewModel: index !== 0 ? trackList.trackListViewModel.handle.items[index - 1] : null
                     property bool indicatesTarget: false
                     anchors.left: parent.left
                     anchors.right: parent.right
-                    y: index < trackLayoutRepeater.count ? trackLayoutRepeater.itemAt(index).y + trackLayoutRepeater.itemAt(index).height - 2 : 0
-                    opacity: indicatesTarget || trackHandleMouseArea.containsPressed || trackHandleMouseArea.originalY !== -1
+                    y: (trackListLocator.map[index] ?? 0) - height / 2
+                    opacity: indicatesTarget || trackHandleMouseArea.pressed || trackHandleMouseArea.originalY !== -1
                     Behavior on opacity {
                         NumberAnimation {
                             duration: (trackList.animationViewModel?.visualEffectAnimationRatio ?? 1.0) * 250
@@ -398,32 +386,71 @@ Item {
                     MouseArea {
                         id: trackHandleMouseArea
                         anchors.fill: parent
-                        cursorShape: rubberBandLayer.started ? undefined : Qt.SplitVCursor
+                        cursorShape: Qt.SplitVCursor
                         property double originalY: -1
-                        enabled: trackList.trackHandleEnabled
+                        enabled: trackList.trackListLayoutViewModel?.trackHandleEnabled && trackHandle.index !== 0
                         hoverEnabled: true
+
+                        Connections {
+                            target: dragScroller
+                            enabled: trackHandleMouseArea.pressed
+                            function onPositionChanged(x, y, modifiers) {
+                                let point = trackHandleMouseArea.mapFromItem(trackList, x, y)
+                                trackHandleMouseArea.handlePositionChanged(point.x, point.y, modifiers)
+                            }
+                        }
+
+                        function handlePositionChanged(x, y, modifiers) {
+                            let deltaSize = y - originalY;
+                            let newHeight = Math.max(40, trackHandle.trackViewModel.rowHeight + deltaSize);
+                            trackHandle.trackViewModel.rowHeight = newHeight
+                        }
 
                         onPressed: function (mouse) {
                             originalY = mouse.y
                         }
                         onPositionChanged: function (mouse) {
-                            if (originalY !== -1) {
-                                let deltaSize = mouse.y - originalY;
-                                let newHeight = Math.max(40, trackHandle.trackViewModel.rowHeight + deltaSize);
-                                trackHandle.trackViewModel.rowHeight = newHeight
-                            }
+                            if (originalY === -1)
+                                return
+                            let viewportPoint = mapToItem(trackList, mouse.x, mouse.y)
+                            dragScroller.viewportPoint = viewportPoint
+                            dragScroller.modifiers = mouse.modifiers
+                            dragScroller.determine(0, 0, viewportPoint.y, trackList.height, (_, triggered) => {
+                                if (!triggered)
+                                    handlePositionChanged(mouse.x, mouse.y, mouse.modifiers)
+                            })
                         }
                         onReleased: canceled()
                         onDoubleClicked: {
-                            let delegate = trackLayoutRepeater.itemAt(trackHandle.index)
+                            let delegate = trackLayoutRepeater.itemAt(trackHandle.index - 1)
                             delegate.fitHeight()
                         }
                         onCanceled: {
+                            dragScroller.running = false
                             originalY = -1
                         }
                     }
                 }
             }
+        }
+
+        MouseArea {
+            id: frontMouseArea
+            anchors.fill: parent
+            cursorShape: trackLayout.dragging ? Qt.ArrowCursor : undefined
+            acceptedButtons: Qt.LeftButton | Qt.RightButton
+
+            onPressedChanged: rubberBandQuasiMouseArea.pressed = pressed
+            onPressed: (mouse) => {
+                if (!(mouse.modifiers & Qt.AltModifier)) {
+                    mouse.accepted = false
+                    return
+                }
+                rubberBandQuasiMouseArea.onPressed(mouse)
+            }
+            onPositionChanged: (mouse) => rubberBandQuasiMouseArea.onPositionChanged(mouse)
+            onReleased: canceled()
+            onCanceled: rubberBandQuasiMouseArea.onCanceled()
         }
 
         RubberBandLayer {
@@ -443,13 +470,7 @@ Item {
         viewModel: trackList.scrollBehaviorViewModel
         direction: Qt.Vertical
         onMoved: function (_, deltaY) {
-            if (!trackList.trackListViewModel)
-                return
-            let newViewportOffset = Math.max(0, trackList.trackListLayoutViewModel.viewportOffset + deltaY)
-            if (newViewportOffset + trackList.height > backgroundRectangle.height) {
-                newViewportOffset = backgroundRectangle.height - trackList.height
-            }
-            trackList.trackListLayoutViewModel.viewportOffset = newViewportOffset
+            trackListManipulator.moveViewBy(deltaY)
         }
     }
 
@@ -457,19 +478,7 @@ Item {
         anchors.fill: parent
         viewModel: trackList.scrollBehaviorViewModel
         onMoved: function (_, deltaY, isPhysicalWheel) {
-            if (!trackList.trackListViewModel)
-                return
-            let newViewportOffset = Math.max(0, trackList.trackListLayoutViewModel.viewportOffset + deltaY)
-            if (newViewportOffset + trackList.height > backgroundRectangle.height) {
-                newViewportOffset = backgroundRectangle.height - trackList.height
-            }
-            if (isPhysicalWheel) {
-                viewportOffsetAnimation.stop()
-                viewportOffsetAnimation.to = newViewportOffset
-                viewportOffsetAnimation.start()
-            } else {
-                trackList.trackListLayoutViewModel.viewportOffset = newViewportOffset
-            }
+            trackListManipulator.moveViewBy(deltaY, isPhysicalWheel)
         }
     }
 

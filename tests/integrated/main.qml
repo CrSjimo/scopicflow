@@ -37,6 +37,7 @@ Item {
                     height: placeholder.y - arrangementTimeline.y
                 }
                 TrackList {
+                    id: trackList
                     Layout.fillHeight: true
                     Layout.fillWidth: true
                     trackListViewModel: main.trackListViewModel
@@ -79,7 +80,7 @@ Item {
                     paletteViewModel: main.paletteViewModel
                 }
                 LabelSequence {
-
+                    id: arrangementLabelSequence
                     Layout.fillWidth: true
 
                     timeViewModel: main.arrangementTimeViewModel
@@ -103,6 +104,7 @@ Item {
             rowSpacing: 0
 
             Clavier {
+                id: clavier
                 Layout.row: 0
                 Layout.rowSpan: 3
                 Layout.column: 0
@@ -132,6 +134,7 @@ Item {
             }
 
             LabelSequence {
+                id: labelSequence
                 Layout.row: 1
                 Layout.column: 1
                 Layout.fillWidth: true

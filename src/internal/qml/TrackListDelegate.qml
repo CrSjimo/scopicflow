@@ -10,11 +10,11 @@ Item {
     id: trackListDelegate
 
     function decibelToLinearValue(decibel, factor = -15) {
-        return Math.exp((decibel - factor) / - factor) - Math.E;
+        return Math.exp((decibel - factor) / - factor) - Math.E
     }
 
     function linearValueToDecibel(linearValue, factor = -15) {
-        return -factor * Math.log(linearValue + Math.E) + factor;
+        return -factor * Math.log(linearValue + Math.E) + factor
     }
 
     required property string trackNumber

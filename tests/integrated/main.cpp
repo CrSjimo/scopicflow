@@ -20,6 +20,7 @@
 #include <QQuickItem>
 #include <QQuickWindow>
 #include <QQmlEngineExtensionPlugin>
+#include <QMessageBox>
 
 #include <SVSCraftCore/musictimeline.h>
 
@@ -85,8 +86,8 @@ class MySlotHandler : public QObject {
 public:
     QWidget *win;
     TimeViewModel *timeViewModel;
-public slots:
-    void handleTimelineContextMenu(int tick) {
+    public slots:
+        void handleContextMenuRequestedForTimeline(int tick) {
         QMenu menu(win);
         auto musicTime = timeViewModel->timeline()->create(0, 0, tick);
         menu.addAction(QString("Set time signature at bar %1...").arg(musicTime.measure() + 1), [=] {
@@ -99,6 +100,61 @@ public slots:
             timeViewModel->timeline()->removeTimeSignature(musicTime.measure());
         });
         removeAction->setEnabled(musicTime.measure() && timeViewModel->timeline()->nearestTimeSignatureTo(musicTime.measure()) == musicTime.measure());
+        menu.exec(QCursor::pos());
+    }
+    void handleContextMenuRequestedForPositionIndicator() {
+        QMenu menu(win);
+        menu.addAction("Position indicator action");
+        menu.exec(QCursor::pos());
+    }
+    void handlePositionIndicatorDoubleClicked() {
+        QMessageBox::information({}, {}, "Position indicator double clicked");
+    }
+    void handleNotePressed(int key) {
+        qDebug() << "Note on:" << key;
+    }
+    void handleNoteReleased(int key) {
+        qDebug() << "Note off:" << key;
+    }
+    void handleNoteDoubleClicked(int key) {
+        QMessageBox::information({}, {}, QString("Note double clicked %1").arg(key));
+    }
+    void handleContextMenuRequestedForNote(int key) {
+        QMenu menu(win);
+        menu.addAction(QString("Note action %1").arg(key));
+        menu.exec(QCursor::pos());
+    }
+    void handleTrackDoubleClicked(int index) {
+        QMessageBox::information({}, {}, QString("Track double clicked %1").arg(index));
+    }
+    void handleContextMenuRequestedForTrack(int index) {
+        QMenu menu(win);
+        if (index != -1) {
+            menu.addAction(QString("Track action %1").arg(index));
+        } else {
+            menu.addAction("Track list action");
+        }
+        menu.exec(QCursor::pos());
+    }
+    void handleContextMenuRequestedForTrackDragging(int index, int target) {
+        QMenu menu(win);
+        menu.addAction(QString("index: %1, target: %2").arg(index).arg(target));
+        menu.addAction("Move here");
+        menu.addAction("Copy here");
+        menu.addSeparator();
+        menu.addAction("Cancel");
+        menu.exec(QCursor::pos());
+    }
+    void handleContextMenuRequested(int tick) {
+        QMenu menu(win);
+        menu.addAction(QString("Label sequence action %1").arg(timeViewModel->timeline()->create(0, 0, tick).toString()));
+        menu.exec(QCursor::pos());
+    }
+    void handleContextMenuRequestedForLabel(QObject *label) {
+        QMenu menu(win);
+        menu.addAction(QString("%1 -> 114514").arg(static_cast<LabelViewModel *>(label)->content()), [=] {
+            static_cast<LabelViewModel *>(label)->setContent("114514");
+        });
         menu.exec(QCursor::pos());
     }
 };
@@ -192,8 +248,21 @@ int main(int argc, char *argv[]) {
     o.win = &win;
     o.timeViewModel = &timeViewModel;
 
-    QObject::connect(context->objectForName("timeline"), SIGNAL(contextMenuRequestedForTimeline(int)), &o, SLOT(handleTimelineContextMenu(int)));
-    QObject::connect(context->objectForName("arrangementTimeline"), SIGNAL(contextMenuRequestedForTimeline(int)), &o, SLOT(handleTimelineContextMenu(int)));
+    QObject::connect(context->objectForName("timeline"), SIGNAL(contextMenuRequestedForTimeline(int)), &o, SLOT(handleContextMenuRequestedForTimeline(int)));
+    QObject::connect(context->objectForName("timeline"), SIGNAL(contextMenuRequestedForPositionIndicator()), &o, SLOT(handleContextMenuRequestedForPositionIndicator()));
+    QObject::connect(context->objectForName("timeline"), SIGNAL(positionIndicatorDoubleClicked()), &o, SLOT(handlePositionIndicatorDoubleClicked()));
+    QObject::connect(context->objectForName("arrangementTimeline"), SIGNAL(contextMenuRequestedForTimeline(int)), &o, SLOT(handleContextMenuRequestedForTimeline(int)));
+    QObject::connect(context->objectForName("arrangementTimeline"), SIGNAL(contextMenuRequestedForPositionIndicator()), &o, SLOT(handleContextMenuRequestedForPositionIndicator()));
+    QObject::connect(context->objectForName("arrangementTimeline"), SIGNAL(positionIndicatorDoubleClicked()), &o, SLOT(handlePositionIndicatorDoubleClicked()));
+    QObject::connect(context->objectForName("clavier"), SIGNAL(notePressed(int)), &o, SLOT(handleNotePressed(int)));
+    QObject::connect(context->objectForName("clavier"), SIGNAL(noteReleased(int)), &o, SLOT(handleNoteReleased(int)));
+    QObject::connect(context->objectForName("clavier"), SIGNAL(noteDoubleClicked(int)), &o, SLOT(handleNoteDoubleClicked(int)));
+    QObject::connect(context->objectForName("clavier"), SIGNAL(contextMenuRequestedForNote(int)), &o, SLOT(handleContextMenuRequestedForNote(int)));
+    QObject::connect(context->objectForName("trackList"), SIGNAL(trackDoubleClicked(int)), &o, SLOT(handleTrackDoubleClicked(int)));
+    QObject::connect(context->objectForName("trackList"), SIGNAL(contextMenuRequestedForTrack(int)), &o, SLOT(handleContextMenuRequestedForTrack(int)));
+    QObject::connect(context->objectForName("trackList"), SIGNAL(contextMenuRequestedForTrackDragging(int, int)), &o, SLOT(handleContextMenuRequestedForTrackDragging(int, int)));
+    QObject::connect(context->objectForName("labelSequence"), SIGNAL(contextMenuRequested(int)), &o, SLOT(handleContextMenuRequested(int)));
+    QObject::connect(context->objectForName("labelSequence"), SIGNAL(contextMenuRequestedForLabel(QObject*)), &o, SLOT(handleContextMenuRequestedForLabel(QObject*)));
 
     auto mainMenu = new QMenu("Edit");
     mainMenu->addAction("Set Position Alignment...", [&] {

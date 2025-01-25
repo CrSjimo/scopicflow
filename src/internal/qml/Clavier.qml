@@ -36,31 +36,31 @@ Item {
     signal noteReleased(key: int)
 
     function calculateYFromKey(key) {
-        let indexInGroup = key % 12;
-        let group = (key - indexInGroup) / 12;
+        let indexInGroup = key % 12
+        let group = (key - indexInGroup) / 12
 
-        return (128 - group * 12 - keyYFactor[indexInGroup]) * clavier.keyHeight;
+        return (128 - group * 12 - keyYFactor[indexInGroup]) * clavier.keyHeight
     }
     function isBlackKey(key) {
-        let indexInGroup = key % 12;
-        return indexInGroup === 1 || indexInGroup === 3 || indexInGroup === 6 || indexInGroup === 8 || indexInGroup === 10;
+        let indexInGroup = key % 12
+        return indexInGroup === 1 || indexInGroup === 3 || indexInGroup === 6 || indexInGroup === 8 || indexInGroup === 10
     }
     function mapToKey(y) {
-        return 127 - Math.floor((y - viewportY) / keyHeight);
+        return 127 - Math.floor((y - viewportY) / keyHeight)
     }
 
     clip: true
 
     onCursorNoteIndexChanged: {
         if (lastNoteIndex >= 0)
-            keyRepeater.itemAt(lastNoteIndex).isLabelVisible = false;
+            keyRepeater.itemAt(lastNoteIndex).isLabelVisible = false
         if (cursorNoteIndex >= 0)
-            keyRepeater.itemAt(cursorNoteIndex).isLeftLabelVisible = true;
-        lastNoteIndex = cursorNoteIndex;
+            keyRepeater.itemAt(cursorNoteIndex).isLeftLabelVisible = true
+        lastNoteIndex = cursorNoteIndex
     }
     onHeightChanged: {
         if (clavier.clavierViewModel) {
-            clavier.clavierViewModel.start = Math.min(clavier.clavierViewModel.start, 128 - (clavier.height - clavier.topMargin) / clavier.clavierViewModel.pixelDensity);
+            clavier.clavierViewModel.start = Math.min(clavier.clavierViewModel.start, 128 - (clavier.height - clavier.topMargin) / clavier.clavierViewModel.pixelDensity)
         }
     }
 
@@ -145,30 +145,31 @@ Item {
 
                     onClicked: function (mouse) {
                         if (mouse.button === Qt.RightButton) {
-                            clavier.contextMenuRequestedForNote(parent.index);
+                            clavier.contextMenuRequestedForNote(parent.index)
                         }
                     }
                     onDoubleClicked: function (mouse) {
                         if (mouse.button === Qt.LeftButton) {
-                            clavier.noteDoubleClicked(parent.index);
+                            clavier.noteReleased(parent.index)
+                            clavier.noteDoubleClicked(parent.index)
                         }
                     }
                     onEntered: {
-                        parent.color = pressed ? parent.pressedColor : parent.hoverColor;
+                        parent.color = pressed ? parent.pressedColor : parent.hoverColor
                     }
                     onExited: {
-                        parent.color = pressed ? parent.pressedColor : parent.normalColor;
+                        parent.color = pressed ? parent.pressedColor : parent.normalColor
                     }
                     onPressed: function (mouse) {
                         if (mouse.button === Qt.LeftButton) {
-                            parent.color = parent.pressedColor;
-                            clavier.notePressed(parent.index);
+                            parent.color = parent.pressedColor
+                            clavier.notePressed(parent.index)
                         }
                     }
                     onReleased: function (mouse) {
                         if (mouse.button === Qt.LeftButton) {
-                            parent.color = containsMouse ? parent.hoverColor : parent.normalColor;
-                            clavier.noteReleased(parent.index);
+                            parent.color = containsMouse ? parent.hoverColor : parent.normalColor
+                            clavier.noteReleased(parent.index)
                         }
                     }
                 }
@@ -180,10 +181,10 @@ Item {
         viewModel: clavier.scrollBehaviorViewModel
 
         onMoved: (_, y, isPhysicalWheel) => {
-            clavierManipulator.moveViewBy(y, isPhysicalWheel);
+            clavierManipulator.moveViewBy(y, isPhysicalWheel)
         }
         onZoomed: (_, ratioY, _, y, isPhysicalWheel) => {
-            clavierManipulator.zoomOnWheel(ratioY, y, isPhysicalWheel);
+            clavierManipulator.zoomOnWheel(ratioY, y, isPhysicalWheel)
         }
     }
     MiddleButtonMoveHandler {
@@ -192,7 +193,7 @@ Item {
         direction: Qt.Vertical
 
         onMoved: (_, y) => {
-            clavierManipulator.moveViewBy(y);
+            clavierManipulator.moveViewBy(y)
         }
     }
 }

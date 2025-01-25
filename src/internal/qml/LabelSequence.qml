@@ -40,8 +40,8 @@ Item {
         moveSelectionTo(alignedTick, model)
     }
 
-    signal contextMenuRequested(tick: int);
-    signal contextMenuRequestedForLabel(label: QtObject);
+    signal contextMenuRequested(tick: int)
+    signal contextMenuRequestedForLabel(label: QtObject)
 
     readonly property QtObject defaultPalette: ScopicFlowPalette.LabelSequence {}
 
@@ -160,7 +160,7 @@ Item {
                 if (mouse.button !== Qt.LeftButton || mouse.modifiers)
                     return
                 let label = labelViewModelComponent.createObject(null, {
-                    position: locator.alignTick(locator.mapToTick(mouse.x)) + labelSequence.timeViewModel?.start ?? 0 // FIXME
+                    position: locator.alignTick(locator.mapToTick(mapToItem(labelSequence, mouse.x, 0).x))
                 })
                 labelSequence.labelSequenceViewModel.handle.insertItem(label)
                 selectionManipulator.select(label, Qt.LeftButton, 0)
@@ -195,6 +195,7 @@ Item {
 
                     MouseArea {
                         anchors.fill: parent
+                        acceptedButtons: Qt.LeftButton | Qt.RightButton
                         property double pressedDeltaX: 0
                         property bool dragged: false
                         DragScroller {
@@ -244,13 +245,17 @@ Item {
                             labelSequence.timeLayoutViewModel.cursorPosition = -1
                         }
                         onClicked: (mouse) => {
-                            if (dragged)
-                                return
-                            selectionManipulator.select(model, mouse.button, mouse.modifiers)
+                            if (!dragged)
+                                selectionManipulator.select(model, mouse.button, mouse.modifiers)
+                            if (mouse.button === Qt.RightButton) {
+                                labelSequence.contextMenuRequestedForLabel(model)
+                            }
                         }
-                        onDoubleClicked: {
-                            labelSequence.labelSequenceViewModel.handle.currentItem = labelRect.model
-                            labelSequence.labelSequenceLayoutViewModel.editing = true
+                        onDoubleClicked: (mouse) => {
+                            if (mouse.button === Qt.LeftButton) {
+                                labelSequence.labelSequenceViewModel.handle.currentItem = labelRect.model
+                                labelSequence.labelSequenceLayoutViewModel.editing = true
+                            }
                         }
                     }
                 }

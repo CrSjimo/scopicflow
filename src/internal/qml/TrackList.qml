@@ -18,9 +18,9 @@ Item {
 
     readonly property QtObject palette: paletteViewModel?.palette?.trackList ?? defaultPalette
 
-    signal trackDoubleClicked(index: int);
-    signal contextMenuRequestedForTrack(index: int);
-    signal contextMenuRequestedForTrackDragging(index: int, target: int);
+    signal trackDoubleClicked(index: int)
+    signal contextMenuRequestedForTrack(index: int)
+    signal contextMenuRequestedForTrackDragging(index: int, target: int)
     
     function moveTrack(index, target) {
         if (!trackListViewModel)
@@ -204,6 +204,7 @@ Item {
             onDoubleClicked: {
                 trackList.trackDoubleClicked(-1)
             }
+            // TODO right button rubber band
         }
 
         Item {
@@ -318,7 +319,7 @@ Item {
                             cursorShape = undefined
                             dragScroller.running = false
                             if (lastIndicatorIndex !== -1) {
-                                if (mouse.button & Qt.LeftButton) {
+                                if (mouse.button === Qt.LeftButton) {
                                     trackList.moveTrack(trackListDelegate.index, lastIndicatorIndex)
                                 } else {
                                     trackList.contextMenuRequestedForTrackDragging(trackListDelegate.index, lastIndicatorIndex)
@@ -401,8 +402,8 @@ Item {
                         }
 
                         function handlePositionChanged(x, y, modifiers) {
-                            let deltaSize = y - originalY;
-                            let newHeight = Math.max(40, trackHandle.trackViewModel.rowHeight + deltaSize);
+                            let deltaSize = y - originalY
+                            let newHeight = Math.max(40, trackHandle.trackViewModel.rowHeight + deltaSize)
                             trackHandle.trackViewModel.rowHeight = newHeight
                         }
 

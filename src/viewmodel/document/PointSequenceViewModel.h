@@ -14,12 +14,12 @@ namespace sflow {
     class SCOPIC_FLOW_EXPORT PointSequenceViewModel : public QObject {
         Q_OBJECT
         Q_DECLARE_PRIVATE(PointSequenceViewModel)
-        Q_PRIVATE_PROPERTY(PointSequenceViewModel::d_func(), PointSequenceViewModelQmlHandle *handle MEMBER handle CONSTANT)
+        Q_PRIVATE_PROPERTY(d_func(), PointSequenceViewModelQmlHandle *handle MEMBER handle CONSTANT)
         Q_PRIVATE_SLOT(d_func(), void handleItemSelectedChanged())
         Q_PRIVATE_SLOT(d_func(), void handleItemPositionChanged())
 
     public:
-        explicit PointSequenceViewModel(QObject *parent = nullptr, const QString &positionProperty = "position", const QString &selectedProperty = "selected");
+        explicit PointSequenceViewModel(QObject *parent = nullptr, const QByteArray &positionProperty = "position", const QByteArray &selectedProperty = "selected");
         ~PointSequenceViewModel() override;
 
         QObject *currentItem() const;
@@ -45,7 +45,6 @@ namespace sflow {
         void itemDeselected(QObject *item);
 
     private:
-        friend class PointSequenceViewModelManipulatorInterface;
         QScopedPointer<PointSequenceViewModelPrivate> d_ptr;
 
     };

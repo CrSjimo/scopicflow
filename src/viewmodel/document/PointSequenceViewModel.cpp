@@ -10,7 +10,7 @@ namespace sflow {
         Q_OBJECT
     public:
         Q_INVOKABLE explicit PointSequenceViewModelManipulatorInterface(QObject *viewModel, QObject *parent) : SelectableViewModelManipulatorInterface(parent) {
-            handle = static_cast<PointSequenceViewModel *>(viewModel)->d_func()->handle;
+            handle = viewModel->property("handle").value<PointSequenceViewModelQmlHandle *>();
         }
         void setSelected(const QVariant &item, bool selected) override {
             item.value<QObject *>()->setProperty(handle->d_func()->selectedProperty, selected);
@@ -127,8 +127,8 @@ namespace sflow {
         emit itemRemoved(item);
         emit d->q_ptr->itemRemoved(item);
     }
-    QObjectList PointSequenceViewModelQmlHandle::slice(int position, int length) {
-        Q_D(PointSequenceViewModel);
+    QObjectList PointSequenceViewModelQmlHandle::slice(int position, int length) const {
+        Q_D(const PointSequenceViewModel);
         return d->container.slice(position, length);
     }
     int PointSequenceViewModelQmlHandle::itemPosition(QObject *item) const {
@@ -175,12 +175,12 @@ namespace sflow {
     }
 
 
-    PointSequenceViewModel::PointSequenceViewModel(QObject *parent, const QString &positionProperty, const QString &selectedProperty) : QObject(parent), d_ptr(new PointSequenceViewModelPrivate) {
+    PointSequenceViewModel::PointSequenceViewModel(QObject *parent, const QByteArray &positionProperty, const QByteArray &selectedProperty) : QObject(parent), d_ptr(new PointSequenceViewModelPrivate) {
         Q_D(PointSequenceViewModel);
         d->q_ptr = this;
         d->handle = new PointSequenceViewModelQmlHandle(d);
-        d->positionProperty = positionProperty.toUtf8();
-        d->selectedProperty = selectedProperty.toUtf8();
+        d->positionProperty = positionProperty;
+        d->selectedProperty = selectedProperty;
         if (!handleItemSelectedChangedMetaMethod.isValid() || !handleItemPositionChangedMetaMethod.isValid()) {
             for (int i = staticMetaObject.methodOffset(); i < staticMetaObject.methodCount(); i++) {
                 auto method = staticMetaObject.method(i);

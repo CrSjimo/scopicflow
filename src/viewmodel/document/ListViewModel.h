@@ -17,7 +17,7 @@ namespace sflow {
         Q_PRIVATE_PROPERTY(ListViewModel::d_func(), ListViewModelQmlHandle *handle MEMBER handle CONSTANT)
         Q_PRIVATE_SLOT(d_func(), void handleItemSelectedChanged())
     public:
-        explicit ListViewModel(QObject *parent = nullptr, const QString &selectedProperty = "selected");
+        explicit ListViewModel(QObject *parent = nullptr, const QByteArray &selectedProperty = "selected");
         ~ListViewModel() override;
 
         int currentIndex() const;

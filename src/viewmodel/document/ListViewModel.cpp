@@ -147,11 +147,11 @@ namespace sflow {
 
     static QMetaMethod handleItemSelectedChangedMetaMethod;
 
-    ListViewModel::ListViewModel(QObject *parent, const QString &selectedProperty) : QObject(parent), d_ptr(new ListViewModelPrivate) {
+    ListViewModel::ListViewModel(QObject *parent, const QByteArray &selectedProperty) : QObject(parent), d_ptr(new ListViewModelPrivate) {
         Q_D(ListViewModel);
         d->q_ptr = this;
         d->handle = new ListViewModelQmlHandle(d);
-        d->selectedProperty = selectedProperty.toUtf8();
+        d->selectedProperty = selectedProperty;
         if (!handleItemSelectedChangedMetaMethod.isValid()) {
             for (int i = staticMetaObject.methodOffset(); i < staticMetaObject.methodCount(); i++) {
                 auto method = staticMetaObject.method(i);

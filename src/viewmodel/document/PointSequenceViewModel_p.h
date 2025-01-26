@@ -68,7 +68,7 @@ namespace sflow {
             m_positions.remove(item);
         }
 
-        QObjectList slice(int position, int length) {
+        QObjectList slice(int position, int length) const {
             QObjectList ret;
             std::transform(m_items.lower_bound(position), m_items.lower_bound(position + length), std::back_inserter(ret), [](auto it) {
                 return it.second;
@@ -102,7 +102,7 @@ namespace sflow {
 
         Q_INVOKABLE void insertItem(QObject *item);
         Q_INVOKABLE void removeItem(QObject *item);
-        Q_INVOKABLE QObjectList slice(int position, int length) override;
+        Q_INVOKABLE QObjectList slice(int position, int length) const override;
         Q_INVOKABLE int itemPosition(QObject *item) const override;
 
     signals:

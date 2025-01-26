@@ -5,6 +5,7 @@
 
 #include <QSGSimpleRectNode>
 #include <QSGTextNode>
+#include <QTextLayout>
 
 #include <SVSCraftCore/musictimeline.h>
 

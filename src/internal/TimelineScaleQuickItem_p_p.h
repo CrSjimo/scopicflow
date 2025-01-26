@@ -9,6 +9,7 @@
 #include <ScopicFlowInternal/private/TimelineScaleQuickItem_p.h>
 
 class QSGTextNode;
+class QTextLayout;
 
 namespace sflow {
 

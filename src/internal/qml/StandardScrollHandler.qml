@@ -32,12 +32,12 @@ Item {
 
             if (isZoom) {
                 parent.zoomed(
-                    Math.pow(1 + (isPage ? 4 : 0.4) * Math.abs(deltaX), Math.sign(deltaX)),
-                    Math.pow(1 + (isPage ? 4 : 0.4) * Math.abs(deltaY), Math.sign(deltaY)),
+                    Math.pow(1 + (isPage ? 2.5 : 0.25) * Math.abs(deltaX), Math.sign(deltaX)),
+                    Math.pow(1 + (isPage ? 3 : 0.3) * Math.abs(deltaY), Math.sign(deltaY)),
                     wheel.x, wheel.y, wheelHint)
             } else {
                 if (!deltaPixelX)
-                    deltaPixelX = isPage ? Math.sign(deltaX) * parent.width : 0.2 * deltaX * parent.width
+                    deltaPixelX = isPage ? Math.sign(deltaX) * parent.width : 0.125 * deltaX * parent.width
                 if (!deltaPixelY)
                     deltaPixelY = isPage ? Math.sign(deltaY) * parent.height : 0.2 * deltaY * parent.height
                 parent.moved(-deltaPixelX, -deltaPixelY, wheelHint)

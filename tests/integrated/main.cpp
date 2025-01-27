@@ -1,4 +1,5 @@
 #include <memory>
+#include <random>
 
 #include <QApplication>
 #include <QSurfaceFormat>
@@ -38,6 +39,7 @@
 #include <ScopicFlow/TrackViewModel.h>
 #include <ScopicFlow/NoteViewModel.h>
 #include <ScopicFlow/LabelSequenceLayoutViewModel.h>
+#include <ScopicFlow/RangeSequenceViewModel.h>
 
 using namespace sflow;
 
@@ -170,8 +172,6 @@ int main(int argc, char *argv[]) {
     auto splitter = new QSplitter;
     splitter->setOrientation(Qt::Vertical);
 
-    NoteViewModel _;
-
     TimeLayoutViewModel timeLayoutViewModel;
     timeLayoutViewModel.setPositionAlignment(240);
 
@@ -217,6 +217,19 @@ int main(int argc, char *argv[]) {
     LabelSequenceLayoutViewModel labelSequenceLayoutViewModel;
     LabelSequenceLayoutViewModel arrangementLabelSequenceLayoutViewModel;
 
+    std::mt19937 generator(114514);
+    std::uniform_int_distribution<int> distribution(-60, 60);
+    RangeSequenceViewModel noteSequenceViewModel;
+    for (int i = 0, k = 48, p = 0; i < 4096; i++) {
+        auto note = new NoteViewModel;
+        note->setPosition(p);
+        note->setLength(240 + distribution(generator));
+        p += note->length();
+        note->setKey(k = k + (distribution(generator) + (48 - k) * 5) / 20);
+        note->setLyric(QString::number(i));
+        noteSequenceViewModel.insertItem(note);
+    }
+
     auto v1 = new QQuickView;
     v1->engine()->addImportPath("qrc:/");
     v1->setInitialProperties({
@@ -233,7 +246,8 @@ int main(int argc, char *argv[]) {
         {"animationViewModel", QVariant::fromValue(&animationViewModel)},
         {"paletteViewModel", QVariant::fromValue(&paletteViewModel)},
         {"labelSequenceLayoutViewModel", QVariant::fromValue(&labelSequenceLayoutViewModel)},
-        {"arrangementLabelSequenceLayoutViewModel", QVariant::fromValue(&arrangementLabelSequenceLayoutViewModel)}
+        {"arrangementLabelSequenceLayoutViewModel", QVariant::fromValue(&arrangementLabelSequenceLayoutViewModel)},
+        {"noteSequenceViewModel", QVariant::fromValue(&noteSequenceViewModel)},
     });
     v1->setSource(QUrl("qrc:/dev/sjimo/ScopicFlow/Test/main.qml"));
     v1->setResizeMode(QQuickView::SizeRootObjectToView);
@@ -260,7 +274,7 @@ int main(int argc, char *argv[]) {
     QObject::connect(context->objectForName("clavier"), SIGNAL(contextMenuRequestedForNote(int)), &o, SLOT(handleContextMenuRequestedForNote(int)));
     QObject::connect(context->objectForName("trackList"), SIGNAL(trackDoubleClicked(int)), &o, SLOT(handleTrackDoubleClicked(int)));
     QObject::connect(context->objectForName("trackList"), SIGNAL(contextMenuRequestedForTrack(int)), &o, SLOT(handleContextMenuRequestedForTrack(int)));
-    QObject::connect(context->objectForName("trackList"), SIGNAL(contextMenuRequestedForTrackDragging(int, int)), &o, SLOT(handleContextMenuRequestedForTrackDragging(int, int)));
+    QObject::connect(context->objectForName("trackList"), SIGNAL(contextMenuRequestedForTrackDragging(int,int)), &o, SLOT(handleContextMenuRequestedForTrackDragging(int,int)));
     QObject::connect(context->objectForName("labelSequence"), SIGNAL(contextMenuRequested(int)), &o, SLOT(handleContextMenuRequested(int)));
     QObject::connect(context->objectForName("labelSequence"), SIGNAL(contextMenuRequestedForLabel(QObject*)), &o, SLOT(handleContextMenuRequestedForLabel(QObject*)));
 

@@ -20,6 +20,7 @@ Item {
     required property QtObject scrollBehaviorViewModel
     required property QtObject animationViewModel
     required property QtObject paletteViewModel
+    required property QtObject noteSequenceViewModel
 
     SplitView {
         anchors.fill: parent
@@ -172,6 +173,7 @@ Item {
                         scrollBehaviorViewModel: main.scrollBehaviorViewModel
                         animationViewModel: main.animationViewModel
                         paletteViewModel: main.paletteViewModel
+                        noteSequenceViewModel: main.noteSequenceViewModel
                         bottomMargin: height - parent.height
                     }
                 }

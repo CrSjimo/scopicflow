@@ -12,6 +12,7 @@ Pane {
     property QtObject clavierViewModel: null
     property QtObject scrollBehaviorViewModel: null
     property QtObject animationViewModel: null
+    property QtObject noteSequenceViewModel: null
     property QtObject paletteViewModel: null
     property double topMargin: 0
     property double bottomMargin: 0
@@ -28,6 +29,7 @@ Pane {
         clavierViewModel: control.clavierViewModel
         scrollBehaviorViewModel: control.scrollBehaviorViewModel
         animationViewModel: control.animationViewModel
+        noteSequenceViewModel: control.noteSequenceViewModel
         paletteViewModel: control.paletteViewModel
         topMargin: control.topMargin
         bottomMargin: control.bottomMargin

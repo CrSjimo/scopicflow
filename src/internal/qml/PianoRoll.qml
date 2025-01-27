@@ -14,6 +14,7 @@ Item {
     property QtObject clavierViewModel: null
     property QtObject scrollBehaviorViewModel: null
     property QtObject animationViewModel: null
+    property QtObject noteSequenceViewModel: null
     property QtObject paletteViewModel: null
 
     property double topMargin: 0
@@ -21,12 +22,21 @@ Item {
 
     property QtObject defaultPalette: ScopicFlowPalette.PianoRoll {}
     property QtObject palette: paletteViewModel?.palette?.pianoRoll ?? defaultPalette
+
     readonly property double keyHeight: clavierViewModel?.pixelDensity ?? 24
+
+    Item {
+        id: viewport
+        x: -(pianoRoll.timeViewModel?.start ?? 0) * (pianoRoll.timeLayoutViewModel?.pixelDensity ?? 0)
+        y: pianoRoll.clavierViewModel ? Math.min(pianoRoll.topMargin, pianoRoll.height - (128 - pianoRoll.clavierViewModel.start) * pianoRoll.clavierViewModel.pixelDensity - pianoRoll.bottomMargin) : pianoRoll.topMargin
+        width: (pianoRoll.timeViewModel?.end ?? 0) * (pianoRoll.timeLayoutViewModel?.pixelDensity ?? 0)
+        height: 128 * pianoRoll.keyHeight
+    }
 
     clip: true
 
     function isBlackKey(key) {
-        let indexInGroup = key % 12;
+        let indexInGroup = key % 12
         return indexInGroup === 1 || indexInGroup === 3 || indexInGroup === 6 || indexInGroup === 8 || indexInGroup === 10
     }
 
@@ -47,101 +57,55 @@ Item {
         animationViewModel: pianoRoll.animationViewModel
     }
 
-    Item {
+    Rectangle {
+        id: background
         anchors.fill: parent
-
-        clip: true
-
-        Rectangle {
-            anchors.fill: parent
-            color: pianoRoll.palette.blackKeyBackgroundColor
-        }
-
-        Item {
-            id: backgroundViewport
-            anchors.left: parent.left
-            anchors.right: parent.right
-            height: 128 * pianoRoll.keyHeight
-            y: pianoRoll.clavierViewModel ? Math.min(pianoRoll.topMargin, pianoRoll.height - (128 - pianoRoll.clavierViewModel.start) * pianoRoll.clavierViewModel.pixelDensity - pianoRoll.bottomMargin) : pianoRoll.topMargin
-
-            Repeater {
-                id: keyRepeater
-                model: 128
-                Rectangle {
-                    required property int index
-                    readonly property bool isBlackKey: pianoRoll.isBlackKey(index)
-                    anchors.left: parent.left
-                    width: parent.width
-                    height: pianoRoll.keyHeight
-                    y: (127 - index) * pianoRoll.keyHeight
-                    color: isBlackKey ? pianoRoll.palette.blackKeyBackgroundColor : pianoRoll.palette.whiteKeyBackgroundColor
-                    border.width: 1
-                    border.color: pianoRoll.palette.blackKeyBackgroundColor
-                }
-            }
-
-        }
-
-        PianoRollScale {
-            anchors.fill: parent
-            timeViewModel: pianoRoll.timeViewModel
-            timeLayoutViewModel: pianoRoll.timeLayoutViewModel
-            barScaleColor: pianoRoll.palette.barScaleColor
-            beatScaleColor: pianoRoll.palette.beatScaleColor
-            segmentScaleColor: pianoRoll.palette.segmentScaleColor
-        }
+        color: pianoRoll.palette.blackKeyBackgroundColor
     }
 
     Item {
-        id: notes
-        readonly property double start: pianoRoll.timeViewModel?.start ?? 0
-        readonly property double end: pianoRoll.timeViewModel?.end ?? 0
-        readonly property double pixelDensity: pianoRoll.timeLayoutViewModel?.pixelDensity ?? 0
-        anchors.left: parent.left
-        anchors.right: parent.right
-        height: 128 * pianoRoll.keyHeight
-        y: backgroundViewport.y
-        clip: true
-        Item {
-            anchors.top: parent.top
-            anchors.bottom: parent.bottom
-            x: -notes.start * notes.pixelDensity
-            width: notes.end * notes.pixelDensity
-            Repeater {
-                id: testNoteRepeater
-                property int s: Math.floor(notes.start / 480 / 64) * 64
-                model: Math.ceil(pianoRoll.width / notes.pixelDensity / 480 / 64) * 64 + 1
-                NoteItem {
-                    required property int index
-                    readonly property int realIndex: index + Math.floor(notes.start / 480)
-                    readonly property int key: 48 + realIndex % 24
-                    readonly property int pos: realIndex * 480
-                    readonly property int length: 480
-                    lyric: realIndex
-                    palette: pianoRoll.palette
-                    selected: realIndex % 2 === 0
-                    silent: realIndex % 3 === 0
-                    invalid: realIndex % 5 === 0
-                    lyricError: realIndex % 7 === 0
+        id: backgroundViewport
+        anchors.fill: viewport
 
-                    x: pos * notes.pixelDensity
-                    y: (127 - key) * height
-                    width: 480 * notes.pixelDensity
-                    height: pianoRoll.keyHeight
-                }
+        Repeater {
+            id: keyRepeater
+            model: 128
+            Rectangle {
+                required property int index
+                readonly property bool isBlackKey: pianoRoll.isBlackKey(index)
+                anchors.left: parent.left
+                width: parent.width
+                height: pianoRoll.keyHeight
+                y: (127 - index) * pianoRoll.keyHeight
+                color: isBlackKey ? pianoRoll.palette.blackKeyBackgroundColor : pianoRoll.palette.whiteKeyBackgroundColor
+                border.width: 1
+                border.color: pianoRoll.palette.blackKeyBackgroundColor
             }
         }
-        TextField {
-            id: lyricEdit
-            color: pianoRoll.palette.noteEditingTextColor
-            padding: 4
-            visible: false
-            background: Rectangle {
-                radius: 2
-                color: pianoRoll.palette.noteEditingColor
-                border.width: 2
-                border.color: pianoRoll.palette.noteEditingBorderColor
-            }
+
+    }
+
+    PianoRollScale {
+        anchors.fill: parent
+        timeViewModel: pianoRoll.timeViewModel
+        timeLayoutViewModel: pianoRoll.timeLayoutViewModel
+        barScaleColor: pianoRoll.palette.barScaleColor
+        beatScaleColor: pianoRoll.palette.beatScaleColor
+        segmentScaleColor: pianoRoll.palette.segmentScaleColor
+    }
+
+
+    Item {
+        id: noteAreaViewport
+        anchors.fill: viewport
+
+        PianoRollNoteArea {
+            anchors.fill: parent
+            timeViewModel: pianoRoll.timeViewModel
+            timeLayoutViewModel: pianoRoll.timeLayoutViewModel
+            clavierViewModel: pianoRoll.clavierViewModel
+            animationViewModel: pianoRoll.animationViewModel
+            noteSequenceViewModel: pianoRoll.noteSequenceViewModel
         }
     }
 

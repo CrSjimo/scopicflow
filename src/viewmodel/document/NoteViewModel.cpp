@@ -37,18 +37,6 @@ namespace sflow {
     void NoteViewModel::setSelected(bool selected) {
         insert("selected", selected);
     }
-    bool NoteViewModel::invalid() const {
-        return value("invalid").toBool();
-    }
-    void NoteViewModel::setInvalid(bool invalid) {
-        insert("invalid", invalid);
-    }
-    bool NoteViewModel::silent() const {
-        return value("silent").toBool();
-    }
-    void NoteViewModel::setSilent(bool silent) {
-        insert("silent", silent);
-    }
     bool NoteViewModel::intermediate() const {
         return value("intermediate").toBool();
     }

@@ -23,10 +23,6 @@ namespace sflow {
 
         bool selected() const;
 
-        bool invalid() const;
-
-        bool silent() const;
-
         bool intermediate() const;
 
     public slots:
@@ -35,8 +31,6 @@ namespace sflow {
         SFLOW_VIEWMODEL_SET_FUNC void setKey(int key);
         SFLOW_VIEWMODEL_SET_FUNC void setLyric(const QString &lyric);
         SFLOW_VIEWMODEL_SET_FUNC void setSelected(bool selected);
-        SFLOW_VIEWMODEL_SET_FUNC void setInvalid(bool invalid);
-        SFLOW_VIEWMODEL_SET_FUNC void setSilent(bool silent);
         SFLOW_VIEWMODEL_SET_FUNC void setIntermediate(bool intermediate);
 
     signals:

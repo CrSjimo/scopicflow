@@ -64,11 +64,22 @@ Item {
         clip: true
 
         Rectangle {
+            id: colorIndicator
+            anchors.left: parent.left
+            anchors.top: parent.top
+            anchors.bottom: parent.bottom
+            anchors.margins: 1
+            width: 8
+            color: "green" // TODO
+        }
+
+        Rectangle {
             id: selectionIndicator
             anchors.left: parent.left
             anchors.top: parent.top
             anchors.bottom: parent.bottom
             anchors.margins: 8
+            anchors.leftMargin: 16
             width: 2
             color: trackListDelegate.palette.primaryColor
             visible: opacity !== 0
@@ -313,41 +324,35 @@ Item {
             anchors.top: parent.top
             anchors.bottom: parent.bottom
             anchors.right: parent.right
-            anchors.margins: 4
+            anchors.margins: 1
             color: trackListDelegate.palette.levelBackgroundColor
-            width: 14
-            radius: 2
-            Row {
-                id: levelMeterRow
+            width: 12
+            LevelMeter {
+                id: leftChannelLevelMeter
                 anchors.top: parent.top
                 anchors.bottom: parent.bottom
+                anchors.left: parent.left
+                anchors.right: parent.horizontalCenter
+                lowColor: trackListDelegate.palette.levelLowColor
+                middleColor: trackListDelegate.palette.levelMiddleColor
+                highColor: trackListDelegate.palette.levelHighColor
+                backgroundColor: trackListDelegate.palette.levelBackgroundColor
+                borderColor: "transparent"
+                value: trackListDelegate.trackViewModel.leftLevel
+            }
+
+            LevelMeter {
+                id: rightChannelLevelMeter
+                anchors.top: parent.top
+                anchors.bottom: parent.bottom
+                anchors.left: parent.horizontalCenter
                 anchors.right: parent.right
-                anchors.margins: 2
-                spacing: 2
-                LevelMeter {
-                    id: leftChannelLevelMeter
-                    anchors.top: parent.top
-                    anchors.bottom: parent.bottom
-                    lowColor: trackListDelegate.palette.levelLowColor
-                    middleColor: trackListDelegate.palette.levelMiddleColor
-                    highColor: trackListDelegate.palette.levelHighColor
-                    backgroundColor: trackListDelegate.palette.levelBackgroundColor
-                    borderColor: trackListDelegate.palette.levelBorderColor
-                    value: trackListDelegate.trackViewModel.leftLevel
-                }
-
-                LevelMeter {
-                    id: rightChannelLevelMeter
-                    anchors.top: parent.top
-                    anchors.bottom: parent.bottom
-                    lowColor: trackListDelegate.palette.levelLowColor
-                    middleColor: trackListDelegate.palette.levelMiddleColor
-                    highColor: trackListDelegate.palette.levelHighColor
-                    backgroundColor: trackListDelegate.palette.levelBackgroundColor
-                    borderColor: trackListDelegate.palette.levelBorderColor
-                    value: trackListDelegate.trackViewModel.rightLevel
-                }
-
+                lowColor: trackListDelegate.palette.levelLowColor
+                middleColor: trackListDelegate.palette.levelMiddleColor
+                highColor: trackListDelegate.palette.levelHighColor
+                backgroundColor: trackListDelegate.palette.levelBackgroundColor
+                borderColor: "transparent"
+                value: trackListDelegate.trackViewModel.rightLevel
             }
             MouseArea {
                 anchors.fill: parent

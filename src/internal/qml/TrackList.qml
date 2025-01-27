@@ -389,7 +389,7 @@ Item {
                         anchors.fill: parent
                         cursorShape: Qt.SplitVCursor
                         property double originalY: -1
-                        enabled: trackList.trackListLayoutViewModel?.trackHandleEnabled && trackHandle.index !== 0
+                        enabled: (trackList.trackListLayoutViewModel?.trackHandleEnabled ?? false) && trackHandle.index !== 0
                         hoverEnabled: true
 
                         Connections {

@@ -8,73 +8,98 @@ namespace sflow {
     void SequenceSlicerLoaderPrivate::handleRangeChanged() {
         if (!handle)
             return;
-        auto itemModels = handle->slice(range.first, range.second - range.first + 1);
-        QSet itemModelSet(itemModels.begin(), itemModels.end());
-        for (auto itemModel : items.keys()) {
-            if (itemModelSet.contains(itemModel))
+        auto slicedItemModels = handle->slice(range.first, range.second - range.first + 1);
+        QSet slicedItemModelSet(slicedItemModels.begin(), slicedItemModels.end());
+        for (auto itemModel : visibleItems.keys()) {
+            if (slicedItemModelSet.contains(itemModel))
                 continue;
-            items.value(itemModel)->deleteLater();
-            items.remove(itemModel);
+            hideView(itemModel);
         }
-        for (auto itemModel : itemModels) {
-            if (items.contains(itemModel))
-                continue;
-            items.insert(itemModel, createView(itemModel));
+        for (auto itemModel : slicedItemModels) {
+            showViewIfExistsOrElseCreate(itemModel);
         }
     }
     void SequenceSlicerLoaderPrivate::handleDelegateChanged() {
-        auto itemModels = items.keys();
+        auto itemModels = visibleItems.keys();
+        itemModels << invisibleItems.keys();
         for (auto itemModel : itemModels) {
-            items.insert(itemModel, createView(itemModel));
+            destroyView(itemModel);
+            createView(itemModel);
         }
     }
     void SequenceSlicerLoaderPrivate::handleHandleChanged() {
-        auto itemModels = items.keys();
+        auto itemModels = visibleItems.keys();
+        itemModels << invisibleItems.keys();
         for (auto itemModel : itemModels) {
-            items.value(itemModel)->deleteLater();
+            destroyView(itemModel);
         }
-        items.clear();
         handleRangeChanged();
     }
     constexpr static bool rangeIntersects(QPair<int, int> range1, QPair<int, int> range2) {
         return std::max(range1.first, range2.first) <= std::min(range1.second, range2.second);
     }
     void SequenceSlicerLoaderPrivate::handleItemInserted(QObject *itemModel) {
-        auto pos = handle->itemPosition(itemModel);
-        auto len = handle->itemLength(itemModel);
-        if (rangeIntersects(range, {pos, pos + len - 1})) {
-            items.insert(itemModel, createView(itemModel));
+        if (inRange(itemModel)) {
+            createView(itemModel);
         }
     }
     void SequenceSlicerLoaderPrivate::handleItemRemoved(QObject *itemModel) {
-        if (items.contains(itemModel)) {
-            items.value(itemModel)->deleteLater();
-            items.remove(itemModel);
-        }
+        destroyView(itemModel);
     }
     void SequenceSlicerLoaderPrivate::handleItemUpdated(QObject *itemModel) {
-        auto pos = handle->itemPosition(itemModel);
-        auto len = handle->itemLength(itemModel);
-        if (rangeIntersects(range, {pos, pos + len - 1})) {
-            if (!items.contains(itemModel)) {
-                items.insert(itemModel, createView(itemModel));
-            }
+        if (inRange(itemModel)) {
+            showViewIfExistsOrElseCreate(itemModel);
         } else {
-            if (items.contains(itemModel)) {
-                items.value(itemModel)->deleteLater();
-                items.remove(itemModel);
-            }
+            hideView(itemModel);
         }
     }
-    QQuickItem *SequenceSlicerLoaderPrivate::createView(QObject *itemModel) {
+    void SequenceSlicerLoaderPrivate::createView(QObject *itemModel) {
         Q_Q(SequenceSlicerLoader);
         if (!delegate)
-            return nullptr;
+            return;
+        bool visible = inRange(itemModel);
         auto item = qobject_cast<QQuickItem *>(delegate->createWithInitialProperties({
             {"model", QVariant::fromValue(itemModel)},
-            {"parent", QVariant::fromValue(q->parentItem())}
+            {"parent", QVariant::fromValue(q->parentItem())},
+            {"visible", visible}
         }, qmlContext(q)));
-        return item;
+        if (visible) {
+            visibleItems.insert(itemModel, item);
+        } else {
+            invisibleItems.insert(itemModel, item);
+        }
+    }
+    void SequenceSlicerLoaderPrivate::showViewIfExistsOrElseCreate(QObject *itemModel) {
+        if (invisibleItems.contains(itemModel)) {
+            auto item = invisibleItems.value(itemModel);
+            item->setVisible(true);
+            invisibleItems.remove(itemModel);
+            visibleItems.insert(itemModel, item);
+        } else if (!visibleItems.contains(itemModel)) {
+            createView(itemModel);
+        }
+    }
+    void SequenceSlicerLoaderPrivate::destroyView(QObject *itemModel) {
+        if (visibleItems.contains(itemModel)) {
+            visibleItems.value(itemModel)->deleteLater();
+            visibleItems.remove(itemModel);
+        } else if (invisibleItems.contains(itemModel)) {
+            invisibleItems.value(itemModel)->deleteLater();
+            invisibleItems.remove(itemModel);
+        }
+    }
+    void SequenceSlicerLoaderPrivate::hideView(QObject *itemModel) {
+        if (visibleItems.contains(itemModel)) {
+            auto item = visibleItems.value(itemModel);
+            item->setVisible(false);
+            visibleItems.remove(itemModel);
+            invisibleItems.insert(itemModel, item);
+        }
+    }
+    bool SequenceSlicerLoaderPrivate::inRange(QObject *itemModel) const {
+        auto itemRangeStart = handle->itemPosition(itemModel);
+        auto itemRangeEnd = handle->itemPosition(itemModel) + handle->itemLength(itemModel) - 1;
+        return rangeIntersects({itemRangeStart, itemRangeEnd}, range);
     }
 
     SequenceSlicerLoader::SequenceSlicerLoader(QQuickItem *parent) : QQuickItem(parent), d_ptr(new SequenceSlicerLoaderPrivate) {

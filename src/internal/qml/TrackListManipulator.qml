@@ -9,13 +9,17 @@ Item {
     property QtObject animationViewModel: null
     property int viewportHeight: 0
 
+    onHeightChanged: {
+        if (!trackListLayoutViewModel)
+            return
+        let newViewportOffset = Math.max(0, Math.min(viewportHeight - height, trackListLayoutViewModel.viewportOffset))
+        trackList.trackListLayoutViewModel.viewportOffset = newViewportOffset
+    }
+
     function moveViewBy(deltaY, animated = false) {
         if (!trackListLayoutViewModel)
             return
-        let newViewportOffset = Math.max(0, trackListLayoutViewModel.viewportOffset + deltaY)
-        if (newViewportOffset + height > viewportHeight) {
-            newViewportOffset = viewportHeight - height
-        }
+        let newViewportOffset = Math.max(0, Math.min(viewportHeight - height, trackListLayoutViewModel.viewportOffset + deltaY))
         if (animated) {
             viewportOffsetBehavior.enabled = false
             d.viewportOffset = trackListLayoutViewModel.viewportOffset

@@ -17,7 +17,8 @@ namespace sflow {
         SliceableViewModelQmlHandle *handle = nullptr;
         QPair<int, int> range;
 
-        QHash<QObject *, QQuickItem *> items;
+        QHash<QObject *, QQuickItem *> visibleItems;
+        QHash<QObject *, QQuickItem *> invisibleItems;
 
         void handleRangeChanged();
         void handleDelegateChanged();
@@ -25,7 +26,14 @@ namespace sflow {
         void handleItemInserted(QObject *item);
         void handleItemRemoved(QObject *item);
         void handleItemUpdated(QObject *item);
-        QQuickItem *createView(QObject *itemModel);
+
+        void createView(QObject *itemModel);
+        void showViewIfExistsOrElseCreate(QObject *itemModel);
+        void destroyView(QObject *itemModel);
+        void hideView(QObject *itemModel);
+
+        bool inRange(QObject *itemModel) const;
+
     };
 }
 

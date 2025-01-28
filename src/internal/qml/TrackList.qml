@@ -77,14 +77,6 @@ Item {
             }
         }
     }
-    
-    onHeightChanged: {
-        if (!trackList.trackListViewModel)
-            return
-        if (trackList.trackListLayoutViewModel.viewportOffset + trackList.height > viewport.height) {
-            trackList.trackListLayoutViewModel.viewportOffset = viewport.height - trackList.height
-        }
-    }
 
     NumberAnimation {
         id: viewportOffsetAnimation

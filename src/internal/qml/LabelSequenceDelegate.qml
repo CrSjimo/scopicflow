@@ -14,7 +14,7 @@ Rectangle {
     readonly property bool editing: popup.opened
 
     implicitWidth: labelText.width + 8
-    visible: !editing
+    opacity: editing ? 0 : 1
 
     readonly property bool editingRequired: (labelSequenceLayoutViewModel?.editing ?? false) && labelSequenceViewModel.handle.currentItem === model
 

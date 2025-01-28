@@ -187,8 +187,11 @@ Item {
                     labelSequenceLayoutViewModel: labelSequence.labelSequenceLayoutViewModel
                     anchors.top: parent.top
                     anchors.bottom: parent.bottom
-                    x: model.position * viewport.pixelDensity
-                    z: model.selected ? Infinity : model.position
+                    Binding {
+                        when: labelRect.visible
+                        labelRect.x: labelRect.model.position * viewport.pixelDensity
+                        labelRect.z: labelRect.model.selected ? Infinity : model.position
+                    }
                     onXChanged: rubberBandLayer.insertItem(model, Qt.rect(x, 0, width, 1 << 20))
                     onWidthChanged: rubberBandLayer.insertItem(model, Qt.rect(x, 0, width, 1 << 20))
                     Component.onDestruction: rubberBandLayer.removeItem(model)

@@ -2,7 +2,7 @@ import QtQml
 import QtQuick
 
 import dev.sjimo.ScopicFlow.Internal
-import dev.sjimo.ScopicFlow.Palette as ScopicFlowPalette
+import dev.sjimo.ScopicFlow.Style
 
 Item {
     id: clavier
@@ -16,16 +16,16 @@ Item {
     property QtObject animationViewModel: null
     property double bottomMargin: 0
     property QtObject clavierViewModel: null
+
+    property QtObject stylesheet: ClavierStylesheet {}
+    readonly property QtObject whiteKeyStyleItem: stylesheet.clavier.createObject(clavier, {isBlackKey: false})
+    readonly property QtObject blackKeyStyleItem: stylesheet.clavier.createObject(clavier, {isBlackKey: true})
+
     readonly property int cursorNoteIndex: clavierViewModel?.cursorPosition ?? -1
-    readonly property QtObject defaultPalette: ScopicFlowPalette.Clavier {
-    }
     readonly property double keyHeight: clavierViewModel?.pixelDensity ?? 24
     readonly property list<double> keyHeightFactor: [5 / 3, 1, 5 / 3, 1, 5 / 3, 7 / 4, 1, 7 / 4, 1, 7 / 4, 1, 7 / 4]
     readonly property list<double> keyYFactor: [5 / 3, 2, 10 / 3, 4, 15 / 3, 27 / 4, 7, 34 / 4, 9, 41 / 4, 11, 12]
-    property int labelStrategy: Clavier.LabelStrategy.C
     property int lastNoteIndex: -1
-    readonly property QtObject palette: paletteViewModel?.palette?.clavier ?? defaultPalette
-    property QtObject paletteViewModel: null
     property QtObject scrollBehaviorViewModel: null
     property double topMargin: 0
     readonly property double viewportY: clavierViewModel ? height - (128 - clavierViewModel.start) * clavierViewModel.pixelDensity : 0
@@ -47,6 +47,9 @@ Item {
     }
     function mapToKey(y) {
         return 127 - Math.floor((y - viewportY) / keyHeight)
+    }
+    function isRightLabelVisible(key) {
+        return clavierViewModel.labelStrategy === ClavierViewModel.All || clavierViewModel.labelStrategy === ClavierViewModel.C && key % 12 === 0
     }
 
     clip: true
@@ -75,7 +78,7 @@ Item {
     }
     Rectangle {
         anchors.fill: parent
-        color: clavier.palette.borderColor
+        color: clavier.whiteKeyStyleItem.border
     }
     Item {
         id: clavierViewport
@@ -91,21 +94,20 @@ Item {
             model: 128
 
             Rectangle {
-                readonly property color hoverColor: isBlackKey ? clavier.palette.blackKeyHoveredColor : clavier.palette.whiteKeyHoveredColor
+                id: clavierKey
                 required property int index
                 readonly property bool isBlackKey: clavier.isBlackKey(index)
                 property bool isLeftLabelVisible: false
-                readonly property bool isRightLabelVisible: clavier.labelStrategy === Clavier.All || clavier.labelStrategy === Clavier.C && index % 12 === 0
+                readonly property bool isRightLabelVisible: clavier.isRightLabelVisible(index)
                 readonly property string keyName: ClavierHelper.keyNameImpl(index, clavier.clavierViewModel?.accidentalType ?? 0)
-                readonly property color normalColor: isBlackKey ? clavier.palette.blackKeyBackgroundColor : clavier.palette.whiteKeyBackgroundColor
-                readonly property color pressedColor: isBlackKey ? clavier.palette.blackKeyPressedColor : clavier.palette.whiteKeyPressedColor
+                readonly property QtObject styleItem: isBlackKey ? clavier.blackKeyStyleItem : clavier.whiteKeyStyleItem
                 readonly property double textYOffset: (clavier.keyYFactor[index % 12] - index % 12 - 0.5) * clavier.keyHeight
 
                 anchors.left: parent.left
-                border.color: clavier.palette.borderColor
+                border.color: styleItem.border
                 border.width: 1
                 bottomRightRadius: isBlackKey ? 4 : 0
-                color: normalColor
+                color: mouseArea.pressed ? styleItem.backgroundPressed : mouseArea.containsMouse ? styleItem.backgroundHovered : styleItem.background
                 height: clavier.keyHeight * clavier.keyHeightFactor[index % 12]
                 topRightRadius: isBlackKey ? 4 : 0
                 width: parent.width * (isBlackKey ? 0.75 : 1)
@@ -124,7 +126,7 @@ Item {
                     anchors.leftMargin: 8
                     anchors.verticalCenter: parent.top
                     anchors.verticalCenterOffset: parent.textYOffset
-                    color: parent.isBlackKey ? clavier.palette.blackKeyTextColor : clavier.palette.whiteKeyTextColor
+                    color: clavierKey.styleItem.foreground
                     text: parent.keyName
                     visible: parent.isLeftLabelVisible
                 }
@@ -133,11 +135,12 @@ Item {
                     anchors.rightMargin: 8
                     anchors.verticalCenter: parent.top
                     anchors.verticalCenterOffset: parent.textYOffset
-                    color: parent.isBlackKey ? clavier.palette.blackKeyTextColor : clavier.palette.whiteKeyTextColor
+                    color: clavierKey.styleItem.foreground
                     text: parent.keyName
                     visible: parent.isRightLabelVisible
                 }
                 MouseArea {
+                    id: mouseArea
                     acceptedButtons: Qt.LeftButton | Qt.RightButton
                     anchors.fill: parent
                     focusPolicy: Qt.StrongFocus
@@ -154,21 +157,13 @@ Item {
                             clavier.noteDoubleClicked(parent.index)
                         }
                     }
-                    onEntered: {
-                        parent.color = pressed ? parent.pressedColor : parent.hoverColor
-                    }
-                    onExited: {
-                        parent.color = pressed ? parent.pressedColor : parent.normalColor
-                    }
                     onPressed: function (mouse) {
                         if (mouse.button === Qt.LeftButton) {
-                            parent.color = parent.pressedColor
                             clavier.notePressed(parent.index)
                         }
                     }
                     onReleased: function (mouse) {
                         if (mouse.button === Qt.LeftButton) {
-                            parent.color = containsMouse ? parent.hoverColor : parent.normalColor
                             clavier.noteReleased(parent.index)
                         }
                     }

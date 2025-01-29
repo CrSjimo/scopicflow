@@ -6,16 +6,10 @@ import dev.sjimo.ScopicFlow.Internal as ScopicFlowInternal
 
 Pane {
     id: control
-    enum LabelStrategy {
-        None,
-        C,
-        All
-    }
+
     property QtObject clavierViewModel: null
     property QtObject scrollBehaviorViewModel: null
     property QtObject animationViewModel: null
-    property QtObject paletteViewModel: null
-    property int labelStrategy: Clavier.LabelStrategy.C
     property double topMargin: 0
     property double bottomMargin: 0
 
@@ -37,8 +31,6 @@ Pane {
         clavierViewModel: control.clavierViewModel
         scrollBehaviorViewModel: control.scrollBehaviorViewModel
         animationViewModel: control.animationViewModel
-        paletteViewModel: control.paletteViewModel
-        labelStrategy: control.labelStrategy
         topMargin: control.topMargin
         bottomMargin: control.bottomMargin
 

@@ -31,7 +31,6 @@
 #include <ScopicFlow/ClavierViewModel.h>
 #include <ScopicFlow/ScrollBehaviorViewModel.h>
 #include <ScopicFlow/AnimationViewModel.h>
-#include <ScopicFlow/PaletteViewModel.h>
 #include <ScopicFlow/PointSequenceViewModel.h>
 #include <ScopicFlow/LabelViewModel.h>
 #include <ScopicFlow/ListViewModel.h>
@@ -193,21 +192,22 @@ int main(int argc, char *argv[]) {
 
     AnimationViewModel animationViewModel;
 
-    PaletteViewModel paletteViewModel;
-
     PointSequenceViewModel labelSequenceViewModel;
     for (int i = 0; i < 16; i++) {
         auto label = new LabelViewModel;
-        label->setPosition(i * 480);
+        label->setPosition(i * 240);
         label->setContent("test" + QString::number(i));
         labelSequenceViewModel.insertItem(label);
     }
+    std::mt19937 generator(114514);
 
     ListViewModel trackListViewModel;
     QObjectList tracks;
-    for (int i = 0; i < 4; i++) {
+    std::uniform_real_distribution<float> tchd(0.0, 1.0);
+    for (int i = 0; i < 8; i++) {
         auto track = new TrackViewModel;
         track->setName("Track " + QString::number(i + 1));
+        track->setColor(QColor::fromHsvF(tchd(generator), 0.8, 1.0));
         tracks.append(track);
     }
     trackListViewModel.setItems(tracks);
@@ -217,10 +217,10 @@ int main(int argc, char *argv[]) {
     LabelSequenceLayoutViewModel labelSequenceLayoutViewModel;
     LabelSequenceLayoutViewModel arrangementLabelSequenceLayoutViewModel;
 
-    std::mt19937 generator(114514);
+
     std::uniform_int_distribution<int> distribution(-60, 60);
     RangeSequenceViewModel noteSequenceViewModel;
-    for (int i = 0, k = 48, p = 0; i < 65536; i++) {
+    for (int i = 0, k = 48, p = 0; i < 16; i++) {
         auto note = new NoteViewModel;
         note->setPosition(p);
         note->setLength(240 + distribution(generator));
@@ -244,7 +244,6 @@ int main(int argc, char *argv[]) {
         {"playbackViewModel", QVariant::fromValue(&playbackViewModel)},
         {"scrollBehaviorViewModel", QVariant::fromValue(&scrollBehaviorViewModel)},
         {"animationViewModel", QVariant::fromValue(&animationViewModel)},
-        {"paletteViewModel", QVariant::fromValue(&paletteViewModel)},
         {"labelSequenceLayoutViewModel", QVariant::fromValue(&labelSequenceLayoutViewModel)},
         {"arrangementLabelSequenceLayoutViewModel", QVariant::fromValue(&arrangementLabelSequenceLayoutViewModel)},
         {"noteSequenceViewModel", QVariant::fromValue(&noteSequenceViewModel)},
@@ -300,13 +299,10 @@ int main(int argc, char *argv[]) {
         animationViewModel.setColorAnimationRatio(v);
     });
     mainMenu->addAction("Load Custom Palette...", [&] {
-        auto palette = loadCustomPalette(&win);
-        if (palette) {
-            paletteViewModel.setPalette(palette);
-        }
+        // TODO
     });
     mainMenu->addAction("Reset to Default Palette", [&] {
-        paletteViewModel.setPalette(nullptr);
+        // TODO
     });
     QQuickView scrollBehaviorDialog;
     scrollBehaviorDialog.setInitialProperties({

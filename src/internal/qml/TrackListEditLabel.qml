@@ -5,7 +5,8 @@ import QtQuick.Controls.Basic
 Item {
     id: editLabel
     width: labelText.width + 8
-    required property QtObject palette
+    required property QtObject trackStyleItem
+    required property QtObject popupEditStyleItem
     property string text: ""
     property string editText: text
     property QtObject validator: null
@@ -19,7 +20,7 @@ Item {
         anchors.leftMargin: 4
         anchors.verticalCenter: parent.verticalCenter
         text: editLabel.text
-        color: editLabel.palette.foregroundColor
+        color: editLabel.trackStyleItem.foreground
         visible: !labelEdit.visible
     }
     Popup {
@@ -42,12 +43,12 @@ Item {
             anchors.bottom: parent.bottom
             validator: editLabel.validator
             background: Rectangle {
-                color: editLabel.palette.textEditingBackgroundColor
+                color: editLabel.popupEditStyleItem.background
                 radius: 2
                 border.width: 1
-                border.color: editLabel.palette.textEditingBorderColor
+                border.color: editLabel.popupEditStyleItem.border
             }
-            color: editLabel.palette.textEditingForegroundColor
+            color: editLabel.popupEditStyleItem.foreground
             text: editLabel.editText
             leftPadding: 4
             topPadding: 0

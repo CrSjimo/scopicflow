@@ -10,8 +10,7 @@ Pane {
     property QtObject trackListLayoutViewModel: null
     property QtObject scrollBehaviorViewModel: null
     property QtObject animationViewModel: null
-    property QtObject paletteViewModel: null
-
+    
     property Component trackExtraDelegate: null
 
     padding: 0
@@ -27,8 +26,7 @@ Pane {
         trackListLayoutViewModel: control.trackListLayoutViewModel
         scrollBehaviorViewModel: control.scrollBehaviorViewModel
         animationViewModel: control.animationViewModel
-        paletteViewModel: control.paletteViewModel
-        trackExtraDelegate: control.trackExtraDelegate
+                trackExtraDelegate: control.trackExtraDelegate
 
         onTrackDoubleClicked: index => control.trackDoubleClicked(index)
         onContextMenuRequestedForTrack: index => control.contextMenuRequestedForTrack(index)

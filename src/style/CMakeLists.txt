@@ -5,15 +5,24 @@ foreach(_file IN LISTS _qml_files_abs)
     file(RELATIVE_PATH _rel_path ${CMAKE_CURRENT_SOURCE_DIR} ${_file})
     list(APPEND _qml_files ${_rel_path})
 endforeach()
+foreach(_file IN LISTS _qml_files)
+    file(STRINGS ${_file} _file_content LIMIT_COUNT 1 REGEX "pragma Singleton")
 
-scopic_flow_add_library(ScopicFlowPalette AUTOGEN STATIC
+    if(_file_content)
+        set_source_files_properties(${_file}
+                PROPERTIES
+                QT_QML_SINGLETON_TYPE TRUE)
+    endif()
+endforeach()
+
+scopic_flow_add_library(ScopicFlowStyle AUTOGEN STATIC
     SOURCES ${_src}
     LINKS svscraft::Core
     QT_LINKS Core Gui Widgets Qml Quick
     QT_INCLUDE_PRIVATE Core Gui Widgets Qml Quick
 )
 
-qt_add_qml_module(ScopicFlowPalette
-    URI dev.sjimo.ScopicFlow.Palette
+qt_add_qml_module(ScopicFlowStyle
+    URI dev.sjimo.ScopicFlow.Style
     QML_FILES ${_qml_files}
 )

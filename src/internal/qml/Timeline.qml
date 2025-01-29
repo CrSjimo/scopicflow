@@ -3,7 +3,7 @@ import QtQuick
 import QtQuick.Shapes
 
 import dev.sjimo.ScopicFlow.Internal
-import dev.sjimo.ScopicFlow.Palette as ScopicFlowPalette
+import dev.sjimo.ScopicFlow.Style
 
 Item {
     id: timeline
@@ -13,7 +13,10 @@ Item {
     property QtObject playbackViewModel: null
     property QtObject scrollBehaviorViewModel: null
     property QtObject animationViewModel: null
-    property QtObject paletteViewModel: null
+
+    property QtObject stylesheet: TimelineStylesheet {}
+    readonly property QtObject timelineStyleItem: stylesheet.timeline.createObject(timeline)
+    readonly property QtObject timeIndicatorsStyleItem: stylesheet.timeIndicators.createObject(timeline)
 
     readonly property double primaryIndicatorX: locator.mapToX(playbackViewModel?.primaryPosition ?? 0)
     readonly property double secondaryIndicatorX: locator.mapToX(playbackViewModel?.secondaryPosition ?? 0)
@@ -46,12 +49,6 @@ Item {
     signal contextMenuRequestedForTimeline(tick: int)
     signal contextMenuRequestedForPositionIndicator()
 
-    readonly property QtObject defaultPalette: ScopicFlowPalette.Timeline {
-
-    }
-
-    readonly property QtObject palette: paletteViewModel?.palette?.timeline ?? defaultPalette
-
     clip: true
     implicitHeight: 24
 
@@ -73,13 +70,15 @@ Item {
     Rectangle {
         id: backgroundRect
         anchors.fill: parent
-        color: timeline.palette.backgroundColor
+        color: timeline.timelineStyleItem.background
+        border.width: 1
+        border.color: timeline.timelineStyleItem.border
     }
 
     TimelineScale {
         id: timelineScale
         anchors.fill: parent
-        color: timeline.palette.foregroundColor
+        color: timeline.timelineStyleItem.foreground
         timeViewModel: timeline.timeViewModel
         timeLayoutViewModel: timeline.timeLayoutViewModel
     }
@@ -108,7 +107,7 @@ Item {
         ShapePath {
             id: indicatorPath
             strokeWidth: 0
-            fillColor: timeline.palette.secondaryIndicatorColor
+            fillColor: timeline.timeIndicatorsStyleItem.secondaryIndicator
             PathLine { x: 8 / Math.sqrt(3); y: 0 }
             PathLine { x: 24 / Math.sqrt(3); y: 0 }
             PathArc { x: 28 / Math.sqrt(3); y: 4; radiusX: 4 / 3; radiusY: 4 / 3}
@@ -127,7 +126,7 @@ Item {
         anchors.bottom: parent.bottom
         ShapePath {
             strokeWidth: 0
-            fillColor: timeline.palette.primaryIndicatorColor
+            fillColor: timeline.timeIndicatorsStyleItem.primaryIndicator
             PathLine { x: 8 / Math.sqrt(3); y: 0 }
             PathLine { x: 24 / Math.sqrt(3); y: 0 }
             PathArc { x: 28 / Math.sqrt(3); y: 4; radiusX: 4 / 3; radiusY: 4 / 3}
@@ -144,7 +143,7 @@ Item {
         anchors.top: parent.top
         anchors.bottom: parent.bottom
         width: 1
-        color: timeline.palette.cursorIndicatorColor
+        color: timeline.timeIndicatorsStyleItem.cursorIndicator
         x: timeline.cursorIndicatorX - 0.5
         visible: timeline.cursorIndicatorX >= 0
     }

@@ -1,7 +1,7 @@
 #include "ClavierViewModel.h"
 
 namespace sflow {
-    ClavierViewModel::ClavierViewModel(QObject *parent) : QObject(parent), m_start(42), m_pixelDensity(24), m_minimumPixelDensity(16), m_maximumPixelDensity(64), m_cursorPosition(-1), m_accidentalType(Flat) {
+    ClavierViewModel::ClavierViewModel(QObject *parent) : QObject(parent), m_start(42), m_pixelDensity(24), m_minimumPixelDensity(16), m_maximumPixelDensity(64), m_cursorPosition(-1), m_accidentalType(Flat), m_labelStrategy(C) {
     }
     ClavierViewModel::~ClavierViewModel() = default;
     double ClavierViewModel::start() const {
@@ -56,6 +56,15 @@ namespace sflow {
         if (m_accidentalType != accidentalType) {
             m_accidentalType = accidentalType;
             emit accidentalTypeChanged(accidentalType);
+        }
+    }
+    sflow::ClavierViewModel::LabelStrategy ClavierViewModel::labelStrategy() const {
+        return m_labelStrategy;
+    }
+    void ClavierViewModel::setLabelStrategy(LabelStrategy labelStrategy) {
+        if (m_labelStrategy != labelStrategy) {
+            m_labelStrategy = labelStrategy;
+            emit labelStrategyChanged(labelStrategy);
         }
     }
 }

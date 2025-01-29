@@ -19,7 +19,6 @@ Item {
     required property QtObject playbackViewModel
     required property QtObject scrollBehaviorViewModel
     required property QtObject animationViewModel
-    required property QtObject paletteViewModel
     required property QtObject noteSequenceViewModel
 
     SplitView {
@@ -45,8 +44,7 @@ Item {
                     trackListLayoutViewModel: main.trackListLayoutViewModel
                     scrollBehaviorViewModel: main.scrollBehaviorViewModel
                     animationViewModel: main.animationViewModel
-                    paletteViewModel: main.paletteViewModel
-                    trackExtraDelegate: Rectangle {
+                                        trackExtraDelegate: Rectangle {
                         required property QtObject trackViewModel
                         anchors.fill: parent
                         clip: true
@@ -78,7 +76,6 @@ Item {
                     playbackViewModel: main.playbackViewModel
                     scrollBehaviorViewModel: main.scrollBehaviorViewModel
                     animationViewModel: main.animationViewModel
-                    paletteViewModel: main.paletteViewModel
                 }
                 LabelSequence {
                     id: arrangementLabelSequence
@@ -91,8 +88,7 @@ Item {
                     labelSequenceLayoutViewModel: main.arrangementLabelSequenceLayoutViewModel
                     scrollBehaviorViewModel: main.scrollBehaviorViewModel
                     animationViewModel: main.animationViewModel
-                    paletteViewModel: main.paletteViewModel
-                }
+                                    }
                 Item {
                     id: placeholder
                     Layout.fillHeight: true
@@ -115,8 +111,7 @@ Item {
                 clavierViewModel: main.clavierViewModel
                 scrollBehaviorViewModel: main.scrollBehaviorViewModel
                 animationViewModel: main.animationViewModel
-                paletteViewModel: main.paletteViewModel
-                topMargin: pianoRollSplitView.y - timeline.y
+                                topMargin: pianoRollSplitView.y - timeline.y
                 bottomMargin: pianoRoll.bottomMargin
             }
 
@@ -131,7 +126,6 @@ Item {
                 playbackViewModel: main.playbackViewModel
                 scrollBehaviorViewModel: main.scrollBehaviorViewModel
                 animationViewModel: main.animationViewModel
-                paletteViewModel: main.paletteViewModel
             }
 
             LabelSequence {
@@ -147,8 +141,7 @@ Item {
                 labelSequenceLayoutViewModel: main.labelSequenceLayoutViewModel
                 scrollBehaviorViewModel: main.scrollBehaviorViewModel
                 animationViewModel: main.animationViewModel
-                paletteViewModel: main.paletteViewModel
-            }
+                            }
 
             SplitView {
                 id: pianoRollSplitView
@@ -172,8 +165,7 @@ Item {
                         clavierViewModel: main.clavierViewModel
                         scrollBehaviorViewModel: main.scrollBehaviorViewModel
                         animationViewModel: main.animationViewModel
-                        paletteViewModel: main.paletteViewModel
-                        noteSequenceViewModel: main.noteSequenceViewModel
+                                                noteSequenceViewModel: main.noteSequenceViewModel
                         bottomMargin: height - parent.height
                     }
                 }

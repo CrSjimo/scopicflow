@@ -28,8 +28,7 @@ Item {
             playbackViewModel: main.playbackViewModel
             scrollBehaviorViewModel: main.scrollBehaviorViewModel
             animationViewModel: main.animationViewModel
-            paletteViewModel: main.paletteViewModel
-        }
+                    }
 
         GridLayout {
             Layout.fillWidth: true

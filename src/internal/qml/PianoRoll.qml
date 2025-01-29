@@ -3,7 +3,7 @@ import QtQuick
 import QtQuick.Controls.Basic
 
 import dev.sjimo.ScopicFlow.Internal
-import dev.sjimo.ScopicFlow.Palette as ScopicFlowPalette
+import dev.sjimo.ScopicFlow.Style
 
 Item {
     id: pianoRoll
@@ -15,14 +15,16 @@ Item {
     property QtObject scrollBehaviorViewModel: null
     property QtObject animationViewModel: null
     property QtObject noteSequenceViewModel: null
-    property QtObject paletteViewModel: null
+
+    property bool active: false
+
+    property QtObject stylesheet: PianoRollStylesheet {}
+    readonly property QtObject pianoRollStyleItem: stylesheet.pianoRoll.createObject(pianoRoll, {active})
+    readonly property QtObject scrollBarStyleItem: stylesheet.scrollBar.createObject(pianoRoll)
+    readonly property QtObject timeIndicatorsStyleItem: stylesheet.timeIndicators.createObject(pianoRoll)
 
     property double topMargin: 0
     property double bottomMargin: 0
-
-    property QtObject defaultPalette: ScopicFlowPalette.PianoRoll {}
-    property QtObject palette: paletteViewModel?.palette?.pianoRoll ?? defaultPalette
-
     readonly property double keyHeight: clavierViewModel?.pixelDensity ?? 24
 
     Item {
@@ -60,7 +62,7 @@ Item {
     Rectangle {
         id: background
         anchors.fill: parent
-        color: pianoRoll.palette.blackKeyBackgroundColor
+        color: pianoRoll.pianoRollStyleItem.blackKeyBackground
     }
 
     Item {
@@ -77,9 +79,9 @@ Item {
                 width: parent.width
                 height: pianoRoll.keyHeight
                 y: (127 - index) * pianoRoll.keyHeight
-                color: isBlackKey ? pianoRoll.palette.blackKeyBackgroundColor : pianoRoll.palette.whiteKeyBackgroundColor
+                color: isBlackKey ? pianoRoll.pianoRollStyleItem.blackKeyBackground : pianoRoll.pianoRollStyleItem.whiteKeyBackground
                 border.width: 1
-                border.color: pianoRoll.palette.blackKeyBackgroundColor
+                border.color: pianoRoll.pianoRollStyleItem.blackKeyBackground
             }
         }
 
@@ -89,9 +91,9 @@ Item {
         anchors.fill: parent
         timeViewModel: pianoRoll.timeViewModel
         timeLayoutViewModel: pianoRoll.timeLayoutViewModel
-        barScaleColor: pianoRoll.palette.barScaleColor
-        beatScaleColor: pianoRoll.palette.beatScaleColor
-        segmentScaleColor: pianoRoll.palette.segmentScaleColor
+        barScaleColor: pianoRoll.pianoRollStyleItem.barScale
+        beatScaleColor: pianoRoll.pianoRollStyleItem.beatScale
+        segmentScaleColor: pianoRoll.pianoRollStyleItem.segmentScale
     }
 
 
@@ -107,12 +109,21 @@ Item {
             animationViewModel: pianoRoll.animationViewModel
             noteSequenceViewModel: pianoRoll.noteSequenceViewModel
             sliceWidth: pianoRoll.width
+            stylesheet: pianoRoll.stylesheet
         }
+    }
+
+    Rectangle {
+        id: border
+        anchors.fill: parent
+        color: "transparent"
+        border.width: 1
+        border.color: pianoRoll.pianoRollStyleItem.border
     }
 
     PositionIndicators {
         anchors.fill: parent
-        palette: pianoRoll.palette
+        styleItem: pianoRoll.timeIndicatorsStyleItem
         timeViewModel: pianoRoll.timeViewModel
         timeLayoutViewModel: pianoRoll.timeLayoutViewModel
         playbackViewModel: pianoRoll.playbackViewModel
@@ -126,9 +137,9 @@ Item {
         anchors.bottomMargin: 6 + pianoRoll.bottomMargin
         anchors.right: parent.right
         orientation: Qt.Vertical
-        normalColor: pianoRoll.palette.scrollBarNormalColor
-        pressedColor: pianoRoll.palette.scrollBarPressedColor
-        hoveredColor: pianoRoll.palette.scrollBarHoveredColor
+        normalColor: pianoRoll.scrollBarStyleItem.normal
+        pressedColor: pianoRoll.scrollBarStyleItem.pressed
+        hoveredColor: pianoRoll.scrollBarStyleItem.hovered
         animationViewModel: pianoRoll.animationViewModel
         size: (pianoRoll.height - pianoRoll.bottomMargin - pianoRoll.topMargin) / (backgroundViewport.height)
         position: 1 - (pianoRoll.clavierViewModel?.start ?? 0) / 128 - size
@@ -165,9 +176,9 @@ Item {
         anchors.bottom: parent.bottom
         anchors.bottomMargin: pianoRoll.bottomMargin
         orientation: Qt.Horizontal
-        normalColor: pianoRoll.palette.scrollBarNormalColor
-        pressedColor: pianoRoll.palette.scrollBarPressedColor
-        hoveredColor: pianoRoll.palette.scrollBarHoveredColor
+        normalColor: pianoRoll.scrollBarStyleItem.normal
+        pressedColor: pianoRoll.scrollBarStyleItem.pressed
+        hoveredColor: pianoRoll.scrollBarStyleItem.hovered
         animationViewModel: pianoRoll.animationViewModel
         size: pianoRoll.timeViewModel && pianoRoll.timeLayoutViewModel ? pianoRoll.width / pianoRoll.timeLayoutViewModel.pixelDensity / pianoRoll.timeViewModel.end : 0
         position: pianoRoll.timeViewModel ? pianoRoll.timeViewModel.start / pianoRoll.timeViewModel.end : 0

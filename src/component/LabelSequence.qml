@@ -13,8 +13,7 @@ Pane {
     property QtObject labelSequenceLayoutViewModel: null
     property QtObject scrollBehaviorViewModel: null
     property QtObject animationViewModel: null
-    property QtObject paletteViewModel: null
-
+    
     padding: 0
     focusPolicy: Qt.StrongFocus
 
@@ -32,8 +31,7 @@ Pane {
         labelSequenceLayoutViewModel: control.labelSequenceLayoutViewModel
         scrollBehaviorViewModel: control.scrollBehaviorViewModel
         animationViewModel: control.animationViewModel
-        paletteViewModel: control.paletteViewModel
-
+        
         onContextMenuRequested: tick => control.contextMenuRequested(tick)
         onContextMenuRequestedForLabel: label => control.contextMenuRequestedForLabel(label)
     }

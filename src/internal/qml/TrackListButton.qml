@@ -4,12 +4,12 @@ import QtQuick.Controls.Basic
 Button {
     id: button
     property color checkedColor
-    required property QtObject palette
-    readonly property color borderColor: trackListDelegate.palette.borderColor
-    readonly property color foregroundColor: trackListDelegate.palette.foregroundColor
-    readonly property color normalColor: trackListDelegate.palette.buttonColor
-    readonly property color hoveredColor: trackListDelegate.palette.buttonHoveredColor
-    readonly property color pressedColor: trackListDelegate.palette.buttonPressedColor
+    required property QtObject styleItem
+    readonly property color borderColor: styleItem.buttonBorder
+    readonly property color foregroundColor: styleItem.buttonForeground
+    readonly property color normalColor: styleItem.buttonBackground
+    readonly property color hoveredColor: styleItem.buttonBackgroundHovered
+    readonly property color pressedColor: styleItem.buttonBackgroundPressed
     required property QtObject animationViewModel
     property string toolTip: ""
     checkable: true

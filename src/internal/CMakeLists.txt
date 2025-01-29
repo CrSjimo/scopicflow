@@ -14,7 +14,7 @@ endforeach()
 
 scopic_flow_add_library(ScopicFlowInternal AUTOGEN STATIC
     SOURCES ${_src}
-    LINKS svscraft::Core ScopicFlowViewModel ScopicFlowPalette ScopicFlowPaletteplugin
+    LINKS svscraft::Core ScopicFlowViewModel ScopicFlowStyle ScopicFlowStyleplugin
     QT_LINKS Core Gui Widgets Qml Quick
     QT_INCLUDE_PRIVATE Core Gui Widgets Qml Quick
 )

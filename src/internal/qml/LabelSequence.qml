@@ -3,7 +3,7 @@ import QtQuick
 import QtQuick.Controls.Basic
 
 import dev.sjimo.ScopicFlow.Internal
-import dev.sjimo.ScopicFlow.Palette as ScopicFlowPalette
+import dev.sjimo.ScopicFlow.Style
 
 Item {
     id: labelSequence
@@ -13,9 +13,15 @@ Item {
     property QtObject playbackViewModel: null
     property QtObject scrollBehaviorViewModel: null
     property QtObject animationViewModel: null
-    property QtObject paletteViewModel: null
     property QtObject labelSequenceViewModel: null
     property QtObject labelSequenceLayoutViewModel: null
+
+    property bool active: false
+
+    readonly property QtObject stylesheet: LabelSequenceStylesheet {}
+    readonly property QtObject labelSequenceStyleItem: stylesheet.labelSequence.createObject(labelSequence, {active})
+    readonly property QtObject rubberBandLayerStyleItem: stylesheet.rubberBand.createObject(labelSequence)
+    readonly property QtObject timeIndicatorsStyleItem: stylesheet.timeIndicators.createObject(labelSequence)
 
     function moveSelectionTo(position, model) {
         if (position !== model.position) {
@@ -43,9 +49,7 @@ Item {
     signal contextMenuRequested(tick: int)
     signal contextMenuRequestedForLabel(label: QtObject)
 
-    readonly property QtObject defaultPalette: ScopicFlowPalette.LabelSequence {}
 
-    readonly property QtObject palette: paletteViewModel?.palette?.labelSequence ?? defaultPalette
 
     clip: true
     implicitHeight: 20
@@ -80,11 +84,7 @@ Item {
     Rectangle {
         id: background
         anchors.fill: parent
-        anchors.leftMargin: -1 // set to -1 to hide left and right border
-        anchors.rightMargin: -1
-        color: labelSequence.palette.backgroundColor
-        border.width: 1
-        border.color: labelSequence.palette.borderColor
+        color: labelSequence.labelSequenceStyleItem.background
     }
 
     Item {
@@ -181,10 +181,10 @@ Item {
                 leftOutBound: 256
                 delegate: LabelSequenceDelegate {
                     id: labelRect
-                    palette: labelSequence.palette
                     animationViewModel: labelSequence.animationViewModel
                     labelSequenceViewModel: labelSequence.labelSequenceViewModel
                     labelSequenceLayoutViewModel: labelSequence.labelSequenceLayoutViewModel
+                    stylesheet: labelSequence.stylesheet
                     anchors.top: parent.top
                     anchors.bottom: parent.bottom
                     Binding {
@@ -288,16 +288,24 @@ Item {
             selectionManipulator: selectionManipulator
             z: 2
             rubberBand: Rectangle {
-                color: labelSequence.palette.rubberBandColor
+                color: labelSequence.rubberBandLayerStyleItem.background
                 border.width: 1
-                border.color: labelSequence.palette.rubberBandBorderColor
+                border.color: labelSequence.rubberBandLayerStyleItem.border
             }
         }
     }
 
+    Rectangle {
+        id: border
+        anchors.fill: parent
+        color: "transparent"
+        border.width: 1
+        border.color: labelSequence.labelSequenceStyleItem.border
+    }
+
     PositionIndicators {
         anchors.fill: parent
-        palette: labelSequence.palette
+        styleItem: labelSequence.timeIndicatorsStyleItem
         timeViewModel: labelSequence.timeViewModel
         timeLayoutViewModel: labelSequence.timeLayoutViewModel
         playbackViewModel: labelSequence.playbackViewModel

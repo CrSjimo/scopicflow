@@ -4,7 +4,7 @@ import QtQuick.Controls.Basic
 
 Dial {
     id: control
-    required property QtObject palette
+    required property QtObject styleItem
     property double defaultValue: from
     required property QtObject animationViewModel
     property string toolTip: ""
@@ -19,7 +19,7 @@ Dial {
         implicitHeight: 24
         width: Math.min(control.width, control.height)
         height: Math.min(control.width, control.height)
-        color: control.pressed ? control.palette.dialPressedColor : control.hovered ? control.palette.dialHoveredColor : control.palette.dialColor
+        color: control.pressed ? control.styleItem.dialBackgroundPressed : control.hovered ? control.styleItem.dialBackgroundHovered : control.styleItem.dialBackground
         Behavior on color {
             ColorAnimation {
                 duration: 250 * (control.animationViewModel?.colorAnimationRatio ?? 1)
@@ -32,7 +32,7 @@ Dial {
             anchors.fill: parent
             ShapePath {
                 strokeWidth: 2
-                strokeColor: control.palette.primaryColor
+                strokeColor: control.styleItem.dialTrack
                 fillColor: "transparent"
                 capStyle: ShapePath.RoundCap
                 PathAngleArc {
@@ -53,7 +53,7 @@ Dial {
         y: control.background.y + control.background.height / 2 - height / 2
         width: 1
         height: 4
-        color: control.palette.foregroundColor
+        color: control.styleItem.dialForeground
         antialiasing: true
         opacity: control.enabled ? 1 : 0.3
         transform: [

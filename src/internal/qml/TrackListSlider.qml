@@ -5,7 +5,7 @@ import QtQuick.Controls.Basic
 Slider {
     id: slider
     property double defaultValue: from
-    required property QtObject palette
+    required property QtObject styleItem
     required property QtObject animationViewModel
     property string toolTip: ""
     readonly property bool intermediate: pressed || timer.running
@@ -20,7 +20,7 @@ Slider {
         width: slider.availableWidth
         height: implicitHeight
         radius: 2
-        color: slider.palette.sliderBackgroundColor
+        color: slider.styleItem.sliderBackground
 
         Rectangle {
             readonly property double defaultValuePosition: (slider.defaultValue - slider.from) / (slider.to - slider.from) * parent.width
@@ -28,7 +28,7 @@ Slider {
             x: deltaValueSize < 0 ? defaultValuePosition + deltaValueSize : defaultValuePosition
             width: Math.abs(deltaValueSize)
             height: parent.height
-            color: slider.palette.primaryColor
+            color: slider.styleItem.sliderTrack
             radius: 2
         }
     }
@@ -49,7 +49,7 @@ Slider {
                 }
             }
 
-            color: slider.pressed ? slider.palette.sliderHandlePressedColor : slider.palette.sliderHandleColor
+            color: slider.pressed ? slider.styleItem.sliderHandlePressed : slider.hovered ? slider.styleItem.sliderHandleHovered : slider.styleItem.sliderHandle
             Behavior on color {
                 ColorAnimation {
                     duration: 250 * (slider.animationViewModel?.colorAnimationRatio ?? 1)

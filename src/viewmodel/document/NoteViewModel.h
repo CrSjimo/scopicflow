@@ -25,6 +25,8 @@ namespace sflow {
 
         bool intermediate() const;
 
+        bool overlapped() const;
+
     public slots:
         SFLOW_VIEWMODEL_SET_FUNC void setPosition(int position);
         SFLOW_VIEWMODEL_SET_FUNC void setLength(int length);
@@ -32,6 +34,9 @@ namespace sflow {
         SFLOW_VIEWMODEL_SET_FUNC void setLyric(const QString &lyric);
         SFLOW_VIEWMODEL_SET_FUNC void setSelected(bool selected);
         SFLOW_VIEWMODEL_SET_FUNC void setIntermediate(bool intermediate);
+
+    private slots:
+        SFLOW_VIEWMODEL_SET_FUNC void setOverlapped(bool overlapped);
 
     signals:
         SFLOW_VIEWMODEL_SIGNAL void positionChanged(int position);

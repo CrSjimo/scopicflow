@@ -206,6 +206,7 @@ namespace sflow {
         d->positionProperty = positionProperty;
         d->lengthProperty = lengthProperty;
         d->selectedProperty = selectedProperty;
+        d->overlappedProperty = overlappedProperty;
         if (!handleItemSelectedChangedMetaMethod.isValid() || !handleItemPositionChangedMetaMethod.isValid() || !handleItemLengthChangedMetaMethod.isValid()) {
             for (int i = staticMetaObject.methodOffset(); i < staticMetaObject.methodCount(); i++) {
                 auto method = staticMetaObject.method(i);

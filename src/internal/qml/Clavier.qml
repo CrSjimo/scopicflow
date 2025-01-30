@@ -56,7 +56,7 @@ Item {
 
     onCursorNoteIndexChanged: {
         if (lastNoteIndex >= 0)
-            keyRepeater.itemAt(lastNoteIndex).isLabelVisible = false
+            keyRepeater.itemAt(lastNoteIndex).isLeftLabelVisible = false
         if (cursorNoteIndex >= 0)
             keyRepeater.itemAt(cursorNoteIndex).isLeftLabelVisible = true
         lastNoteIndex = cursorNoteIndex

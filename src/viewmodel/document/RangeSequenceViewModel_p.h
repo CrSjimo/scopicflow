@@ -58,6 +58,7 @@ namespace sflow {
             });
             m_intervalTree.insert(interval);
             m_intervals.insert(item, interval);
+            affectedItems.insert(item);
             return QObjectList(affectedItems.cbegin(), affectedItems.cend());
         }
 

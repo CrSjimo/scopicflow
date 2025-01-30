@@ -15,6 +15,7 @@ Item {
     property QtObject scrollBehaviorViewModel: null
     property QtObject animationViewModel: null
     property QtObject noteSequenceViewModel: null
+    property QtObject pianoRollNoteAreaBehaviorViewModel: null
 
     property bool active: false
 
@@ -27,13 +28,12 @@ Item {
     property double bottomMargin: 0
     readonly property double keyHeight: clavierViewModel?.pixelDensity ?? 24
 
-    Item {
-        id: viewport
-        x: -(pianoRoll.timeViewModel?.start ?? 0) * (pianoRoll.timeLayoutViewModel?.pixelDensity ?? 0)
-        y: pianoRoll.clavierViewModel ? Math.min(pianoRoll.topMargin, pianoRoll.height - (128 - pianoRoll.clavierViewModel.start) * pianoRoll.clavierViewModel.pixelDensity - pianoRoll.bottomMargin) : pianoRoll.topMargin
-        width: (pianoRoll.timeViewModel?.end ?? 0) * (pianoRoll.timeLayoutViewModel?.pixelDensity ?? 0)
-        height: 128 * pianoRoll.keyHeight
-    }
+    readonly property rect viewport: Qt.rect(
+        -(pianoRoll.timeViewModel?.start ?? 0) * (pianoRoll.timeLayoutViewModel?.pixelDensity ?? 0),
+        pianoRoll.clavierViewModel ? Math.min(pianoRoll.topMargin, pianoRoll.height - (128 - pianoRoll.clavierViewModel.start) * pianoRoll.clavierViewModel.pixelDensity - pianoRoll.bottomMargin) : pianoRoll.topMargin,
+        (pianoRoll.timeViewModel?.end ?? 0) * (pianoRoll.timeLayoutViewModel?.pixelDensity ?? 0),
+        128 * pianoRoll.keyHeight
+    )
 
     clip: true
 
@@ -67,7 +67,10 @@ Item {
 
     Item {
         id: backgroundViewport
-        anchors.fill: viewport
+        x: pianoRoll.viewport.x
+        y: pianoRoll.viewport.y
+        width: pianoRoll.viewport.width
+        height: pianoRoll.viewport.height
 
         Repeater {
             id: keyRepeater
@@ -97,20 +100,16 @@ Item {
     }
 
 
-    Item {
-        id: noteAreaViewport
-        anchors.fill: viewport
-
-        PianoRollNoteArea {
-            anchors.fill: parent
-            timeViewModel: pianoRoll.timeViewModel
-            timeLayoutViewModel: pianoRoll.timeLayoutViewModel
-            clavierViewModel: pianoRoll.clavierViewModel
-            animationViewModel: pianoRoll.animationViewModel
-            noteSequenceViewModel: pianoRoll.noteSequenceViewModel
-            sliceWidth: pianoRoll.width
-            stylesheet: pianoRoll.stylesheet
-        }
+    PianoRollNoteArea {
+        anchors.fill: parent
+        anchors.bottomMargin: pianoRoll.bottomMargin
+        viewport: pianoRoll.viewport
+        timeViewModel: pianoRoll.timeViewModel
+        timeLayoutViewModel: pianoRoll.timeLayoutViewModel
+        clavierViewModel: pianoRoll.clavierViewModel
+        animationViewModel: pianoRoll.animationViewModel
+        noteSequenceViewModel: pianoRoll.noteSequenceViewModel
+        stylesheet: pianoRoll.stylesheet
     }
 
     Rectangle {

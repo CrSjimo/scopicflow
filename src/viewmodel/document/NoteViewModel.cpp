@@ -43,4 +43,11 @@ namespace sflow {
     void NoteViewModel::setIntermediate(bool intermediate) {
         insert("intermediate", intermediate);
     }
+
+    bool NoteViewModel::overlapped() const {
+        return value("overlapped").toBool();
+    }
+    void NoteViewModel::setOverlapped(bool overlapped) {
+        insert("overlapped", overlapped);
+    }
 }

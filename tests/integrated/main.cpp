@@ -220,7 +220,7 @@ int main(int argc, char *argv[]) {
 
     std::uniform_int_distribution<int> distribution(-60, 60);
     RangeSequenceViewModel noteSequenceViewModel;
-    for (int i = 0, k = 48, p = 0; i < 16; i++) {
+    for (int i = 0, k = 48, p = 0; i < 65536; i++) {
         auto note = new NoteViewModel;
         note->setPosition(p);
         note->setLength(240 + distribution(generator));

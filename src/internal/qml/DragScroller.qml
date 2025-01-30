@@ -14,15 +14,19 @@ Item {
             distanceX = x
         else if (x > width)
             distanceX = x - width
-        else
+        else {
+            distanceX = 0
             xTriggered = false
+        }
         let yTriggered = true
         if (y < 0)
             distanceY = y
         else if (y > height)
             distanceY = y - height
-        else
+        else {
+            distanceY = 0
             yTriggered = false
+        }
         running = xTriggered || yTriggered
         if (callback)
             callback(xTriggered, yTriggered)

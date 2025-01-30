@@ -383,7 +383,7 @@ Item {
                         anchors.fill: parent
                         cursorShape: Qt.SplitVCursor
                         property double originalY: -1
-                        enabled: (trackList.trackListLayoutViewModel?.trackHandleEnabled ?? false) && trackHandle.index !== 0
+                        enabled: trackHandle.index !== 0
                         hoverEnabled: true
 
                         Connections {
@@ -437,7 +437,7 @@ Item {
 
             onPressedChanged: rubberBandQuasiMouseArea.pressed = pressed
             onPressed: (mouse) => {
-                if (!(mouse.modifiers & Qt.AltModifier)) {
+                if (!(mouse.modifiers & Qt.ControlModifier)) {
                     mouse.accepted = false
                     return
                 }

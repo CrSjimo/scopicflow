@@ -14,8 +14,8 @@ Item {
     required property QtObject trackListViewModel
     required property QtObject trackListLayoutViewModel
     required property QtObject labelSequenceViewModel
-    required property QtObject labelSequenceLayoutViewModel
-    required property QtObject arrangementLabelSequenceLayoutViewModel
+    required property QtObject labelSequenceBehaviorViewModel
+    required property QtObject arrangementLabelSequenceBehaviorViewModel
     required property QtObject playbackViewModel
     required property QtObject scrollBehaviorViewModel
     required property QtObject animationViewModel
@@ -85,7 +85,7 @@ Item {
                     timeLayoutViewModel: main.arrangementTimeLayoutViewModel
                     playbackViewModel: main.playbackViewModel
                     labelSequenceViewModel: main.labelSequenceViewModel
-                    labelSequenceLayoutViewModel: main.arrangementLabelSequenceLayoutViewModel
+                    labelSequenceBehaviorViewModel: main.arrangementLabelSequenceBehaviorViewModel
                     scrollBehaviorViewModel: main.scrollBehaviorViewModel
                     animationViewModel: main.animationViewModel
                                     }
@@ -138,7 +138,7 @@ Item {
                 timeLayoutViewModel: main.timeLayoutViewModel
                 playbackViewModel: main.playbackViewModel
                 labelSequenceViewModel: main.labelSequenceViewModel
-                labelSequenceLayoutViewModel: main.labelSequenceLayoutViewModel
+                labelSequenceBehaviorViewModel: main.labelSequenceBehaviorViewModel
                 scrollBehaviorViewModel: main.scrollBehaviorViewModel
                 animationViewModel: main.animationViewModel
                             }

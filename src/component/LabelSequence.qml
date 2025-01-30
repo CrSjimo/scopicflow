@@ -10,7 +10,7 @@ Pane {
     property QtObject timeLayoutViewModel: null
     property QtObject playbackViewModel: null
     property QtObject labelSequenceViewModel: null
-    property QtObject labelSequenceLayoutViewModel: null
+    property QtObject labelSequenceBehaviorViewModel: null
     property QtObject scrollBehaviorViewModel: null
     property QtObject animationViewModel: null
     
@@ -28,7 +28,7 @@ Pane {
         timeLayoutViewModel: control.timeLayoutViewModel
         playbackViewModel: control.playbackViewModel
         labelSequenceViewModel: control.labelSequenceViewModel
-        labelSequenceLayoutViewModel: control.labelSequenceLayoutViewModel
+        labelSequenceBehaviorViewModel: control.labelSequenceBehaviorViewModel
         scrollBehaviorViewModel: control.scrollBehaviorViewModel
         animationViewModel: control.animationViewModel
         

@@ -14,7 +14,7 @@ Item {
     property QtObject scrollBehaviorViewModel: null
     property QtObject animationViewModel: null
     property QtObject labelSequenceViewModel: null
-    property QtObject labelSequenceLayoutViewModel: null
+    property QtObject labelSequenceBehaviorViewModel: null
 
     property bool active: false
 
@@ -164,7 +164,7 @@ Item {
                 })
                 labelSequence.labelSequenceViewModel.handle.insertItem(label)
                 selectionManipulator.select(label, Qt.LeftButton, 0)
-                labelSequence.labelSequenceLayoutViewModel.editing = true
+                labelSequence.labelSequenceBehaviorViewModel.editing = true
             }
             onReleased: canceled()
             onCanceled: rubberBandQuasiMouseArea.onCanceled()
@@ -183,7 +183,7 @@ Item {
                     id: labelRect
                     animationViewModel: labelSequence.animationViewModel
                     labelSequenceViewModel: labelSequence.labelSequenceViewModel
-                    labelSequenceLayoutViewModel: labelSequence.labelSequenceLayoutViewModel
+                    labelSequenceBehaviorViewModel: labelSequence.labelSequenceBehaviorViewModel
                     stylesheet: labelSequence.stylesheet
                     anchors.top: parent.top
                     anchors.bottom: parent.bottom
@@ -257,7 +257,7 @@ Item {
                         onDoubleClicked: (mouse) => {
                             if (mouse.button === Qt.LeftButton) {
                                 labelSequence.labelSequenceViewModel.handle.currentItem = labelRect.model
-                                labelSequence.labelSequenceLayoutViewModel.editing = true
+                                labelSequence.labelSequenceBehaviorViewModel.editing = true
                             }
                         }
                     }
@@ -270,7 +270,7 @@ Item {
             anchors.fill: parent
             acceptedButtons: Qt.LeftButton | Qt.RightButton
             onPressed: (mouse) => {
-                if (!(mouse.modifiers & Qt.AltModifier)) {
+                if (!(mouse.modifiers & Qt.ControlModifier)) {
                     mouse.accepted = false
                     return
                 }

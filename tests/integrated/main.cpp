@@ -37,7 +37,7 @@
 #include <ScopicFlow/TrackListLayoutViewModel.h>
 #include <ScopicFlow/TrackViewModel.h>
 #include <ScopicFlow/NoteViewModel.h>
-#include <ScopicFlow/LabelSequenceLayoutViewModel.h>
+#include <ScopicFlow/LabelSequenceBehaviorViewModel.h>
 #include <ScopicFlow/RangeSequenceViewModel.h>
 
 using namespace sflow;
@@ -214,8 +214,8 @@ int main(int argc, char *argv[]) {
 
     TrackListLayoutViewModel trackListLayoutViewModel;
 
-    LabelSequenceLayoutViewModel labelSequenceLayoutViewModel;
-    LabelSequenceLayoutViewModel arrangementLabelSequenceLayoutViewModel;
+    LabelSequenceBehaviorViewModel labelSequenceBehaviorViewModel;
+    LabelSequenceBehaviorViewModel arrangementLabelSequenceBehaviorViewModel;
 
 
     std::uniform_int_distribution<int> distribution(-60, 60);
@@ -244,8 +244,8 @@ int main(int argc, char *argv[]) {
         {"playbackViewModel", QVariant::fromValue(&playbackViewModel)},
         {"scrollBehaviorViewModel", QVariant::fromValue(&scrollBehaviorViewModel)},
         {"animationViewModel", QVariant::fromValue(&animationViewModel)},
-        {"labelSequenceLayoutViewModel", QVariant::fromValue(&labelSequenceLayoutViewModel)},
-        {"arrangementLabelSequenceLayoutViewModel", QVariant::fromValue(&arrangementLabelSequenceLayoutViewModel)},
+        {"labelSequenceBehaviorViewModel", QVariant::fromValue(&labelSequenceBehaviorViewModel)},
+        {"arrangementLabelSequenceBehaviorViewModel", QVariant::fromValue(&arrangementLabelSequenceBehaviorViewModel)},
         {"noteSequenceViewModel", QVariant::fromValue(&noteSequenceViewModel)},
     });
     v1->setSource(QUrl("qrc:/dev/sjimo/ScopicFlow/Test/main.qml"));

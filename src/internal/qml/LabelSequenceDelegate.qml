@@ -8,7 +8,7 @@ Rectangle {
     required property QtObject model
     required property QtObject animationViewModel
     required property QtObject labelSequenceViewModel
-    required property QtObject labelSequenceLayoutViewModel
+    required property QtObject labelSequenceBehaviorViewModel
 
     required property QtObject stylesheet
 
@@ -17,7 +17,7 @@ Rectangle {
         labelRect.current: labelRect.labelSequenceViewModel.handle.currentItem === labelRect.model
         labelRect.labelStyleItem: labelRect.stylesheet.labelSequenceDelegate.createObject(labelRect, {labelViewModel: labelRect.model, current: labelRect.current})
         labelRect.popupEditStyleItem: labelRect.stylesheet.popupEdit.createObject(labelRect)
-        labelRect.editingRequired: (labelRect.labelSequenceLayoutViewModel?.editing ?? false) && labelRect.current
+        labelRect.editingRequired: (labelRect.labelSequenceBehaviorViewModel?.editing ?? false) && labelRect.current
     }
 
     property bool current: {current = labelSequenceViewModel.handle.currentItem === model}
@@ -28,7 +28,7 @@ Rectangle {
     implicitWidth: labelText.width + 8
     opacity: editing ? 0 : 1
 
-    property bool editingRequired: {editingRequired = (labelRect.labelSequenceLayoutViewModel?.editing ?? false) && labelRect.current}
+    property bool editingRequired: {editingRequired = (labelRect.labelSequenceBehaviorViewModel?.editing ?? false) && labelRect.current}
 
     border.width: 1
     radius: 2
@@ -49,8 +49,8 @@ Rectangle {
     }
 
     onEditingChanged: {
-        if (labelSequenceViewModel.handle.currentItem === model && labelSequenceLayoutViewModel) {
-            labelSequenceLayoutViewModel.editing = editing
+        if (labelSequenceViewModel.handle.currentItem === model && labelSequenceBehaviorViewModel) {
+            labelSequenceBehaviorViewModel.editing = editing
         }
     }
 

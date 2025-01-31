@@ -81,6 +81,7 @@ Rectangle {
         containerModel: labelRect.labelSequenceViewModel
         targetProperty: "content"
         styleItem: labelRect.popupEditStyleItem
+        radius: labelRect.radius
     }
 
 }

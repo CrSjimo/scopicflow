@@ -35,7 +35,7 @@ Item {
     }
 
     Connections {
-        target: labelSequence.labelSequenceViewModel?.handle
+        target: labelSequence.labelSequenceViewModel?.handle ?? null
         function onCurrentItemChanged() {
             labelSequence.ensureCurrentItemVisible()
         }

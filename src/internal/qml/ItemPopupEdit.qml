@@ -9,6 +9,7 @@ Popup {
     required property string targetProperty
     required property QtObject styleItem
     property bool removeIfEmpty: false
+    property double radius: 0
 
     padding: 0
     background: Item {}
@@ -32,7 +33,7 @@ Popup {
         width: Math.max(popup.width, implicitWidth)
         background: Rectangle {
             color: popup.styleItem.background
-            radius: 4
+            radius: popup.radius
             border.width: 1
             border.color: popup.styleItem.border
         }

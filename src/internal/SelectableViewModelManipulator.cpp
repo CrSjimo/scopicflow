@@ -64,12 +64,15 @@ namespace sflow {
                     if (o == item)
                         break;
                 }
-            } else {
+            } else if (order > 0) {
                 for (auto o = m_interface->currentItem(); m_interface->isValidItem(o); o = m_interface->previousItem(o)) {
                     m_interface->setSelected(o, true);
                     if (o == item)
                         break;
                 }
+            } else {
+                m_interface->setSelected(m_interface->currentItem(), true);
+                m_interface->setSelected(item, true);
             }
             return;
         }

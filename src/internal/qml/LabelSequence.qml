@@ -23,6 +23,30 @@ Item {
     readonly property QtObject rubberBandLayerStyleItem: stylesheet.rubberBand.createObject(labelSequence)
     readonly property QtObject timeIndicatorsStyleItem: stylesheet.timeIndicators.createObject(labelSequence)
 
+    Text {
+        id: labelLengthReference
+        visible: false
+    }
+    function ensureCurrentItemVisible() {
+        if (labelSequenceViewModel?.handle.currentItem && labelSequenceBehaviorViewModel?.editing) {
+            labelLengthReference.text = labelSequenceViewModel.handle.currentItem.content
+            timeManipulator.ensureVisible(labelSequenceViewModel.handle.currentItem.position, 0, 0, labelLengthReference.implicitWidth + 8)
+        }
+    }
+
+    Connections {
+        target: labelSequence.labelSequenceViewModel?.handle
+        function onCurrentItemChanged() {
+            labelSequence.ensureCurrentItemVisible()
+        }
+    }
+    Connections {
+        target: labelSequenceBehaviorViewModel
+        function onEditingChanged() {
+            labelSequence.ensureCurrentItemVisible()
+        }
+    }
+
     function moveSelectionTo(position, model) {
         if (position !== model.position) {
             let deltaPosition = position - model.position

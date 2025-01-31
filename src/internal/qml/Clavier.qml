@@ -49,7 +49,7 @@ Item {
         return 127 - Math.floor((y - viewportY) / keyHeight)
     }
     function isRightLabelVisible(key) {
-        return clavierViewModel.labelStrategy === ClavierViewModel.All || clavierViewModel.labelStrategy === ClavierViewModel.C && key % 12 === 0
+        return clavierViewModel?.labelStrategy === ClavierViewModel.All || clavierViewModel?.labelStrategy === ClavierViewModel.C && key % 12 === 0
     }
 
     clip: true

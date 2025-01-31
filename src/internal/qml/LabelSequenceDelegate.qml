@@ -14,7 +14,7 @@ Rectangle {
 
     Binding {
         when: labelRect.visible
-        labelRect.current: labelRect.labelSequenceViewModel.handle.currentItem === labelRect.model
+        labelRect.current: labelRect.labelSequenceViewModel && labelRect.labelSequenceViewModel.handle.currentItem === labelRect.model
         labelRect.labelStyleItem: labelRect.stylesheet.labelSequenceDelegate.createObject(labelRect, {labelViewModel: labelRect.model, current: labelRect.current})
         labelRect.popupEditStyleItem: labelRect.stylesheet.popupEdit.createObject(labelRect)
         labelRect.editingRequired: (labelRect.labelSequenceBehaviorViewModel?.editing ?? false) && labelRect.current
@@ -49,7 +49,7 @@ Rectangle {
     }
 
     onEditingChanged: {
-        if (labelSequenceViewModel.handle.currentItem === model && labelSequenceBehaviorViewModel) {
+        if (current && labelSequenceBehaviorViewModel) {
             labelSequenceBehaviorViewModel.editing = editing
         }
     }
@@ -75,64 +75,12 @@ Rectangle {
             }
         }
     }
-    Popup {
+    ItemPopupEdit {
         id: popup
-        padding: 0
-        background: Item {}
-        height: parent.height
-        onOpened: {
-            labelEdit.text = labelRect.model.content
-            labelEdit.escaped = false
-            labelEdit.forceActiveFocus()
-        }
-        onClosed: {
-            if (!labelEdit.escaped)
-                labelRect.model.content = labelEdit.text
-            if (!labelRect.model.content.length)
-                labelRect.labelSequenceViewModel.handle.removeItem(labelRect.model)
-        }
-        TextField {
-            id: labelEdit
-            anchors.top: parent.top
-            anchors.bottom: parent.bottom
-            background: Rectangle {
-                color: labelRect.popupEditStyleItem.background
-                radius: 2
-                border.width: 1
-                border.color: labelRect.popupEditStyleItem.border
-            }
-            color: labelRect.popupEditStyleItem.foreground
-            text: labelRect.model.content
-            leftPadding: 4
-            topPadding: 0
-            bottomPadding: 0
-            rightPadding: 4
-            property bool escaped: false
-            Keys.onEscapePressed: {
-                escaped = true
-                popup.close()
-            }
-            Keys.onReturnPressed: {
-                popup.close()
-            }
-            Keys.onTabPressed: {
-                labelRect.labelSequenceViewModel.handle.currentItem = labelRect.labelSequenceViewModel.handle.nextItem(labelRect.model)
-            }
-            Keys.onBacktabPressed: {
-                labelRect.labelSequenceViewModel.handle.currentItem = labelRect.labelSequenceViewModel.handle.previousItem(labelRect.model)
-            }
-            Keys.onPressed: (event) => {
-                if (event.key === Qt.Key_Home && event.modifiers === Qt.ControlModifier) {
-                    labelRect.labelSequenceViewModel.handle.currentItem = labelRect.labelSequenceViewModel.handle.firstItem()
-                } else if (event.key === Qt.Key_End && event.modifiers === Qt.ControlModifier) {
-                    labelRect.labelSequenceViewModel.handle.currentItem = labelRect.labelSequenceViewModel.handle.lastItem()
-                } else {
-                    event.accepted = false
-                    return
-                }
-                event.accepted = true
-            }
-        }
+        model: labelRect.model
+        containerModel: labelRect.labelSequenceViewModel
+        targetProperty: "content"
+        styleItem: labelRect.popupEditStyleItem
     }
 
 }

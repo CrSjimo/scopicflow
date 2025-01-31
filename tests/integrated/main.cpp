@@ -39,6 +39,7 @@
 #include <ScopicFlow/NoteViewModel.h>
 #include <ScopicFlow/LabelSequenceBehaviorViewModel.h>
 #include <ScopicFlow/RangeSequenceViewModel.h>
+#include <ScopicFlow/PianoRollNoteAreaBehaviorViewModel.h>
 
 using namespace sflow;
 
@@ -220,7 +221,7 @@ int main(int argc, char *argv[]) {
 
     std::uniform_int_distribution<int> distribution(-60, 60);
     RangeSequenceViewModel noteSequenceViewModel;
-    for (int i = 0, k = 48, p = 0; i < 65536; i++) {
+    for (int i = 0, k = 48, p = 0; i < 1024; i++) {
         auto note = new NoteViewModel;
         note->setPosition(p);
         note->setLength(240 + distribution(generator));
@@ -229,6 +230,8 @@ int main(int argc, char *argv[]) {
         note->setLyric(QString::number(i));
         noteSequenceViewModel.insertItem(note);
     }
+
+    PianoRollNoteAreaBehaviorViewModel pianoRollNoteAreaBehaviorViewModel;
 
     auto v1 = new QQuickView;
     v1->engine()->addImportPath("qrc:/");
@@ -247,6 +250,7 @@ int main(int argc, char *argv[]) {
         {"labelSequenceBehaviorViewModel", QVariant::fromValue(&labelSequenceBehaviorViewModel)},
         {"arrangementLabelSequenceBehaviorViewModel", QVariant::fromValue(&arrangementLabelSequenceBehaviorViewModel)},
         {"noteSequenceViewModel", QVariant::fromValue(&noteSequenceViewModel)},
+        {"pianoRollNoteAreaBehaviorViewModel", QVariant::fromValue(&pianoRollNoteAreaBehaviorViewModel)}
     });
     v1->setSource(QUrl("qrc:/dev/sjimo/ScopicFlow/Test/main.qml"));
     v1->setResizeMode(QQuickView::SizeRootObjectToView);

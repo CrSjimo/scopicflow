@@ -13,7 +13,8 @@ Pane {
     property QtObject scrollBehaviorViewModel: null
     property QtObject animationViewModel: null
     property QtObject noteSequenceViewModel: null
-        property double topMargin: 0
+    property QtObject pianoRollNoteAreaBehaviorViewModel: null
+    property double topMargin: 0
     property double bottomMargin: 0
 
     padding: 0
@@ -29,7 +30,8 @@ Pane {
         scrollBehaviorViewModel: control.scrollBehaviorViewModel
         animationViewModel: control.animationViewModel
         noteSequenceViewModel: control.noteSequenceViewModel
-                topMargin: control.topMargin
+        pianoRollNoteAreaBehaviorViewModel: control.pianoRollNoteAreaBehaviorViewModel
+        topMargin: control.topMargin
         bottomMargin: control.bottomMargin
     }
 }

@@ -20,6 +20,7 @@ Item {
     required property QtObject scrollBehaviorViewModel
     required property QtObject animationViewModel
     required property QtObject noteSequenceViewModel
+    required property QtObject pianoRollNoteAreaBehaviorViewModel
 
     SplitView {
         anchors.fill: parent
@@ -165,7 +166,9 @@ Item {
                         clavierViewModel: main.clavierViewModel
                         scrollBehaviorViewModel: main.scrollBehaviorViewModel
                         animationViewModel: main.animationViewModel
-                                                noteSequenceViewModel: main.noteSequenceViewModel
+                        noteSequenceViewModel: main.noteSequenceViewModel
+                        pianoRollNoteAreaBehaviorViewModel: main.pianoRollNoteAreaBehaviorViewModel
+
                         bottomMargin: height - parent.height
                     }
                 }

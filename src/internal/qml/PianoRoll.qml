@@ -109,6 +109,7 @@ Item {
         clavierViewModel: pianoRoll.clavierViewModel
         animationViewModel: pianoRoll.animationViewModel
         noteSequenceViewModel: pianoRoll.noteSequenceViewModel
+        pianoRollNoteAreaBehaviorViewModel: pianoRoll.pianoRollNoteAreaBehaviorViewModel
         stylesheet: pianoRoll.stylesheet
     }
 

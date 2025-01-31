@@ -1,5 +1,6 @@
 import QtQml
 import QtQuick
+import QtQuick.Controls.Basic
 
 import dev.sjimo.ScopicFlow.Internal
 
@@ -15,6 +16,26 @@ Item {
     required property rect viewport
 
     required property QtObject stylesheet
+    readonly property QtObject popupEditStyleItem: stylesheet.popupEdit.createObject(noteArea)
+
+    function ensureCurrentItemVisible() {
+        if (noteSequenceViewModel?.handle.currentItem && pianoRollNoteAreaBehaviorViewModel?.editing) {
+            timeManipulator.ensureVisible(noteSequenceViewModel.handle.currentItem.position, noteSequenceViewModel.handle.currentItem.length)
+        }
+    }
+
+    Connections {
+        target: noteArea.noteSequenceViewModel?.handle
+        function onCurrentItemChanged() {
+            noteArea.ensureCurrentItemVisible()
+        }
+    }
+    Connections {
+        target: noteArea.pianoRollNoteAreaBehaviorViewModel
+        function onEditingChanged() {
+            noteArea.ensureCurrentItemVisible()
+        }
+    }
 
     function moveSelectionTo(position, key, model) {
         if (position !== model.position) {
@@ -90,7 +111,9 @@ Item {
             delegate: Rectangle {
                 id: noteRect
                 required property QtObject model
-                property bool current: false
+                property bool current: {current = model === noteArea.noteSequenceViewModel.handle.currentItem}
+                property bool editing: popup.opened
+                property bool editingRequired: {editingRequired = (noteArea.pianoRollNoteAreaBehaviorViewModel?.editing ?? false) && current}
                 property QtObject noteStyleItem: {noteStyleItem = noteArea.stylesheet.pianoRollNoteArea.createObject(noteRect, {noteViewModel: model, current})}
                 Binding {
                     when: noteRect.visible
@@ -98,11 +121,26 @@ Item {
                     noteRect.y: (127 - noteRect.model.key) * (noteArea.clavierViewModel?.pixelDensity ?? 0)
                     noteRect.width: noteRect.model.length * (noteArea.timeLayoutViewModel?.pixelDensity ?? 0)
                     noteRect.height: (noteArea.clavierViewModel?.pixelDensity ?? 0)
-                    noteRect.current: model === noteArea.noteSequenceViewModel.handle.currentItem
+                    noteRect.current: noteArea.noteSequenceViewModel && noteRect.model === noteArea.noteSequenceViewModel.handle.currentItem
                     noteRect.noteStyleItem: noteArea.stylesheet.pianoRollNoteArea.createObject(noteArea, {noteViewModel: noteRect.model, current: noteRect.current})
+                    noteRect.editingRequired: (noteArea.pianoRollNoteAreaBehaviorViewModel?.editing ?? false) && noteRect.current
                 }
                 color: noteStyleItem.background
                 radius: 4
+                clip: true
+
+                onEditingChanged: {
+                    if (current && noteArea.pianoRollNoteAreaBehaviorViewModel) {
+                        noteArea.pianoRollNoteAreaBehaviorViewModel.editing = editing
+                    }
+                }
+
+                onEditingRequiredChanged: {
+                    if (editingRequired)
+                        popup.open()
+                    else
+                        popup.close()
+                }
 
                 Rectangle {
                     id: border
@@ -117,14 +155,26 @@ Item {
                     id: lyricText
                     anchors.left: parent.left
                     anchors.leftMargin: 4
+                    anchors.right: parent.right
+                    anchors.rightMargin: 4
                     anchors.verticalCenter: parent.verticalCenter
                     text: noteRect.model.lyric
-                    visible: noteRect.width >= width + 8
+                    clip: true
+                    elide: Text.ElideRight
                     color: noteRect.noteStyleItem.foreground
+                }
+                ItemPopupEdit {
+                    id: popup
+                    model: noteRect.model
+                    containerModel: noteArea.noteSequenceViewModel
+                    targetProperty: "lyric"
+                    styleItem: noteArea.popupEditStyleItem
+                    width: noteRect.width
                 }
                 MouseArea {
                     id: pointerMouseArea
                     anchors.fill: parent
+                    enabled: noteArea.pianoRollNoteAreaBehaviorViewModel?.mouseBehavior === PianoRollNoteAreaBehaviorViewModel.Pointer
                     acceptedButtons: Qt.LeftButton | Qt.RightButton
                     property double pressedDeltaX: 0
                     property double pressedDeltaY: 0
@@ -195,7 +245,8 @@ Item {
                     }
                     onDoubleClicked: (mouse) => {
                         if (mouse.button === Qt.LeftButton) {
-
+                            noteArea.noteSequenceViewModel.handle.currentItem = noteRect.model
+                            noteArea.pianoRollNoteAreaBehaviorViewModel.editing = true
                         }
                     }
                 }

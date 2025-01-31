@@ -9,7 +9,7 @@ Item {
     property QtObject animationViewModel: null
 
     function moveViewBy(deltaX, animated = false) {
-        if (!timeViewModel)
+        if (!timeViewModel || !timeLayoutViewModel)
             return
         let newStart = Math.max(0.0, timeViewModel.start + deltaX / timeLayoutViewModel.pixelDensity)
         let newEnd = newStart + width / timeLayoutViewModel.pixelDensity
@@ -25,7 +25,7 @@ Item {
         }
     }
     function zoomOnWheel(ratio, centerX, animated = false) {
-        if (!timeViewModel)
+        if (!timeViewModel || !timeLayoutViewModel)
             return
         let newPixelDensity = Math.min(Math.max(timeLayoutViewModel.minimumPixelDensity, timeLayoutViewModel.pixelDensity * ratio), timeLayoutViewModel.maximumPixelDensity)
         let newStart = Math.max(0.0, timeViewModel.start + centerX / timeLayoutViewModel.pixelDensity - centerX / newPixelDensity)
@@ -42,6 +42,20 @@ Item {
             pixelDensityBehavior.enabled = true
             d.centerX = centerX
             d.pixelDensity = newPixelDensity
+        }
+    }
+
+    function ensureVisible(position, length, leftPadding = 0, rightPadding = 0) {
+        if (!timeViewModel || !timeLayoutViewModel)
+            return
+        let itemRangeStart = position - leftPadding / timeLayoutViewModel.pixelDensity
+        let itemRangeEnd = position + length + rightPadding / timeLayoutViewModel.pixelDensity
+        let currentRangeStart = timeViewModel.start
+        let currentRangeEnd = timeViewModel.start + width / timeLayoutViewModel.pixelDensity
+        if (itemRangeStart < currentRangeStart) {
+            moveViewBy((itemRangeStart - currentRangeStart) * timeLayoutViewModel.pixelDensity)
+        } else if (itemRangeEnd > currentRangeEnd) {
+            moveViewBy((itemRangeEnd - currentRangeEnd) * timeLayoutViewModel.pixelDensity)
         }
     }
 

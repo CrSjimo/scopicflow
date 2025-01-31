@@ -221,10 +221,10 @@ int main(int argc, char *argv[]) {
 
     std::uniform_int_distribution<int> distribution(-60, 60);
     RangeSequenceViewModel noteSequenceViewModel;
-    for (int i = 0, k = 48, p = 0; i < 1024; i++) {
+    for (int i = 0, k = 48, p = 0; i < 4096; i++) {
         auto note = new NoteViewModel;
         note->setPosition(p);
-        note->setLength(240 + distribution(generator));
+        note->setLength(960);
         p += note->length();
         note->setKey(k = k + (distribution(generator) + (48 - k) * 5) / 20);
         note->setLyric(QString::number(i));

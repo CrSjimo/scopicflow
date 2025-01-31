@@ -25,7 +25,7 @@ Item {
     }
 
     Connections {
-        target: noteArea.noteSequenceViewModel?.handle
+        target: noteArea.noteSequenceViewModel?.handle ?? null
         function onCurrentItemChanged() {
             noteArea.ensureCurrentItemVisible()
         }
@@ -43,7 +43,7 @@ Item {
             for (let note of noteSequenceViewModel.handle.selection) {
                 if (note.position + deltaPosition < 0)
                     return
-                if (note.position + deltaPosition > timeViewModel.end)
+                if (note.position + note.length + deltaPosition > timeViewModel.end)
                     timeViewModel.end = note.position + deltaPosition
             }
             for (let note of noteSequenceViewModel.handle.selection) {
@@ -62,15 +62,97 @@ Item {
         }
     }
     function moveSelectedNotesToX(x, model) {
-        moveSelectionTo(Math.max(locator.alignTickCeil(timeViewModel.start), Math.min(locator.alignTick(locator.mapToTick(x)), locator.alignTickFloor(timeViewModel.start + width / timeLayoutViewModel.pixelDensity - model.length))), model.key, model)
+        moveSelectionTo(Math.max(Math.min(locator.alignTickCeil(timeViewModel.start), model.position), Math.min(locator.alignTick(locator.mapToTick(x)), Math.max(model.position, locator.alignTickFloor(timeViewModel.start + width / timeLayoutViewModel.pixelDensity - model.length)))), model.key, model)
     }
     function moveSelectedNotesToY(y, model) {
         moveSelectionTo(model.position, Math.max(Math.ceil(clavierViewModel.start), Math.min(Math.round(clavierViewModel.start + (height - y) / clavierViewModel.pixelDensity - 1), Math.floor(clavierViewModel.start + height / clavierViewModel.pixelDensity - 1))), model)
     }
     function moveSelectedNotesOnDragScrolling(directionX, directionY, model) {
-        let alignedTick = directionX < 0 ? locator.alignTickCeil(locator.mapToTick(0)) : directionX > 0 ? locator.alignTickFloor(locator.mapToTick(width) - model.length) : locator.alignTick(model.position)
+        let alignedTick = directionX < 0 ? Math.min(model.position, locator.alignTickCeil(locator.mapToTick(0))) : directionX > 0 ? Math.max(model.position, locator.alignTickFloor(locator.mapToTick(width) - model.length)) : model.position
         let key = directionY > 0 ? Math.ceil(clavierViewModel.start) : directionY < 0 ? Math.floor(clavierViewModel.start + height / clavierViewModel.pixelDensity - 1) : model.key
         moveSelectionTo(alignedTick, key, model)
+    }
+    function extendSelectionLeftTo(position, model, unitedExtendItem, unitedExtendRestrict) {
+        if (position !== model.position) {
+            let deltaPosition = position - model.position
+            for (let note of noteSequenceViewModel.handle.selection) {
+                if (note.position + deltaPosition < 0)
+                    return
+                if (deltaPosition > note.length - timeLayoutViewModel.positionAlignment)
+                    return
+                if (note.position + deltaPosition > timeViewModel.end)
+                    timeViewModel.end = note.position + deltaPosition
+            }
+            if (unitedExtendRestrict) {
+                let note = noteSequenceViewModel.handle.selection[0]
+                let previousNote = noteSequenceViewModel.handle.previousItem(note)
+                if (previousNote === unitedExtendItem && previousNote.position + previousNote.length === note.position && previousNote.length + deltaPosition <= unitedExtendRestrict && previousNote.length + deltaPosition >= timeLayoutViewModel.positionAlignment) {
+                    previousNote.length += deltaPosition
+                }
+            }
+            for (let note of noteSequenceViewModel.handle.selection) {
+                note.position += deltaPosition
+                note.length -= deltaPosition
+            }
+        }
+    }
+    function extendSelectionRightTo(position, model, unitedExtendItem, unitedExtendRestrict) {
+        if (position !== model.position + model.length) {
+            let deltaPosition = position - (model.position + model.length)
+            for (let note of noteSequenceViewModel.handle.selection) {
+                if (note.position + note.length + deltaPosition < 0)
+                    return
+                if (note.position + note.length + deltaPosition < note.position + timeLayoutViewModel.positionAlignment)
+                    return
+                if (note.position + note.length + deltaPosition > timeViewModel.end)
+                    timeViewModel.end = note.position + note.length + deltaPosition
+            }
+            if (unitedExtendRestrict) {
+                let note = noteSequenceViewModel.handle.selection[0]
+                let nextNote = noteSequenceViewModel.handle.nextItem(note)
+                if (nextNote === unitedExtendItem && nextNote.position === note.position + note.length && nextNote.length - deltaPosition <= unitedExtendRestrict && nextNote.length - deltaPosition >= timeLayoutViewModel.positionAlignment) {
+                    nextNote.length -= deltaPosition
+                    nextNote.position += deltaPosition
+                }
+            }
+            for (let note of noteSequenceViewModel.handle.selection) {
+                note.length += deltaPosition
+            }
+        }
+    }
+    function extendSelectedNotesToX(x, model, unitedExtendItem, unitedExtendRestrict, leftEdge) {
+        let alignedTick = locator.alignTick(locator.mapToTick(x))
+        if (leftEdge)
+            extendSelectionLeftTo(alignedTick, model, unitedExtendItem, unitedExtendRestrict)
+        else
+            extendSelectionRightTo(alignedTick, model, unitedExtendItem, unitedExtendRestrict)
+    }
+    function extendSelectedNotesOnDragScrolling(directionX, model, unitedExtendItem, unitedExtendRestrict, leftEdge) {
+        let alignedTick = directionX < 0 ? locator.alignTickCeil(locator.mapToTick(0)) : locator.alignTickFloor(locator.mapToTick(width))
+        if (leftEdge)
+            extendSelectionLeftTo(alignedTick, model, unitedExtendItem, unitedExtendRestrict)
+        else
+            extendSelectionRightTo(alignedTick, model, unitedExtendItem, unitedExtendRestrict)
+    }
+    function getUnitedExtendRestrict(model, leftEdge) {
+        if (leftEdge) {
+            if (noteSequenceViewModel.handle.selection.length === 1) {
+                let note = model
+                let previousNote = noteSequenceViewModel.handle.previousItem(note)
+                if (previousNote && previousNote.position + previousNote.length === note.position) {
+                    return previousNote
+                }
+            }
+        } else {
+            if (noteSequenceViewModel.handle.selection.length === 1) {
+                let note = model
+                let nextNote = noteSequenceViewModel.handle.nextItem(note)
+                if (nextNote && nextNote.position === note.position + note.length) {
+                    return nextNote
+                }
+            }
+        }
+        return null
     }
 
     SelectableViewModelManipulator {
@@ -170,11 +252,37 @@ Item {
                     targetProperty: "lyric"
                     styleItem: noteArea.popupEditStyleItem
                     width: noteRect.width
+                    radius: noteRect.radius
+                }
+                Connections {
+                    id: cursorIndicatorLeftBinding
+                    target: noteRect.model
+                    enabled: false
+                    function onPositionChanged() {
+                        noteArea.timeLayoutViewModel.cursorPosition = noteRect.model.position
+                    }
+                    function onKeyChanged() {
+                        noteArea.clavierViewModel.cursorPosition = noteRect.model.key
+                    }
+                }
+                Connections {
+                    id: cursorIndicatorRightBinding
+                    target: noteRect.model
+                    enabled: false
+                    function onPositionChanged() {
+                        noteArea.timeLayoutViewModel.cursorPosition = noteRect.model.position + noteRect.model.length
+                    }
+                    function onLengthChanged() {
+                        noteArea.timeLayoutViewModel.cursorPosition = noteRect.model.position + noteRect.model.length
+                    }
+                    function onKeyChanged() {
+                        noteArea.clavierViewModel.cursorPosition = noteRect.model.key
+                    }
                 }
                 MouseArea {
                     id: pointerMouseArea
                     anchors.fill: parent
-                    enabled: noteArea.pianoRollNoteAreaBehaviorViewModel?.mouseBehavior === PianoRollNoteAreaBehaviorViewModel.Pointer
+                    enabled: noteArea.pianoRollNoteAreaBehaviorViewModel?.mouseBehavior === PianoRollNoteAreaBehaviorViewModel.Pointer || noteArea.pianoRollNoteAreaBehaviorViewModel?.mouseBehavior === PianoRollNoteAreaBehaviorViewModel.Pen
                     acceptedButtons: Qt.LeftButton | Qt.RightButton
                     property double pressedDeltaX: 0
                     property double pressedDeltaY: 0
@@ -185,17 +293,6 @@ Item {
                             timeManipulator.moveViewBy(deltaX)
                             clavierManipulator.moveViewBy(deltaY)
                             noteArea.moveSelectedNotesOnDragScrolling(deltaX, deltaY, noteRect.model)
-                        }
-                    }
-                    Connections {
-                        id: cursorIndicatorBinding
-                        target: noteRect.model
-                        enabled: false
-                        function onPositionChanged() {
-                            noteArea.timeLayoutViewModel.cursorPosition = noteRect.model.position
-                        }
-                        function onKeyChanged() {
-                            noteArea.clavierViewModel.cursorPosition = noteRect.model.key
                         }
                     }
                     onPressed: (mouse) => {
@@ -210,12 +307,22 @@ Item {
                                 note.intermediate = true
                             }
                         }
-                        cursorIndicatorBinding.enabled = true
-                        cursorIndicatorBinding.onPositionChanged()
-                        cursorIndicatorBinding.onKeyChanged()
+                        cursorIndicatorLeftBinding.enabled = true
+                        cursorIndicatorLeftBinding.onPositionChanged()
+                        cursorIndicatorLeftBinding.onKeyChanged()
                         selectionManipulator.select(noteRect.model, Qt.RightButton, mouse.modifiers)
                         let parentPoint = noteRect.mapToItem(noteArea, mouse.x, mouse.y)
-                        dragScroller.determine(parentPoint.x, noteArea.width - width, parentPoint.y - height, noteArea.height - height, (triggeredX, triggeredY) => {
+                        let deltaX = 0
+                        if (parentPoint.x - pressedDeltaX < 0 && parentPoint.x - pressedDeltaX + noteRect.width > noteArea.width) {
+                            deltaX = Math.min(parentPoint.x, 0) || Math.max(parentPoint.x - noteArea.width, 0)
+                        } else if (parentPoint.x - pressedDeltaX < 0) {
+                            deltaX = Math.min(parentPoint.x, 0)
+                        } else if (parentPoint.x - pressedDeltaX + noteRect.width > noteArea.width) {
+                            deltaX = Math.max(parentPoint.x - noteArea.width, 0)
+                        } else {
+                            deltaX = 0
+                        }
+                        dragScroller.determine(deltaX, 0, parentPoint.y - pressedDeltaY - height, noteArea.height - height, (triggeredX, triggeredY) => {
                             if (!triggeredX) {
                                 noteArea.moveSelectedNotesToX(parentPoint.x - pressedDeltaX, noteRect.model)
                             }
@@ -232,7 +339,7 @@ Item {
                             }
                         }
                         dragScroller.running = false
-                        cursorIndicatorBinding.enabled = false
+                        cursorIndicatorLeftBinding.enabled = false
                         noteArea.timeLayoutViewModel.cursorPosition = -1
                         noteArea.clavierViewModel.cursorPosition = -1
                     }
@@ -250,7 +357,90 @@ Item {
                         }
                     }
                 }
-
+                Repeater {
+                    model: 2
+                    MouseArea {
+                        id: edgeMouseArea
+                        required property int index
+                        readonly property bool leftEdge: index
+                        anchors.top: parent.top
+                        anchors.left: leftEdge ? parent.left : undefined
+                        anchors.right: leftEdge ? undefined : parent.right
+                        anchors.bottom: parent.bottom
+                        width: 2
+                        enabled: pointerMouseArea.enabled
+                        cursorShape: Qt.SizeHorCursor
+                        property bool dragged: false
+                        property int unitedExtendRestrict: 0
+                        property QtObject unitedExtendItem: null
+                        DragScroller {
+                            id: edgeDragScroller
+                            onMoved: function (deltaX) {
+                                timeManipulator.moveViewBy(deltaX)
+                                noteArea.extendSelectedNotesOnDragScrolling(deltaX, noteRect.model, parent.unitedExtendItem, parent.unitedExtendRestrict, parent.leftEdge)
+                            }
+                        }
+                        onPressed: (mouse) => {
+                            dragged = false
+                            let united = (Boolean(mouse.modifiers & Qt.ShiftModifier) !== Boolean(noteArea.pianoRollNoteAreaBehaviorViewModel.unitedExtend))
+                            if (united) {
+                                unitedExtendItem = noteArea.getUnitedExtendRestrict(noteRect.model, leftEdge)
+                                unitedExtendRestrict = unitedExtendItem.length
+                            } else {
+                                unitedExtendItem = null
+                                unitedExtendRestrict = 0
+                            }
+                        }
+                        onPositionChanged: (mouse) => {
+                            if (!dragged) {
+                                dragged = true
+                                for (let note of noteArea.noteSequenceViewModel.handle.selection) {
+                                    note.intermediate = true
+                                }
+                            }
+                            if (leftEdge) {
+                                cursorIndicatorLeftBinding.enabled = true
+                                cursorIndicatorLeftBinding.onPositionChanged()
+                                cursorIndicatorLeftBinding.onKeyChanged()
+                            } else {
+                                cursorIndicatorRightBinding.enabled = true
+                                cursorIndicatorRightBinding.onPositionChanged()
+                                cursorIndicatorRightBinding.onKeyChanged()
+                            }
+                            selectionManipulator.select(noteRect.model, Qt.RightButton, unitedExtendRestrict ? (mouse.modifiers & ~Qt.ShiftModifier) : mouse.modifiers)
+                            let parentX = mapToItem(noteArea, mouse.x, mouse.y).x
+                            edgeDragScroller.determine(parentX, noteArea.width, 0, 0, (triggered) => {
+                                if (!triggered) {
+                                    noteArea.extendSelectedNotesToX(parentX, noteRect.model, unitedExtendItem, unitedExtendRestrict, leftEdge)
+                                }
+                            })
+                        }
+                        onReleased: canceled()
+                        onCanceled: {
+                            if (dragged) {
+                                for (let note of noteArea.noteSequenceViewModel.handle.selection) {
+                                    note.intermediate = false
+                                }
+                            }
+                            edgeDragScroller.running = false
+                            if (leftEdge) {
+                                cursorIndicatorLeftBinding.enabled = false
+                            } else {
+                                cursorIndicatorRightBinding.enabled = false
+                            }
+                            noteArea.timeLayoutViewModel.cursorPosition = -1
+                            noteArea.clavierViewModel.cursorPosition = -1
+                        }
+                        onClicked: (mouse) => {
+                            if (dragged)
+                                return
+                            pointerMouseArea.clicked(mouse)
+                        }
+                        onDoubleClicked: (mouse) => {
+                            pointerMouseArea.doubleClicked(mouse)
+                        }
+                    }
+                }
             }
         }
 

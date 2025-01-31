@@ -197,6 +197,8 @@ Item {
                 property bool editing: popup.opened
                 property bool editingRequired: {editingRequired = (noteArea.pianoRollNoteAreaBehaviorViewModel?.editing ?? false) && current}
                 property QtObject noteStyleItem: {noteStyleItem = noteArea.stylesheet.pianoRollNoteArea.createObject(noteRect, {noteViewModel: model, current})}
+                property bool willBeErased: false
+                opacity: willBeErased ? 0.5 : 1
                 Binding {
                     when: noteRect.visible
                     noteRect.x: noteRect.model.position * (noteArea.timeLayoutViewModel?.pixelDensity ?? 0)
@@ -282,7 +284,7 @@ Item {
                 MouseArea {
                     id: pointerMouseArea
                     anchors.fill: parent
-                    enabled: noteArea.pianoRollNoteAreaBehaviorViewModel?.mouseBehavior === PianoRollNoteAreaBehaviorViewModel.Pointer || noteArea.pianoRollNoteAreaBehaviorViewModel?.mouseBehavior === PianoRollNoteAreaBehaviorViewModel.Pen
+                    visible: noteArea.pianoRollNoteAreaBehaviorViewModel?.mouseBehavior === PianoRollNoteAreaBehaviorViewModel.Pointer || noteArea.pianoRollNoteAreaBehaviorViewModel?.mouseBehavior === PianoRollNoteAreaBehaviorViewModel.Pen
                     acceptedButtons: Qt.LeftButton | Qt.RightButton
                     property double pressedDeltaX: 0
                     property double pressedDeltaY: 0
@@ -368,7 +370,7 @@ Item {
                         anchors.right: leftEdge ? undefined : parent.right
                         anchors.bottom: parent.bottom
                         width: 2
-                        enabled: pointerMouseArea.enabled
+                        visible: pointerMouseArea.visible
                         cursorShape: Qt.SizeHorCursor
                         property bool dragged: false
                         property int unitedExtendRestrict: 0
@@ -441,9 +443,69 @@ Item {
                         }
                     }
                 }
+                MouseArea {
+                    id: scissorMouseArea
+                    anchors.fill: parent
+                    visible: noteArea.pianoRollNoteAreaBehaviorViewModel?.mouseBehavior === PianoRollNoteAreaBehaviorViewModel.Scissor
+                    cursorShape: Qt.UpArrowCursor // TODO scissor cursor
+                    property int pressedPosition: 0
+                    property double pressedY
+                    property bool dragged: false
+                    onPressed: (mouse) => {
+                        pressedPosition = Math.max(noteRect.model.position + noteArea.timeLayoutViewModel.positionAlignment, Math.min(locator.alignTick(locator.mapToTick(mapToItem(noteArea, mouse.x, 0).x)), noteRect.model.position + noteRect.model.length - noteArea.timeLayoutViewModel.positionAlignment))
+                        pressedY = mouse.y
+                        dragged = false
+                    }
+                    onPositionChanged: (mouse) => {
+                        if (Math.abs(mouse.y - pressedY) > 8) {
+                            dragged = true
+                            noteArea.timeLayoutViewModel.cursorPosition = pressedPosition
+                        } else {
+                            dragged = false
+                            noteArea.timeLayoutViewModel.cursorPosition = -1
+                        }
+
+                    }
+                    onReleased: (mouse) => {
+                        if (!dragged)
+                            return
+                        noteArea.timeLayoutViewModel.cursorPosition = -1
+                        // TODO emit signal
+                    }
+                    onCanceled: () => {
+                        noteArea.timeLayoutViewModel.cursorPosition = -1
+                    }
+                }
+                MouseArea {
+                    id: eraserMouseArea
+                    anchors.fill: parent
+                    visible: noteArea.pianoRollNoteAreaBehaviorViewModel?.mouseBehavior === PianoRollNoteAreaBehaviorViewModel.Eraser
+                    cursorShape: Qt.CrossCursor // TODO erasor cursor
+                    property double pressedX: 0
+                    property double pressedY: 0
+                    property bool dragged: false
+                    onPressed: (mouse) => {
+                        pressedX = mouse.x
+                        pressedY = mouse.y
+                        dragged = false
+                    }
+                    onPositionChanged: (mouse) => {
+                        if (Math.abs(mouse.x - pressedX) > 8 || Math.abs(mouse.y - pressedY) > 8) {
+                            noteRect.willBeErased = dragged = true
+                        } else {
+                            noteRect.willBeErased = dragged = false
+                        }
+                    }
+                    onReleased: (mouse) => {
+                        if (!dragged)
+                            return
+                        noteArea.noteSequenceViewModel.handle.removeItem(noteRect.model)
+                    }
+                    onCanceled: () => {
+                        noteRect.willBeErased = false
+                    }
+                }
             }
         }
-
-
     }
 }

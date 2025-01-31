@@ -323,6 +323,32 @@ int main(int argc, char *argv[]) {
         v1->engine()->collectGarbage();
     });
     win.menuBar()->addMenu(mainMenu);
+    auto pianoRollMenu = new QMenu("Piano Roll");
+    auto toolMenu = pianoRollMenu->addMenu("Tool");
+    auto pointerAction = toolMenu->addAction("Pointer", [&](bool checked) {
+        pianoRollNoteAreaBehaviorViewModel.setMouseBehavior(PianoRollNoteAreaBehaviorViewModel::Pointer);
+    });
+    pointerAction->setCheckable(true);
+    auto penAction = toolMenu->addAction("Pen", [&](bool checked) {
+        pianoRollNoteAreaBehaviorViewModel.setMouseBehavior(PianoRollNoteAreaBehaviorViewModel::Pen);
+    });
+    penAction->setCheckable(true);
+    auto eraserAction = toolMenu->addAction("Eraser", [&](bool checked) {
+        pianoRollNoteAreaBehaviorViewModel.setMouseBehavior(PianoRollNoteAreaBehaviorViewModel::Eraser);
+    });
+    eraserAction->setCheckable(true);
+    auto scissorAction = toolMenu->addAction("Scissor", [&](bool checked) {
+        pianoRollNoteAreaBehaviorViewModel.setMouseBehavior(PianoRollNoteAreaBehaviorViewModel::Scissor);
+    });
+    scissorAction->setCheckable(true);
+    QObject::connect(&pianoRollNoteAreaBehaviorViewModel, &PianoRollNoteAreaBehaviorViewModel::mouseBehaviorChanged, [&](PianoRollNoteAreaBehaviorViewModel::MouseBehavior mouseBehavior) {
+        pointerAction->setChecked(mouseBehavior == PianoRollNoteAreaBehaviorViewModel::Pointer);
+        penAction->setChecked(mouseBehavior == PianoRollNoteAreaBehaviorViewModel::Pen);
+        eraserAction->setChecked(mouseBehavior == PianoRollNoteAreaBehaviorViewModel::Eraser);
+        scissorAction->setChecked(mouseBehavior == PianoRollNoteAreaBehaviorViewModel::Scissor);
+    });
+    win.menuBar()->addMenu(pianoRollMenu);
+
 
     return a.exec();
 }

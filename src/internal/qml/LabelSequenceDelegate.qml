@@ -82,6 +82,7 @@ Rectangle {
         targetProperty: "content"
         styleItem: labelRect.popupEditStyleItem
         radius: labelRect.radius
+        removeIfEmpty: true
     }
 
 }

@@ -122,8 +122,10 @@ Item {
         width: end * pixelDensity
         clip: true
 
-        Item {
-            id: rubberBandQuasiMouseArea
+        MouseArea {
+            id: backMouseArea
+            anchors.fill: parent
+            acceptedButtons: Qt.LeftButton | Qt.RightButton
             property bool dragged: false
             property double pressedX: 0
             function doDragRubberBand(targetX) {
@@ -136,11 +138,11 @@ Item {
                     parent.doDragRubberBand(labelSequence.mapToItem(viewport, deltaX > 0 ? labelSequence.width : 0, 0).x)
                 }
             }
-            function onPressed(mouse) {
+            onPressed: (mouse) => {
                 dragged = false
                 pressedX = mouse.x
             }
-            function onPositionChanged(mouse) {
+            onPositionChanged: (mouse) => {
                 dragged = true
                 if (!rubberBandLayer.started) {
                     selectionManipulator.select(null, Qt.RightButton, mouse.modifiers)
@@ -153,11 +155,7 @@ Item {
                     }
                 })
             }
-            function onCanceled() {
-                rubberBandLayer.endSelection()
-                rubberBandDragScroller.running = false
-            }
-            function onClicked(mouse) {
+            onClicked: (mouse) => {
                 if (mouse.button === Qt.RightButton) {
                     let selection = labelSequence.labelSequenceViewModel.handle.selection
                     if (dragged && selection.length)
@@ -165,18 +163,7 @@ Item {
                     else
                         labelSequence.contextMenuRequested(Math.round(mouse.x / labelSequence.timeLayoutViewModel.pixelDensity))
                 }
-            }
-        }
-
-        MouseArea {
-            id: backMouseArea
-            anchors.fill: parent
-            acceptedButtons: Qt.LeftButton | Qt.RightButton
-            onPressed: (mouse) => rubberBandQuasiMouseArea.onPressed(mouse)
-            onPositionChanged: (mouse) => rubberBandQuasiMouseArea.onPositionChanged(mouse)
-            onClicked: (mouse) => {
-                rubberBandQuasiMouseArea.onClicked(mouse)
-                if (rubberBandQuasiMouseArea.dragged)
+                if (dragged)
                     return
                 selectionManipulator.select(null, mouse.button, mouse.modifiers)
             }
@@ -191,7 +178,10 @@ Item {
                 labelSequence.labelSequenceBehaviorViewModel.editing = true
             }
             onReleased: canceled()
-            onCanceled: rubberBandQuasiMouseArea.onCanceled()
+            onCanceled: {
+                rubberBandLayer.endSelection()
+                rubberBandDragScroller.running = false
+            }
         }
 
         Item {
@@ -216,8 +206,16 @@ Item {
                         labelRect.x: labelRect.model.position * viewport.pixelDensity
                         labelRect.z: labelRect.model.selected ? Infinity : model.position
                     }
-                    onXChanged: rubberBandLayer.insertItem(model, Qt.rect(x, 0, width, 1 << 20))
-                    onWidthChanged: rubberBandLayer.insertItem(model, Qt.rect(x, 0, width, 1 << 20))
+                    function handleRubberBand() {
+                        selectionManipulator.viewModel // Magic. Do not delete this line.
+                        if (visible)
+                            rubberBandLayer.insertItem(model, Qt.rect(x, 0, width, 1 << 20))
+                        else
+                            rubberBandLayer.removeItem(model)
+                    }
+                    onVisibleChanged: handleRubberBand()
+                    onXChanged: handleRubberBand()
+                    onWidthChanged: handleRubberBand()
                     Component.onDestruction: rubberBandLayer.removeItem(model)
 
                     MouseArea {
@@ -287,23 +285,6 @@ Item {
                     }
                 }
             }
-        }
-
-        MouseArea {
-            id: frontMouseArea
-            anchors.fill: parent
-            acceptedButtons: Qt.LeftButton | Qt.RightButton
-            onPressed: (mouse) => {
-                if (!(mouse.modifiers & Qt.ControlModifier)) {
-                    mouse.accepted = false
-                    return
-                }
-                rubberBandQuasiMouseArea.onPressed(mouse)
-            }
-            onPositionChanged: (mouse) => rubberBandQuasiMouseArea.onPositionChanged(mouse)
-            onClicked: (mouse) => rubberBandQuasiMouseArea.onClicked(mouse)
-            onReleased: canceled()
-            onCanceled: rubberBandQuasiMouseArea.onCanceled()
         }
 
         RubberBandLayer {

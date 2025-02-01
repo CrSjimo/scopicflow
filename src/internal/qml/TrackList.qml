@@ -130,26 +130,22 @@ Item {
         y: -trackList.trackListLayoutViewModel?.viewportOffset ?? 0
         height: trackListLocator.viewportHeight
 
-        Item {
-            id: rubberBandQuasiMouseArea
+        MouseArea {
+            id: backMouseArea
             anchors.fill: parent
+            acceptedButtons: Qt.LeftButton | Qt.RightButton
+            cursorShape: undefined
             property bool dragged: false
             property point pressedPoint: Qt.point(0, 0)
-            property bool pressed: false
 
             Connections {
                 target: dragScroller
-                enabled: rubberBandQuasiMouseArea.pressed
                 function onPositionChanged(x, y, modifiers) {
-                    let point = rubberBandQuasiMouseArea.mapFromItem(trackList, x, y)
-                    rubberBandQuasiMouseArea.handlePositionChanged(point.x, point.y, modifiers)
+                    let point = backMouseArea.mapFromItem(trackList, x, y)
+                    backMouseArea.handlePositionChanged(point.x, point.y, modifiers)
                 }
             }
 
-            function onPressed (mouse) {
-                dragged = false
-                pressedPoint = Qt.point(mouse.x, mouse.y)
-            }
             function handlePositionChanged(x, y, modifiers) {
                 if (!rubberBandLayer.started) {
                     selectionManipulator.select(null, Qt.RightButton, modifiers)
@@ -159,7 +155,12 @@ Item {
                 }
 
             }
-            function onPositionChanged (mouse) {
+
+            onPressed: (mouse) => {
+                dragged = false
+                pressedPoint = Qt.point(mouse.x, mouse.y)
+            }
+            onPositionChanged: (mouse) => {
                 dragged = true
                 let viewportPoint = mapToItem(trackList, mouse.x, mouse.y)
                 dragScroller.viewportPoint = viewportPoint
@@ -169,26 +170,14 @@ Item {
                         handlePositionChanged(mouse.x, mouse.y, mouse.modifiers)
                 })
             }
-            function onCanceled () {
+            onReleased: canceled()
+            onCanceled: {
                 rubberBandLayer.endSelection()
                 dragScroller.running = false
             }
-        }
-
-        MouseArea {
-            id: backMouseArea
-            anchors.fill: parent
-            acceptedButtons: Qt.LeftButton | Qt.RightButton
-            cursorShape: undefined
-
-            onPressedChanged: rubberBandQuasiMouseArea.pressed = pressed
-            onPressed: (mouse) => rubberBandQuasiMouseArea.onPressed(mouse)
-            onPositionChanged: (mouse) => rubberBandQuasiMouseArea.onPositionChanged(mouse)
-            onReleased: canceled()
-            onCanceled: rubberBandQuasiMouseArea.onCanceled()
 
             onClicked: function (mouse) {
-                if (rubberBandQuasiMouseArea.dragged)
+                if (dragged)
                     return
                 selectionManipulator.select(null, mouse.button, mouse.modifiers)
                 if (mouse.button & Qt.RightButton) {
@@ -301,6 +290,7 @@ Item {
                         }
                         onPositionChanged: function (mouse) {
                             dragged = true
+                            selectionManipulator.select(trackListDelegate.index, Qt.RightButton, mouse.modifiers)
                             let viewportPoint = mapToItem(trackList, mouse.x, mouse.y)
                             dragScroller.viewportPoint = viewportPoint
                             dragScroller.modifiers = mouse.modifiers
@@ -427,25 +417,6 @@ Item {
                     }
                 }
             }
-        }
-
-        MouseArea {
-            id: frontMouseArea
-            anchors.fill: parent
-            cursorShape: trackLayout.dragging ? Qt.ArrowCursor : undefined
-            acceptedButtons: Qt.LeftButton | Qt.RightButton
-
-            onPressedChanged: rubberBandQuasiMouseArea.pressed = pressed
-            onPressed: (mouse) => {
-                if (!(mouse.modifiers & Qt.ControlModifier)) {
-                    mouse.accepted = false
-                    return
-                }
-                rubberBandQuasiMouseArea.onPressed(mouse)
-            }
-            onPositionChanged: (mouse) => rubberBandQuasiMouseArea.onPositionChanged(mouse)
-            onReleased: canceled()
-            onCanceled: rubberBandQuasiMouseArea.onCanceled()
         }
 
         RubberBandLayer {

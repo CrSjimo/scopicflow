@@ -164,6 +164,8 @@ namespace sflow {
         updateOverlapped(affectedItems);
         selection.remove(item);
         QObject::disconnect(item, nullptr, q, nullptr);
+        if (item == currentItem)
+            currentItem = nullptr;
     }
     void RangeSequenceViewModelPrivate::updateOverlapped(const QObjectList &affectedItems) const {
         for (auto item : affectedItems) {
@@ -178,7 +180,7 @@ namespace sflow {
             emit q->itemSelected(item);
         } else {
             selection.remove(item);
-            emit q->itemRemoved(item);
+            emit q->itemDeselected(item);
         }
         emit handle->selectionChanged();
     }

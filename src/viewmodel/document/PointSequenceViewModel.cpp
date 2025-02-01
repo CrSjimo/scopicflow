@@ -154,6 +154,8 @@ namespace sflow {
         container.removeItem(item);
         selection.remove(item);
         QObject::disconnect(item, nullptr, q, nullptr);
+        if (item == currentItem)
+            currentItem = nullptr;
     }
     void PointSequenceViewModelPrivate::handleItemSelectedChanged() {
         Q_Q(PointSequenceViewModel);
@@ -163,7 +165,7 @@ namespace sflow {
             emit q->itemSelected(item);
         } else {
             selection.remove(item);
-            emit q->itemRemoved(item);
+            emit q->itemDeselected(item);
         }
         emit handle->selectionChanged();
     }

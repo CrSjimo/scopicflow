@@ -17,6 +17,8 @@ Item {
     property QtObject noteSequenceViewModel: null
     property QtObject pianoRollNoteAreaBehaviorViewModel: null
 
+    property list<Component> viewItems: []
+
     property bool active: false
 
     property QtObject stylesheet: PianoRollStylesheet {}
@@ -99,18 +101,19 @@ Item {
         segmentScaleColor: pianoRoll.pianoRollStyleItem.segmentScale
     }
 
-
-    PianoRollNoteArea {
+    onViewItemsChanged: () => {
+        for (let item of viewLayer.children) {
+            item.destroy()
+        }
+        for (let component of viewItems) {
+            let item = component.createObject(viewLayer, {viewport: pianoRoll.viewport})
+            item.viewport = Qt.binding(() => pianoRoll.viewport)
+        }
+    }
+    Item {
+        id: viewLayer
         anchors.fill: parent
         anchors.bottomMargin: pianoRoll.bottomMargin
-        viewport: pianoRoll.viewport
-        timeViewModel: pianoRoll.timeViewModel
-        timeLayoutViewModel: pianoRoll.timeLayoutViewModel
-        clavierViewModel: pianoRoll.clavierViewModel
-        animationViewModel: pianoRoll.animationViewModel
-        noteSequenceViewModel: pianoRoll.noteSequenceViewModel
-        pianoRollNoteAreaBehaviorViewModel: pianoRoll.pianoRollNoteAreaBehaviorViewModel
-        stylesheet: pianoRoll.stylesheet
     }
 
     Rectangle {

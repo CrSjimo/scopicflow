@@ -12,10 +12,11 @@ Pane {
     property QtObject clavierViewModel: null
     property QtObject scrollBehaviorViewModel: null
     property QtObject animationViewModel: null
-    property QtObject noteSequenceViewModel: null
-    property QtObject pianoRollNoteAreaBehaviorViewModel: null
+
     property double topMargin: 0
     property double bottomMargin: 0
+
+    property list<Component> viewItems: []
 
     padding: 0
     focusPolicy: Qt.StrongFocus
@@ -29,8 +30,9 @@ Pane {
         clavierViewModel: control.clavierViewModel
         scrollBehaviorViewModel: control.scrollBehaviorViewModel
         animationViewModel: control.animationViewModel
-        noteSequenceViewModel: control.noteSequenceViewModel
-        pianoRollNoteAreaBehaviorViewModel: control.pianoRollNoteAreaBehaviorViewModel
+
+        viewItems: control.viewItems
+
         topMargin: control.topMargin
         bottomMargin: control.bottomMargin
     }

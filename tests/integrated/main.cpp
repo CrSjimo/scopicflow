@@ -231,7 +231,34 @@ int main(int argc, char *argv[]) {
         noteSequenceViewModel.insertItem(note);
     }
 
+    RangeSequenceViewModel backNoteSequenceViewModel;
+    for (int i = 0, k = 48, p = 0; i < 256; i++) {
+        auto note = new NoteViewModel;
+        note->setPosition(p);
+        note->setLength(960);
+        p += note->length();
+        note->setKey(k = k + (distribution(generator) + (48 - k) * 5) / 20);
+        note->setLyric(QString::number(i));
+        backNoteSequenceViewModel.insertItem(note);
+    }
+
     PianoRollNoteAreaBehaviorViewModel pianoRollNoteAreaBehaviorViewModel;
+    pianoRollNoteAreaBehaviorViewModel.setColor({0x34, 0x98, 0xcb});
+    QObject::connect(&trackListViewModel, &ListViewModel::currentIndexChanged, [&](int index) {
+        pianoRollNoteAreaBehaviorViewModel.setColor(trackListViewModel.items()[index]->property("color").value<QColor>());
+    });
+    pianoRollNoteAreaBehaviorViewModel.setLengthHint(960);
+    PianoRollNoteAreaBehaviorViewModel backPianoRollNoteAreaBehaviorViewModel;
+    backPianoRollNoteAreaBehaviorViewModel.setColor({0x34, 0x98, 0xcb});
+    backPianoRollNoteAreaBehaviorViewModel.setMouseBehavior(PianoRollNoteAreaBehaviorViewModel::None);
+    backPianoRollNoteAreaBehaviorViewModel.setCompactDisplay(true);
+
+    QObject::connect(&noteSequenceViewModel, &RangeSequenceViewModel::itemInserted, [&](QObject *item) {
+        item->setProperty("lyric", "a");
+    });
+    QObject::connect(&noteSequenceViewModel, &RangeSequenceViewModel::itemRemoved, [&](QObject *item) {
+        item->deleteLater();
+    });
 
     auto v1 = new QQuickView;
     v1->engine()->addImportPath("qrc:/");
@@ -250,7 +277,9 @@ int main(int argc, char *argv[]) {
         {"labelSequenceBehaviorViewModel", QVariant::fromValue(&labelSequenceBehaviorViewModel)},
         {"arrangementLabelSequenceBehaviorViewModel", QVariant::fromValue(&arrangementLabelSequenceBehaviorViewModel)},
         {"noteSequenceViewModel", QVariant::fromValue(&noteSequenceViewModel)},
-        {"pianoRollNoteAreaBehaviorViewModel", QVariant::fromValue(&pianoRollNoteAreaBehaviorViewModel)}
+        {"pianoRollNoteAreaBehaviorViewModel", QVariant::fromValue(&pianoRollNoteAreaBehaviorViewModel)},
+        {"backNoteSequenceViewModel", QVariant::fromValue(&backNoteSequenceViewModel)},
+        {"backPianoRollNoteAreaBehaviorViewModel", QVariant::fromValue(&backPianoRollNoteAreaBehaviorViewModel)}
     });
     v1->setSource(QUrl("qrc:/dev/sjimo/ScopicFlow/Test/main.qml"));
     v1->setResizeMode(QQuickView::SizeRootObjectToView);

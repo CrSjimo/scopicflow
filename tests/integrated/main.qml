@@ -21,6 +21,8 @@ Item {
     required property QtObject animationViewModel
     required property QtObject noteSequenceViewModel
     required property QtObject pianoRollNoteAreaBehaviorViewModel
+    required property QtObject backNoteSequenceViewModel
+    required property QtObject backPianoRollNoteAreaBehaviorViewModel
 
     SplitView {
         anchors.fill: parent
@@ -166,8 +168,34 @@ Item {
                         clavierViewModel: main.clavierViewModel
                         scrollBehaviorViewModel: main.scrollBehaviorViewModel
                         animationViewModel: main.animationViewModel
-                        noteSequenceViewModel: main.noteSequenceViewModel
-                        pianoRollNoteAreaBehaviorViewModel: main.pianoRollNoteAreaBehaviorViewModel
+
+                        viewItems: [
+                            Component {
+                                PianoRollNoteArea {
+                                    anchors.fill: parent
+                                    z: 2
+                                    timeViewModel: main.timeViewModel
+                                    timeLayoutViewModel: main.timeLayoutViewModel
+                                    clavierViewModel: main.clavierViewModel
+                                    animationViewModel: main.animationViewModel
+                                    noteSequenceViewModel: main.noteSequenceViewModel
+                                    pianoRollNoteAreaBehaviorViewModel: main.pianoRollNoteAreaBehaviorViewModel
+                                }
+                            },
+                            Component {
+                                PianoRollNoteArea {
+                                    anchors.fill: parent
+                                    opacity: 0.5
+                                    z: 1
+                                    timeViewModel: main.timeViewModel
+                                    timeLayoutViewModel: main.timeLayoutViewModel
+                                    clavierViewModel: main.clavierViewModel
+                                    animationViewModel: main.animationViewModel
+                                    noteSequenceViewModel: main.backNoteSequenceViewModel
+                                    pianoRollNoteAreaBehaviorViewModel: main.backPianoRollNoteAreaBehaviorViewModel
+                                }
+                            }
+                        ]
 
                         bottomMargin: height - parent.height
                     }

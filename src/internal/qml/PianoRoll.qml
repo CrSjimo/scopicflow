@@ -69,9 +69,9 @@ Item {
 
     Item {
         id: backgroundViewport
-        x: pianoRoll.viewport.x
+        anchors.left: parent.left
+        anchors.right: parent.right
         y: pianoRoll.viewport.y
-        width: pianoRoll.viewport.width
         height: pianoRoll.viewport.height
 
         Repeater {
@@ -105,6 +105,8 @@ Item {
         for (let item of viewLayer.children) {
             item.destroy()
         }
+        if (!viewItems)
+            return
         for (let component of viewItems) {
             let item = component.createObject(viewLayer, {viewport: pianoRoll.viewport})
             item.viewport = Qt.binding(() => pianoRoll.viewport)

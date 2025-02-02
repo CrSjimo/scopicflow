@@ -200,6 +200,8 @@ Item {
             return Qt.point(p.x / noteArea.timeLayoutViewModel.pixelDensity, (viewport.height - p.y) / noteArea.clavierViewModel.pixelDensity)
         }
         function rubberBandPointToViewportPoint(p) {
+            if (!noteArea.timeLayoutViewModel)
+                return Qt.point(0, 0)
             return Qt.point(p.x * noteArea.timeLayoutViewModel.pixelDensity, viewport.height - p.y * noteArea.clavierViewModel.pixelDensity)
         }
     }

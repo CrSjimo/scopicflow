@@ -456,7 +456,6 @@ Item {
                         anchors.verticalCenter: parent.verticalCenter
                         text: noteRect.model.lyric
                         clip: true
-                        elide: Text.ElideRight
                         color: noteRect.noteStyleItem.foreground
                         Behavior on color {
                             ColorAnimation {
@@ -471,7 +470,10 @@ Item {
                         containerModel: noteArea.noteSequenceViewModel
                         targetProperty: "lyric"
                         styleItem: noteArea.popupEditStyleItem
-                        width: noteRect.width
+                        Binding {
+                            when: popup.opened
+                            popup.width: noteRect.width
+                        }
                         radius: background.radius
                     }
                     Connections {

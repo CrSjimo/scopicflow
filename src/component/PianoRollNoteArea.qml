@@ -15,6 +15,11 @@ Item {
 
     required property rect viewport
 
+    signal noteCut(model: QtObject, position: int)
+    signal noteContextMenuRequired(model: QtObject)
+    signal doubleClicked(position: int, key: int)
+    signal contextMenuRequired(position: int, key: int)
+
     ScopicFlowInternal.PianoRollNoteArea {
         id: noteArea
         anchors.fill: parent
@@ -27,5 +32,10 @@ Item {
         pianoRollNoteAreaBehaviorViewModel: area.pianoRollNoteAreaBehaviorViewModel
 
         viewport: area.viewport
+
+        onNoteCut: (model, position) => area.noteCut(model, position)
+        onNoteContextMenuRequired: (model) => area.noteContextMenuRequired(model)
+        onDoubleClicked: (position, key) => area.doubleClicked(position, key)
+        onContextMenuRequired: (position, key) => area.contextMenuRequired(position, key)
     }
 }

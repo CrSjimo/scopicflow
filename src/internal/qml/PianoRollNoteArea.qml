@@ -20,6 +20,11 @@ Item {
     readonly property QtObject popupEditStyleItem: stylesheet.popupEdit.createObject(noteArea)
     readonly property QtObject rubberBandStyleItem: stylesheet.rubberBand.createObject(noteArea)
 
+    signal noteCut(model: QtObject, position: int)
+    signal noteContextMenuRequired(model: QtObject)
+    signal doubleClicked(position: int, key: int)
+    signal contextMenuRequired(position: int, key: int)
+
     function ensureCurrentItemVisible() {
         if (noteSequenceViewModel?.handle.currentItem && pianoRollNoteAreaBehaviorViewModel?.editing) {
             timeManipulator.ensureVisible(noteSequenceViewModel.handle.currentItem.position, noteSequenceViewModel.handle.currentItem.length)
@@ -214,6 +219,17 @@ Item {
         height: noteArea.viewport.height
 
         MouseArea {
+            id: backRightButtonMouseArea
+            anchors.fill: parent
+            visible: noteArea.pianoRollNoteAreaBehaviorViewModel?.mouseBehavior !== PianoRollNoteAreaBehaviorViewModel.None
+            acceptedButtons: Qt.RightButton
+            onClicked: (mouse) => {
+                selectionManipulator.select(null, mouse.button, mouse.modifiers)
+                let parentPoint = mapToItem(noteArea, mouse.x, mouse.y);
+                noteArea.contextMenuRequired(timeLocator.mapToTick(parentPoint.x), clavierLocator.mapToKey(parentPoint.y))
+            }
+        }
+        MouseArea {
             id: backPointerMouseArea
             anchors.fill: parent
             visible: noteArea.pianoRollNoteAreaBehaviorViewModel?.mouseBehavior === PianoRollNoteAreaBehaviorViewModel.Pointer
@@ -265,14 +281,13 @@ Item {
                 rubberBandDragScroller.running = false
             }
             onClicked: (mouse) => {
-                if (mouse.button === Qt.RightButton) {
-
-                } else {
-                    if (!dragged) {
-                        selectionManipulator.select(null, mouse.button, mouse.modifiers)
-                    }
+                if (!dragged) {
+                    selectionManipulator.select(null, mouse.button, mouse.modifiers)
                 }
-
+            }
+            onDoubleClicked: (mouse) => {
+                let parentPoint = mapToItem(noteArea, mouse.x, mouse.y);
+                noteArea.doubleClicked(timeLocator.mapToTick(parentPoint.x), clavierLocator.mapToKey(parentPoint.y))
             }
         }
 
@@ -504,10 +519,19 @@ Item {
                         }
                     }
                     MouseArea {
+                        id: rightButtonMouseArea
+                        anchors.fill: parent
+                        visible: noteArea.pianoRollNoteAreaBehaviorViewModel?.mouseBehavior !== PianoRollNoteAreaBehaviorViewModel.None
+                        acceptedButtons: Qt.RightButton
+                        onClicked: (mouse) => {
+                            selectionManipulator.select(noteRect.model, mouse.button, mouse.modifiers)
+                            noteArea.noteContextMenuRequired(noteRect.model)
+                        }
+                    }
+                    MouseArea {
                         id: pointerMouseArea
                         anchors.fill: parent
                         visible: noteArea.pianoRollNoteAreaBehaviorViewModel?.mouseBehavior === PianoRollNoteAreaBehaviorViewModel.Pointer || noteArea.pianoRollNoteAreaBehaviorViewModel?.mouseBehavior === PianoRollNoteAreaBehaviorViewModel.Pen
-                        acceptedButtons: Qt.LeftButton | Qt.RightButton
                         property double pressedDeltaX: 0
                         property double pressedDeltaY: 0
                         property bool dragged: false
@@ -571,15 +595,10 @@ Item {
                         onClicked: (mouse) => {
                             if (!dragged)
                                 selectionManipulator.select(model, mouse.button, mouse.modifiers)
-                            if (mouse.button === Qt.RightButton) {
-
-                            }
                         }
                         onDoubleClicked: (mouse) => {
-                            if (mouse.button === Qt.LeftButton) {
-                                noteArea.noteSequenceViewModel.handle.currentItem = noteRect.model
-                                noteArea.pianoRollNoteAreaBehaviorViewModel.editing = true
-                            }
+                            noteArea.noteSequenceViewModel.handle.currentItem = noteRect.model
+                            noteArea.pianoRollNoteAreaBehaviorViewModel.editing = true
                         }
                     }
                     Repeater {
@@ -695,7 +714,7 @@ Item {
                             if (!dragged)
                                 return
                             noteArea.timeLayoutViewModel.cursorPosition = -1
-                            // TODO emit signal
+                            noteArea.noteCut(noteRect.model, pressedPosition)
                         }
                         onCanceled: () => {
                             noteArea.timeLayoutViewModel.cursorPosition = -1

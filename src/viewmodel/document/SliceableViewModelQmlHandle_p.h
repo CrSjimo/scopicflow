@@ -13,6 +13,7 @@ namespace sflow {
         explicit SliceableViewModelQmlHandle(QObject *parent = nullptr);
         ~SliceableViewModelQmlHandle() override;
 
+        virtual QObjectList items() const = 0;
         virtual QObjectList slice(int position, int length) const = 0;
         virtual int itemPosition(QObject *item) const = 0;
         virtual int itemLength(QObject *item) const;

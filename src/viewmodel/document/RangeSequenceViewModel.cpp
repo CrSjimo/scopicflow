@@ -111,6 +111,10 @@ namespace sflow {
         Q_D(const RangeSequenceViewModel);
         return d->pointSequenceContainer.lastItem();
     }
+    QObjectList RangeSequenceViewModelQmlHandle::items() const {
+        Q_D(const RangeSequenceViewModel);
+        return d->pointSequenceContainer.m_positions.keys();
+    }
     QObjectList RangeSequenceViewModelQmlHandle::selection() const {
         Q_D(const RangeSequenceViewModel);
         return QObjectList(d->selection.cbegin(), d->selection.cend());

@@ -115,6 +115,8 @@ namespace sflow {
         Q_INVOKABLE QObject *firstItem() const;
         Q_INVOKABLE QObject *lastItem() const;
 
+        QObjectList items() const override;
+
         QObjectList selection() const;
 
         Q_INVOKABLE void insertItem(QObject *item);

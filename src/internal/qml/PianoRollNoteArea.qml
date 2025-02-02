@@ -192,6 +192,18 @@ Item {
         clavierViewModel: pianoRoll.clavierViewModel
         animationViewModel: pianoRoll.animationViewModel
     }
+    PianoRollNoteAreaRubberBandHelper {
+        id: rubberBandHelper
+        noteSequenceViewModel: selectionManipulator.viewModel
+        rubberBandLayer: rubberBandLayer
+        function viewportPointToRubberBandPoint(p) {
+            return Qt.point(p.x / noteArea.timeLayoutViewModel.pixelDensity, (viewport.height - p.y) / noteArea.clavierViewModel.pixelDensity)
+        }
+        function rubberBandPointToViewportPoint(p) {
+            return Qt.point(p.x * noteArea.timeLayoutViewModel.pixelDensity, viewport.height - p.y * noteArea.clavierViewModel.pixelDensity)
+        }
+    }
+
     Item {
         id: viewport
         x: noteArea.viewport.x
@@ -208,7 +220,7 @@ Item {
             property double pressedY: 0
             property point lastTargetPoint: Qt.point(0, 0)
             function doDragRubberBand(targetPoint) {
-                rubberBandLayer.updateSelection(Qt.point(targetPoint.x, targetPoint.y))
+                rubberBandLayer.updateSelection(rubberBandHelper.viewportPointToRubberBandPoint(targetPoint))
                 lastTargetPoint = targetPoint
             }
             DragScroller {
@@ -233,7 +245,7 @@ Item {
                 dragged = true
                 if (!rubberBandLayer.started) {
                     selectionManipulator.select(null, Qt.RightButton, mouse.modifiers)
-                    rubberBandLayer.startSelection(Qt.point(pressedX, pressedY))
+                    rubberBandLayer.startSelection(rubberBandHelper.viewportPointToRubberBandPoint(Qt.point(pressedX, pressedY)))
                 }
                 let parentPoint = viewport.mapToItem(noteArea, mouse.x, mouse.y)
                 rubberBandDragScroller.determine(parentPoint.x, noteArea.width, parentPoint.y, noteArea.height, (triggeredX, triggeredY) => {
@@ -391,22 +403,6 @@ Item {
                         if (model.overlapped)
                             z = ++noteContainer.incrementZCounter
                     }
-
-                    function handleRubberBand() {
-                        selectionManipulator.viewModel // Magic. Do not delete this line.
-                        if (visible) {
-                            rubberBandLayer.insertItem(model, Qt.rect(x, y, width, height))
-                        } else {
-                            rubberBandLayer.removeItem(model)
-                        }
-                    }
-                    onVisibleChanged: handleRubberBand()
-                    onXChanged: handleRubberBand()
-                    onYChanged: handleRubberBand()
-                    onWidthChanged: handleRubberBand()
-                    onHeightChanged: handleRubberBand()
-                    Component.onCompleted: handleRubberBand()
-                    Component.onDestruction: rubberBandLayer.removeItem(model)
 
                     onEditingChanged: {
                         if (current && noteArea.pianoRollNoteAreaBehaviorViewModel) {
@@ -740,10 +736,19 @@ Item {
             id: rubberBandLayer
             anchors.fill: parent
             selectionManipulator: selectionManipulator
-            rubberBand: Rectangle {
-                color: noteArea.rubberBandStyleItem.background
-                border.width: 1
-                border.color: noteArea.rubberBandStyleItem.border
+            rubberBand: Item {
+                id: mappingAdapter
+                Rectangle {
+                    readonly property point p1: rubberBandHelper.rubberBandPointToViewportPoint(Qt.point(mappingAdapter.x, mappingAdapter.y + mappingAdapter.height))
+                    readonly property point p2: rubberBandHelper.rubberBandPointToViewportPoint(Qt.point(mappingAdapter.x + mappingAdapter.width, mappingAdapter.y))
+                    x: p1.x - mappingAdapter.x
+                    y: p1.y - mappingAdapter.y
+                    width: p2.x - p1.x
+                    height: p2.y - p1.y
+                    color: noteArea.rubberBandStyleItem.background
+                    border.width: 1
+                    border.color: noteArea.rubberBandStyleItem.border
+                }
             }
         }
     }

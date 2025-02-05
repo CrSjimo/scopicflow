@@ -40,6 +40,7 @@
 #include <ScopicFlow/LabelSequenceBehaviorViewModel.h>
 #include <ScopicFlow/RangeSequenceViewModel.h>
 #include <ScopicFlow/PianoRollNoteAreaBehaviorViewModel.h>
+#include <ScopicFlow/ClipViewModel.h>
 
 using namespace sflow;
 
@@ -260,6 +261,17 @@ int main(int argc, char *argv[]) {
         item->deleteLater();
     });
 
+    RangeSequenceViewModel clipSequenceViewModel;
+
+    for (int i = 0; i < 16; i++) {
+        auto clip = new ClipViewModel;
+        clip->setPosition(i * 480);
+        clip->setLength(1440);
+        clip->setTrackNumber(i % 8);
+        clip->setName(QString::number(i));
+        clipSequenceViewModel.insertItem(clip);
+    }
+
     auto v1 = new QQuickView;
     v1->engine()->addImportPath("qrc:/");
     v1->setInitialProperties({
@@ -279,7 +291,8 @@ int main(int argc, char *argv[]) {
         {"noteSequenceViewModel", QVariant::fromValue(&noteSequenceViewModel)},
         {"pianoRollNoteAreaBehaviorViewModel", QVariant::fromValue(&pianoRollNoteAreaBehaviorViewModel)},
         {"backNoteSequenceViewModel", QVariant::fromValue(&backNoteSequenceViewModel)},
-        {"backPianoRollNoteAreaBehaviorViewModel", QVariant::fromValue(&backPianoRollNoteAreaBehaviorViewModel)}
+        {"backPianoRollNoteAreaBehaviorViewModel", QVariant::fromValue(&backPianoRollNoteAreaBehaviorViewModel)},
+        {"clipSequenceViewModel", QVariant::fromValue(&clipSequenceViewModel)},
     });
     v1->setSource(QUrl("qrc:/dev/sjimo/ScopicFlow/Test/main.qml"));
     v1->setResizeMode(QQuickView::SizeRootObjectToView);

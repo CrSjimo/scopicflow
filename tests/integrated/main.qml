@@ -23,6 +23,7 @@ Item {
     required property QtObject pianoRollNoteAreaBehaviorViewModel
     required property QtObject backNoteSequenceViewModel
     required property QtObject backPianoRollNoteAreaBehaviorViewModel
+    required property QtObject clipSequenceViewModel
 
     SplitView {
         anchors.fill: parent
@@ -37,7 +38,7 @@ Item {
                 spacing: 0
                 Item {
                     Layout.fillWidth: true
-                    height: placeholder.y - arrangementTimeline.y
+                    height: clipPane.y - arrangementTimeline.y
                 }
                 TrackList {
                     id: trackList
@@ -91,10 +92,19 @@ Item {
                     labelSequenceBehaviorViewModel: main.arrangementLabelSequenceBehaviorViewModel
                     scrollBehaviorViewModel: main.scrollBehaviorViewModel
                     animationViewModel: main.animationViewModel
-                                    }
-                Item {
-                    id: placeholder
+                }
+                ClipPane {
+                    id: clipPane
+                    Layout.fillWidth: true
                     Layout.fillHeight: true
+                    timeViewModel: main.arrangementTimeViewModel
+                    timeLayoutViewModel: main.arrangementTimeLayoutViewModel
+                    playbackViewModel: main.playbackViewModel
+                    scrollBehaviorViewModel: main.scrollBehaviorViewModel
+                    animationViewModel: main.animationViewModel
+                    trackListViewModel: main.trackListViewModel
+                    trackListLayoutViewModel: main.trackListLayoutViewModel
+                    clipSequenceViewModel: main.clipSequenceViewModel
                 }
             }
         }
@@ -144,7 +154,7 @@ Item {
                 labelSequenceBehaviorViewModel: main.labelSequenceBehaviorViewModel
                 scrollBehaviorViewModel: main.scrollBehaviorViewModel
                 animationViewModel: main.animationViewModel
-                            }
+            }
 
             SplitView {
                 id: pianoRollSplitView

@@ -194,8 +194,8 @@ Item {
     ClavierManipulator {
         id: clavierManipulator
         anchors.fill: parent
-        clavierViewModel: pianoRoll.clavierViewModel
-        animationViewModel: pianoRoll.animationViewModel
+        clavierViewModel: noteArea.clavierViewModel
+        animationViewModel: noteArea.animationViewModel
     }
     PianoRollNoteAreaRubberBandHelper {
         id: rubberBandHelper
@@ -205,7 +205,7 @@ Item {
             return Qt.point(p.x / noteArea.timeLayoutViewModel.pixelDensity, (viewport.height - p.y) / noteArea.clavierViewModel.pixelDensity)
         }
         function rubberBandPointToViewportPoint(p) {
-            if (!noteArea.timeLayoutViewModel)
+            if (!noteArea.timeLayoutViewModel || !noteArea.clavierViewModel)
                 return Qt.point(0, 0)
             return Qt.point(p.x * noteArea.timeLayoutViewModel.pixelDensity, viewport.height - p.y * noteArea.clavierViewModel.pixelDensity)
         }
@@ -611,7 +611,7 @@ Item {
                             anchors.left: leftEdge ? parent.left : undefined
                             anchors.right: leftEdge ? undefined : parent.right
                             anchors.bottom: parent.bottom
-                            width: 2
+                            width: 4
                             visible: pointerMouseArea.visible
                             cursorShape: Qt.SizeHorCursor
                             property bool dragged: false

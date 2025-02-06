@@ -41,6 +41,7 @@
 #include <ScopicFlow/RangeSequenceViewModel.h>
 #include <ScopicFlow/PianoRollNoteAreaBehaviorViewModel.h>
 #include <ScopicFlow/ClipViewModel.h>
+#include <ScopicFlow/ClipPaneBehaviorViewModel.h>
 
 using namespace sflow;
 
@@ -262,7 +263,6 @@ int main(int argc, char *argv[]) {
     });
 
     RangeSequenceViewModel clipSequenceViewModel;
-
     for (int i = 0; i < 16; i++) {
         auto clip = new ClipViewModel;
         clip->setPosition(i * 480);
@@ -271,6 +271,9 @@ int main(int argc, char *argv[]) {
         clip->setName(QString::number(i));
         clipSequenceViewModel.insertItem(clip);
     }
+
+    ClipPaneBehaviorViewModel clipPaneBehaviorViewModel;
+    clipPaneBehaviorViewModel.setLengthHint(480);
 
     auto v1 = new QQuickView;
     v1->engine()->addImportPath("qrc:/");
@@ -293,6 +296,7 @@ int main(int argc, char *argv[]) {
         {"backNoteSequenceViewModel", QVariant::fromValue(&backNoteSequenceViewModel)},
         {"backPianoRollNoteAreaBehaviorViewModel", QVariant::fromValue(&backPianoRollNoteAreaBehaviorViewModel)},
         {"clipSequenceViewModel", QVariant::fromValue(&clipSequenceViewModel)},
+        {"clipPaneBehaviorViewModel", QVariant::fromValue(&clipPaneBehaviorViewModel)},
     });
     v1->setSource(QUrl("qrc:/dev/sjimo/ScopicFlow/Test/main.qml"));
     v1->setResizeMode(QQuickView::SizeRootObjectToView);
@@ -365,6 +369,7 @@ int main(int argc, char *argv[]) {
         v1->engine()->collectGarbage();
     });
     win.menuBar()->addMenu(mainMenu);
+    
     auto pianoRollMenu = new QMenu("Piano Roll");
     auto toolMenu = pianoRollMenu->addMenu("Tool");
     auto pointerAction = toolMenu->addAction("Pointer", [&](bool checked) {
@@ -390,6 +395,32 @@ int main(int argc, char *argv[]) {
         scissorAction->setChecked(mouseBehavior == PianoRollNoteAreaBehaviorViewModel::Scissor);
     });
     win.menuBar()->addMenu(pianoRollMenu);
+
+    auto clipPaneMenu = new QMenu("Clip Pane");
+    toolMenu = clipPaneMenu->addMenu("Tool");
+    pointerAction = toolMenu->addAction("Pointer", [&](bool checked) {
+        clipPaneBehaviorViewModel.setMouseBehavior(ClipPaneBehaviorViewModel::Pointer);
+    });
+    pointerAction->setCheckable(true);
+    penAction = toolMenu->addAction("Pen", [&](bool checked) {
+        clipPaneBehaviorViewModel.setMouseBehavior(ClipPaneBehaviorViewModel::Pen);
+    });
+    penAction->setCheckable(true);
+    eraserAction = toolMenu->addAction("Eraser", [&](bool checked) {
+        clipPaneBehaviorViewModel.setMouseBehavior(ClipPaneBehaviorViewModel::Eraser);
+    });
+    eraserAction->setCheckable(true);
+    scissorAction = toolMenu->addAction("Scissor", [&](bool checked) {
+        clipPaneBehaviorViewModel.setMouseBehavior(ClipPaneBehaviorViewModel::Scissor);
+    });
+    scissorAction->setCheckable(true);
+    QObject::connect(&clipPaneBehaviorViewModel, &ClipPaneBehaviorViewModel::mouseBehaviorChanged, [&](ClipPaneBehaviorViewModel::MouseBehavior mouseBehavior) {
+        pointerAction->setChecked(mouseBehavior == ClipPaneBehaviorViewModel::Pointer);
+        penAction->setChecked(mouseBehavior == ClipPaneBehaviorViewModel::Pen);
+        eraserAction->setChecked(mouseBehavior == ClipPaneBehaviorViewModel::Eraser);
+        scissorAction->setChecked(mouseBehavior == ClipPaneBehaviorViewModel::Scissor);
+    });
+    win.menuBar()->addMenu(clipPaneMenu);
 
 
     return a.exec();

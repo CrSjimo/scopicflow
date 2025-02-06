@@ -16,6 +16,7 @@ Item {
     property QtObject trackListViewModel: null
     property QtObject trackListLayoutViewModel: null
     property QtObject clipSequenceViewModel: null
+    property QtObject clipPaneBehaviorViewModel: null
     
     property bool active: false
 
@@ -24,8 +25,12 @@ Item {
     readonly property QtObject clipPaneStyleItem: stylesheet.clipPane.createObject(clipPane, {active})
     readonly property QtObject scrollBarStyleItem: stylesheet.scrollBar.createObject(clipPane)
     readonly property QtObject timeIndicatorsStyleItem: stylesheet.timeIndicators.createObject(clipPane)
+    readonly property QtObject rubberBandStyleItem: stylesheet.rubberBand.createObject(clipPane)
 
     clip: true
+
+    signal clipCut(model: QtObject, position: int)
+    signal doubleClicked(position: int, trackNumber: int)
 
     TimeAlignmentPositionLocator {
         id: timeLocator
@@ -53,6 +58,11 @@ Item {
         trackListLayoutViewModel: clipPane.trackListLayoutViewModel
         animationViewModel: clipPane.animationViewModel
         viewportHeight: trackListLocator.viewportHeight
+    }
+
+    SelectableViewModelManipulator {
+        id: selectionManipulator
+        viewModel: clipPane.clipSequenceViewModel
     }
     
     Rectangle {
@@ -98,9 +108,44 @@ Item {
         width: (clipPane.timeViewModel?.end ?? 0) * (clipPane.timeLayoutViewModel?.pixelDensity ?? 0)
         height: trackListLocator.viewportHeight
 
+        GenericBackPointerMouseArea {
+            id: backPointerMouseArea
+            visible: clipPane.clipPaneBehaviorViewModel?.mouseBehavior === ClipPaneBehaviorViewModel.Pointer
+            paneItem: clipPane
+            verticalManipulator: trackListManipulator
+
+            onRubberBandStartRequired: (p) => {
+                rubberBandLayer.startSelection(p)
+            }
+            onRubberBandUpdateRequired: (p) => {
+                rubberBandLayer.updateSelection(p)
+            }
+
+            onDoubleClicked: (mouse) => {
+                let parentPoint = mapToItem(clipPane, mouse.x, mouse.y);
+                clipPane.doubleClicked(timeLocator.mapToTick(parentPoint.x), trackListLocator.mapToIndex(mouse.y))
+            }
+        }
+        GenericBackPenMouseArea {
+            id: backPenMouseArea
+            visible: clipPane.clipPaneBehaviorViewModel?.mouseBehavior === ClipPaneBehaviorViewModel.Pen
+            sequenceViewModel: clipPane.clipSequenceViewModel
+            paneItem: clipPane
+            viewModelComponent: ClipViewModel {}
+            lengthHint: clipPane.clipPaneBehaviorViewModel?.lengthHint ?? 0
+            mappedYProperty: "trackNumber"
+            mapY: (y) => trackListLocator.mapToIndex(y)
+            onClicked: (mouse) => {
+                if (dragged)
+                    return
+
+            }
+        }
+
         Item {
             id: clipContainer
             anchors.fill: parent
+            property double incrementZCounter: 0
             SequenceSlicer {
                 model: clipPane.clipSequenceViewModel
                 timeViewModel: clipPane.timeViewModel
@@ -114,6 +159,11 @@ Item {
                     property QtObject clipStyleItem: {
                         clipStyleItem = clipPane.stylesheet.clip.createObject(clipRect, {clipViewModel: model, current, clipColor})
                     }
+                    opacity: eraserMouseArea.willBeErased ? 0.5 : 1
+                    function bringToFront() {
+                        if (model.overlapped)
+                            z = ++clipContainer.incrementZCounter
+                    }
                     Binding {
                         when: clipRect.visible
                         clipRect.x: clipRect.model.position * (clipPane.timeLayoutViewModel?.pixelDensity ?? 0)
@@ -121,7 +171,7 @@ Item {
                         clipRect.width: clipRect.model.length * (clipPane.timeLayoutViewModel?.pixelDensity ?? 0)
                         clipRect.height: clipPane.trackListViewModel?.handle.items[model.trackNumber].rowHeight ?? 0
                         clipRect.clipColor: clipPane.trackListViewModel?.handle.items[model.trackNumber].color ?? "white"
-                        clipRect.current: clipPane.clipSequenceViewModel.handle.currentItem === model
+                        clipRect.current: clipPane.clipSequenceViewModel?.handle.currentItem === model
                         clipRect.clipStyleItem: clipPane.stylesheet.clip.createObject(clipRect, {clipViewModel: clipRect.model, current: clipRect.current, clipColor: clipRect.clipColor})
                         clipNameLabel.x: Math.max(-(clipRect.x + viewport.x), 0)
                         clipNameLabel.visible: clipNameLabel.x + clipNameLabel.width <= clipRect.width
@@ -192,9 +242,153 @@ Item {
                             }
                         }
                     }
+
+                    Connections {
+                        id: cursorIndicatorLeftBinding
+                        target: clipRect.model
+                        enabled: false
+                        function onPositionChanged() {
+                            clipPane.timeLayoutViewModel.cursorPosition = clipRect.model.position
+                        }
+                    }
+                    Connections {
+                        id: cursorIndicatorRightBinding
+                        target: clipRect.model
+                        enabled: false
+                        function onPositionChanged() {
+                            clipPane.timeLayoutViewModel.cursorPosition = clipRect.model.position + clipRect.model.length
+                        }
+                        function onLengthChanged() {
+                            clipPane.timeLayoutViewModel.cursorPosition = clipRect.model.position + clipRect.model.length
+                        }
+                    }
+
+                    GenericPointerMouseArea {
+                        id: pointerMouseArea
+
+                        visible: clipPane.clipPaneBehaviorViewModel?.mouseBehavior === ClipPaneBehaviorViewModel.Pointer || clipPane.clipPaneBehaviorViewModel?.mouseBehavior === ClipPaneBehaviorViewModel.Pen
+                        verticalManipulator: trackListManipulator
+                        paneItem: clipPane
+                        sequenceViewModel: clipPane.clipSequenceViewModel
+                        model: clipRect.model
+
+                        onPressedChanged: () => {
+                            if (pressed) {
+                                clipRect.bringToFront()
+                                mappingOffset = 0.5 * clipPane.trackListViewModel.handle.items[model.trackNumber].rowHeight
+                            }
+                        }
+
+                        onDraggingChanged: {
+                            if (dragging) {
+                                cursorIndicatorLeftBinding.enabled = true
+                                cursorIndicatorLeftBinding.onPositionChanged()
+                            } else {
+                                cursorIndicatorLeftBinding.enabled = false
+                                clipPane.timeLayoutViewModel.cursorPosition = -1
+                            }
+                        }
+
+                        property double mappingOffset: 0
+
+                        onMoveSelectedNotesToY: (y) => {
+                            let trackCount = clipPane.trackListViewModel.handle.items.length
+                            let targetIndex = trackListLocator.mapToIndex(y + clipPane.trackListLayoutViewModel.viewportOffset + mappingOffset)
+                            if (targetIndex !== model.trackNumber) {
+                                let deltaIndex = targetIndex - model.trackNumber
+                                for (let clip of sequenceViewModel.handle.selection) {
+                                    if (clip.trackNumber + deltaIndex < 0 || clip.trackNumber + deltaIndex >= trackCount)
+                                        return
+                                }
+                                for (let clip of sequenceViewModel.handle.selection) {
+                                    clip.trackNumber += deltaIndex
+                                }
+                            }
+                        }
+
+                        onDoubleClicked: (mouse) => {
+                            clipPane.clipSequenceViewModel.handle.currentItem = model
+                        }
+                    }
+                    Repeater {
+                        model: 2
+                        GenericEdgeMouseArea {
+                            id: edgeMouseArea
+                            required property int index
+                            leftEdge: index
+                            visible: pointerMouseArea.visible
+                            unitedExtend: false
+                            unitedExtendEnabled: false
+                            model: clipRect.model
+                            sequenceViewModel: clipPane.clipSequenceViewModel
+                            paneItem: clipPane
+
+                            onPressedChanged: () => {
+                                if (pressed)
+                                    clipRect.bringToFront()
+                            }
+
+                            onDraggingChanged: () => {
+                                let binding = leftEdge ? cursorIndicatorLeftBinding : cursorIndicatorRightBinding
+                                if (dragging) {
+                                    binding.enabled = true
+                                    binding.onPositionChanged()
+                                } else {
+                                    binding.enabled = false
+                                    clipPane.timeLayoutViewModel.cursorPosition = -1
+                                }
+                            }
+
+                            onClicked: (mouse) => {
+                                if (dragged)
+                                    return
+                                pointerMouseArea.clicked(mouse)
+                            }
+                            onDoubleClicked: (mouse) => {
+                                pointerMouseArea.doubleClicked(mouse)
+                            }
+                        }
+                    }
+                    GenericScissorMouseArea {
+                        id: scissorMouseArea
+                        model: clipRect.model
+                        paneItem: clipPane
+                        visible: clipPane.clipPaneBehaviorViewModel?.mouseBehavior === ClipPaneBehaviorViewModel.Scissor
+                        onPressedChanged: () => {
+                            if (pressed)
+                                clipRect.bringToFront()
+                        }
+                        onCutPositionChanged: () => {
+                            clipPane.timeLayoutViewModel.cursorPosition = cutPosition
+                        }
+                        onReleased: (mouse) => {
+                            if (cutPosition !== -1)
+                                clipPane.clipCut(model, cutPosition)
+                        }
+                    }
+                    GenericEraserMouseArea {
+                        id: eraserMouseArea
+                        visible: clipPane.clipPaneBehaviorViewModel?.mouseBehavior === ClipPaneBehaviorViewModel.Eraser
+                        onReleased: (mouse) => {
+                            if (willBeErased)
+                                clipPane.clipSequenceViewModel.handle.removeItem(clipRect.model)
+                        }
+                    }
                 }
 
             }
+        }
+
+        RubberBandLayer {
+            id: rubberBandLayer
+            anchors.fill: parent
+            selectionManipulator: selectionManipulator
+            rubberBand: Rectangle {
+                color: clipPane.rubberBandStyleItem.background
+                border.width: 1
+                border.color: clipPane.rubberBandStyleItem.border
+            }
+
         }
 
     }

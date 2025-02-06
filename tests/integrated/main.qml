@@ -24,6 +24,7 @@ Item {
     required property QtObject backNoteSequenceViewModel
     required property QtObject backPianoRollNoteAreaBehaviorViewModel
     required property QtObject clipSequenceViewModel
+    required property QtObject clipPaneBehaviorViewModel
 
     SplitView {
         anchors.fill: parent
@@ -105,6 +106,7 @@ Item {
                     trackListViewModel: main.trackListViewModel
                     trackListLayoutViewModel: main.trackListLayoutViewModel
                     clipSequenceViewModel: main.clipSequenceViewModel
+                    clipPaneBehaviorViewModel: main.clipPaneBehaviorViewModel
                 }
             }
         }

@@ -7,6 +7,8 @@
 #include <ScopicFlow/ClavierViewModel.h>
 #include <ScopicFlow/PianoRollNoteAreaBehaviorViewModel.h>
 #include <ScopicFlow/NoteViewModel.h>
+#include <ScopicFlow/ClipPaneBehaviorViewModel.h>
+#include <ScopicFlow/ClipViewModel.h>
 
 namespace sflow {
     struct LabelViewModelForeign {
@@ -28,6 +30,16 @@ namespace sflow {
         Q_GADGET
         QML_NAMED_ELEMENT(NoteViewModel)
         QML_FOREIGN(NoteViewModel)
+    };
+    struct ClipPaneBehaviorViewModelForeign {
+        Q_GADGET
+        QML_NAMED_ELEMENT(ClipPaneBehaviorViewModel)
+        QML_FOREIGN(ClipPaneBehaviorViewModel)
+    };
+    struct ClipViewModelForeign {
+        Q_GADGET
+        QML_NAMED_ELEMENT(ClipViewModel)
+        QML_FOREIGN(ClipViewModel)
     };
 }
 

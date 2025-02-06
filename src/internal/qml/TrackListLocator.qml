@@ -10,6 +10,19 @@ Item {
     readonly property int totalHeight: map.length ? map[map.length - 1] : 0
     readonly property int viewportHeight: totalHeight + (map.length > 1 ? map[map.length - 1] - map[map.length - 2] : 0)
 
+    function mapToIndex(y) {
+        if (!trackListViewModel)
+            return 0
+        let trackCount = trackListViewModel.handle.items.length
+        let targetIndex = trackCount - 1
+        for (let i = 0; i < trackCount; i++) {
+            if (y >= map[i]) {
+                targetIndex = i
+            }
+        }
+        return targetIndex
+    }
+
     Connections {
         target: locator.trackListViewModel?.handle ?? null
         function onCountChanged() {

@@ -15,6 +15,7 @@ Pane {
     property QtObject trackListViewModel: null
     property QtObject trackListLayoutViewModel: null
     property QtObject clipSequenceViewModel: null
+    property QtObject clipPaneBehaviorViewModel: null
 
     padding: 0
     focusPolicy: Qt.StrongFocus
@@ -31,6 +32,7 @@ Pane {
         trackListViewModel: control.trackListViewModel
         trackListLayoutViewModel: control.trackListLayoutViewModel
         clipSequenceViewModel: control.clipSequenceViewModel
+        clipPaneBehaviorViewModel: control.clipPaneBehaviorViewModel
     }
 
 }

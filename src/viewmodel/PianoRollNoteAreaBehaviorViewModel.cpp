@@ -6,6 +6,7 @@ namespace sflow {
     m_unitedExtend(false),
     m_compactDisplay(false),
     m_lengthHint(0),
+    m_offset(0),
     m_mouseBehavior(Pointer) {
     }
     PianoRollNoteAreaBehaviorViewModel::~PianoRollNoteAreaBehaviorViewModel() = default;
@@ -43,6 +44,15 @@ namespace sflow {
         if (m_compactDisplay != compactDisplay) {
             m_compactDisplay = compactDisplay;
             emit compactDisplayChanged(compactDisplay);
+        }
+    }
+    int PianoRollNoteAreaBehaviorViewModel::offset() const {
+        return m_offset;
+    }
+    void PianoRollNoteAreaBehaviorViewModel::setOffset(int offset) {
+        if (m_offset != offset) {
+            m_offset = offset;
+            emit offsetChanged(offset);
         }
     }
     int PianoRollNoteAreaBehaviorViewModel::lengthHint() const {

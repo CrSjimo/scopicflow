@@ -62,11 +62,11 @@ Item {
         }
     }
     function moveSelectedLabelsTo(x, model) {
-        moveSelectionTo(locator.alignTick(locator.mapToTick(x)), model)
+        moveSelectionTo(timeLocator.alignTick(timeLocator.mapToTick(x)), model)
     }
     function moveSelectedLabelOnDragScrolling(isBackward, model) {
         let x = isBackward ? 0 : width
-        let alignedTick = isBackward ? locator.alignTickCeil(locator.mapToTick(x)) : locator.alignTickFloor(locator.mapToTick(x))
+        let alignedTick = isBackward ? timeLocator.alignTickCeil(timeLocator.mapToTick(x)) : timeLocator.alignTickFloor(timeLocator.mapToTick(x))
         moveSelectionTo(alignedTick, model)
     }
 
@@ -86,7 +86,7 @@ Item {
     }
 
     TimeAlignmentPositionLocator {
-        id: locator
+        id: timeLocator
         anchors.fill: parent
         timeViewModel: labelSequence.timeViewModel
         timeLayoutViewModel: labelSequence.timeLayoutViewModel
@@ -123,64 +123,32 @@ Item {
         clip: true
 
         MouseArea {
-            id: backMouseArea
+            id: backRightButtonMouseArea
             anchors.fill: parent
-            acceptedButtons: Qt.LeftButton | Qt.RightButton
-            property bool dragged: false
-            property double pressedX: 0
-            function doDragRubberBand(targetX) {
-                rubberBandLayer.updateSelection(Qt.point(targetX, labelSequence.height))
-            }
-            DragScroller {
-                id: rubberBandDragScroller
-                onMoved: (deltaX) => {
-                    timeManipulator.moveViewBy(deltaX)
-                    parent.doDragRubberBand(labelSequence.mapToItem(viewport, deltaX > 0 ? labelSequence.width : 0, 0).x)
-                }
-            }
-            onPressed: (mouse) => {
-                dragged = false
-                pressedX = mouse.x
-            }
-            onPositionChanged: (mouse) => {
-                dragged = true
-                if (!rubberBandLayer.started) {
-                    selectionManipulator.select(null, Qt.RightButton, mouse.modifiers)
-                    rubberBandLayer.startSelection(Qt.point(pressedX, 0))
-                }
-                let parentX = viewport.mapToItem(labelSequence, mouse.x, mouse.y).x
-                rubberBandDragScroller.determine(parentX, labelSequence.width, 0, 0, (triggered) => {
-                    if (!triggered) {
-                        doDragRubberBand(mouse.x)
-                    }
-                })
-            }
+            acceptedButtons: Qt.RightButton
             onClicked: (mouse) => {
-                if (mouse.button === Qt.RightButton) {
-                    let selection = labelSequence.labelSequenceViewModel.handle.selection
-                    if (dragged && selection.length)
-                        labelSequence.contextMenuRequestedForLabel(selection[0])
-                    else
-                        labelSequence.contextMenuRequested(Math.round(mouse.x / labelSequence.timeLayoutViewModel.pixelDensity))
-                }
-                if (dragged)
-                    return
+                labelSequence.contextMenuRequested(Math.round(mouse.x / labelSequence.timeLayoutViewModel.pixelDensity))
                 selectionManipulator.select(null, mouse.button, mouse.modifiers)
             }
+        }
+
+        GenericBackPointerMouseArea {
+            id: backPointerMouseArea
+            paneItem: labelSequence
+
+            onRubberBandStartRequired: (p) => {
+                rubberBandLayer.startSelection(Qt.point(p.x, 0))
+            }
+            onRubberBandUpdateRequired: (p) => {
+                rubberBandLayer.updateSelection(Qt.point(p.x, labelSequence.height))
+            }
             onDoubleClicked: (mouse) => {
-                if (mouse.button !== Qt.LeftButton || mouse.modifiers)
-                    return
                 let label = labelViewModelComponent.createObject(null, {
-                    position: locator.alignTick(locator.mapToTick(mapToItem(labelSequence, mouse.x, 0).x))
+                    position: timeLocator.alignTick(timeLocator.mapToTick(mapToItem(labelSequence, mouse.x, 0).x))
                 })
                 labelSequence.labelSequenceViewModel.handle.insertItem(label)
                 selectionManipulator.select(label, Qt.LeftButton, 0)
                 labelSequence.labelSequenceBehaviorViewModel.editing = true
-            }
-            onReleased: canceled()
-            onCanceled: {
-                rubberBandLayer.endSelection()
-                rubberBandDragScroller.running = false
             }
         }
 
@@ -201,6 +169,8 @@ Item {
                     stylesheet: labelSequence.stylesheet
                     anchors.top: parent.top
                     anchors.bottom: parent.bottom
+                    anchors.topMargin: 1
+                    anchors.bottomMargin: 1
                     Binding {
                         when: labelRect.visible
                         labelRect.x: labelRect.model.position * viewport.pixelDensity
@@ -218,69 +188,48 @@ Item {
                     onWidthChanged: handleRubberBand()
                     Component.onDestruction: rubberBandLayer.removeItem(model)
 
+                    Connections {
+                        id: cursorIndicatorBinding
+                        target: labelRect.model
+                        enabled: false
+                        function onPositionChanged() {
+                            labelSequence.timeLayoutViewModel.cursorPosition = labelRect.model.position
+                        }
+                    }
+
                     MouseArea {
+                        id: rightButtonMouseArea
                         anchors.fill: parent
-                        acceptedButtons: Qt.LeftButton | Qt.RightButton
-                        property double pressedDeltaX: 0
-                        property bool dragged: false
-                        DragScroller {
-                            id: labelDragScroller
-                            onMoved: function (deltaX) {
-                                timeManipulator.moveViewBy(deltaX)
-                                labelSequence.moveSelectedLabelOnDragScrolling(deltaX < 0, labelRect.model)
-                            }
-                        }
-                        Connections {
-                            id: cursorIndicatorBinding
-                            target: labelRect.model
-                            enabled: false
-                            function onPositionChanged() {
-                                labelSequence.timeLayoutViewModel.cursorPosition = labelRect.model.position
-                            }
-                        }
-                        onPressed: (mouse) => {
-                            dragged = false
-                            pressedDeltaX = mouse.x
-                        }
-                        onPositionChanged: (mouse) => {
-                            if (!dragged) {
-                                dragged = true
-                                for (let label of labelSequence.labelSequenceViewModel.handle.selection) {
-                                    label.intermediate = true
-                                }
-                            }
-                            cursorIndicatorBinding.enabled = true
-                            selectionManipulator.select(labelRect.model, Qt.RightButton, mouse.modifiers)
-                            let parentX = labelRect.mapToItem(labelSequence, mouse.x, mouse.y).x
-                            labelDragScroller.determine(parentX, labelSequence.width, 0, 0, (triggered) => {
-                                if (!triggered) {
-                                    labelSequence.moveSelectedLabelsTo(parentX - pressedDeltaX, labelRect.model)
-                                }
-                            })
-                        }
-                        onReleased: canceled()
-                        onCanceled: {
-                            if (dragged) {
-                                for (let label of labelSequence.labelSequenceViewModel.handle.selection) {
-                                    label.intermediate = false
-                                }
-                            }
-                            labelDragScroller.running = false
-                            cursorIndicatorBinding.enabled = false
-                            labelSequence.timeLayoutViewModel.cursorPosition = -1
-                        }
+                        acceptedButtons: Qt.RightButton
                         onClicked: (mouse) => {
-                            if (!dragged)
-                                selectionManipulator.select(model, mouse.button, mouse.modifiers)
-                            if (mouse.button === Qt.RightButton) {
-                                labelSequence.contextMenuRequestedForLabel(model)
+                            selectionManipulator.select(labelRect.model, mouse.button, mouse.modifiers)
+                            labelSequence.contextMenuRequestedForLabel(labelRect.model)
+                        }
+                    }
+
+                    GenericPointerMouseArea {
+                        id: pointerMouseArea
+                        paneItem: labelSequence
+                        sequenceViewModel: labelSequence.labelSequenceViewModel
+                        model: labelRect.model
+
+                        onPressedChanged: () => {
+                            
+                        }
+
+                        onDraggingChanged: {
+                            if (dragging) {
+                                cursorIndicatorBinding.enabled = true
+                                cursorIndicatorBinding.onPositionChanged()
+                            } else {
+                                cursorIndicatorBinding.enabled = false
+                                labelSequence.timeLayoutViewModel.cursorPosition = -1
                             }
                         }
+
                         onDoubleClicked: (mouse) => {
-                            if (mouse.button === Qt.LeftButton) {
-                                labelSequence.labelSequenceViewModel.handle.currentItem = labelRect.model
-                                labelSequence.labelSequenceBehaviorViewModel.editing = true
-                            }
+                            labelSequence.labelSequenceViewModel.handle.currentItem = labelRect.model
+                            labelSequence.labelSequenceBehaviorViewModel.editing = true
                         }
                     }
                 }

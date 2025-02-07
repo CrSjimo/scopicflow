@@ -12,7 +12,7 @@ MouseArea {
     property point lastTargetPoint: Qt.point(0, 0)
 
     required property Item paneItem
-    required property QtObject verticalManipulator
+    property QtObject verticalManipulator: null
 
     signal rubberBandStartRequired(p: point)
     signal rubberBandUpdateRequired(p: point)
@@ -25,7 +25,8 @@ MouseArea {
         id: rubberBandDragScroller
         onMoved: (deltaX, deltaY) => {
             timeManipulator.moveViewBy(deltaX)
-            backPointerMouseArea.verticalManipulator.moveViewBy(deltaY)
+            if (backPointerMouseArea.verticalManipulator)
+                backPointerMouseArea.verticalManipulator.moveViewBy(deltaY)
             if (deltaX !== 0) {
                 parent.doDragRubberBand(Qt.point(backPointerMouseArea.paneItem.mapToItem(backPointerMouseArea, deltaX > 0 ? backPointerMouseArea.paneItem.width : 0, 0).x, parent.lastTargetPoint.y))
             }

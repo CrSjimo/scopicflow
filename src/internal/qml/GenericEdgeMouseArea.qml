@@ -51,10 +51,10 @@ MouseArea {
             for (let note of sequenceViewModel.handle.selection) {
                 if (note.position + deltaPosition < 0)
                     return
+                if (typeof(note.clipStart) === "number" && note.clipStart + deltaPosition < 0)
+                    return
                 if (deltaPosition > note.length - timeLayoutViewModel.positionAlignment)
                     return
-                if (note.position + deltaPosition > timeViewModel.end)
-                    timeViewModel.end = note.position + deltaPosition
             }
             if (unitedExtendRestrict) {
                 let note = sequenceViewModel.handle.selection[0]
@@ -65,6 +65,8 @@ MouseArea {
             }
             for (let note of sequenceViewModel.handle.selection) {
                 note.position += deltaPosition
+                if (typeof(note.clipStart) === "number")
+                    note.clipStart += deltaPosition
                 note.length -= deltaPosition
             }
         }
@@ -77,8 +79,10 @@ MouseArea {
                     return
                 if (note.position + note.length + deltaPosition < note.position + timeLayoutViewModel.positionAlignment)
                     return
-                if (note.position + note.length + deltaPosition > timeViewModel.end)
-                    timeViewModel.end = note.position + note.length + deltaPosition
+                if (typeof(note.maxLength) === "number" && note.length + deltaPosition + (note.clipStart ?? 0) > note.maxLength)
+                    return
+                if (note.position + note.length + deltaPosition > timeLocator.timeViewModel.end)
+                    timeLocator.timeViewModel.end = note.position + note.length + deltaPosition
             }
             if (unitedExtendRestrict) {
                 let note = sequenceViewModel.handle.selection[0]

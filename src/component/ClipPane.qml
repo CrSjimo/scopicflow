@@ -17,8 +17,16 @@ Pane {
     property QtObject clipSequenceViewModel: null
     property QtObject clipPaneBehaviorViewModel: null
 
+    property Component clipGraph: null
+
     padding: 0
     focusPolicy: Qt.StrongFocus
+
+    signal clipCut(model: QtObject, position: int)
+    signal doubleClicked(position: int, trackNumber: int)
+    signal contextMenuRequired(position: int, trackNumber: int)
+    signal clipContextMenuRequired(model: QtObject)
+    signal clipDoubleClicked(model: QtObject)
 
     ScopicFlowInternal.ClipPane {
         id: clipPane
@@ -33,6 +41,15 @@ Pane {
         trackListLayoutViewModel: control.trackListLayoutViewModel
         clipSequenceViewModel: control.clipSequenceViewModel
         clipPaneBehaviorViewModel: control.clipPaneBehaviorViewModel
+
+        clipGraph: control.clipGraph
+
+        onClipCut: (model, position) => control.clipCut(model, position)
+        onDoubleClicked: (position, trackNumber) => control.doubleClicked(position, trackNumber)
+        onContextMenuRequired: (position, trackNumber) => control.contextMenuRequired(position, trackNumber)
+        onClipContextMenuRequired: (model) => control.clipContextMenuRequired(model)
+        onClipDoubleClicked: (model) => control.clipDoubleClicked(model)
+
     }
 
 }

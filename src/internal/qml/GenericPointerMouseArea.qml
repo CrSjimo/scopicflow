@@ -22,8 +22,6 @@ MouseArea {
             for (let note of sequenceViewModel.handle.selection) {
                 if (note.position + deltaPosition < 0)
                     return
-                if (note.position + note.length + deltaPosition > timeViewModel.end)
-                    timeViewModel.end = note.position + deltaPosition
             }
             for (let note of sequenceViewModel.handle.selection) {
                 note.position = note.position + deltaPosition

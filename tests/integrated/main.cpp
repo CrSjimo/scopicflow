@@ -161,6 +161,9 @@ public:
         });
         menu.exec(QCursor::pos());
     }
+    void handleClipDoubleClicked(QObject *clip) {
+
+    }
 };
 
 int main(int argc, char *argv[]) {
@@ -222,16 +225,6 @@ int main(int argc, char *argv[]) {
 
 
     std::uniform_int_distribution<int> distribution(-60, 60);
-    RangeSequenceViewModel noteSequenceViewModel;
-    for (int i = 0, k = 48, p = 0; i < 4096; i++) {
-        auto note = new NoteViewModel;
-        note->setPosition(p);
-        note->setLength(960);
-        p += note->length();
-        note->setKey(k = k + (distribution(generator) + (48 - k) * 5) / 20);
-        note->setLyric(QString::number(i));
-        noteSequenceViewModel.insertItem(note);
-    }
 
     RangeSequenceViewModel backNoteSequenceViewModel;
     for (int i = 0, k = 48, p = 0; i < 256; i++) {
@@ -255,13 +248,6 @@ int main(int argc, char *argv[]) {
     backPianoRollNoteAreaBehaviorViewModel.setMouseBehavior(PianoRollNoteAreaBehaviorViewModel::None);
     backPianoRollNoteAreaBehaviorViewModel.setCompactDisplay(true);
 
-    QObject::connect(&noteSequenceViewModel, &RangeSequenceViewModel::itemInserted, [&](QObject *item) {
-        item->setProperty("lyric", "a");
-    });
-    QObject::connect(&noteSequenceViewModel, &RangeSequenceViewModel::itemRemoved, [&](QObject *item) {
-        item->deleteLater();
-    });
-
     RangeSequenceViewModel clipSequenceViewModel;
     for (int i = 0; i < 16; i++) {
         auto clip = new ClipViewModel;
@@ -269,8 +255,32 @@ int main(int argc, char *argv[]) {
         clip->setLength(1440);
         clip->setTrackNumber(i % 8);
         clip->setName(QString::number(i));
+        auto clipNoteSequenceViewModel = new RangeSequenceViewModel;
+        for (int i = 0, k = 48, p = 0; i < 256; i++) {
+            auto note = new NoteViewModel;
+            note->setPosition(p);
+            note->setLength(960);
+            p += note->length();
+            note->setKey(k = k + (distribution(generator) + (48 - k) * 5) / 20);
+            note->setLyric(QString::number(i));
+            clipNoteSequenceViewModel->insertItem(note);
+        }
+        QObject::connect(clipNoteSequenceViewModel, &RangeSequenceViewModel::itemInserted, [&](QObject *item) {
+            item->setProperty("lyric", "a");
+        });
+        QObject::connect(clipNoteSequenceViewModel, &RangeSequenceViewModel::itemRemoved, [&](QObject *item) {
+            item->deleteLater();
+        });
+        clip->insert("noteSequenceViewModel", QVariant::fromValue(clipNoteSequenceViewModel));
         clipSequenceViewModel.insertItem(clip);
     }
+    QObject::connect(&clipSequenceViewModel, &RangeSequenceViewModel::itemInserted, [&](QObject *clip) {
+        qobject_cast<ClipViewModel *>(clip)->insert("noteSequenceViewModel", QVariant::fromValue(new RangeSequenceViewModel));
+    });
+    QObject::connect(&clipSequenceViewModel, &RangeSequenceViewModel::itemRemoved, [&](QObject *clip) {
+        clip->property("noteSequenceViewModel").value<QObject *>()->deleteLater();
+        clip->deleteLater();
+    });
 
     ClipPaneBehaviorViewModel clipPaneBehaviorViewModel;
     clipPaneBehaviorViewModel.setLengthHint(480);
@@ -291,7 +301,6 @@ int main(int argc, char *argv[]) {
         {"animationViewModel", QVariant::fromValue(&animationViewModel)},
         {"labelSequenceBehaviorViewModel", QVariant::fromValue(&labelSequenceBehaviorViewModel)},
         {"arrangementLabelSequenceBehaviorViewModel", QVariant::fromValue(&arrangementLabelSequenceBehaviorViewModel)},
-        {"noteSequenceViewModel", QVariant::fromValue(&noteSequenceViewModel)},
         {"pianoRollNoteAreaBehaviorViewModel", QVariant::fromValue(&pianoRollNoteAreaBehaviorViewModel)},
         {"backNoteSequenceViewModel", QVariant::fromValue(&backNoteSequenceViewModel)},
         {"backPianoRollNoteAreaBehaviorViewModel", QVariant::fromValue(&backPianoRollNoteAreaBehaviorViewModel)},

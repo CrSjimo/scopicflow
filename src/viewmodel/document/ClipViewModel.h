@@ -15,6 +15,8 @@ namespace sflow {
 
         int position() const;
         int length() const;
+        int clipStart() const;
+        int maxLength() const;
         int trackNumber() const;
         QString name() const;
         bool selected() const;
@@ -24,6 +26,8 @@ namespace sflow {
     public slots:
         SFLOW_VIEWMODEL_SET_FUNC void setPosition(int position);
         SFLOW_VIEWMODEL_SET_FUNC void setLength(int length);
+        SFLOW_VIEWMODEL_SET_FUNC void setClipStart(int clipStart);
+        SFLOW_VIEWMODEL_SET_FUNC void setMaxLength(int maxLength);
         SFLOW_VIEWMODEL_SET_FUNC void setTrackNumber(int trackNumber);
         SFLOW_VIEWMODEL_SET_FUNC void setName(const QString &name);
         SFLOW_VIEWMODEL_SET_FUNC void setSelected(bool selected);
@@ -35,6 +39,8 @@ namespace sflow {
     signals:
         SFLOW_VIEWMODEL_SIGNAL void positionChanged(int position);
         SFLOW_VIEWMODEL_SIGNAL void lengthChanged(int length);
+        SFLOW_VIEWMODEL_SIGNAL void clipStartChanged(int clipStart);
+        SFLOW_VIEWMODEL_SIGNAL void maxLengthChanged(int maxLength);
         SFLOW_VIEWMODEL_SIGNAL void trackNumberChanged(int trackNumber);
         SFLOW_VIEWMODEL_SIGNAL void nameChanged(const QString &name);
         SFLOW_VIEWMODEL_SIGNAL void selectedChanged(bool selected);

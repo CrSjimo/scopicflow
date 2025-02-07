@@ -20,6 +20,8 @@ Item {
     readonly property QtObject popupEditStyleItem: stylesheet.popupEdit.createObject(noteArea)
     readonly property QtObject rubberBandStyleItem: stylesheet.rubberBand.createObject(noteArea)
 
+    readonly property double offsetSize: (pianoRollNoteAreaBehaviorViewModel?.offset ?? 0) * (timeLayoutViewModel?.pixelDensity ?? 0)
+
     signal noteCut(model: QtObject, position: int)
     signal noteContextMenuRequired(model: QtObject)
     signal doubleClicked(position: int, key: int)
@@ -48,10 +50,14 @@ Item {
         id: selectionManipulator
         viewModel: noteArea.noteSequenceViewModel
     }
+    QtObject {
+        id: pseudoTimeViewModel
+        property double start: (noteArea.timeViewModel?.start ?? 0) - (noteArea.pianoRollNoteAreaBehaviorViewModel?.offset ?? 0)
+    }
     TimeAlignmentPositionLocator {
         id: timeLocator
         anchors.fill: parent
-        timeViewModel: noteArea.timeViewModel
+        timeViewModel: pseudoTimeViewModel
         timeLayoutViewModel: noteArea.timeLayoutViewModel
     }
     ClavierLocator {
@@ -77,12 +83,12 @@ Item {
         noteSequenceViewModel: selectionManipulator.viewModel
         rubberBandLayer: rubberBandLayer
         function viewportPointToRubberBandPoint(p) {
-            return Qt.point(p.x / noteArea.timeLayoutViewModel.pixelDensity, (viewport.height - p.y) / noteArea.clavierViewModel.pixelDensity)
+            return Qt.point((p.x - noteArea.offsetSize) / noteArea.timeLayoutViewModel.pixelDensity, (viewport.height - p.y) / noteArea.clavierViewModel.pixelDensity)
         }
         function rubberBandPointToViewportPoint(p) {
             if (!noteArea.timeLayoutViewModel || !noteArea.clavierViewModel)
                 return Qt.point(0, 0)
-            return Qt.point(p.x * noteArea.timeLayoutViewModel.pixelDensity, viewport.height - p.y * noteArea.clavierViewModel.pixelDensity)
+            return Qt.point(p.x * noteArea.timeLayoutViewModel.pixelDensity + noteArea.offsetSize, viewport.height - p.y * noteArea.clavierViewModel.pixelDensity)
         }
     }
 
@@ -160,7 +166,7 @@ Item {
                     opacity: eraserMouseArea.willBeErased ? 0.5 : 1
                     Binding {
                         when: noteRect.visible
-                        noteRect.x: noteRect.model.position * (noteArea.timeLayoutViewModel?.pixelDensity ?? 0)
+                        noteRect.x: noteRect.model.position * (noteArea.timeLayoutViewModel?.pixelDensity ?? 0) + noteArea.offsetSize
                         noteRect.y: (127 - noteRect.model.key) * (noteArea.clavierViewModel?.pixelDensity ?? 0)
                         noteRect.width: noteRect.model.length * (noteArea.timeLayoutViewModel?.pixelDensity ?? 0)
                         noteRect.height: (noteArea.clavierViewModel?.pixelDensity ?? 0)
@@ -255,7 +261,7 @@ Item {
                         target: noteRect.model
                         enabled: false
                         function onPositionChanged() {
-                            noteArea.timeLayoutViewModel.cursorPosition = noteRect.model.position
+                            noteArea.timeLayoutViewModel.cursorPosition = noteRect.model.position + noteArea.pianoRollNoteAreaBehaviorViewModel.offset
                         }
                         function onKeyChanged() {
                             noteArea.clavierViewModel.cursorPosition = noteRect.model.key
@@ -266,10 +272,10 @@ Item {
                         target: noteRect.model
                         enabled: false
                         function onPositionChanged() {
-                            noteArea.timeLayoutViewModel.cursorPosition = noteRect.model.position + noteRect.model.length
+                            noteArea.timeLayoutViewModel.cursorPosition = noteRect.model.position + noteRect.model.length + noteArea.pianoRollNoteAreaBehaviorViewModel.offset
                         }
                         function onLengthChanged() {
-                            noteArea.timeLayoutViewModel.cursorPosition = noteRect.model.position + noteRect.model.length
+                            noteArea.timeLayoutViewModel.cursorPosition = noteRect.model.position + noteRect.model.length + noteArea.pianoRollNoteAreaBehaviorViewModel.offset
                         }
                         function onKeyChanged() {
                             noteArea.clavierViewModel.cursorPosition = noteRect.model.key
@@ -381,7 +387,10 @@ Item {
                                 noteRect.bringToFront()
                         }
                         onCutPositionChanged: () => {
-                            noteArea.timeLayoutViewModel.cursorPosition = cutPosition
+                            if (cutPosition >= 0)
+                                noteArea.timeLayoutViewModel.cursorPosition = cutPosition + noteArea.pianoRollNoteAreaBehaviorViewModel.offset
+                            else
+                                noteArea.timeLayoutViewModel.cursorPosition = -1
                         }
                         onReleased: (mouse) => {
                             if (cutPosition !== -1)

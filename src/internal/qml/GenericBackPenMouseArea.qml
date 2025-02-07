@@ -29,7 +29,7 @@ MouseArea {
         }
     }
     function handlePositionChanged(x) {
-        let length = timeLocator.alignTick(timeLocator.mapToTick(mapToItem(paneItem, x - pressedX, 0).x))
+        let length = timeLocator.alignTick(timeLocator.mapToTick(mapToItem(paneItem, x, 0).x) - timeLocator.mapToTick(mapToItem(paneItem, pressedX, 0).x))
         if (!item) {
             let realLength = length || lengthHint
             if (realLength) {
@@ -62,6 +62,8 @@ MouseArea {
     onPositionChanged: (mouse) => {
         if (!dragged)
             dragged = true
+        if (pressedPosition < 0)
+            return
         if (!item)
             selectionManipulator.select(null, mouse.button, mouse.modifiers)
         let parentX = mapToItem(paneItem, mouse.x, 0).x

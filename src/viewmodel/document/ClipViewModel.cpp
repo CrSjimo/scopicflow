@@ -1,10 +1,13 @@
 #include "ClipViewModel.h"
 #include "ViewModelHelper_p.h"
 
+#include <limits>
+
 namespace sflow {
     ClipViewModel::ClipViewModel(QObject *parent) : QQmlPropertyMap(this, parent) {
         ViewModelHelper::initializeProperties(this);
         ViewModelHelper::connectValueChanged(this);
+        setMaxLength(std::numeric_limits<int>::max());
     }
     ClipViewModel::~ClipViewModel() = default;
 
@@ -19,6 +22,19 @@ namespace sflow {
     }
     void ClipViewModel::setLength(int length) {
         insert("length", length);
+    }
+    int ClipViewModel::clipStart() const {
+        return value("clipStart").toInt();
+    }
+    void ClipViewModel::setClipStart(int clipStart) {
+        insert("clipStart", clipStart);
+    }
+
+    int ClipViewModel::maxLength() const {
+        return value("maxLength").toInt();
+    }
+    void ClipViewModel::setMaxLength(int maxLength) {
+        insert("maxLength", maxLength);
     }
     int ClipViewModel::trackNumber() const {
         return value("trackNumber").toInt();

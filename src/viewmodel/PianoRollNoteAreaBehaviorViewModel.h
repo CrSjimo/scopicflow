@@ -14,6 +14,7 @@ namespace sflow {
         Q_PROPERTY(bool unitedExtend READ unitedExtend WRITE setUnitedExtend NOTIFY unitedExtendChanged)
         Q_PROPERTY(QColor color READ color WRITE setColor NOTIFY colorChanged)
         Q_PROPERTY(bool compactDisplay READ compactDisplay WRITE setCompactDisplay NOTIFY compactDisplayChanged)
+        Q_PROPERTY(int offset READ offset WRITE setOffset NOTIFY offsetChanged)
         Q_PROPERTY(int lengthHint READ lengthHint WRITE setLengthHint NOTIFY lengthHintChanged)
         Q_PROPERTY(sflow::PianoRollNoteAreaBehaviorViewModel::MouseBehavior mouseBehavior READ mouseBehavior WRITE setMouseBehavior NOTIFY mouseBehaviorChanged)
 
@@ -32,6 +33,9 @@ namespace sflow {
 
         bool compactDisplay() const;
         void setCompactDisplay(bool compactDisplay);
+
+        int offset() const;
+        void setOffset(int offset);
 
         int lengthHint() const;
         void setLengthHint(int lengthHint);
@@ -52,6 +56,7 @@ namespace sflow {
         void unitedExtendChanged(bool unitedExtend);
         void colorChanged(const QColor &color);
         void compactDisplayChanged(bool compactDisplay);
+        void offsetChanged(int offset);
         void lengthHintChanged(int lengthHint);
         void mouseBehaviorChanged(sflow::PianoRollNoteAreaBehaviorViewModel::MouseBehavior mouseBehavior);
 
@@ -61,9 +66,10 @@ namespace sflow {
         bool m_compactDisplay;
         QColor m_color;
         int m_lengthHint;
+        int m_offset;
         MouseBehavior m_mouseBehavior;
     };
 
-} // sflow
+}
 
 #endif //SCOPIC_FLOW_PIANOROLLNOTEAREABEHAVIORVIEWMODEL_H

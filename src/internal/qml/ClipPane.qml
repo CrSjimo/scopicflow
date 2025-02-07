@@ -21,6 +21,8 @@ Item {
     property bool active: false
 
     property QtObject stylesheet: ClipPaneStylesheet {}
+
+    property Component clipGraph: null
     
     readonly property QtObject clipPaneStyleItem: stylesheet.clipPane.createObject(clipPane, {active})
     readonly property QtObject scrollBarStyleItem: stylesheet.scrollBar.createObject(clipPane)
@@ -31,6 +33,9 @@ Item {
 
     signal clipCut(model: QtObject, position: int)
     signal doubleClicked(position: int, trackNumber: int)
+    signal contextMenuRequired(position: int, trackNumber: int)
+    signal clipContextMenuRequired(model: QtObject)
+    signal clipDoubleClicked(model: QtObject)
 
     TimeAlignmentPositionLocator {
         id: timeLocator
@@ -108,6 +113,17 @@ Item {
         width: (clipPane.timeViewModel?.end ?? 0) * (clipPane.timeLayoutViewModel?.pixelDensity ?? 0)
         height: trackListLocator.viewportHeight
 
+        MouseArea {
+            id: backRightButtonMouseArea
+            anchors.fill: parent
+            visible: clipPane.clipPaneBehaviorViewModel?.mouseBehavior !== ClipPaneBehaviorViewModel.None
+            acceptedButtons: Qt.RightButton
+            onClicked: (mouse) => {
+                selectionManipulator.select(null, mouse.button, mouse.modifiers)
+                let parentPoint = mapToItem(clipPane, mouse.x, mouse.y);
+                clipPane.contextMenuRequired(timeLocator.mapToTick(parentPoint.x), trackListLocator.mapToIndex(mouse.y))
+            }
+        }
         GenericBackPointerMouseArea {
             id: backPointerMouseArea
             visible: clipPane.clipPaneBehaviorViewModel?.mouseBehavior === ClipPaneBehaviorViewModel.Pointer
@@ -226,7 +242,28 @@ Item {
                             }
                         }
                     }
-                    // TODO graph delegate
+                    Connections {
+                        target: clipPane
+                        function onClipGraphChanged() {
+                            clipGraphContainer.load()
+                        }
+                    }
+                    Item {
+                        id: clipGraphContainer
+                        anchors.left: parent.left
+                        anchors.right: parent.right
+                        anchors.bottom: parent.bottom
+                        anchors.top: clipHeader.bottom
+                        function load() {
+                            for (let item of clipGraphContainer.children) {
+                                item.destroy()
+                            }
+                            if (!clipPane.clipGraph)
+                                return
+                            clipPane.clipGraph.createObject(clipGraphContainer, {model: clipRect.model, color: clipRect.clipStyleItem.foreground})
+                        }
+                        Component.onCompleted: load()
+                    }
                     Rectangle {
                         id: border
                         anchors.fill: clipBackground
@@ -263,6 +300,17 @@ Item {
                         }
                     }
 
+                    MouseArea {
+                        id: rightButtonMouseArea
+                        anchors.fill: parent
+                        visible: clipPane.clipPaneBehaviorViewModel?.mouseBehavior !== ClipPaneBehaviorViewModel.None
+                        acceptedButtons: Qt.RightButton
+                        onClicked: (mouse) => {
+                            selectionManipulator.select(model, mouse.button, mouse.modifiers)
+                            clipPane.clipContextMenuRequired(model)
+                        }
+
+                    }
                     GenericPointerMouseArea {
                         id: pointerMouseArea
 
@@ -308,6 +356,7 @@ Item {
 
                         onDoubleClicked: (mouse) => {
                             clipPane.clipSequenceViewModel.handle.currentItem = model
+                            clipPane.clipDoubleClicked(model)
                         }
                     }
                     Repeater {

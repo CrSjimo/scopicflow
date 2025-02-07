@@ -3,6 +3,8 @@
 
 #include <ScopicFlowInternal/private/PianoRollNoteAreaRubberBandHelper_p.h>
 
+#include <QPointer>
+
 namespace sflow {
 
     class SliceableViewModelQmlHandle;
@@ -11,9 +13,9 @@ namespace sflow {
         Q_DECLARE_PUBLIC(PianoRollNoteAreaRubberBandHelper)
     public:
         PianoRollNoteAreaRubberBandHelper *q_ptr;
-        RangeSequenceViewModel *noteSequenceViewModel = nullptr;
-        SliceableViewModelQmlHandle *handle = nullptr;
-        RubberBandLayerQuickItem *rubberBandLayer = nullptr;
+        QPointer<RangeSequenceViewModel> noteSequenceViewModel;
+        QPointer<SliceableViewModelQmlHandle> handle;
+        QPointer<RubberBandLayerQuickItem> rubberBandLayer;
 
         void handleItemUpdated();
         void handleItemUpdated(QObject *item);

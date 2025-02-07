@@ -18,22 +18,25 @@ namespace sflow {
     void SelectableViewModelManipulator::setViewModel(QObject *viewModel) {
         delete m_interface;
         m_interface = nullptr;
-        if (!viewModel) {
-            return;
-        }
-        auto metaObject = SelectableViewModelManipulatorInterface::getInterface(viewModel);
-        if (!metaObject) {
-            if (auto engine = qjsEngine(this))
-                engine->throwError(QString("Unknown view model class"));
-            return;
-        }
-        auto obj = metaObject->newInstance(viewModel, static_cast<QObject *>(this));
-        m_interface = qobject_cast<SelectableViewModelManipulatorInterface *>(obj);
-        if (!m_interface) {
-            if (auto engine = qjsEngine(this))
-                engine->throwError(QString("Invalid meta object of interface"));
-            return;
-        }
+        do {
+            if (!viewModel) {
+                break;
+            }
+            auto metaObject = SelectableViewModelManipulatorInterface::getInterface(viewModel);
+            if (!metaObject) {
+                if (auto engine = qjsEngine(this))
+                    engine->throwError(QString("Unknown view model class"));
+                break;
+            }
+            auto obj = metaObject->newInstance(viewModel, static_cast<QObject *>(this));
+            m_interface = qobject_cast<SelectableViewModelManipulatorInterface *>(obj);
+            if (!m_interface) {
+                if (auto engine = qjsEngine(this))
+                    engine->throwError(QString("Invalid meta object of interface"));
+                break;
+            }
+        } while (false);
+        emit viewModelChanged();
     }
     void SelectableViewModelManipulator::select(const QVariant &item, int button, int modifiers) const {
         if (!m_interface) {

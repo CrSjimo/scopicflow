@@ -13,8 +13,8 @@ namespace sflow {
         Q_DECLARE_PUBLIC(SequenceSlicerLoader)
     public:
         SequenceSlicerLoader *q_ptr;
-        QQmlComponent *delegate = nullptr;
-        SliceableViewModelQmlHandle *handle = nullptr;
+        QPointer<QQmlComponent> delegate;
+        QPointer<SliceableViewModelQmlHandle> handle;
         QPair<int, int> range;
 
         QHash<QObject *, QQuickItem *> visibleItems;

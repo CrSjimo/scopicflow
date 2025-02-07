@@ -11,9 +11,9 @@ namespace sflow {
     public:
         PianoRollScaleQuickItem *q_ptr;
 
-        TimeViewModel *timeViewModel = nullptr;
-        TimeLayoutViewModel *timeLayoutViewModel = nullptr;
-        QPointer<SVS::MusicTimeline> timeline = nullptr;
+        QPointer<TimeViewModel> timeViewModel;
+        QPointer<TimeLayoutViewModel> timeLayoutViewModel;
+        QPointer<SVS::MusicTimeline> timeline;
 
         QColor beatScaleColor;
         QColor barScaleColor;

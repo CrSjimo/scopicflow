@@ -9,9 +9,9 @@ namespace sflow {
     public:
         RubberBandLayerQuickItem *q_ptr;
 
-        SelectableViewModelManipulator *selectionManipulator = nullptr;
-        QQmlComponent *rubberBandComponent = nullptr;
-        QQuickItem *rubberBandItem = nullptr;
+        QPointer<SelectableViewModelManipulator> selectionManipulator;
+        QPointer<QQmlComponent> rubberBandComponent;
+        QPointer<QQuickItem> rubberBandItem;
 
         QPointF startPos;
         QPointF endPos;

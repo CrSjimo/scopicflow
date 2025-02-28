@@ -24,6 +24,8 @@
 #include <QMessageBox>
 
 #include <SVSCraftCore/musictimeline.h>
+#include <SVSCraftCore/musictime.h>
+#include <SVSCraftCore/musictimesignature.h>
 
 #include <ScopicFlow/TimeViewModel.h>
 #include <ScopicFlow/TimeLayoutViewModel.h>
@@ -103,7 +105,7 @@ public:
         auto removeAction = menu.addAction(QString("Remove time signature at bar %1").arg(musicTime.measure() + 1), [=] {
             timeViewModel->timeline()->removeTimeSignature(musicTime.measure());
         });
-        removeAction->setEnabled(musicTime.measure() && timeViewModel->timeline()->nearestTimeSignatureTo(musicTime.measure()) == musicTime.measure());
+        removeAction->setEnabled(musicTime.measure() && timeViewModel->timeline()->nearestBarWithTimeSignatureTo(musicTime.measure()) == musicTime.measure());
         menu.exec(QCursor::pos());
     }
     void handleContextMenuRequestedForPositionIndicator() {

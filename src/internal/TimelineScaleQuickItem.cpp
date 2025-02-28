@@ -8,6 +8,8 @@
 #include <QTextLayout>
 
 #include <SVSCraftCore/musictimeline.h>
+#include <SVSCraftCore/musictime.h>
+#include <SVSCraftCore/musictimesignature.h>
 
 #include <ScopicFlow/TimeViewModel.h>
 #include <ScopicFlow/TimeLayoutViewModel.h>
@@ -245,7 +247,7 @@ namespace sflow {
             textNode->setMatrix(transform);
             scaleNode->appendChildNode(textNode);
 
-            if (d->timeViewModel->timeline()->nearestTimeSignatureTo(musicTime.measure()) != musicTime.measure())
+            if (d->timeViewModel->timeline()->nearestBarWithTimeSignatureTo(musicTime.measure()) != musicTime.measure())
                 continue;
 
             auto timeSignature = d->timeViewModel->timeline()->timeSignatureAt(musicTime.measure());

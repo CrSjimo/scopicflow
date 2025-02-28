@@ -4,6 +4,10 @@
 #include <QSGGeometryNode>
 #include <QSGVertexColorMaterial>
 
+#include <SVSCraftCore/musictimeline.h>
+#include <SVSCraftCore/musictime.h>
+#include <SVSCraftCore/musictimesignature.h>
+
 #include <ScopicFlow/TimeViewModel.h>
 #include <ScopicFlow/TimeLayoutViewModel.h>
 

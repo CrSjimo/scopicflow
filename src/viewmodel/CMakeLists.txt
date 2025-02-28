@@ -13,3 +13,8 @@ find_path(INTERVAL_TREE_INCLUDE_DIRS "interval-tree/interval_tree.hpp" REQUIRED)
 target_include_directories(ScopicFlowViewModel PUBLIC
     "$<BUILD_INTERFACE:${INTERVAL_TREE_INCLUDE_DIRS}>"
 )
+
+set_target_properties(ScopicFlowViewModel PROPERTIES
+    CXX_STANDARD 20
+    CXX_STANDARD_REQUIRED TRUE
+)

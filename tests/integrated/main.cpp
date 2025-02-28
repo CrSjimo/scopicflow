@@ -307,7 +307,7 @@ int main(int argc, char *argv[]) {
         {"clipSequenceViewModel", QVariant::fromValue(&clipSequenceViewModel)},
         {"clipPaneBehaviorViewModel", QVariant::fromValue(&clipPaneBehaviorViewModel)},
     });
-    v1->setSource(QUrl("qrc:/dev/sjimo/ScopicFlow/Test/main.qml"));
+    v1->setSource(QUrl("qrc:/qt/qml/dev/sjimo/ScopicFlow/Test/main.qml"));
     v1->setResizeMode(QQuickView::SizeRootObjectToView);
     splitter->addWidget(QWidget::createWindowContainer(v1));
 
@@ -367,7 +367,7 @@ int main(int argc, char *argv[]) {
     scrollBehaviorDialog.setInitialProperties({
         {"scrollBehaviorViewModel", QVariant::fromValue(&scrollBehaviorViewModel)},
     });
-    scrollBehaviorDialog.setSource(QUrl("qrc:/dev/sjimo/ScopicFlow/Test/ScrollBehaviorDialog.qml"));
+    scrollBehaviorDialog.setSource(QUrl("qrc:/qt/qml/dev/sjimo/ScopicFlow/Test/ScrollBehaviorDialog.qml"));
     scrollBehaviorDialog.setTitle("Set Scroll Behavior");
     scrollBehaviorDialog.setResizeMode(QQuickView::SizeRootObjectToView);
     scrollBehaviorDialog.resize(400, 240);

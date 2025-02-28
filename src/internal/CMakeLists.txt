@@ -19,14 +19,27 @@ scopic_flow_add_library(ScopicFlowInternal AUTOGEN STATIC
     QT_INCLUDE_PRIVATE Core Gui Widgets Qml Quick
 )
 
+if(QT_KNOWN_POLICY_QTP0001)
+    qt_policy(SET QTP0001 NEW)
+endif()
+if(QT_KNOWN_POLICY_QTP0004)
+    qt_policy(SET QTP0004 NEW)
+endif()
+
 qt_add_qml_module(ScopicFlowInternal
     URI dev.sjimo.ScopicFlow.Internal
     QML_FILES ${_qml_files}
     RESOURCES ${_resource_files}
+    OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/dev/sjimo/ScopicFlow/Internal
 )
 
 find_path(INTERVAL_TREE_INCLUDE_DIRS "interval-tree/interval_tree.hpp" REQUIRED)
 
 target_include_directories(ScopicFlowInternal PUBLIC
     "$<BUILD_INTERFACE:${INTERVAL_TREE_INCLUDE_DIRS}>"
+)
+
+set_target_properties(ScopicFlowInternal PROPERTIES
+    CXX_STANDARD 20
+    CXX_STANDARD_REQUIRED TRUE
 )

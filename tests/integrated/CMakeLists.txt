@@ -18,7 +18,19 @@ qm_configure_target(${PROJECT_NAME}
     QT_LINKS Core Gui Widgets Qml Quick QuickWidgets
 )
 
+if(QT_KNOWN_POLICY_QTP0001)
+    qt_policy(SET QTP0001 NEW)
+endif()
+if(QT_KNOWN_POLICY_QTP0004)
+    qt_policy(SET QTP0004 NEW)
+endif()
+
 qt_add_qml_module(${PROJECT_NAME}
     URI dev.sjimo.ScopicFlow.Test
     QML_FILES ${_qml_files}
+)
+
+set_target_properties(${PROJECT_NAME} PROPERTIES
+    CXX_STANDARD 20
+    CXX_STANDARD_REQUIRED TRUE
 )

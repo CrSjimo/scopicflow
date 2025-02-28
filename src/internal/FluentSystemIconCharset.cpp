@@ -10,7 +10,7 @@ namespace sflow {
 
     FluentSystemIconCharset::FluentSystemIconCharset(QObject *parent) : QObject(parent) {
         if (data.isEmpty()) {
-            QFile f(":/dev/sjimo/ScopicFlow/Internal/assets/FluentSystemIcons-Resizable.json");
+            QFile f(":/qt/qml/dev/sjimo/ScopicFlow/Internal/assets/FluentSystemIcons-Resizable.json");
             f.open(QIODevice::ReadOnly);
             data = QJsonDocument::fromJson(f.readAll()).object();
         }

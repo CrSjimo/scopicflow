@@ -22,7 +22,20 @@ scopic_flow_add_library(ScopicFlowStyle AUTOGEN STATIC
     QT_INCLUDE_PRIVATE Core Gui Widgets Qml Quick
 )
 
+if(QT_KNOWN_POLICY_QTP0001)
+    qt_policy(SET QTP0001 NEW)
+endif()
+if(QT_KNOWN_POLICY_QTP0004)
+    qt_policy(SET QTP0004 NEW)
+endif()
+
 qt_add_qml_module(ScopicFlowStyle
     URI dev.sjimo.ScopicFlow.Style
     QML_FILES ${_qml_files}
+    OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/dev/sjimo/ScopicFlow/Style
+)
+
+set_target_properties(ScopicFlowStyle PROPERTIES
+    CXX_STANDARD 20
+    CXX_STANDARD_REQUIRED TRUE
 )

@@ -178,41 +178,6 @@ int main(int argc, char *argv[]) {
     sf.setSamples(8);
     QSurfaceFormat::setDefaultFormat(sf);
 
-    SVS::Theme::defaultTheme()->setAccentColor(0x5566ff);
-    SVS::Theme::defaultTheme()->setWarningColor(0xeeaa66);
-    SVS::Theme::defaultTheme()->setErrorColor(0xcc4455);
-    SVS::Theme::defaultTheme()->setButtonColor(0x333437);
-    SVS::Theme::defaultTheme()->setTextFieldColor(0x27282b);
-    SVS::Theme::defaultTheme()->setScrollBarColor(QColor::fromRgba(0x7f7f7f7f));
-    SVS::Theme::defaultTheme()->setBorderColor(0x4a4b4c);
-
-    SVS::Theme::defaultTheme()->setBackgroundPrimaryColor(0x212124);
-    SVS::Theme::defaultTheme()->setBackgroundSecondaryColor(0x232427);
-    SVS::Theme::defaultTheme()->setBackgroundTertiaryColor(0x252629);
-    SVS::Theme::defaultTheme()->setBackgroundQuaternaryColor(0x313235);
-    SVS::Theme::defaultTheme()->setSplitterColor(0x121315);
-
-    SVS::Theme::defaultTheme()->setForegroundPrimaryColor(0xdadada);
-    SVS::Theme::defaultTheme()->setForegroundSecondaryColor(QColor::fromRgba(0xa0dadada));
-
-    SVS::Theme::defaultTheme()->setLinkColor(0x5566ff);
-
-    SVS::Theme::defaultTheme()->setNavigationColor(0xffffff);
-    SVS::Theme::defaultTheme()->setShadowColor(0x101113);
-    SVS::Theme::defaultTheme()->setHighlightColor(0xb28300);
-
-    SVS::Theme::defaultTheme()->setControlDisabledColorChange({QColor::fromRgba(0x33000000)});
-    SVS::Theme::defaultTheme()->setForegroundDisabledColorChange({{}, 0.5});
-    SVS::Theme::defaultTheme()->setControlHoveredColorChange({QColor::fromRgba(0x1affffff)});
-    SVS::Theme::defaultTheme()->setForegroundHoveredColorChange({});
-    SVS::Theme::defaultTheme()->setControlPressedColorChange({});
-    SVS::Theme::defaultTheme()->setForegroundPressedColorChange({{}, 0.8});
-    SVS::Theme::defaultTheme()->setControlCheckedColorChange({QColor::fromRgba(0x1affffff)});
-    SVS::Theme::defaultTheme()->setColorAnimationDuration(250);
-    SVS::Theme::defaultTheme()->setVisualEffectAnimationDuration(250);
-
-    SVS::Theme::defaultTheme()->setToolTipDelay(1000);
-
     QQuickStyle::setStyle("SVSCraft.UIComponents");
     QQuickStyle::setFallbackStyle("Basic");
 

@@ -14,8 +14,8 @@ endforeach()
 add_executable(${PROJECT_NAME} ${_src})
 
 qm_configure_target(${PROJECT_NAME}
-    LINKS svscraft::Core ScopicFlow ScopicFlowplugin
-    QT_LINKS Core Gui Widgets Qml Quick QuickWidgets
+    LINKS svscraft::Core svscraft::Quick SVSCraftQuickplugin ScopicFlow ScopicFlowplugin
+    QT_LINKS Core Gui Widgets Qml Quick QuickWidgets QuickControls2
 )
 
 if(QT_KNOWN_POLICY_QTP0001)
@@ -28,6 +28,7 @@ endif()
 qt_add_qml_module(${PROJECT_NAME}
     URI dev.sjimo.ScopicFlow.Test
     QML_FILES ${_qml_files}
+    RESOURCES Midi20Filled.svg GanttChart20Filled.svg Settings16Filled.svg
 )
 
 set_target_properties(${PROJECT_NAME} PROPERTIES

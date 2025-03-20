@@ -140,8 +140,8 @@ namespace sflow {
             auto currentTimeSignature = d->timeline->timeSignatureAt(bar);
             int calculatedSegmentRatio = 0;
             static const double minimumScaleDistance = 4;
-            int ticksPerBeat = currentTimeSignature.ticksPerBeat(480);
-            int ticksPerBar = currentTimeSignature.ticksPerBar(480);
+            int ticksPerBeat = currentTimeSignature.ticksPerBeat(d->timeline->ticksPerQuarterNote());
+            int ticksPerBar = currentTimeSignature.ticksPerBar(d->timeline->ticksPerQuarterNote());
             if (d->timeLayoutViewModel->positionAlignment() == 1 || ticksPerBeat % d->timeLayoutViewModel->positionAlignment() != 0) {
                 calculatedSegmentRatio = 1;
             } else {

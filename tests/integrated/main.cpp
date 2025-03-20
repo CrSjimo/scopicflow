@@ -22,10 +22,14 @@
 #include <QQuickWindow>
 #include <QQmlEngineExtensionPlugin>
 #include <QMessageBox>
+#include <QQuickStyle>
+#include <QQmlApplicationEngine>
 
 #include <SVSCraftCore/musictimeline.h>
 #include <SVSCraftCore/musictime.h>
 #include <SVSCraftCore/musictimesignature.h>
+#include <SVSCraftQuick/theme.h>
+#include <SVSCraftGui/colorchange.h>
 
 #include <ScopicFlow/TimeViewModel.h>
 #include <ScopicFlow/TimeLayoutViewModel.h>
@@ -174,6 +178,44 @@ int main(int argc, char *argv[]) {
     sf.setSamples(8);
     QSurfaceFormat::setDefaultFormat(sf);
 
+    SVS::Theme::defaultTheme()->setAccentColor(0x5566ff);
+    SVS::Theme::defaultTheme()->setWarningColor(0xeeaa66);
+    SVS::Theme::defaultTheme()->setErrorColor(0xcc4455);
+    SVS::Theme::defaultTheme()->setButtonColor(0x333437);
+    SVS::Theme::defaultTheme()->setTextFieldColor(0x27282b);
+    SVS::Theme::defaultTheme()->setScrollBarColor(QColor::fromRgba(0x7f7f7f7f));
+    SVS::Theme::defaultTheme()->setBorderColor(0x4a4b4c);
+
+    SVS::Theme::defaultTheme()->setBackgroundPrimaryColor(0x212124);
+    SVS::Theme::defaultTheme()->setBackgroundSecondaryColor(0x232427);
+    SVS::Theme::defaultTheme()->setBackgroundTertiaryColor(0x252629);
+    SVS::Theme::defaultTheme()->setBackgroundQuaternaryColor(0x313235);
+    SVS::Theme::defaultTheme()->setSplitterColor(0x121315);
+
+    SVS::Theme::defaultTheme()->setForegroundPrimaryColor(0xdadada);
+    SVS::Theme::defaultTheme()->setForegroundSecondaryColor(QColor::fromRgba(0xa0dadada));
+
+    SVS::Theme::defaultTheme()->setLinkColor(0x5566ff);
+
+    SVS::Theme::defaultTheme()->setNavigationColor(0xffffff);
+    SVS::Theme::defaultTheme()->setShadowColor(0x101113);
+    SVS::Theme::defaultTheme()->setHighlightColor(0xb28300);
+
+    SVS::Theme::defaultTheme()->setControlDisabledColorChange({QColor::fromRgba(0x33000000)});
+    SVS::Theme::defaultTheme()->setForegroundDisabledColorChange({{}, 0.5});
+    SVS::Theme::defaultTheme()->setControlHoveredColorChange({QColor::fromRgba(0x1affffff)});
+    SVS::Theme::defaultTheme()->setForegroundHoveredColorChange({});
+    SVS::Theme::defaultTheme()->setControlPressedColorChange({});
+    SVS::Theme::defaultTheme()->setForegroundPressedColorChange({{}, 0.8});
+    SVS::Theme::defaultTheme()->setControlCheckedColorChange({QColor::fromRgba(0x1affffff)});
+    SVS::Theme::defaultTheme()->setColorAnimationDuration(250);
+    SVS::Theme::defaultTheme()->setVisualEffectAnimationDuration(250);
+
+    SVS::Theme::defaultTheme()->setToolTipDelay(1000);
+
+    QQuickStyle::setStyle("SVSCraft.UIComponents");
+    QQuickStyle::setFallbackStyle("Basic");
+
     QMainWindow win;
     win.resize(1280, 800);
     auto splitter = new QSplitter;
@@ -287,9 +329,8 @@ int main(int argc, char *argv[]) {
     ClipPaneBehaviorViewModel clipPaneBehaviorViewModel;
     clipPaneBehaviorViewModel.setLengthHint(480);
 
-    auto v1 = new QQuickView;
-    v1->engine()->addImportPath("qrc:/");
-    v1->setInitialProperties({
+    QQmlApplicationEngine engine;
+    engine.setInitialProperties({
         {"timeViewModel", QVariant::fromValue(&timeViewModel)},
         {"arrangementTimeViewModel", QVariant::fromValue(&arrangementTimeViewModel)},
         {"timeLayoutViewModel", QVariant::fromValue(&timeLayoutViewModel)},
@@ -309,130 +350,7 @@ int main(int argc, char *argv[]) {
         {"clipSequenceViewModel", QVariant::fromValue(&clipSequenceViewModel)},
         {"clipPaneBehaviorViewModel", QVariant::fromValue(&clipPaneBehaviorViewModel)},
     });
-    v1->setSource(QUrl("qrc:/qt/qml/dev/sjimo/ScopicFlow/Test/main.qml"));
-    v1->setResizeMode(QQuickView::SizeRootObjectToView);
-    splitter->addWidget(QWidget::createWindowContainer(v1));
-
-    win.setCentralWidget(splitter);
-    win.show();
-
-    auto context = qmlContext(v1->rootObject());
-
-    MySlotHandler o;
-    o.win = &win;
-    o.timeViewModel = &timeViewModel;
-
-    QObject::connect(context->objectForName("timeline"), SIGNAL(contextMenuRequestedForTimeline(int)), &o, SLOT(handleContextMenuRequestedForTimeline(int)));
-    QObject::connect(context->objectForName("timeline"), SIGNAL(contextMenuRequestedForPositionIndicator()), &o, SLOT(handleContextMenuRequestedForPositionIndicator()));
-    QObject::connect(context->objectForName("timeline"), SIGNAL(positionIndicatorDoubleClicked()), &o, SLOT(handlePositionIndicatorDoubleClicked()));
-    QObject::connect(context->objectForName("arrangementTimeline"), SIGNAL(contextMenuRequestedForTimeline(int)), &o, SLOT(handleContextMenuRequestedForTimeline(int)));
-    QObject::connect(context->objectForName("arrangementTimeline"), SIGNAL(contextMenuRequestedForPositionIndicator()), &o, SLOT(handleContextMenuRequestedForPositionIndicator()));
-    QObject::connect(context->objectForName("arrangementTimeline"), SIGNAL(positionIndicatorDoubleClicked()), &o, SLOT(handlePositionIndicatorDoubleClicked()));
-    QObject::connect(context->objectForName("clavier"), SIGNAL(notePressed(int)), &o, SLOT(handleNotePressed(int)));
-    QObject::connect(context->objectForName("clavier"), SIGNAL(noteReleased(int)), &o, SLOT(handleNoteReleased(int)));
-    QObject::connect(context->objectForName("clavier"), SIGNAL(noteDoubleClicked(int)), &o, SLOT(handleNoteDoubleClicked(int)));
-    QObject::connect(context->objectForName("clavier"), SIGNAL(contextMenuRequestedForNote(int)), &o, SLOT(handleContextMenuRequestedForNote(int)));
-    QObject::connect(context->objectForName("trackList"), SIGNAL(trackDoubleClicked(int)), &o, SLOT(handleTrackDoubleClicked(int)));
-    QObject::connect(context->objectForName("trackList"), SIGNAL(contextMenuRequestedForTrack(int)), &o, SLOT(handleContextMenuRequestedForTrack(int)));
-    QObject::connect(context->objectForName("trackList"), SIGNAL(contextMenuRequestedForTrackDragging(int,int)), &o, SLOT(handleContextMenuRequestedForTrackDragging(int,int)));
-    QObject::connect(context->objectForName("labelSequence"), SIGNAL(contextMenuRequested(int)), &o, SLOT(handleContextMenuRequested(int)));
-    QObject::connect(context->objectForName("labelSequence"), SIGNAL(contextMenuRequestedForLabel(QObject*)), &o, SLOT(handleContextMenuRequestedForLabel(QObject*)));
-
-    auto mainMenu = new QMenu("Edit");
-    mainMenu->addAction("Set Position Alignment...", [&] {
-        auto v = QInputDialog::getInt(&win, {}, "Position alignment", timeLayoutViewModel.positionAlignment(), 1, 480);
-        timeLayoutViewModel.setPositionAlignment(v);
-    });
-    mainMenu->addAction("Set Arrangement Position Alignment...", [&] {
-        auto v = QInputDialog::getInt(&win, {}, "Arrangement position alignment", arrangementTimeLayoutViewModel.positionAlignment(), 1, 480);
-        arrangementTimeLayoutViewModel.setPositionAlignment(v);
-    });
-    mainMenu->addAction("Set Visual Effect Animation Ratio...", [&] {
-        auto v = QInputDialog::getDouble(&win, {}, "Animation ratio", animationViewModel.visualEffectAnimationRatio(), 0, 10);
-        animationViewModel.setVisualEffectAnimationRatio(v);
-    });
-    mainMenu->addAction("Set Scroll Animation Ratio...", [&] {
-        auto v = QInputDialog::getDouble(&win, {}, "Animation ratio", animationViewModel.scrollAnimationRatio(), 0, 10);
-        animationViewModel.setScrollAnimationRatio(v);
-    });
-    mainMenu->addAction("Set Color Animation Ratio...", [&] {
-        auto v = QInputDialog::getDouble(&win, {}, "Animation ratio", animationViewModel.colorAnimationRatio(), 0, 10);
-        animationViewModel.setColorAnimationRatio(v);
-    });
-    mainMenu->addAction("Load Custom Palette...", [&] {
-        // TODO
-    });
-    mainMenu->addAction("Reset to Default Palette", [&] {
-        // TODO
-    });
-    QQuickView scrollBehaviorDialog;
-    scrollBehaviorDialog.setInitialProperties({
-        {"scrollBehaviorViewModel", QVariant::fromValue(&scrollBehaviorViewModel)},
-    });
-    scrollBehaviorDialog.setSource(QUrl("qrc:/qt/qml/dev/sjimo/ScopicFlow/Test/ScrollBehaviorDialog.qml"));
-    scrollBehaviorDialog.setTitle("Set Scroll Behavior");
-    scrollBehaviorDialog.setResizeMode(QQuickView::SizeRootObjectToView);
-    scrollBehaviorDialog.resize(400, 240);
-    mainMenu->addAction("Set Scroll Behavior", [&] {
-        scrollBehaviorDialog.show();
-    });
-    mainMenu->addAction("Run GC", [=] {
-        v1->engine()->collectGarbage();
-    });
-    win.menuBar()->addMenu(mainMenu);
-    
-    auto pianoRollMenu = new QMenu("Piano Roll");
-    auto toolMenu = pianoRollMenu->addMenu("Tool");
-    auto pointerAction = toolMenu->addAction("Pointer", [&](bool checked) {
-        pianoRollNoteAreaBehaviorViewModel.setMouseBehavior(PianoRollNoteAreaBehaviorViewModel::Pointer);
-    });
-    pointerAction->setCheckable(true);
-    auto penAction = toolMenu->addAction("Pen", [&](bool checked) {
-        pianoRollNoteAreaBehaviorViewModel.setMouseBehavior(PianoRollNoteAreaBehaviorViewModel::Pen);
-    });
-    penAction->setCheckable(true);
-    auto eraserAction = toolMenu->addAction("Eraser", [&](bool checked) {
-        pianoRollNoteAreaBehaviorViewModel.setMouseBehavior(PianoRollNoteAreaBehaviorViewModel::Eraser);
-    });
-    eraserAction->setCheckable(true);
-    auto scissorAction = toolMenu->addAction("Scissor", [&](bool checked) {
-        pianoRollNoteAreaBehaviorViewModel.setMouseBehavior(PianoRollNoteAreaBehaviorViewModel::Scissor);
-    });
-    scissorAction->setCheckable(true);
-    QObject::connect(&pianoRollNoteAreaBehaviorViewModel, &PianoRollNoteAreaBehaviorViewModel::mouseBehaviorChanged, [&](PianoRollNoteAreaBehaviorViewModel::MouseBehavior mouseBehavior) {
-        pointerAction->setChecked(mouseBehavior == PianoRollNoteAreaBehaviorViewModel::Pointer);
-        penAction->setChecked(mouseBehavior == PianoRollNoteAreaBehaviorViewModel::Pen);
-        eraserAction->setChecked(mouseBehavior == PianoRollNoteAreaBehaviorViewModel::Eraser);
-        scissorAction->setChecked(mouseBehavior == PianoRollNoteAreaBehaviorViewModel::Scissor);
-    });
-    win.menuBar()->addMenu(pianoRollMenu);
-
-    auto clipPaneMenu = new QMenu("Clip Pane");
-    toolMenu = clipPaneMenu->addMenu("Tool");
-    pointerAction = toolMenu->addAction("Pointer", [&](bool checked) {
-        clipPaneBehaviorViewModel.setMouseBehavior(ClipPaneBehaviorViewModel::Pointer);
-    });
-    pointerAction->setCheckable(true);
-    penAction = toolMenu->addAction("Pen", [&](bool checked) {
-        clipPaneBehaviorViewModel.setMouseBehavior(ClipPaneBehaviorViewModel::Pen);
-    });
-    penAction->setCheckable(true);
-    eraserAction = toolMenu->addAction("Eraser", [&](bool checked) {
-        clipPaneBehaviorViewModel.setMouseBehavior(ClipPaneBehaviorViewModel::Eraser);
-    });
-    eraserAction->setCheckable(true);
-    scissorAction = toolMenu->addAction("Scissor", [&](bool checked) {
-        clipPaneBehaviorViewModel.setMouseBehavior(ClipPaneBehaviorViewModel::Scissor);
-    });
-    scissorAction->setCheckable(true);
-    QObject::connect(&clipPaneBehaviorViewModel, &ClipPaneBehaviorViewModel::mouseBehaviorChanged, [&](ClipPaneBehaviorViewModel::MouseBehavior mouseBehavior) {
-        pointerAction->setChecked(mouseBehavior == ClipPaneBehaviorViewModel::Pointer);
-        penAction->setChecked(mouseBehavior == ClipPaneBehaviorViewModel::Pen);
-        eraserAction->setChecked(mouseBehavior == ClipPaneBehaviorViewModel::Eraser);
-        scissorAction->setChecked(mouseBehavior == ClipPaneBehaviorViewModel::Scissor);
-    });
-    win.menuBar()->addMenu(clipPaneMenu);
-
+    engine.load(QUrl("qrc:/qt/qml/dev/sjimo/ScopicFlow/Test/main.qml"));
 
     return a.exec();
 }

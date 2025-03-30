@@ -174,7 +174,7 @@ Item {
     StandardScrollHandler {
         anchors.fill: parent
         viewModel: clavier.scrollBehaviorViewModel
-
+        movableOrientation: Qt.Vertical
         onMoved: (_, y, isPhysicalWheel) => {
             clavierManipulator.moveViewBy(y, isPhysicalWheel)
         }

@@ -268,6 +268,7 @@ Item {
     StandardScrollHandler {
         anchors.fill: parent
         viewModel: labelSequence.scrollBehaviorViewModel
+        movableOrientation: Qt.Horizontal
         onZoomed: (ratioX, _, x, _, isPhysicalWheel) => timeManipulator.zoomOnWheel(ratioX, x, isPhysicalWheel)
         onMoved: (x, _, isPhysicalWheel) => timeManipulator.moveViewBy(x, isPhysicalWheel)
     }

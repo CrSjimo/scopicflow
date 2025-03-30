@@ -511,6 +511,7 @@ Item {
     StandardScrollHandler {
         anchors.fill: parent
         viewModel: clipPane.scrollBehaviorViewModel
+        zoomableOrientation: Qt.Horizontal
         onZoomed: function (ratioX, _, x, _, isPhysicalWheel) {
             timeManipulator.zoomOnWheel(ratioX, x, isPhysicalWheel)
         }

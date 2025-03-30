@@ -228,6 +228,7 @@ Item {
     StandardScrollHandler {
         anchors.fill: parent
         viewModel: timeline.scrollBehaviorViewModel
+        movableOrientation: Qt.Horizontal
         onZoomed: function (ratioX, _, x, _, isPhysicalWheel) {
             timeManipulator.zoomOnWheel(ratioX, x, isPhysicalWheel)
         }

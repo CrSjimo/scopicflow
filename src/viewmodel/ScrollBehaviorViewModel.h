@@ -15,6 +15,8 @@ namespace sflow {
         Q_PROPERTY(Qt::KeyboardModifier pageModifier READ pageModifier WRITE setPageModifier NOTIFY pageModifierChanged)
         Q_PROPERTY(bool usePageModifierAsAlternateAxisZoom READ usePageModifierAsAlternateAxisZoom WRITE setUsePageModifierAsAlternateAxisZoom NOTIFY usePageModifierAsAlternateAxisZoomChanged)
         Q_PROPERTY(bool affectVelocity READ affectVelocity WRITE setAffectVelocity NOTIFY affectVelocityChanged)
+        Q_PROPERTY(bool pinchDecomposed READ pinchDecomposed WRITE setPinchDecomposed NOTIFY pinchDecomposedChanged)
+        Q_PROPERTY(double pinchZoomAlternateAxisTriggerAngleRange READ pinchZoomAlternateAxisTriggerAngleRange WRITE setPinchZoomAlternateAxisTriggerAngleRange NOTIFY pinchZoomAlternateAxisTriggerAngleRangeChanged)
     public:
         explicit ScrollBehaviorViewModel(QObject *parent = nullptr);
         ~ScrollBehaviorViewModel() override;
@@ -34,12 +36,20 @@ namespace sflow {
         bool affectVelocity() const;
         void setAffectVelocity(bool affectVelocity);
 
+        bool pinchDecomposed() const;
+        void setPinchDecomposed(bool pinchDecomposed);
+
+        double pinchZoomAlternateAxisTriggerAngleRange() const;
+        void setPinchZoomAlternateAxisTriggerAngleRange(double pinchZoomAlternateAxisTriggerAngleRange);
+
     signals:
         void alternateAxisModifierChanged(Qt::KeyboardModifier modifier);
         void zoomModifierChanged(Qt::KeyboardModifier modifier);
         void pageModifierChanged(Qt::KeyboardModifier modifier);
         void usePageModifierAsAlternateAxisZoomChanged(bool usePageModifierAsAlternateAxisZoom);
         void affectVelocityChanged(bool affectVeloCity);
+        void pinchDecomposedChanged(bool pinchDecomposed);
+        void pinchZoomAlternateAxisTriggerAngleRangeChanged(double pinchZoomAlternateAxisTriggerAngleRange);
 
     private:
         Qt::KeyboardModifier m_alternateAxisModifier;
@@ -47,6 +57,8 @@ namespace sflow {
         Qt::KeyboardModifier m_pageModifier;
         bool m_usePageModifierAsAlternateAxisZoom;
         bool m_affectVelocity;
+        bool m_pinchDecomposed;
+        double m_pinchZoomAlternateAxisTriggerAngleRange;
     };
 
 } // sflow

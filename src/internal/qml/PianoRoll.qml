@@ -215,6 +215,8 @@ Item {
     StandardScrollHandler {
         anchors.fill: parent
         viewModel: pianoRoll.scrollBehaviorViewModel
+        movableOrientation: Qt.Horizontal | Qt.Vertical
+        pinchZoomOrientationHint: Qt.Horizontal
         onZoomed: function (ratioX, ratioY, x, y, isPhysicalWheel) {
             timeManipulator.zoomOnWheel(ratioX, x, isPhysicalWheel)
             clavierManipulator.zoomOnWheel(ratioY, y, isPhysicalWheel)

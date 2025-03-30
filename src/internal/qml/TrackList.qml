@@ -451,6 +451,8 @@ Item {
     StandardScrollHandler {
         anchors.fill: parent
         viewModel: trackList.scrollBehaviorViewModel
+        movableOrientation: Qt.Vertical
+        zoomableOrientation: 0
         onMoved: function (_, deltaY, isPhysicalWheel) {
             trackListManipulator.moveViewBy(deltaY, isPhysicalWheel)
         }

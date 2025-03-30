@@ -51,4 +51,14 @@ Item {
         }
     }
 
+    PinchArea {
+        anchors.fill: parent
+        property real sensitivity: 0.2
+
+        onPinchUpdated: pinch => {
+            let horizontalScale = Math.pow(pinch.scale, sensitivity)
+            let verticalScale = 1
+            parent.zoomed(horizontalScale, verticalScale, pinch.center.x, pinch.center.y, false)
+        }
+    }
 }

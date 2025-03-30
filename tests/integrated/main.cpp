@@ -25,11 +25,11 @@
 #include <QQuickStyle>
 #include <QQmlApplicationEngine>
 
-#include <SVSCraftCore/musictimeline.h>
-#include <SVSCraftCore/musictime.h>
-#include <SVSCraftCore/musictimesignature.h>
-#include <SVSCraftQuick/theme.h>
-#include <SVSCraftGui/colorchange.h>
+#include <SVSCraftCore/MusicTimeline.h>
+#include <SVSCraftCore/MusicTime.h>
+#include <SVSCraftCore/MusicTimeSignature.h>
+#include <SVSCraftQuick/Theme.h>
+#include <SVSCraftGui/ColorChange.h>
 
 #include <ScopicFlow/TimeViewModel.h>
 #include <ScopicFlow/TimeLayoutViewModel.h>

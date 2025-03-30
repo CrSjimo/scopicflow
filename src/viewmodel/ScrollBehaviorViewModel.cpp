@@ -3,7 +3,7 @@
 namespace sflow {
     ScrollBehaviorViewModel::ScrollBehaviorViewModel(QObject *parent) : QObject(parent),
     m_alternateAxisModifier(Qt::AltModifier), m_zoomModifier(Qt::ControlModifier), m_pageModifier(Qt::ShiftModifier),
-    m_usePageModifierAsAlternateAxisZoom(false), m_affectVelocity(false), m_pinchDecomposed(false), m_pinchZoomAlternateAxisTriggerAngleRange(-1) {
+    m_usePageModifierAsAlternateAxisZoom(false), m_affectVelocity(false), m_pinchDecomposed(false) {
     }
     ScrollBehaviorViewModel::~ScrollBehaviorViewModel() = default;
 
@@ -60,15 +60,6 @@ namespace sflow {
         if (m_pinchDecomposed != pinchDecomposed) {
             m_pinchDecomposed = pinchDecomposed;
             emit pinchDecomposedChanged(pinchDecomposed);
-        }
-    }
-    double ScrollBehaviorViewModel::pinchZoomAlternateAxisTriggerAngleRange() const {
-        return m_pinchZoomAlternateAxisTriggerAngleRange;
-    }
-    void ScrollBehaviorViewModel::setPinchZoomAlternateAxisTriggerAngleRange(double pinchZoomAlternateAxisTriggerAngleRange) {
-        if (m_pinchZoomAlternateAxisTriggerAngleRange != pinchZoomAlternateAxisTriggerAngleRange) {
-            m_pinchZoomAlternateAxisTriggerAngleRange = pinchZoomAlternateAxisTriggerAngleRange;
-            emit pinchZoomAlternateAxisTriggerAngleRangeChanged(pinchZoomAlternateAxisTriggerAngleRange);
         }
     }
 

@@ -134,6 +134,14 @@ ApplicationWindow {
                             }
                             Layout.fillWidth: true
                         }
+                        FormGroup {
+                            label: "Pinch decomposed"
+                            rowItem: Switch {
+                                checked: main.scrollBehaviorViewModel.pinchDecomposed
+                                onCheckedChanged: main.scrollBehaviorViewModel.pinchDecomposed = checked
+                            }
+                            Layout.fillWidth: true
+                        }
                     }
                 }
 

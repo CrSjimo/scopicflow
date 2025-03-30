@@ -53,12 +53,22 @@ Item {
 
     PinchArea {
         anchors.fill: parent
-        property real sensitivity: 0.2
 
-        onPinchUpdated: pinch => {
-            let horizontalScale = Math.pow(pinch.scale, sensitivity)
-            let verticalScale = 1
-            parent.zoomed(horizontalScale, verticalScale, pinch.center.x, pinch.center.y, false)
+        onPinchUpdated: (pinch) => {
+            let scale = pinch.scale / pinch.previousScale
+            let acceptHorizontal = (handler.zoomableOrientation & Qt.Horizontal)
+            let acceptVertical = (handler.zoomableOrientation & Qt.Vertical)
+            if (acceptHorizontal && acceptVertical) {
+                if (handler.viewModel?.pinchDecomposed)
+                    handler.zoomed(scale, scale, pinch.center.x, pinch.center.y, false)
+                else
+                    handler.zoomed((handler.pinchZoomOrientationHint & Qt.Horizontal) ? scale : 1, (handler.pinchZoomOrientationHint & Qt.Vertical) ? scale : 1, pinch.center.x, pinch.center.y, false)
+            } else if (acceptHorizontal) {
+                parent.zoomed(scale, 1, pinch.center.x, pinch.center.y, false)
+            } else if (acceptVertical) {
+                parent.zoomed(1, scale, pinch.center.x, pinch.center.y, false)
+            }
+            
         }
     }
 }

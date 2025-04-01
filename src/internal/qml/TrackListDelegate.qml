@@ -1,9 +1,12 @@
 import QtQml
 import QtQml.Models
 import QtQuick
-import QtQuick.Controls.Basic
+
+import SVSCraft
+import SVSCraft.UIComponents
 
 import dev.sjimo.ScopicFlow.Internal
+import dev.sjimo.ScopicFlow.Style
 
 Item {
 
@@ -29,10 +32,6 @@ Item {
     property bool isCurrent: false
     property bool isLast: false
 
-    required property QtObject stylesheet
-    readonly property QtObject trackStyleItem: stylesheet.trackListDelegate.createObject(trackListDelegate, {trackViewModel, current: isCurrent})
-    readonly property QtObject popupEditStyleItem: stylesheet.popupEdit.createObject(trackListDelegate)
-
     property QtObject animationViewModel: null
     property Component mouseArea: null
     property Component trackExtraDelegate: null
@@ -53,7 +52,7 @@ Item {
         anchors.leftMargin: -1
         anchors.rightMargin: -1
         anchors.bottomMargin: -1
-        color: trackListDelegate.trackStyleItem.background
+        color: trackListDelegate.trackViewModel.selected ? SFPalette.trackListSelectedColorChange.apply(SFPalette.trackListBackgroundColor) : SFPalette.trackListBackgroundColor
         Behavior on color {
             ColorAnimation {
                 duration: 250 * (trackListDelegate.animationViewModel?.colorAnimationRatio ?? 1)
@@ -61,7 +60,7 @@ Item {
             }
         }
         border.width: 1
-        border.color: trackListDelegate.trackStyleItem.border
+        border.color: Theme.borderColor
 
         clip: true
 
@@ -72,7 +71,7 @@ Item {
             anchors.bottom: parent.bottom
             anchors.margins: 1
             width: 8
-            color: trackListDelegate.trackStyleItem.colorIndicator
+            color: trackListDelegate.trackViewModel.color
         }
 
         Rectangle {
@@ -83,7 +82,7 @@ Item {
             anchors.margins: 8
             anchors.leftMargin: 16
             width: 2
-            color: trackListDelegate.trackStyleItem.selectionIndicator
+            color: Theme.accentColor
             visible: opacity !== 0
             opacity: trackListDelegate.isCurrent ? 1 : 0
             Behavior on opacity {
@@ -101,7 +100,7 @@ Item {
             anchors.verticalCenter: parent.top
             anchors.verticalCenterOffset: 20
             text: trackListDelegate.trackNumber
-            color: trackListDelegate.trackStyleItem.trackNumber
+            color: trackListDelegate.isCurrent ? Theme.accentColor : SFPalette.suitableForegroundColor(SFPalette.trackListBackgroundColor)
             Behavior on color {
                 ColorAnimation {
                     duration: 250 * (trackListDelegate.animationViewModel?.colorAnimationRatio ?? 1)
@@ -124,43 +123,41 @@ Item {
             Row {
                 id: controlsFirstRow
                 spacing: 4
-                TrackListButton {
+                ToolButton {
                     id: muteButton
-                    checkedColor: trackListDelegate.trackStyleItem.mute
-                    styleItem: trackListDelegate.trackStyleItem
-                    animationViewModel: trackListDelegate.animationViewModel
+                    Theme.accentColor: SFPalette.muteColor
+                    ThemedItem.controlType: SVS.CT_Accent
+                    checkable: true
+                    flat: false
                     text: 'M'
                     checked: trackListDelegate.trackViewModel.mute
                     onCheckedChanged: trackListDelegate.trackViewModel.mute = checked
-                    toolTip: qsTr("Mute")
                 }
-                TrackListButton {
+                ToolButton {
                     id: soloButton
-                    checkedColor: trackListDelegate.trackStyleItem.solo
-                    styleItem: trackListDelegate.trackStyleItem
-                    animationViewModel: trackListDelegate.animationViewModel
+                    Theme.accentColor: SFPalette.soloColor
+                    ThemedItem.controlType: SVS.CT_Accent
+                    checkable: true
+                    flat: false
                     text: 'S'
                     checked: trackListDelegate.trackViewModel.solo
                     onCheckedChanged: trackListDelegate.trackViewModel.solo = checked
-                    toolTip: qsTr("Solo")
                 }
-                TrackListButton {
+                ToolButton {
                     id: recordButton
-                    checkedColor: trackListDelegate.trackStyleItem.record
-                    styleItem: trackListDelegate.trackStyleItem
-                    animationViewModel: trackListDelegate.animationViewModel
+                    Theme.accentColor: SFPalette.recordColor
+                    ThemedItem.controlType: SVS.CT_Accent
+                    checkable: true
+                    flat: false
                     text: 'R'
                     checked: trackListDelegate.trackViewModel.record
                     onCheckedChanged: trackListDelegate.trackViewModel.record = checked
-                    toolTip: qsTr("Record")
                 }
             }
             TrackListEditLabel {
                 anchors.top: controlsFirstRow.top
                 anchors.bottom: controlsFirstRow.bottom
                 text: trackListDelegate.trackViewModel.name
-                trackStyleItem: trackListDelegate.trackStyleItem
-                popupEditStyleItem: trackListDelegate.popupEditStyleItem
                 onEditingFinished: function (text) {
                     trackListDelegate.trackViewModel.name = text
                 }
@@ -182,7 +179,7 @@ Item {
                     easing.type: Easing.OutCubic
                 }
             }
-            readonly property bool intermediate: gainSlider.intermediate || panDial.intermediate
+            readonly property bool intermediate: gainSlider.pressed || panDial.pressed
             onIntermediateChanged: {
                 trackListDelegate.trackViewModel.intermediate = intermediate
             }
@@ -192,12 +189,10 @@ Item {
                     anchors.verticalCenter: gainSlider.verticalCenter
                     icon: 'cellular_data_1_20_regular'
                     font.pixelSize: 24
-                    color: trackListDelegate.trackStyleItem.foreground
+                    color: SFPalette.suitableForegroundColor(SFPalette.trackListBackgroundColor)
                 }
-                TrackListSlider {
+                Slider {
                     id: gainSlider
-                    styleItem: trackListDelegate.trackStyleItem
-                    animationViewModel: trackListDelegate.animationViewModel
                     height: 24
                     width: trackListDelegate.width - 256
                     enabled: width > 40
@@ -208,32 +203,14 @@ Item {
                             easing.type: Easing.OutCubic
                         }
                     }
-                    from: decibelToLinearValue(-96)
-                    to: decibelToLinearValue(6)
-                    defaultValue: decibelToLinearValue(0)
+                    from: decibelToLinearValue(-96) - decibelToLinearValue(0)
+                    to: decibelToLinearValue(6) - decibelToLinearValue(0)
                     value: decibelToLinearValue(trackListDelegate.trackViewModel.gain)
-                    NumberAnimation on value {
-                        id: gainSliderResetAnimation
-                        to: decibelToLinearValue(0)
-                        duration: (trackListDelegate.animationViewModel?.visualEffectAnimationRatio ?? 1.0) * 250
-                        easing.type: Easing.OutCubic
-                        onStopped: {
-                            gainSlider.value = Qt.binding(() => decibelToLinearValue(trackListDelegate.trackViewModel.gain))
-                        }
-                    }
                     onValueChanged: {
-                        if (gainSliderResetAnimation.running)
-                            return
-                        let v = linearValueToDecibel(value)
+                        let v = linearValueToDecibel(value + decibelToLinearValue(0))
                         if (Math.abs(trackListDelegate.trackViewModel.gain - v) > Number.EPSILON * 1000)
                             trackListDelegate.trackViewModel.gain = v
                     }
-                    onReset: {
-                        gainSlider.value = gainSlider.value
-                        trackListDelegate.trackViewModel.gain = 0
-                        gainSliderResetAnimation.start()
-                    }
-                    toolTip: enabled ? qsTr("Gain") : ""
                 }
                 TrackListEditLabel {
                     anchors.top: parent.top
@@ -241,8 +218,6 @@ Item {
                     width: 64
                     text: (Math.abs(trackListDelegate.trackViewModel.gain + 96) < 0.05 ? '-INF ' : trackListDelegate.trackViewModel.gain.toFixed(1)) + "dB"
                     editText: trackListDelegate.trackViewModel.gain.toFixed(1)
-                    trackStyleItem: trackListDelegate.trackStyleItem
-                    popupEditStyleItem: trackListDelegate.popupEditStyleItem
                     validator: DoubleValidator { // TODO use svscraft expression validator instead
                         bottom: -96
                         top: 6
@@ -259,37 +234,17 @@ Item {
                     height: 24
                     icon: 'live_20_regular'
                     font.pixelSize: 24
-                    color: trackListDelegate.trackStyleItem.foreground
+                    color: SFPalette.suitableForegroundColor(SFPalette.trackListBackgroundColor)
                 }
-                TrackListDial {
+                Dial {
                     id: panDial
-                    styleItem: trackListDelegate.trackStyleItem
-                    animationViewModel: trackListDelegate.animationViewModel
                     height: 24
                     width: 24
                     from: -1.0
                     to: 1.0
-                    defaultValue: 0
                     value: trackListDelegate.trackViewModel.pan
-                    toolTip: qsTr("Pan")
-                    NumberAnimation on value {
-                        id: panDialResetAnimation
-                        to: 0
-                        duration: (trackListDelegate.animationViewModel?.visualEffectAnimationRatio ?? 1.0) * 250
-                        easing.type: Easing.OutCubic
-                        onStopped: {
-                            panDial.value = Qt.binding(() => trackListDelegate.trackViewModel.pan)
-                        }
-                    }
                     onValueChanged: {
-                        if (panDialResetAnimation.running)
-                            return
                         trackListDelegate.trackViewModel.pan = value
-                    }
-                    onReset: {
-                        panDial.value = panDial.value
-                        trackListDelegate.trackViewModel.pan = 0
-                        panDialResetAnimation.start()
                     }
                 }
                 TrackListEditLabel {
@@ -297,8 +252,6 @@ Item {
                     anchors.bottom: parent.bottom
                     width: 64
                     text: Math.round(trackListDelegate.trackViewModel.pan * 100)
-                    trackStyleItem: trackListDelegate.trackStyleItem
-                    popupEditStyleItem: trackListDelegate.popupEditStyleItem
                     validator: IntValidator { // TODO use svscraft expression validator instead
                         bottom: -100
                         top: 100
@@ -330,7 +283,7 @@ Item {
             anchors.bottom: parent.bottom
             anchors.right: parent.right
             anchors.margins: 1
-            color: trackListDelegate.trackStyleItem.levelBackground
+            color: SFPalette.levelMeterColor
             width: 12
             LevelMeter {
                 id: leftChannelLevelMeter
@@ -338,11 +291,6 @@ Item {
                 anchors.bottom: parent.bottom
                 anchors.left: parent.left
                 anchors.right: parent.horizontalCenter
-                lowColor: trackListDelegate.trackStyleItem.levelLow
-                middleColor: trackListDelegate.trackStyleItem.levelMiddle
-                highColor: trackListDelegate.trackStyleItem.levelHigh
-                backgroundColor: trackListDelegate.trackStyleItem.levelBackground
-                borderColor: "transparent"
                 value: trackListDelegate.trackViewModel.leftLevel
             }
             LevelMeter {
@@ -351,11 +299,6 @@ Item {
                 anchors.bottom: parent.bottom
                 anchors.left: parent.horizontalCenter
                 anchors.right: parent.right
-                lowColor: trackListDelegate.trackStyleItem.levelLow
-                middleColor: trackListDelegate.trackStyleItem.levelMiddle
-                highColor: trackListDelegate.trackStyleItem.levelHigh
-                backgroundColor: trackListDelegate.trackStyleItem.levelBackground
-                borderColor: "transparent"
                 value: trackListDelegate.trackViewModel.rightLevel
             }
             MouseArea {

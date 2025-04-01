@@ -1,12 +1,14 @@
 import QtQuick
 
+import dev.sjimo.ScopicFlow.Style
+
 Item {
     id: levelMeter
-    required property color lowColor
-    required property color middleColor
-    required property color highColor
-    required property color backgroundColor
-    required property color borderColor
+    readonly property color lowColor: SFPalette.levelLowColor
+    readonly property color middleColor: SFPalette.levelMediumColor
+    readonly property color highColor: SFPalette.levelHighColor
+    readonly property color backgroundColor: SFPalette.levelMeterColor
+    readonly property color borderColor: "transparent"
 
     property double minimum: -60
     property double safeThreshold: -18

@@ -1,12 +1,13 @@
 import QtQml
 import QtQuick
-import QtQuick.Controls.Basic
+
+import SVSCraft.UIComponents
+
+import dev.sjimo.ScopicFlow.Style
 
 Item {
     id: editLabel
     width: labelText.width + 8
-    required property QtObject trackStyleItem
-    required property QtObject popupEditStyleItem
     property string text: ""
     property string editText: text
     property QtObject validator: null
@@ -20,7 +21,7 @@ Item {
         anchors.leftMargin: 4
         anchors.verticalCenter: parent.verticalCenter
         text: editLabel.text
-        color: editLabel.trackStyleItem.foreground
+        color: SFPalette.suitableForegroundColor(SFPalette.trackListBackgroundColor)
         visible: !labelEdit.visible
     }
     Popup {
@@ -43,12 +44,11 @@ Item {
             anchors.bottom: parent.bottom
             validator: editLabel.validator
             background: Rectangle {
-                color: editLabel.popupEditStyleItem.background
+                color: Theme.textFieldColor
                 radius: 2
                 border.width: 1
-                border.color: editLabel.popupEditStyleItem.border
+                border.color: Theme.accentColor
             }
-            color: editLabel.popupEditStyleItem.foreground
             text: editLabel.editText
             leftPadding: 4
             topPadding: 0

@@ -1,6 +1,8 @@
 import QtQml
 import QtQuick
 
+import SVSCraft.UIComponents
+
 import dev.sjimo.ScopicFlow.Internal
 import dev.sjimo.ScopicFlow.Style
 
@@ -13,12 +15,6 @@ Item {
     property QtObject scrollBehaviorViewModel: null
     property QtObject animationViewModel: null
     property Component trackExtraDelegate: null
-
-    property bool active: false
-
-    property QtObject stylesheet: TrackListStylesheet {}
-    property QtObject trackListStyleItem: stylesheet.trackList.createObject(trackList, {active})
-    property QtObject rubberBandStyleItem: stylesheet.rubberBand.createObject(trackList)
 
     signal trackDoubleClicked(index: int)
     signal contextMenuRequestedForTrack(index: int)
@@ -109,7 +105,7 @@ Item {
     Rectangle {
         id: background
         anchors.fill: parent
-        color: trackList.trackListStyleItem.background
+        color: SFPalette.trackListBackgroundColor
     }
 
     DragScroller {
@@ -230,7 +226,6 @@ Item {
                     trackExtraDelegate: trackList.trackExtraDelegate
                     anchors.left: parent.left
                     anchors.right: parent.right
-                    stylesheet: trackList.stylesheet
                     trackNumber: index + 1
 
                     isLast: index === trackList.trackListViewModel?.handle.count
@@ -366,7 +361,7 @@ Item {
                         }
                     }
                     height: 4
-                    color: trackList.trackListStyleItem.trackHandle
+                    color: Theme.accentColor
 
                     MouseArea {
                         id: trackHandleMouseArea
@@ -423,20 +418,8 @@ Item {
             id: rubberBandLayer
             anchors.fill: parent
             selectionManipulator: selectionManipulator
-            rubberBand: Rectangle {
-                color: trackList.rubberBandStyleItem.background
-                border.width: 1
-                border.color: trackList.rubberBandStyleItem.border
-            }
+            rubberBand: RubberBandRectangle
         }
-    }
-
-    Rectangle {
-        id: border
-        anchors.fill: parent
-        color: "transparent"
-        border.width: 1
-        border.color: trackList.trackListStyleItem.border
     }
 
     MiddleButtonMoveHandler {

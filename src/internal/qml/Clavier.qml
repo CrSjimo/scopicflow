@@ -1,6 +1,8 @@
 import QtQml
 import QtQuick
 
+import SVSCraft.UIComponents
+
 import dev.sjimo.ScopicFlow.Internal
 import dev.sjimo.ScopicFlow.Style
 
@@ -16,10 +18,6 @@ Item {
     property QtObject animationViewModel: null
     property double bottomMargin: 0
     property QtObject clavierViewModel: null
-
-    property QtObject stylesheet: ClavierStylesheet {}
-    readonly property QtObject whiteKeyStyleItem: stylesheet.clavier.createObject(clavier, {isBlackKey: false})
-    readonly property QtObject blackKeyStyleItem: stylesheet.clavier.createObject(clavier, {isBlackKey: true})
 
     readonly property int cursorNoteIndex: clavierViewModel?.cursorPosition ?? -1
     readonly property double keyHeight: clavierViewModel?.pixelDensity ?? 24
@@ -78,7 +76,7 @@ Item {
     }
     Rectangle {
         anchors.fill: parent
-        color: clavier.whiteKeyStyleItem.border
+        color: Theme.borderColor
     }
     Item {
         id: clavierViewport
@@ -100,14 +98,17 @@ Item {
                 property bool isLeftLabelVisible: false
                 readonly property bool isRightLabelVisible: clavier.isRightLabelVisible(index)
                 readonly property string keyName: ClavierHelper.keyNameImpl(index, clavier.clavierViewModel?.accidentalType ?? 0)
-                readonly property QtObject styleItem: isBlackKey ? clavier.blackKeyStyleItem : clavier.whiteKeyStyleItem
                 readonly property double textYOffset: (clavier.keyYFactor[index % 12] - index % 12 - 0.5) * clavier.keyHeight
 
                 anchors.left: parent.left
-                border.color: styleItem.border
+                border.color: Theme.borderColor
                 border.width: 1
                 bottomRightRadius: isBlackKey ? 4 : 0
-                color: mouseArea.pressed ? styleItem.backgroundPressed : mouseArea.containsMouse ? styleItem.backgroundHovered : styleItem.background
+                color: mouseArea.pressed ?
+                        isBlackKey ? SFPalette.blackKeyPressedColor : SFPalette.whiteKeyPressedColor :
+                    mouseArea.containsMouse ?
+                        isBlackKey ? SFPalette.blackKeyHoveredColor : SFPalette.whiteKeyHoveredColor :
+                        isBlackKey ? SFPalette.blackKeyColor : SFPalette.whiteKeyColor
                 height: clavier.keyHeight * clavier.keyHeightFactor[index % 12]
                 topRightRadius: isBlackKey ? 4 : 0
                 width: parent.width * (isBlackKey ? 0.75 : 1)
@@ -126,7 +127,7 @@ Item {
                     anchors.leftMargin: 8
                     anchors.verticalCenter: parent.top
                     anchors.verticalCenterOffset: parent.textYOffset
-                    color: clavierKey.styleItem.foreground
+                    color: SFPalette.suitableForegroundColor(isBlackKey ? SFPalette.blackKeyColor : SFPalette.whiteKeyColor)
                     text: parent.keyName
                     visible: parent.isLeftLabelVisible
                 }
@@ -135,7 +136,7 @@ Item {
                     anchors.rightMargin: 8
                     anchors.verticalCenter: parent.top
                     anchors.verticalCenterOffset: parent.textYOffset
-                    color: clavierKey.styleItem.foreground
+                    color: SFPalette.suitableForegroundColor(isBlackKey ? SFPalette.blackKeyColor : SFPalette.whiteKeyColor)
                     text: parent.keyName
                     visible: parent.isRightLabelVisible
                 }

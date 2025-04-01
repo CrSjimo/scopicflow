@@ -10,8 +10,8 @@ scopic_flow_add_library(ScopicFlow AUTOGEN STATIC
     SOURCES ${_src}
     SYNC_INCLUDE_PREFIX ScopicFlowComponent
     LINKS svscraft::Core ScopicFlowInternal ScopicFlowInternalplugin
-    QT_LINKS Core Gui Widgets Qml Quick
-    QT_INCLUDE_PRIVATE Core Gui Widgets Qml Quick
+    QT_LINKS Core Gui Widgets Qml Quick QuickControls2
+    QT_INCLUDE_PRIVATE Core Gui Widgets Qml Quick QuickControls2
 )
 
 if(QT_KNOWN_POLICY_QTP0001)

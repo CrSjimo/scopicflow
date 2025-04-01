@@ -13,4 +13,13 @@ namespace sflow {
             emit editingChanged(editing);
         }
     }
+    QColor LabelSequenceBehaviorViewModel::color() const {
+        return m_color;
+    }
+    void LabelSequenceBehaviorViewModel::setColor(const QColor &color) {
+        if (m_color != color) {
+            m_color = color;
+            emit colorChanged(color);
+        }
+    }
 }

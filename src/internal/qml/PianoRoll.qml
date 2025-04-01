@@ -1,6 +1,7 @@
 import QtQml
 import QtQuick
-import QtQuick.Controls.Basic
+
+import SVSCraft.UIComponents
 
 import dev.sjimo.ScopicFlow.Internal
 import dev.sjimo.ScopicFlow.Style
@@ -18,13 +19,6 @@ Item {
     property QtObject pianoRollNoteAreaBehaviorViewModel: null
 
     property list<Component> viewItems: []
-
-    property bool active: false
-
-    property QtObject stylesheet: PianoRollStylesheet {}
-    readonly property QtObject pianoRollStyleItem: stylesheet.pianoRoll.createObject(pianoRoll, {active})
-    readonly property QtObject scrollBarStyleItem: stylesheet.scrollBar.createObject(pianoRoll)
-    readonly property QtObject timeIndicatorsStyleItem: stylesheet.timeIndicators.createObject(pianoRoll)
 
     property double topMargin: 0
     property double bottomMargin: 0
@@ -64,7 +58,7 @@ Item {
     Rectangle {
         id: background
         anchors.fill: parent
-        color: pianoRoll.pianoRollStyleItem.blackKeyBackground
+        color: SFPalette.editAreaPrimaryColor
     }
 
     Item {
@@ -84,9 +78,9 @@ Item {
                 width: parent.width
                 height: pianoRoll.keyHeight
                 y: (127 - index) * pianoRoll.keyHeight
-                color: isBlackKey ? pianoRoll.pianoRollStyleItem.blackKeyBackground : pianoRoll.pianoRollStyleItem.whiteKeyBackground
+                color: isBlackKey ? SFPalette.editAreaPrimaryColor : SFPalette.editAreaSecondaryColor
                 border.width: 1
-                border.color: pianoRoll.pianoRollStyleItem.blackKeyBackground
+                border.color: SFPalette.editAreaPrimaryColor
             }
         }
 
@@ -96,9 +90,9 @@ Item {
         anchors.fill: parent
         timeViewModel: pianoRoll.timeViewModel
         timeLayoutViewModel: pianoRoll.timeLayoutViewModel
-        barScaleColor: pianoRoll.pianoRollStyleItem.barScale
-        beatScaleColor: pianoRoll.pianoRollStyleItem.beatScale
-        segmentScaleColor: pianoRoll.pianoRollStyleItem.segmentScale
+        barScaleColor: SFPalette.scalePrimaryColor
+        beatScaleColor: SFPalette.scaleSecondaryColor
+        segmentScaleColor: SFPalette.scaleTertiaryColor
     }
 
     onViewItemsChanged: () => {
@@ -118,17 +112,8 @@ Item {
         anchors.bottomMargin: pianoRoll.bottomMargin
     }
 
-    Rectangle {
-        id: border
-        anchors.fill: parent
-        color: "transparent"
-        border.width: 1
-        border.color: pianoRoll.pianoRollStyleItem.border
-    }
-
     PositionIndicators {
         anchors.fill: parent
-        styleItem: pianoRoll.timeIndicatorsStyleItem
         timeViewModel: pianoRoll.timeViewModel
         timeLayoutViewModel: pianoRoll.timeLayoutViewModel
         playbackViewModel: pianoRoll.playbackViewModel
@@ -142,10 +127,6 @@ Item {
         anchors.bottomMargin: 6 + pianoRoll.bottomMargin
         anchors.right: parent.right
         orientation: Qt.Vertical
-        normalColor: pianoRoll.scrollBarStyleItem.normal
-        pressedColor: pianoRoll.scrollBarStyleItem.pressed
-        hoveredColor: pianoRoll.scrollBarStyleItem.hovered
-        animationViewModel: pianoRoll.animationViewModel
         size: (pianoRoll.height - pianoRoll.bottomMargin - pianoRoll.topMargin) / (backgroundViewport.height)
         position: 1 - (pianoRoll.clavierViewModel?.start ?? 0) / 128 - size
         onPositionChanged: {
@@ -181,10 +162,6 @@ Item {
         anchors.bottom: parent.bottom
         anchors.bottomMargin: pianoRoll.bottomMargin
         orientation: Qt.Horizontal
-        normalColor: pianoRoll.scrollBarStyleItem.normal
-        pressedColor: pianoRoll.scrollBarStyleItem.pressed
-        hoveredColor: pianoRoll.scrollBarStyleItem.hovered
-        animationViewModel: pianoRoll.animationViewModel
         size: pianoRoll.timeViewModel && pianoRoll.timeLayoutViewModel ? pianoRoll.width / pianoRoll.timeLayoutViewModel.pixelDensity / pianoRoll.timeViewModel.end : 0
         position: pianoRoll.timeViewModel ? pianoRoll.timeViewModel.start / pianoRoll.timeViewModel.end : 0
         onPositionChanged: {

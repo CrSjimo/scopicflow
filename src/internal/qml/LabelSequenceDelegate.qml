@@ -1,7 +1,10 @@
 import QtQml
 import QtQuick
-import QtQuick.Controls.Basic
+
+import SVSCraft.UIComponents
+
 import dev.sjimo.ScopicFlow.Internal
+import dev.sjimo.ScopicFlow.Style
 
 Rectangle {
     id: labelRect
@@ -10,19 +13,13 @@ Rectangle {
     required property QtObject labelSequenceViewModel
     required property QtObject labelSequenceBehaviorViewModel
 
-    required property QtObject stylesheet
-
     Binding {
         when: labelRect.visible
         labelRect.current: labelRect.labelSequenceViewModel && labelRect.labelSequenceViewModel.handle.currentItem === labelRect.model
-        labelRect.labelStyleItem: labelRect.stylesheet.labelSequenceDelegate.createObject(labelRect, {labelViewModel: labelRect.model, current: labelRect.current})
-        labelRect.popupEditStyleItem: labelRect.stylesheet.popupEdit.createObject(labelRect)
         labelRect.editingRequired: (labelRect.labelSequenceBehaviorViewModel?.editing ?? false) && labelRect.current
     }
 
     property bool current: {current = labelSequenceViewModel.handle.currentItem === model}
-    property QtObject labelStyleItem: {labelStyleItem = stylesheet.labelSequenceDelegate.createObject(labelRect, {labelViewModel: model, current})}
-    property QtObject popupEditStyleItem: {popupEditStyleItem = stylesheet.popupEdit.createObject(labelRect)}
     property bool editing: popup.opened
 
     implicitWidth: labelText.width + 8
@@ -32,7 +29,7 @@ Rectangle {
 
     border.width: 1
     radius: 2
-    border.color: labelStyleItem.border
+    border.color: Theme.borderColor
     Behavior on border.color {
         ColorAnimation {
             duration: (labelRect.animationViewModel?.colorAnimationRatio ?? 1.0) * 250
@@ -40,7 +37,7 @@ Rectangle {
         }
     }
     clip: true
-    color: labelStyleItem.background
+    color: labelRect.model.selected ? SFPalette.noteSelectedColorChange.apply(labelSequenceBehaviorViewModel?.color ?? Theme.accentColor) : (labelSequenceBehaviorViewModel?.color ?? Theme.accentColor)
     Behavior on color {
         ColorAnimation {
             duration: (labelRect.animationViewModel?.colorAnimationRatio ?? 1.0) * 250
@@ -67,7 +64,7 @@ Rectangle {
         anchors.verticalCenter: parent.verticalCenter
         anchors.leftMargin: 4
         text: labelRect.model.content
-        color: labelRect.labelStyleItem.foreground
+        color: SFPalette.suitableForegroundColor(labelSequenceBehaviorViewModel?.color ?? Theme.accentColor)
         Behavior on color {
             ColorAnimation {
                 duration: (labelRect.animationViewModel?.colorAnimationRatio ?? 1.0) * 250
@@ -80,7 +77,6 @@ Rectangle {
         model: labelRect.model
         containerModel: labelRect.labelSequenceViewModel
         targetProperty: "content"
-        styleItem: labelRect.popupEditStyleItem
         radius: labelRect.radius
         removeIfEmpty: true
     }

@@ -1,6 +1,7 @@
 import QtQml
 import QtQuick
-import QtQuick.Controls.Basic
+
+import SVSCraft.UIComponents
 
 import dev.sjimo.ScopicFlow.Internal
 import dev.sjimo.ScopicFlow.Style
@@ -17,17 +18,8 @@ Item {
     property QtObject trackListLayoutViewModel: null
     property QtObject clipSequenceViewModel: null
     property QtObject clipPaneBehaviorViewModel: null
-    
-    property bool active: false
-
-    property QtObject stylesheet: ClipPaneStylesheet {}
 
     property Component clipGraph: null
-    
-    readonly property QtObject clipPaneStyleItem: stylesheet.clipPane.createObject(clipPane, {active})
-    readonly property QtObject scrollBarStyleItem: stylesheet.scrollBar.createObject(clipPane)
-    readonly property QtObject timeIndicatorsStyleItem: stylesheet.timeIndicators.createObject(clipPane)
-    readonly property QtObject rubberBandStyleItem: stylesheet.rubberBand.createObject(clipPane)
 
     clip: true
 
@@ -73,16 +65,16 @@ Item {
     Rectangle {
         id: background
         anchors.fill: parent
-        color: clipPane.clipPaneStyleItem.background
+        color: SFPalette.editAreaPrimaryColor
     }
 
     PianoRollScale {
         anchors.fill: parent
         timeViewModel: clipPane.timeViewModel
         timeLayoutViewModel: clipPane.timeLayoutViewModel
-        barScaleColor: clipPane.clipPaneStyleItem.barScale
-        beatScaleColor: clipPane.clipPaneStyleItem.beatScale
-        segmentScaleColor: clipPane.clipPaneStyleItem.segmentScale
+        barScaleColor: SFPalette.scalePrimaryColor
+        beatScaleColor: SFPalette.scaleSecondaryColor
+        segmentScaleColor: SFPalette.scaleTertiaryColor
     }
 
     Item {
@@ -101,7 +93,7 @@ Item {
                 anchors.right: parent.right
                 y: (trackListLocator.map[index] ?? 0) - height / 2
                 height: 2
-                color: clipPane.clipPaneStyleItem.trackSplitter
+                color: Theme.splitterColor
             }
         }
     }
@@ -172,9 +164,6 @@ Item {
                     required property QtObject model
                     property color clipColor: {clipColor = clipPane.trackListViewModel?.handle.items[model.trackNumber].color ?? "white"}
                     property bool current: {current = clipPane.clipSequenceViewModel.handle.currentItem === model}
-                    property QtObject clipStyleItem: {
-                        clipStyleItem = clipPane.stylesheet.clip.createObject(clipRect, {clipViewModel: model, current, clipColor})
-                    }
                     opacity: eraserMouseArea.willBeErased ? 0.5 : 1
                     function bringToFront() {
                         if (model.overlapped)
@@ -188,7 +177,6 @@ Item {
                         clipRect.height: clipPane.trackListViewModel?.handle.items[model.trackNumber].rowHeight ?? 0
                         clipRect.clipColor: clipPane.trackListViewModel?.handle.items[model.trackNumber].color ?? "white"
                         clipRect.current: clipPane.clipSequenceViewModel?.handle.currentItem === model
-                        clipRect.clipStyleItem: clipPane.stylesheet.clip.createObject(clipRect, {clipViewModel: clipRect.model, current: clipRect.current, clipColor: clipRect.clipColor})
                         clipNameLabel.x: Math.max(-(clipRect.x + viewport.x), 0)
                         clipNameLabel.visible: clipNameLabel.x + clipNameLabel.width <= clipRect.width
                     }
@@ -198,7 +186,7 @@ Item {
                         anchors.topMargin: 1
                         anchors.bottomMargin: 1
                         radius: 4
-                        color: clipRect.clipStyleItem.background
+                        color: clipRect.model.selected ? SFPalette.clipSelectedColorChange.apply(SFPalette.clipThumbnailColorChange.apply(clipRect.clipColor)) : SFPalette.clipThumbnailColorChange.apply(clipRect.clipColor)
                         Behavior on color {
                             ColorAnimation {
                                 duration: (clipPane.animationViewModel?.colorAnimationRatio ?? 1.0) * 250
@@ -212,7 +200,7 @@ Item {
                         anchors.left: parent.left
                         anchors.right: parent.right
                         height: 20
-                        color: clipRect.clipStyleItem.header
+                        color: clipRect.clipColor
                         radius: clipBackground.radius
                         Behavior on color {
                             ColorAnimation {
@@ -233,7 +221,7 @@ Item {
                             leftPadding: 4
                             rightPadding: 16
                             text: clipRect.model.name
-                            color: clipRect.clipStyleItem.text
+                            color: SFPalette.suitableForegroundColor(clipRect.clipColor)
                             Behavior on color {
                                 ColorAnimation {
                                     duration: (clipPane.animationViewModel?.colorAnimationRatio ?? 1.0) * 250
@@ -260,7 +248,7 @@ Item {
                             }
                             if (!clipPane.clipGraph)
                                 return
-                            clipPane.clipGraph.createObject(clipGraphContainer, {model: clipRect.model, color: clipRect.clipStyleItem.foreground})
+                            clipPane.clipGraph.createObject(clipGraphContainer, {model: clipRect.model, color: SFPalette.suitableForegroundColor(SFPalette.clipThumbnailColorChange.apply(clipRect.clipColor))})
                         }
                         Component.onCompleted: load()
                     }
@@ -271,7 +259,7 @@ Item {
                         radius: clipBackground.radius
                         border.width: Math.min(clipRect.model.selected ? 2 : 1, width / 4)
                         opacity: clipRect.model.selected ? 1 : 0.5
-                        border.color: clipRect.clipStyleItem.border
+                        border.color: clipRect.clipColor
                         Behavior on border.color {
                             ColorAnimation {
                                 duration: (clipPane.animationViewModel?.colorAnimationRatio ?? 1.0) * 250
@@ -432,10 +420,7 @@ Item {
             id: rubberBandLayer
             anchors.fill: parent
             selectionManipulator: selectionManipulator
-            rubberBand: Rectangle {
-                color: clipPane.rubberBandStyleItem.background
-                border.width: 1
-                border.color: clipPane.rubberBandStyleItem.border
+            rubberBand: RubberBandRectangle {
             }
 
         }
@@ -444,7 +429,6 @@ Item {
 
     PositionIndicators {
         anchors.fill: parent
-        styleItem: clipPane.timeIndicatorsStyleItem
         timeViewModel: clipPane.timeViewModel
         timeLayoutViewModel: clipPane.timeLayoutViewModel
         playbackViewModel: clipPane.playbackViewModel
@@ -458,10 +442,6 @@ Item {
         anchors.right: parent.right
         orientation: Qt.Vertical
         allowDragAdjustment: false
-        normalColor: clipPane.scrollBarStyleItem.normal
-        pressedColor: clipPane.scrollBarStyleItem.pressed
-        hoveredColor: clipPane.scrollBarStyleItem.hovered
-        animationViewModel: clipPane.animationViewModel
         size: clipPane.height / trackListLocator.viewportHeight
         position: (clipPane.trackListLayoutViewModel?.viewportOffset ?? 0) / trackListLocator.viewportHeight
         onPositionChanged: {
@@ -477,10 +457,6 @@ Item {
         anchors.rightMargin: 6
         anchors.bottom: parent.bottom
         orientation: Qt.Horizontal
-        normalColor: clipPane.scrollBarStyleItem.normal
-        pressedColor: clipPane.scrollBarStyleItem.pressed
-        hoveredColor: clipPane.scrollBarStyleItem.hovered
-        animationViewModel: clipPane.animationViewModel
         size: clipPane.timeViewModel && clipPane.timeLayoutViewModel ? clipPane.width / clipPane.timeLayoutViewModel.pixelDensity / clipPane.timeViewModel.end : 0
         position: clipPane.timeViewModel ? clipPane.timeViewModel.start / clipPane.timeViewModel.end : 0
         onPositionChanged: {

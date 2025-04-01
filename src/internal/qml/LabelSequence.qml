@@ -1,6 +1,7 @@
 import QtQml
 import QtQuick
-import QtQuick.Controls.Basic
+
+import SVSCraft.UIComponents
 
 import dev.sjimo.ScopicFlow.Internal
 import dev.sjimo.ScopicFlow.Style
@@ -15,13 +16,6 @@ Item {
     property QtObject animationViewModel: null
     property QtObject labelSequenceViewModel: null
     property QtObject labelSequenceBehaviorViewModel: null
-
-    property bool active: false
-
-    readonly property QtObject stylesheet: LabelSequenceStylesheet {}
-    readonly property QtObject labelSequenceStyleItem: stylesheet.labelSequence.createObject(labelSequence, {active})
-    readonly property QtObject rubberBandLayerStyleItem: stylesheet.rubberBand.createObject(labelSequence)
-    readonly property QtObject timeIndicatorsStyleItem: stylesheet.timeIndicators.createObject(labelSequence)
 
     Text {
         id: labelLengthReference
@@ -108,7 +102,7 @@ Item {
     Rectangle {
         id: background
         anchors.fill: parent
-        color: labelSequence.labelSequenceStyleItem.background
+        color: SFPalette.editAreaPrimaryColor
     }
 
     Item {
@@ -166,11 +160,8 @@ Item {
                     animationViewModel: labelSequence.animationViewModel
                     labelSequenceViewModel: labelSequence.labelSequenceViewModel
                     labelSequenceBehaviorViewModel: labelSequence.labelSequenceBehaviorViewModel
-                    stylesheet: labelSequence.stylesheet
                     anchors.top: parent.top
                     anchors.bottom: parent.bottom
-                    anchors.topMargin: 1
-                    anchors.bottomMargin: 1
                     Binding {
                         when: labelRect.visible
                         labelRect.x: labelRect.model.position * viewport.pixelDensity
@@ -241,25 +232,13 @@ Item {
             anchors.fill: parent
             selectionManipulator: selectionManipulator
             z: 2
-            rubberBand: Rectangle {
-                color: labelSequence.rubberBandLayerStyleItem.background
-                border.width: 1
-                border.color: labelSequence.rubberBandLayerStyleItem.border
+            rubberBand: RubberBandRectangle {
             }
         }
     }
 
-    Rectangle {
-        id: border
-        anchors.fill: parent
-        color: "transparent"
-        border.width: 1
-        border.color: labelSequence.labelSequenceStyleItem.border
-    }
-
     PositionIndicators {
         anchors.fill: parent
-        styleItem: labelSequence.timeIndicatorsStyleItem
         timeViewModel: labelSequence.timeViewModel
         timeLayoutViewModel: labelSequence.timeLayoutViewModel
         playbackViewModel: labelSequence.playbackViewModel

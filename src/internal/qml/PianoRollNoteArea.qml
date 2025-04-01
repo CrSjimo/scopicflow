@@ -1,6 +1,7 @@
 import QtQml
 import QtQuick
-import QtQuick.Controls.Basic
+
+import SVSCraft.UIComponents
 
 import dev.sjimo.ScopicFlow.Internal
 import dev.sjimo.ScopicFlow.Style
@@ -16,11 +17,8 @@ Item {
 
     required property rect viewport
 
-    property QtObject stylesheet: PianoRollNoteAreaStylesheet {}
-    readonly property QtObject popupEditStyleItem: stylesheet.popupEdit.createObject(noteArea)
-    readonly property QtObject rubberBandStyleItem: stylesheet.rubberBand.createObject(noteArea)
-
     readonly property double offsetSize: (pianoRollNoteAreaBehaviorViewModel?.offset ?? 0) * (timeLayoutViewModel?.pixelDensity ?? 0)
+    readonly property color noteColor: pianoRollNoteAreaBehaviorViewModel?.color ?? Theme.accentColor
 
     signal noteCut(model: QtObject, position: int)
     signal noteContextMenuRequired(model: QtObject)
@@ -162,7 +160,6 @@ Item {
                     property bool current: {current = model === noteArea.noteSequenceViewModel.handle.currentItem}
                     property bool editing: popup.opened
                     property bool editingRequired: {editingRequired = (noteArea.pianoRollNoteAreaBehaviorViewModel?.editing ?? false) && current}
-                    property QtObject noteStyleItem: {noteStyleItem = noteArea.stylesheet.pianoRollNoteArea.createObject(noteRect, {noteViewModel: model, current, noteColor: noteArea.pianoRollNoteAreaBehaviorViewModel?.color ?? "white"})}
                     opacity: eraserMouseArea.willBeErased ? 0.5 : 1
                     Binding {
                         when: noteRect.visible
@@ -171,7 +168,6 @@ Item {
                         noteRect.width: noteRect.model.length * (noteArea.timeLayoutViewModel?.pixelDensity ?? 0)
                         noteRect.height: (noteArea.clavierViewModel?.pixelDensity ?? 0)
                         noteRect.current: noteArea.noteSequenceViewModel && noteRect.model === noteArea.noteSequenceViewModel.handle.currentItem
-                        noteRect.noteStyleItem: noteArea.stylesheet.pianoRollNoteArea.createObject(noteArea, {noteViewModel: noteRect.model, current: noteRect.current, noteColor: noteArea.pianoRollNoteAreaBehaviorViewModel?.color ?? "white"})
                         noteRect.editingRequired: (noteArea.pianoRollNoteAreaBehaviorViewModel?.editing ?? false) && noteRect.current
                         background.radius: noteArea.pianoRollNoteAreaBehaviorViewModel?.compactDisplay ? 0.5 * background.height : 4
                         background.height: noteRect.height * (noteArea.pianoRollNoteAreaBehaviorViewModel?.compactDisplay ? 0.5 : 1)
@@ -202,7 +198,7 @@ Item {
                         anchors.left: parent.left
                         anchors.right: parent.right
                         anchors.verticalCenter: parent.verticalCenter
-                        color: noteRect.noteStyleItem.background
+                        color: noteRect.model.selected ? SFPalette.noteSelectedColorChange.apply(noteArea.noteColor) : noteArea.noteColor
                         Behavior on color {
                             ColorAnimation {
                                 duration: (noteArea.animationViewModel?.colorAnimationRatio ?? 1.0) * 250
@@ -218,7 +214,7 @@ Item {
                         radius: background.radius
                         border.width: Math.min(noteRect.model.selected ? 2 : 1, width / 4)
                         opacity: noteRect.model.selected ? 1 : 0.5
-                        border.color: noteRect.noteStyleItem.border
+                        border.color: noteArea.noteColor
                         Behavior on border.color {
                             ColorAnimation {
                                 duration: (noteArea.animationViewModel?.colorAnimationRatio ?? 1.0) * 250
@@ -236,7 +232,7 @@ Item {
                         anchors.verticalCenter: parent.verticalCenter
                         text: noteRect.model.lyric
                         clip: true
-                        color: noteRect.noteStyleItem.foreground
+                        color: SFPalette.suitableForegroundColor(noteArea.noteColor)
                         Behavior on color {
                             ColorAnimation {
                                 duration: (noteArea.animationViewModel?.colorAnimationRatio ?? 1.0) * 250
@@ -249,7 +245,6 @@ Item {
                         model: noteRect.model
                         containerModel: noteArea.noteSequenceViewModel
                         targetProperty: "lyric"
-                        styleItem: noteArea.popupEditStyleItem
                         Binding {
                             when: popup.opened
                             popup.width: noteRect.width
@@ -415,16 +410,13 @@ Item {
             selectionManipulator: selectionManipulator
             rubberBand: Item {
                 id: mappingAdapter
-                Rectangle {
+                RubberBandRectangle {
                     readonly property point p1: rubberBandHelper.rubberBandPointToViewportPoint(Qt.point(mappingAdapter.x, mappingAdapter.y + mappingAdapter.height))
                     readonly property point p2: rubberBandHelper.rubberBandPointToViewportPoint(Qt.point(mappingAdapter.x + mappingAdapter.width, mappingAdapter.y))
                     x: p1.x - mappingAdapter.x
                     y: p1.y - mappingAdapter.y
                     width: p2.x - p1.x
                     height: p2.y - p1.y
-                    color: noteArea.rubberBandStyleItem.background
-                    border.width: 1
-                    border.color: noteArea.rubberBandStyleItem.border
                 }
             }
         }

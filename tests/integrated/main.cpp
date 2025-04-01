@@ -222,7 +222,7 @@ int main(int argc, char *argv[]) {
     for (int i = 0; i < 8; i++) {
         auto track = new TrackViewModel;
         track->setName("Track " + QString::number(i + 1));
-        track->setColor(QColor::fromHsvF(tchd(generator), 0.8, 1.0));
+        track->setColor(QColor::fromHslF(tchd(generator), 0.8, 0.5));
         tracks.append(track);
     }
     trackListViewModel.setItems(tracks);
@@ -231,6 +231,8 @@ int main(int argc, char *argv[]) {
 
     LabelSequenceBehaviorViewModel labelSequenceBehaviorViewModel;
     LabelSequenceBehaviorViewModel arrangementLabelSequenceBehaviorViewModel;
+    labelSequenceBehaviorViewModel.setColor(0x805e14);
+    arrangementLabelSequenceBehaviorViewModel.setColor(0x574b90);
 
 
     std::uniform_int_distribution<int> distribution(-60, 60);

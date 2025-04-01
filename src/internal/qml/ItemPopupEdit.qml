@@ -1,13 +1,13 @@
 import QtQml
 import QtQuick
-import QtQuick.Controls.Basic
+
+import SVSCraft.UIComponents
 
 Popup {
     id: popup
     required property QtObject model
     required property QtObject containerModel
     required property string targetProperty
-    required property QtObject styleItem
     property bool removeIfEmpty: false
     property double radius: 0
 
@@ -32,12 +32,11 @@ Popup {
         anchors.bottom: parent.bottom
         width: Math.max(popup.width, implicitWidth)
         background: Rectangle {
-            color: popup.styleItem.background
-            radius: popup.radius
+            color: Theme.textFieldColor
+            radius: 2
             border.width: 1
-            border.color: popup.styleItem.border
+            border.color: Theme.accentColor
         }
-        color: popup.styleItem.foreground
         text: popup.model[popup.targetProperty]
         leftPadding: 4
         topPadding: 0

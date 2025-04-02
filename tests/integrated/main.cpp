@@ -186,60 +186,60 @@ int main(int argc, char *argv[]) {
     auto splitter = new QSplitter;
     splitter->setOrientation(Qt::Vertical);
 
-    TimeLayoutViewModel timeLayoutViewModel;
+    TimeLayoutViewModel timeLayoutViewModel(&win);
     timeLayoutViewModel.setPositionAlignment(240);
 
-    TimeLayoutViewModel arrangementTimeLayoutViewModel;
+    TimeLayoutViewModel arrangementTimeLayoutViewModel(&win);
     arrangementTimeLayoutViewModel.setPositionAlignment(480);
 
-    SVS::MusicTimeline musicTimeline;
+    SVS::MusicTimeline musicTimeline(&win);
 
-    TimeViewModel timeViewModel;
+    TimeViewModel timeViewModel(&win);
     timeViewModel.setTimeline(&musicTimeline);
-    TimeViewModel arrangementTimeViewModel;
+    TimeViewModel arrangementTimeViewModel(&win);
     arrangementTimeViewModel.setTimeline(&musicTimeline);
 
-    PlaybackViewModel playbackViewModel;
+    PlaybackViewModel playbackViewModel(&win);
 
-    ClavierViewModel clavierViewModel;
+    ClavierViewModel clavierViewModel(&win);
 
-    ScrollBehaviorViewModel scrollBehaviorViewModel;
+    ScrollBehaviorViewModel scrollBehaviorViewModel(&win);
 
-    AnimationViewModel animationViewModel;
+    AnimationViewModel animationViewModel(&win);
 
-    PointSequenceViewModel labelSequenceViewModel;
+    PointSequenceViewModel labelSequenceViewModel(&win);
     for (int i = 0; i < 16; i++) {
-        auto label = new LabelViewModel;
+        auto label = new LabelViewModel(&win);
         label->setPosition(i * 240);
         label->setContent("test" + QString::number(i));
         labelSequenceViewModel.insertItem(label);
     }
     std::mt19937 generator(114514);
 
-    ListViewModel trackListViewModel;
+    ListViewModel trackListViewModel(&win);
     QObjectList tracks;
     std::uniform_real_distribution<float> tchd(0.0, 1.0);
     for (int i = 0; i < 8; i++) {
-        auto track = new TrackViewModel;
+        auto track = new TrackViewModel(&win);
         track->setName("Track " + QString::number(i + 1));
-        track->setColor(QColor::fromHslF(tchd(generator), 0.8, 0.5));
+        track->setColor(QColor::fromHsvF(tchd(generator), 0.8, 1));
         tracks.append(track);
     }
     trackListViewModel.setItems(tracks);
 
-    TrackListLayoutViewModel trackListLayoutViewModel;
+    TrackListLayoutViewModel trackListLayoutViewModel(&win);
 
-    LabelSequenceBehaviorViewModel labelSequenceBehaviorViewModel;
-    LabelSequenceBehaviorViewModel arrangementLabelSequenceBehaviorViewModel;
+    LabelSequenceBehaviorViewModel labelSequenceBehaviorViewModel(&win);
+    LabelSequenceBehaviorViewModel arrangementLabelSequenceBehaviorViewModel(&win);
     labelSequenceBehaviorViewModel.setColor(0x805e14);
     arrangementLabelSequenceBehaviorViewModel.setColor(0x574b90);
 
 
     std::uniform_int_distribution<int> distribution(-60, 60);
 
-    RangeSequenceViewModel backNoteSequenceViewModel;
+    RangeSequenceViewModel backNoteSequenceViewModel(&win);
     for (int i = 0, k = 48, p = 0; i < 256; i++) {
-        auto note = new NoteViewModel;
+        auto note = new NoteViewModel(&win);
         note->setPosition(p);
         note->setLength(960);
         p += note->length();
@@ -248,27 +248,27 @@ int main(int argc, char *argv[]) {
         backNoteSequenceViewModel.insertItem(note);
     }
 
-    PianoRollNoteAreaBehaviorViewModel pianoRollNoteAreaBehaviorViewModel;
-    pianoRollNoteAreaBehaviorViewModel.setColor({0x34, 0x98, 0xcb});
+    PianoRollNoteAreaBehaviorViewModel pianoRollNoteAreaBehaviorViewModel(&win);
+    pianoRollNoteAreaBehaviorViewModel.setColor(0x3498cb);
     QObject::connect(&trackListViewModel, &ListViewModel::currentIndexChanged, [&](int index) {
         pianoRollNoteAreaBehaviorViewModel.setColor(trackListViewModel.items()[index]->property("color").value<QColor>());
     });
     pianoRollNoteAreaBehaviorViewModel.setLengthHint(960);
-    PianoRollNoteAreaBehaviorViewModel backPianoRollNoteAreaBehaviorViewModel;
-    backPianoRollNoteAreaBehaviorViewModel.setColor({0x34, 0x98, 0xcb});
+    PianoRollNoteAreaBehaviorViewModel backPianoRollNoteAreaBehaviorViewModel(&win);
+    backPianoRollNoteAreaBehaviorViewModel.setColor(0x3498cb);
     backPianoRollNoteAreaBehaviorViewModel.setMouseBehavior(PianoRollNoteAreaBehaviorViewModel::None);
     backPianoRollNoteAreaBehaviorViewModel.setCompactDisplay(true);
 
-    RangeSequenceViewModel clipSequenceViewModel;
+    RangeSequenceViewModel clipSequenceViewModel(&win);
     for (int i = 0; i < 16; i++) {
-        auto clip = new ClipViewModel;
+        auto clip = new ClipViewModel(&win);
         clip->setPosition(i * 480);
         clip->setLength(1440);
         clip->setTrackNumber(i % 8);
         clip->setName(QString::number(i));
-        auto clipNoteSequenceViewModel = new RangeSequenceViewModel;
+        auto clipNoteSequenceViewModel = new RangeSequenceViewModel(&win);
         for (int i = 0, k = 48, p = 0; i < 256; i++) {
-            auto note = new NoteViewModel;
+            auto note = new NoteViewModel(&win);
             note->setPosition(p);
             note->setLength(960);
             p += note->length();
@@ -277,6 +277,7 @@ int main(int argc, char *argv[]) {
             clipNoteSequenceViewModel->insertItem(note);
         }
         QObject::connect(clipNoteSequenceViewModel, &RangeSequenceViewModel::itemInserted, [&](QObject *item) {
+            item->setParent(&win);
             item->setProperty("lyric", "a");
         });
         QObject::connect(clipNoteSequenceViewModel, &RangeSequenceViewModel::itemRemoved, [&](QObject *item) {
@@ -293,7 +294,7 @@ int main(int argc, char *argv[]) {
         clip->deleteLater();
     });
 
-    ClipPaneBehaviorViewModel clipPaneBehaviorViewModel;
+    ClipPaneBehaviorViewModel clipPaneBehaviorViewModel(&win);
     clipPaneBehaviorViewModel.setLengthHint(480);
 
     QQmlApplicationEngine engine;

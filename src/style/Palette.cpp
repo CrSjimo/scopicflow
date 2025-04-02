@@ -70,6 +70,7 @@ namespace sflow {
     IMPLEMENTATION(clipSelectedColorChange, clipSelectedColorChange, setClipSelectedColorChange, resetClipSelectedColorChange)
     IMPLEMENTATION(clipThumbnailColorChange, clipThumbnailColorChange, setClipThumbnailColorChange, resetClipThumbnailColorChange)
     IMPLEMENTATION(noteSelectedColorChange, noteSelectedColorChange, setNoteSelectedColorChange, resetNoteSelectedColorChange)
+    IMPLEMENTATION(noteBorderColorChange, noteBorderColorChange, setNoteBorderColorChange, resetNoteBorderColorChange)
 
     static inline double toLinear(double c) {
         return c <= 0.04045 ? c / 12.92 : std::pow((c + 0.055) / 1.055, 2.4);

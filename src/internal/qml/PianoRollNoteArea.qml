@@ -214,7 +214,7 @@ Item {
                         radius: background.radius
                         border.width: Math.min(noteRect.model.selected ? 2 : 1, width / 4)
                         opacity: noteRect.model.selected ? 1 : 0.5
-                        border.color: noteArea.noteColor
+                        border.color: SFPalette.noteBorderColorChange.apply(noteArea.noteColor)
                         Behavior on border.color {
                             ColorAnimation {
                                 duration: (noteArea.animationViewModel?.colorAnimationRatio ?? 1.0) * 250

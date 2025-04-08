@@ -418,7 +418,8 @@ Item {
             id: rubberBandLayer
             anchors.fill: parent
             selectionManipulator: selectionManipulator
-            rubberBand: RubberBandRectangle
+            rubberBand: RubberBandRectangle {
+            }
         }
     }
 

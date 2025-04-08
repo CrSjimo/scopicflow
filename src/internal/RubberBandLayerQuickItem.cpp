@@ -5,7 +5,9 @@
 
 namespace sflow {
 
-    RubberBandLayerQuickItem::RubberBandLayerQuickItem(QQuickItem *parent) : d_ptr(new RubberBandLayerQuickItemPrivate) {
+    RubberBandLayerQuickItem::RubberBandLayerQuickItem(QQuickItem *parent) : QQuickItem(parent), d_ptr(new RubberBandLayerQuickItemPrivate) {
+        Q_D(RubberBandLayerQuickItem);
+        d->q_ptr = this;
     }
     RubberBandLayerQuickItem::~RubberBandLayerQuickItem() = default;
     SelectableViewModelManipulator *RubberBandLayerQuickItem::selectionManipulator() const {
@@ -78,16 +80,20 @@ namespace sflow {
         if (!d->started)
             return;
         d->endPos = pos;
+        QRectF rubberBandRect(
+            qMin(d->startPos.x(), d->endPos.x()),
+            qMin(d->startPos.y(), d->endPos.y()),
+            qAbs(d->endPos.x() - d->startPos.x()),
+            qAbs(d->endPos.y() - d->startPos.y()));
         if (d->rubberBandItem) {
-            d->rubberBandItem->setX(qMin(d->startPos.x(), d->endPos.x()));
-            d->rubberBandItem->setY(qMin(d->startPos.y(), d->endPos.y()));
-            d->rubberBandItem->setWidth(qAbs(d->endPos.x() - d->startPos.x()));
-            d->rubberBandItem->setHeight(qAbs(d->endPos.y() - d->startPos.y()));
+            d->rubberBandItem->setX(rubberBandRect.x());
+            d->rubberBandItem->setY(rubberBandRect.y());
+            d->rubberBandItem->setWidth(rubberBandRect.width());
+            d->rubberBandItem->setHeight(rubberBandRect.height());
         }
         if (!d->selectionManipulator || !d->selectionManipulator->interface())
             return;
         auto selectionInterface = d->selectionManipulator->interface();
-        QRectF rubberBandRect(d->rubberBandItem->x(), d->rubberBandItem->y(), d->rubberBandItem->width(), d->rubberBandItem->height());
         // TODO: Current implementation is high in time complexity. Optimize it in future
         // Step 1: toggle-select ALL(not covered by rubber band && tagged)
         QList<qsizetype> disjointItemIds;

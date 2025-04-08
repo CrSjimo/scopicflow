@@ -32,6 +32,7 @@ ApplicationWindow {
     required property QtObject backPianoRollNoteAreaBehaviorViewModel
     required property QtObject clipSequenceViewModel
     required property QtObject clipPaneBehaviorViewModel
+    required property QtObject mixerLayoutViewModel
     readonly property double minimumPanelSize: 100
 
     component SettingsPanel: ScrollView {
@@ -375,6 +376,12 @@ ApplicationWindow {
             }
         }
     }
+    component MixerPanel: Mixer {
+        trackListViewModel: main.trackListViewModel
+        trackListLayoutViewModel: main.mixerLayoutViewModel
+        scrollBehaviorViewModel: main.scrollBehaviorViewModel
+        animationViewModel: main.animationViewModel
+    }
 
     SplitView {
         anchors.fill: parent
@@ -536,6 +543,36 @@ ApplicationWindow {
                                 }
                             }
                             PianoRollPanel {
+                                anchors.fill: parent
+                            }
+                        }
+                        DockingPane {
+                            title: "混音器"
+                            iconSource: "qrc:/qt/qml/dev/sjimo/ScopicFlow/Test/Midi20Filled.svg"
+                            Component.onCompleted: Docking.dockingView.showPane(this)
+                            header: ToolBar {
+                                Row {
+                                    anchors.fill: parent
+                                    spacing: 4
+                                    ToolButton {
+                                        text: "Mute All"
+                                        checkable: true
+                                    }
+                                    ToolButton {
+                                        text: "Solo All"
+                                        checkable: true
+                                    }
+                                    ToolButton {
+                                        text: "Record All"
+                                        checkable: true
+                                    }
+                                    ToolButton {
+                                        text: "Exclusive Solo"
+                                        checkable: true
+                                    }
+                                }
+                            }
+                            MixerPanel {
                                 anchors.fill: parent
                             }
                         }

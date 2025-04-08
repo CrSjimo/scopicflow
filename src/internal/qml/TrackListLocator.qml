@@ -5,6 +5,7 @@ Item {
     id: locator
     visible: false
     property QtObject trackListViewModel: null
+    property double overriddenRowHeight: 0
 
     readonly property list<int> map: column.map
     readonly property int totalHeight: map.length ? map[map.length - 1] : 0
@@ -39,7 +40,7 @@ Item {
                 required property int index
                 required property QtObject modelData
                 width: 1
-                height: modelData.rowHeight
+                height: locator.overriddenRowHeight !== 0 ? locator.overriddenRowHeight : modelData.rowHeight
                 property int pos: y + height
                 onPosChanged: column.map[index + 1] = pos
             }

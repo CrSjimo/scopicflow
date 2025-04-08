@@ -238,7 +238,7 @@ int main(int argc, char *argv[]) {
     std::uniform_int_distribution<int> distribution(-60, 60);
 
     RangeSequenceViewModel backNoteSequenceViewModel(&win);
-    for (int i = 0, k = 48, p = 0; i < 256; i++) {
+    for (int i = 0, k = 48, p = 0; i < 16; i++) {
         auto note = new NoteViewModel(&win);
         note->setPosition(p);
         note->setLength(960);
@@ -267,7 +267,7 @@ int main(int argc, char *argv[]) {
         clip->setTrackNumber(i % 8);
         clip->setName(QString::number(i));
         auto clipNoteSequenceViewModel = new RangeSequenceViewModel(&win);
-        for (int i = 0, k = 48, p = 0; i < 256; i++) {
+        for (int i = 0, k = 48, p = 0; i < 16; i++) {
             auto note = new NoteViewModel(&win);
             note->setPosition(p);
             note->setLength(960);
@@ -297,6 +297,8 @@ int main(int argc, char *argv[]) {
     ClipPaneBehaviorViewModel clipPaneBehaviorViewModel(&win);
     clipPaneBehaviorViewModel.setLengthHint(480);
 
+    TrackListLayoutViewModel mixerLayoutViewModel;
+
     QQmlApplicationEngine engine;
     engine.setInitialProperties({
         {"timeViewModel", QVariant::fromValue(&timeViewModel)},
@@ -317,6 +319,7 @@ int main(int argc, char *argv[]) {
         {"backPianoRollNoteAreaBehaviorViewModel", QVariant::fromValue(&backPianoRollNoteAreaBehaviorViewModel)},
         {"clipSequenceViewModel", QVariant::fromValue(&clipSequenceViewModel)},
         {"clipPaneBehaviorViewModel", QVariant::fromValue(&clipPaneBehaviorViewModel)},
+        {"mixerLayoutViewModel", QVariant::fromValue(&mixerLayoutViewModel)}
     });
     engine.load(QUrl("qrc:/qt/qml/dev/sjimo/ScopicFlow/Test/main.qml"));
 

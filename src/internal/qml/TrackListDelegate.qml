@@ -12,14 +12,6 @@ Item {
 
     id: trackListDelegate
 
-    function decibelToLinearValue(decibel, factor = -15) {
-        return Math.exp((decibel - factor) / - factor) - Math.E
-    }
-
-    function linearValueToDecibel(linearValue, factor = -15) {
-        return -factor * Math.log(linearValue + Math.E) + factor
-    }
-
     required property string trackNumber
     required property QtObject trackViewModel
 
@@ -82,6 +74,7 @@ Item {
             anchors.margins: 8
             anchors.leftMargin: 16
             width: 2
+            radius: 1
             color: Theme.accentColor
             visible: opacity !== 0
             opacity: trackListDelegate.isCurrent ? 1 : 0
@@ -120,39 +113,9 @@ Item {
             anchors.left: parent.left
             anchors.leftMargin: 48
             spacing: 8
-            Row {
+            TrackMSR {
                 id: controlsFirstRow
-                spacing: 4
-                ToolButton {
-                    id: muteButton
-                    Theme.accentColor: SFPalette.muteColor
-                    ThemedItem.controlType: SVS.CT_Accent
-                    checkable: true
-                    flat: false
-                    text: 'M'
-                    checked: trackListDelegate.trackViewModel.mute
-                    onCheckedChanged: trackListDelegate.trackViewModel.mute = checked
-                }
-                ToolButton {
-                    id: soloButton
-                    Theme.accentColor: SFPalette.soloColor
-                    ThemedItem.controlType: SVS.CT_Accent
-                    checkable: true
-                    flat: false
-                    text: 'S'
-                    checked: trackListDelegate.trackViewModel.solo
-                    onCheckedChanged: trackListDelegate.trackViewModel.solo = checked
-                }
-                ToolButton {
-                    id: recordButton
-                    Theme.accentColor: SFPalette.recordColor
-                    ThemedItem.controlType: SVS.CT_Accent
-                    checkable: true
-                    flat: false
-                    text: 'R'
-                    checked: trackListDelegate.trackViewModel.record
-                    onCheckedChanged: trackListDelegate.trackViewModel.record = checked
-                }
+                trackViewModel: trackListDelegate.trackViewModel
             }
             TrackListEditLabel {
                 anchors.top: controlsFirstRow.top
@@ -203,11 +166,11 @@ Item {
                             easing.type: Easing.OutCubic
                         }
                     }
-                    from: decibelToLinearValue(-96) - decibelToLinearValue(0)
-                    to: decibelToLinearValue(6) - decibelToLinearValue(0)
-                    value: decibelToLinearValue(trackListDelegate.trackViewModel.gain)
+                    from: SVS.decibelToLinearValue(-96) - SVS.decibelToLinearValue(0)
+                    to: SVS.decibelToLinearValue(6) - SVS.decibelToLinearValue(0)
+                    value: SVS.decibelToLinearValue(trackListDelegate.trackViewModel.gain)
                     onValueChanged: {
-                        let v = linearValueToDecibel(value + decibelToLinearValue(0))
+                        let v = SVS.linearValueToDecibel(value + SVS.decibelToLinearValue(0))
                         if (Math.abs(trackListDelegate.trackViewModel.gain - v) > Number.EPSILON * 1000)
                             trackListDelegate.trackViewModel.gain = v
                     }

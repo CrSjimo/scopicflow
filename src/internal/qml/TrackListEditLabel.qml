@@ -9,6 +9,8 @@ Item {
     id: editLabel
     width: labelText.width + 8
     property string text: ""
+    property bool center: false
+    property var horizontalAlignment: undefined
     property string editText: text
     property QtObject validator: null
     readonly property bool editing: popup.opened
@@ -17,10 +19,12 @@ Item {
 
     Text {
         id: labelText
-        anchors.left: parent.left
-        anchors.leftMargin: 4
+        anchors.left: editLabel.center ? undefined : parent.left
+        anchors.leftMargin: editLabel.center ? undefined : 4
+        anchors.horizontalCenter: editLabel.center ? parent.horizontalCenter : undefined
         anchors.verticalCenter: parent.verticalCenter
         text: editLabel.text
+        horizontalAlignment: editLabel.center ? Text.AlignHCenter : undefined
         color: SFPalette.suitableForegroundColor(SFPalette.trackListBackgroundColor)
         visible: !labelEdit.visible
     }
@@ -29,6 +33,7 @@ Item {
         padding: 0
         background: Item {}
         height: parent.height
+        width: parent.width
         onOpened: {
             labelEdit.text = editLabel.editText
             labelEdit.forceActiveFocus()
@@ -42,6 +47,7 @@ Item {
             id: labelEdit
             anchors.top: parent.top
             anchors.bottom: parent.bottom
+            anchors.horizontalCenter: editLabel.center ? parent.horizontalCenter : undefined
             validator: editLabel.validator
             background: Rectangle {
                 color: Theme.textFieldColor
@@ -50,10 +56,11 @@ Item {
                 border.color: Theme.accentColor
             }
             text: editLabel.editText
-            leftPadding: 4
+            horizontalAlignment: editLabel.center ? Text.AlignHCenter : undefined
+            leftPadding: editLabel.center ? 8 : 4
             topPadding: 0
             bottomPadding: 0
-            rightPadding: 16
+            rightPadding: editLabel.center ? 8 : 16
             property bool escaped: false
             Keys.onEscapePressed: {
                 escaped = true

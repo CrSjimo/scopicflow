@@ -13,7 +13,7 @@ Item {
         if (!trackListLayoutViewModel)
             return
         let newViewportOffset = Math.max(0, Math.min(viewportHeight - height, trackListLayoutViewModel.viewportOffset))
-        trackList.trackListLayoutViewModel.viewportOffset = newViewportOffset
+        trackListManipulator.trackListLayoutViewModel.viewportOffset = newViewportOffset
     }
 
     function moveViewBy(deltaY, animated = false) {

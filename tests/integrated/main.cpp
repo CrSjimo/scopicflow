@@ -48,6 +48,7 @@
 #include <ScopicFlow/PianoRollNoteAreaBehaviorViewModel.h>
 #include <ScopicFlow/ClipViewModel.h>
 #include <ScopicFlow/ClipPaneBehaviorViewModel.h>
+#include <ScopicFlow/BusTrackViewModel.h>
 
 using namespace sflow;
 
@@ -297,7 +298,21 @@ int main(int argc, char *argv[]) {
     ClipPaneBehaviorViewModel clipPaneBehaviorViewModel(&win);
     clipPaneBehaviorViewModel.setLengthHint(480);
 
-    TrackListLayoutViewModel mixerLayoutViewModel;
+    TrackListLayoutViewModel mixerLayoutViewModel(&win);
+    TrackListLayoutViewModel busMixerLayoutViewModel(&win);
+
+    ListViewModel busTrackListViewModel(&win);
+    BusTrackViewModel masterTrackViewModel(&win);
+    masterTrackViewModel.setName("Master");
+    masterTrackViewModel.setColor(Qt::transparent);
+    masterTrackViewModel.setRoute(false);
+    BusTrackViewModel metronomeViewModel(&win);
+    metronomeViewModel.setName("Metronome");
+    metronomeViewModel.setColor(Qt::transparent);
+    BusTrackViewModel audioDeviceViewModel(&win);
+    audioDeviceViewModel.setName("Audio Device");
+    audioDeviceViewModel.setColor(Qt::transparent);
+    busTrackListViewModel.setItems({&masterTrackViewModel, &metronomeViewModel, &audioDeviceViewModel});
 
     QQmlApplicationEngine engine;
     engine.setInitialProperties({
@@ -319,7 +334,9 @@ int main(int argc, char *argv[]) {
         {"backPianoRollNoteAreaBehaviorViewModel", QVariant::fromValue(&backPianoRollNoteAreaBehaviorViewModel)},
         {"clipSequenceViewModel", QVariant::fromValue(&clipSequenceViewModel)},
         {"clipPaneBehaviorViewModel", QVariant::fromValue(&clipPaneBehaviorViewModel)},
-        {"mixerLayoutViewModel", QVariant::fromValue(&mixerLayoutViewModel)}
+        {"mixerLayoutViewModel", QVariant::fromValue(&mixerLayoutViewModel)},
+        {"busTrackListViewModel", QVariant::fromValue(&busTrackListViewModel)},
+        {"busMixerLayoutViewModel", QVariant::fromValue(&busMixerLayoutViewModel)},
     });
     engine.load(QUrl("qrc:/qt/qml/dev/sjimo/ScopicFlow/Test/main.qml"));
 

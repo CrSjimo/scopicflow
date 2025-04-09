@@ -140,6 +140,7 @@ Item {
     Loader {
         sourceComponent: mixerDelegate.mouseArea
         anchors.fill: parent
+        enabled: !mixerDelegate.trackViewModel.bus
     }
     ColumnLayout {
         spacing: 0
@@ -175,6 +176,7 @@ Item {
             }
             ToolButton {
                 id: routeButton
+                Theme.accentColor: SFPalette.routeColor
                 ThemedItem.controlType: SVS.CT_Accent
                 checkable: true
                 flat: false
@@ -303,6 +305,7 @@ Item {
             spacing: 0
             TrackListEditLabel {
                 Layout.fillWidth: true
+                enabled: !mixerDelegate.trackViewModel.bus
                 height: 24
                 center: true
                 text: mixerDelegate.trackViewModel.name

@@ -10,6 +10,7 @@ import dev.sjimo.ScopicFlow.Style
 Item {
     id: mixer
     clip: true
+    implicitWidth: trackListManipulator.viewportHeight
 
     property QtObject trackListViewModel: null
     property QtObject trackListLayoutViewModel: null
@@ -35,7 +36,7 @@ Item {
         height: parent.width
         trackListLayoutViewModel: mixer.trackListLayoutViewModel
         animationViewModel: mixer.animationViewModel
-        viewportHeight: trackListLocator.totalHeight - 2
+        viewportHeight: Math.max(0, trackListLocator.totalHeight - 2)
     }
 
     Rectangle {

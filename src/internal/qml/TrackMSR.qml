@@ -15,7 +15,7 @@ RowLayout {
     ToolButton {
         Theme.accentColor: SFPalette.muteColor
         ThemedItem.controlType: SVS.CT_Accent
-        visible: typeof(msr.trackViewModel.mute === "boolean")
+        visible: typeof(msr.trackViewModel.mute) === "boolean"
         checkable: true
         flat: false
         text: 'M'
@@ -25,7 +25,7 @@ RowLayout {
     ToolButton {
         Theme.accentColor: SFPalette.soloColor
         ThemedItem.controlType: SVS.CT_Accent
-        visible: typeof(msr.trackViewModel.solo === "boolean")
+        visible: typeof(msr.trackViewModel.solo) === "boolean"
         checkable: true
         flat: false
         text: 'S'
@@ -36,7 +36,7 @@ RowLayout {
         id: recordButton
         Theme.accentColor: SFPalette.recordColor
         ThemedItem.controlType: SVS.CT_Accent
-        visible: typeof(msr.trackViewModel.record === "boolean")
+        visible: typeof(msr.trackViewModel.record) === "boolean"
         checkable: true
         flat: false
         text: 'R'

@@ -33,6 +33,8 @@ ApplicationWindow {
     required property QtObject clipSequenceViewModel
     required property QtObject clipPaneBehaviorViewModel
     required property QtObject mixerLayoutViewModel
+    required property QtObject busTrackListViewModel
+    required property QtObject busMixerLayoutViewModel
     readonly property double minimumPanelSize: 100
 
     component SettingsPanel: ScrollView {
@@ -376,11 +378,24 @@ ApplicationWindow {
             }
         }
     }
-    component MixerPanel: Mixer {
-        trackListViewModel: main.trackListViewModel
-        trackListLayoutViewModel: main.mixerLayoutViewModel
-        scrollBehaviorViewModel: main.scrollBehaviorViewModel
-        animationViewModel: main.animationViewModel
+    component MixerPanel: SplitView {
+        orientation: Qt.Horizontal
+        ThemedItem.dividerStroke: SVS.DS_Border
+        Theme.splitterHandleSize: 2
+        Mixer {
+            SplitView.fillWidth: true
+            trackListViewModel: main.trackListViewModel
+            trackListLayoutViewModel: main.mixerLayoutViewModel
+            scrollBehaviorViewModel: main.scrollBehaviorViewModel
+            animationViewModel: main.animationViewModel
+        }
+        Mixer {
+            SplitView.maximumWidth: implicitWidth
+            trackListViewModel: main.busTrackListViewModel
+            trackListLayoutViewModel: main.busMixerLayoutViewModel
+            scrollBehaviorViewModel: main.scrollBehaviorViewModel
+            animationViewModel: main.animationViewModel
+        }
     }
 
     SplitView {

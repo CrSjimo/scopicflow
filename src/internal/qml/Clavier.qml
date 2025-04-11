@@ -80,6 +80,8 @@ Item {
     }
     Item {
         id: clavierViewport
+        LayoutMirroring.enabled: false
+        LayoutMirroring.childrenInherit: true
 
         anchors.left: parent.left
         anchors.right: parent.right

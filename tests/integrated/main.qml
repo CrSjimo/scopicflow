@@ -13,6 +13,7 @@ ApplicationWindow {
     visible: true
     width: 1024
     height: 800
+    LayoutMirroring.childrenInherit: true
     required property QtObject timeViewModel
     required property QtObject arrangementTimeViewModel
     required property QtObject timeLayoutViewModel
@@ -35,6 +36,7 @@ ApplicationWindow {
     required property QtObject mixerLayoutViewModel
     required property QtObject busTrackListViewModel
     required property QtObject busMixerLayoutViewModel
+    required property QtObject levelTimer
     readonly property double minimumPanelSize: 100
 
     component SettingsPanel: ScrollView {
@@ -147,7 +149,42 @@ ApplicationWindow {
                         }
                     }
                 }
-
+                GroupBox {
+                    title: "Locale"
+                    Layout.fillWidth: true
+                    ColumnLayout {
+                        anchors.fill: parent
+                        spacing: 8
+                        FormGroup {
+                            label: "Mirroring"
+                            rowItem: Switch {
+                                checked: main.LayoutMirroring.enabled
+                                onCheckedChanged: main.LayoutMirroring.enabled = checked
+                            }
+                            Layout.fillWidth: true
+                        }
+                    }
+                }
+                GroupBox {
+                    title: "Level Meter Demo"
+                    Layout.fillWidth: true
+                    ColumnLayout {
+                        anchors.fill: parent
+                        spacing: 8
+                        FormGroup {
+                            label: "Enabled"
+                            rowItem: Switch {
+                                onCheckedChanged: () => {
+                                    if (checked)
+                                        main.levelTimer.start()
+                                    else
+                                        main.levelTimer.stop()
+                                }
+                            }
+                            Layout.fillWidth: true
+                        }
+                    }
+                }
                 Item {
                     Layout.fillWidth: true
                     Layout.fillHeight: true
@@ -272,6 +309,7 @@ ApplicationWindow {
     component PianoRollPanel: GridLayout {
         columnSpacing: 0
         rowSpacing: 0
+        LayoutMirroring.enabled: false
 
         Clavier {
             id: clavier
@@ -618,14 +656,14 @@ ApplicationWindow {
                 if (panelSize > 0)
                     preferredPanelSize = panelSize
             }
+            DockingStretch {
+            }
             DockingPane {
                 title: "设置"
                 iconSource: "qrc:/qt/qml/dev/sjimo/ScopicFlow/Test/Settings16Filled.svg"
                 SettingsPanel {
                     anchors.fill: parent
                 }
-            }
-            DockingStretch {
             }
         }
     }

@@ -12,7 +12,7 @@ Item {
 
     id: trackListDelegate
 
-    required property string trackNumber
+    required property int trackNumber
     required property QtObject trackViewModel
 
     onTrackViewModelChanged: {
@@ -56,48 +56,57 @@ Item {
 
         clip: true
 
-        Rectangle {
-            id: colorIndicator
-            anchors.left: parent.left
+        Item {
             anchors.top: parent.top
             anchors.bottom: parent.bottom
-            anchors.margins: 1
-            width: 8
-            color: trackListDelegate.trackViewModel.color
-        }
+            anchors.left: parent.left
+            LayoutMirroring.enabled: false
+            LayoutMirroring.childrenInherit: true
+            width: 48
 
-        Rectangle {
-            id: selectionIndicator
-            anchors.left: parent.left
-            anchors.top: parent.top
-            anchors.bottom: parent.bottom
-            anchors.margins: 8
-            anchors.leftMargin: 16
-            width: 2
-            radius: 1
-            color: Theme.accentColor
-            visible: opacity !== 0
-            opacity: trackListDelegate.isCurrent ? 1 : 0
-            Behavior on opacity {
-                NumberAnimation {
-                    duration: 250 * (trackListDelegate.animationViewModel?.colorAnimationRatio ?? 1)
-                    easing.type: Easing.OutCubic
+            Rectangle {
+                id: colorIndicator
+                anchors.left: parent.left
+                anchors.top: parent.top
+                anchors.bottom: parent.bottom
+                anchors.margins: 1
+                width: 8
+                color: trackListDelegate.trackViewModel.color
+            }
+
+            Rectangle {
+                id: selectionIndicator
+                anchors.left: parent.left
+                anchors.top: parent.top
+                anchors.bottom: parent.bottom
+                anchors.margins: 8
+                anchors.leftMargin: 16
+                width: 2
+                radius: 1
+                color: Theme.accentColor
+                visible: opacity !== 0
+                opacity: trackListDelegate.isCurrent ? 1 : 0
+                Behavior on opacity {
+                    NumberAnimation {
+                        duration: 250 * (trackListDelegate.animationViewModel?.colorAnimationRatio ?? 1)
+                        easing.type: Easing.OutCubic
+                    }
                 }
             }
-        }
 
-        Text {
-            id: trackNumberLabel
-            anchors.left: selectionIndicator.right
-            anchors.leftMargin: 4
-            anchors.verticalCenter: parent.top
-            anchors.verticalCenterOffset: 20
-            text: trackListDelegate.trackNumber
-            color: trackListDelegate.isCurrent ? Theme.accentColor : SFPalette.suitableForegroundColor(SFPalette.trackListBackgroundColor)
-            Behavior on color {
-                ColorAnimation {
-                    duration: 250 * (trackListDelegate.animationViewModel?.colorAnimationRatio ?? 1)
-                    easing.type: Easing.OutCubic
+            Text {
+                id: trackNumberLabel
+                anchors.left: selectionIndicator.right
+                anchors.leftMargin: 4
+                anchors.verticalCenter: parent.top
+                anchors.verticalCenterOffset: 20
+                text: Qt.locale().toString(trackListDelegate.trackNumber)
+                color: trackListDelegate.isCurrent ? Theme.accentColor : SFPalette.suitableForegroundColor(SFPalette.trackListBackgroundColor)
+                Behavior on color {
+                    ColorAnimation {
+                        duration: 250 * (trackListDelegate.animationViewModel?.colorAnimationRatio ?? 1)
+                        easing.type: Easing.OutCubic
+                    }
                 }
             }
         }
@@ -107,120 +116,124 @@ Item {
             anchors.fill: parent
         }
 
-        Row {
+        Item {
             anchors.top: parent.top
             anchors.topMargin: 8
             anchors.left: parent.left
-            anchors.leftMargin: 48
-            spacing: 8
-            TrackMSR {
-                id: controlsFirstRow
-                trackViewModel: trackListDelegate.trackViewModel
-            }
-            TrackListEditLabel {
-                anchors.top: controlsFirstRow.top
-                anchors.bottom: controlsFirstRow.bottom
-                text: trackListDelegate.trackViewModel.name
-                onEditingFinished: function (text) {
-                    trackListDelegate.trackViewModel.name = text
-                }
-            }
-
-        }
-
-        Row {
-            anchors.top: parent.top
-            anchors.topMargin: 48
-            anchors.left: parent.left
-            anchors.leftMargin: 48
-            id: controlsSecondRow
-            spacing: 0
-            visible: opacity !== 0.0
-            Behavior on opacity {
-                NumberAnimation {
-                    duration: (trackListDelegate.animationViewModel?.visualEffectAnimationRatio ?? 1.0) * 250
-                    easing.type: Easing.OutCubic
-                }
-            }
-            readonly property bool intermediate: gainSlider.pressed || panDial.pressed
-            onIntermediateChanged: {
-                trackListDelegate.trackViewModel.intermediate = intermediate
-            }
+            anchors.leftMargin: LayoutMirroring.enabled ? 24 : 48
             Row {
-                spacing: 4
-                FluentSystemIcon {
-                    anchors.verticalCenter: gainSlider.verticalCenter
-                    icon: 'cellular_data_1_20_regular'
-                    font.pixelSize: 24
-                    color: SFPalette.suitableForegroundColor(SFPalette.trackListBackgroundColor)
+                anchors.top: parent.top
+                anchors.left: parent.left
+                spacing: 8
+                TrackMSR {
+                    id: controlsFirstRow
+                    trackViewModel: trackListDelegate.trackViewModel
                 }
-                Slider {
-                    id: gainSlider
-                    height: 24
-                    width: trackListDelegate.width - 256
-                    enabled: width > 40
-                    opacity: enabled ? 1 : 0
-                    Behavior on opacity {
-                        NumberAnimation {
-                            duration: (trackListDelegate.animationViewModel?.visualEffectAnimationRatio ?? 1.0) * 250
-                            easing.type: Easing.OutCubic
+                TrackListEditLabel {
+                    anchors.top: controlsFirstRow.top
+                    anchors.bottom: controlsFirstRow.bottom
+                    text: trackListDelegate.trackViewModel.name
+                    onEditingFinished: function (text) {
+                        trackListDelegate.trackViewModel.name = text
+                    }
+                }
+
+            }
+
+            Row {
+                anchors.top: parent.top
+                anchors.topMargin: 40
+                anchors.left: parent.left
+                id: controlsSecondRow
+                spacing: 0
+                visible: opacity !== 0.0
+                Behavior on opacity {
+                    NumberAnimation {
+                        duration: (trackListDelegate.animationViewModel?.visualEffectAnimationRatio ?? 1.0) * 250
+                        easing.type: Easing.OutCubic
+                    }
+                }
+                readonly property bool intermediate: gainSlider.pressed || panDial.pressed
+                onIntermediateChanged: {
+                    trackListDelegate.trackViewModel.intermediate = intermediate
+                }
+                Row {
+                    spacing: 4
+                    FluentSystemIcon {
+                        anchors.verticalCenter: gainSlider.verticalCenter
+                        icon: 'cellular_data_1_20_regular'
+                        font.pixelSize: 24
+                        color: SFPalette.suitableForegroundColor(SFPalette.trackListBackgroundColor)
+                    }
+                    Slider {
+                        id: gainSlider
+                        height: 24
+                        width: trackListDelegate.width - 256
+                        enabled: width > 40
+                        opacity: enabled ? 1 : 0
+                        Behavior on opacity {
+                            NumberAnimation {
+                                duration: (trackListDelegate.animationViewModel?.visualEffectAnimationRatio ?? 1.0) * 250
+                                easing.type: Easing.OutCubic
+                            }
+                        }
+                        from: SVS.decibelToLinearValue(-96) - SVS.decibelToLinearValue(0)
+                        to: SVS.decibelToLinearValue(6) - SVS.decibelToLinearValue(0)
+                        value: SVS.decibelToLinearValue(trackListDelegate.trackViewModel.gain)
+                        onValueChanged: {
+                            let v = SVS.linearValueToDecibel(value + SVS.decibelToLinearValue(0))
+                            if (Math.abs(trackListDelegate.trackViewModel.gain - v) > Number.EPSILON * 1000)
+                                trackListDelegate.trackViewModel.gain = v
                         }
                     }
-                    from: SVS.decibelToLinearValue(-96) - SVS.decibelToLinearValue(0)
-                    to: SVS.decibelToLinearValue(6) - SVS.decibelToLinearValue(0)
-                    value: SVS.decibelToLinearValue(trackListDelegate.trackViewModel.gain)
-                    onValueChanged: {
-                        let v = SVS.linearValueToDecibel(value + SVS.decibelToLinearValue(0))
-                        if (Math.abs(trackListDelegate.trackViewModel.gain - v) > Number.EPSILON * 1000)
-                            trackListDelegate.trackViewModel.gain = v
+                    TrackListEditLabel {
+                        anchors.top: parent.top
+                        anchors.bottom: parent.bottom
+                        width: 64
+                        text: (trackListDelegate.trackViewModel.gain + 96 < 0.05 ? "-∞" : Qt.locale().toString(trackListDelegate.trackViewModel.gain, "f", 1)) + " dB"
+                        editText: Qt.locale().toString(trackListDelegate.trackViewModel.gain, "f", 1)
+                        validator: DoubleValidator { // TODO use svscraft expression validator instead
+                            bottom: -96
+                            top: 6
+                            decimals: 1
+                        }
+                        onEditingFinished: function (text) {
+                            trackListDelegate.trackViewModel.gain = Number.fromLocaleString(Qt.locale(), text)
+                        }
                     }
                 }
-                TrackListEditLabel {
-                    anchors.top: parent.top
-                    anchors.bottom: parent.bottom
-                    width: 64
-                    text: (Math.abs(trackListDelegate.trackViewModel.gain + 96) < 0.05 ? '-INF ' : trackListDelegate.trackViewModel.gain.toFixed(1)) + "dB"
-                    editText: trackListDelegate.trackViewModel.gain.toFixed(1)
-                    validator: DoubleValidator { // TODO use svscraft expression validator instead
-                        bottom: -96
-                        top: 6
-                        decimals: 1
+                Row {
+                    spacing: 8
+                    FluentSystemIcon {
+                        height: 24
+                        icon: 'live_20_regular'
+                        font.pixelSize: 24
+                        color: SFPalette.suitableForegroundColor(SFPalette.trackListBackgroundColor)
                     }
-                    onEditingFinished: function (text) {
-                        trackListDelegate.trackViewModel.gain = parseFloat(text)
+                    Dial {
+                        id: panDial
+                        LayoutMirroring.enabled: false
+                        height: 24
+                        width: 24
+                        from: -1.0
+                        to: 1.0
+                        value: trackListDelegate.trackViewModel.pan
+                        onValueChanged: {
+                            trackListDelegate.trackViewModel.pan = value
+                        }
                     }
-                }
-            }
-            Row {
-                spacing: 8
-                FluentSystemIcon {
-                    height: 24
-                    icon: 'live_20_regular'
-                    font.pixelSize: 24
-                    color: SFPalette.suitableForegroundColor(SFPalette.trackListBackgroundColor)
-                }
-                Dial {
-                    id: panDial
-                    height: 24
-                    width: 24
-                    from: -1.0
-                    to: 1.0
-                    value: trackListDelegate.trackViewModel.pan
-                    onValueChanged: {
-                        trackListDelegate.trackViewModel.pan = value
-                    }
-                }
-                TrackListEditLabel {
-                    anchors.top: parent.top
-                    anchors.bottom: parent.bottom
-                    width: 64
-                    text: Math.round(trackListDelegate.trackViewModel.pan * 100)
-                    validator: IntValidator { // TODO use svscraft expression validator instead
-                        bottom: -100
-                        top: 100
-                    }
-                    onEditingFinished: function (text) {
-                        trackListDelegate.trackViewModel.pan = parseInt(text) * 0.01
+                    TrackListEditLabel {
+                        anchors.top: parent.top
+                        anchors.bottom: parent.bottom
+                        width: 64
+                        text: Qt.locale().toString(Math.round(trackListDelegate.trackViewModel.pan * 100))
+                        validator: IntValidator { // TODO use svscraft expression validator instead
+                            bottom: -100
+                            top: 100
+                        }
+                        onEditingFinished: function (text) {
+                            trackListDelegate.trackViewModel.pan = Number.fromLocaleString(Qt.locale(), text) * 0.01
+                        }
                     }
                 }
             }
@@ -246,6 +259,8 @@ Item {
             anchors.bottom: parent.bottom
             anchors.right: parent.right
             anchors.margins: 1
+            LayoutMirroring.enabled: false
+            LayoutMirroring.childrenInherit: true
             color: SFPalette.levelMeterColor
             width: 12
             LevelMeter {

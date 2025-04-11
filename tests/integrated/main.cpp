@@ -24,6 +24,7 @@
 #include <QMessageBox>
 #include <QQuickStyle>
 #include <QQmlApplicationEngine>
+#include <QTimer>
 
 #include <SVSCraftCore/MusicTimeline.h>
 #include <SVSCraftCore/MusicTime.h>
@@ -51,127 +52,6 @@
 #include <ScopicFlow/BusTrackViewModel.h>
 
 using namespace sflow;
-
-static SVS::MusicTimeSignature promptTimeSignature(QWidget *parent, SVS::MusicTimeSignature initialValue) {
-    QDialog dlg(parent);
-    auto layout = new QVBoxLayout;
-    auto numeratorSpinBox = new QSpinBox;
-    numeratorSpinBox->setRange(1, 32);
-    layout->addWidget(numeratorSpinBox);
-    auto denominatorComboBox = new QComboBox;
-    denominatorComboBox->addItems({"1", "2", "4", "8", "16", "32"});
-    layout->addWidget(denominatorComboBox);
-    auto okButton = new QPushButton("OK");
-    okButton->setDefault(true);
-    layout->addWidget(okButton);
-
-    dlg.setLayout(layout);
-
-    numeratorSpinBox->setValue(initialValue.numerator());
-    denominatorComboBox->setCurrentText(QString::number(initialValue.denominator()));
-    QObject::connect(okButton, &QPushButton::clicked, &dlg, &QDialog::accept);
-
-    if (dlg.exec() == QDialog::Accepted) {
-        return {numeratorSpinBox->value(), denominatorComboBox->currentText().toInt()};
-    } else {
-        return {0, 0};
-    }
-}
-
-static QObject *loadCustomPalette(QWidget *parent) {
-    static auto engine = [] {
-        auto engine = std::make_unique<QQmlEngine>();
-        engine->addImportPath("qrc:/ScopicFlow/modules");
-        return engine;
-    }();
-    auto file = QFileDialog::getOpenFileName(parent);
-    if (file.isEmpty())
-        return nullptr;
-    QQmlComponent component(engine.get(), QUrl::fromLocalFile(file));
-    QObject *customPalette = component.create();
-    return customPalette;
-}
-
-class MySlotHandler : public QObject {
-    Q_OBJECT
-public:
-    QWidget *win;
-    TimeViewModel *timeViewModel;
-    public slots:
-        void handleContextMenuRequestedForTimeline(int tick) {
-        QMenu menu(win);
-        auto musicTime = timeViewModel->timeline()->create(0, 0, tick);
-        menu.addAction(QString("Set time signature at bar %1...").arg(musicTime.measure() + 1), [=] {
-            auto timeSignature = promptTimeSignature(win, timeViewModel->timeline()->timeSignatureAt(musicTime.measure()));
-            if (!timeSignature.isValid())
-                return;
-            timeViewModel->timeline()->setTimeSignature(musicTime.measure(), timeSignature);
-        });
-        auto removeAction = menu.addAction(QString("Remove time signature at bar %1").arg(musicTime.measure() + 1), [=] {
-            timeViewModel->timeline()->removeTimeSignature(musicTime.measure());
-        });
-        removeAction->setEnabled(musicTime.measure() && timeViewModel->timeline()->nearestBarWithTimeSignatureTo(musicTime.measure()) == musicTime.measure());
-        menu.exec(QCursor::pos());
-    }
-    void handleContextMenuRequestedForPositionIndicator() {
-        QMenu menu(win);
-        menu.addAction("Position indicator action");
-        menu.exec(QCursor::pos());
-    }
-    void handlePositionIndicatorDoubleClicked() {
-        QMessageBox::information({}, {}, "Position indicator double clicked");
-    }
-    void handleNotePressed(int key) {
-        qDebug() << "Note on:" << key;
-    }
-    void handleNoteReleased(int key) {
-        qDebug() << "Note off:" << key;
-    }
-    void handleNoteDoubleClicked(int key) {
-        QMessageBox::information({}, {}, QString("Note double clicked %1").arg(key));
-    }
-    void handleContextMenuRequestedForNote(int key) {
-        QMenu menu(win);
-        menu.addAction(QString("Note action %1").arg(key));
-        menu.exec(QCursor::pos());
-    }
-    void handleTrackDoubleClicked(int index) {
-        QMessageBox::information({}, {}, QString("Track double clicked %1").arg(index));
-    }
-    void handleContextMenuRequestedForTrack(int index) {
-        QMenu menu(win);
-        if (index != -1) {
-            menu.addAction(QString("Track action %1").arg(index));
-        } else {
-            menu.addAction("Track list action");
-        }
-        menu.exec(QCursor::pos());
-    }
-    void handleContextMenuRequestedForTrackDragging(int index, int target) {
-        QMenu menu(win);
-        menu.addAction(QString("index: %1, target: %2").arg(index).arg(target));
-        menu.addAction("Move here");
-        menu.addAction("Copy here");
-        menu.addSeparator();
-        menu.addAction("Cancel");
-        menu.exec(QCursor::pos());
-    }
-    void handleContextMenuRequested(int tick) {
-        QMenu menu(win);
-        menu.addAction(QString("Label sequence action %1").arg(timeViewModel->timeline()->create(0, 0, tick).toString()));
-        menu.exec(QCursor::pos());
-    }
-    void handleContextMenuRequestedForLabel(QObject *label) {
-        QMenu menu(win);
-        menu.addAction(QString("%1 -> 114514").arg(static_cast<LabelViewModel *>(label)->content()), [=] {
-            static_cast<LabelViewModel *>(label)->setContent("114514");
-        });
-        menu.exec(QCursor::pos());
-    }
-    void handleClipDoubleClicked(QObject *clip) {
-
-    }
-};
 
 int main(int argc, char *argv[]) {
     QApplication a(argc, argv);
@@ -227,6 +107,15 @@ int main(int argc, char *argv[]) {
         tracks.append(track);
     }
     trackListViewModel.setItems(tracks);
+    QTimer timer;
+    timer.setInterval(20);
+    timer.setSingleShot(false);
+    timer.callOnTimeout([&] {
+        for (auto track : tracks) {
+            static_cast<TrackViewModel *>(track)->setLeftLevel(std::uniform_real_distribution(-60.0, 0.5)(generator));
+        }
+
+    });
 
     TrackListLayoutViewModel trackListLayoutViewModel(&win);
 
@@ -251,9 +140,6 @@ int main(int argc, char *argv[]) {
 
     PianoRollNoteAreaBehaviorViewModel pianoRollNoteAreaBehaviorViewModel(&win);
     pianoRollNoteAreaBehaviorViewModel.setColor(0x3498cb);
-    QObject::connect(&trackListViewModel, &ListViewModel::currentIndexChanged, [&](int index) {
-        pianoRollNoteAreaBehaviorViewModel.setColor(trackListViewModel.items()[index]->property("color").value<QColor>());
-    });
     pianoRollNoteAreaBehaviorViewModel.setLengthHint(960);
     PianoRollNoteAreaBehaviorViewModel backPianoRollNoteAreaBehaviorViewModel(&win);
     backPianoRollNoteAreaBehaviorViewModel.setColor(0x3498cb);
@@ -337,6 +223,7 @@ int main(int argc, char *argv[]) {
         {"mixerLayoutViewModel", QVariant::fromValue(&mixerLayoutViewModel)},
         {"busTrackListViewModel", QVariant::fromValue(&busTrackListViewModel)},
         {"busMixerLayoutViewModel", QVariant::fromValue(&busMixerLayoutViewModel)},
+        {"levelTimer", QVariant::fromValue(&timer)}
     });
     engine.load(QUrl("qrc:/qt/qml/dev/sjimo/ScopicFlow/Test/main.qml"));
 

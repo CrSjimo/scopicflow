@@ -152,6 +152,7 @@ Item {
             Layout.fillWidth: true
             Dial {
                 id: panDial
+                LayoutMirroring.enabled: false
                 from: -1.0
                 to: 1.0
                 value: mixerDelegate.trackViewModel.pan
@@ -162,13 +163,13 @@ Item {
             TrackListEditLabel {
                 width: 24
                 height: 24
-                text: Math.round(mixerDelegate.trackViewModel.pan * 100)
+                text: Qt.locale().toString(Math.round(mixerDelegate.trackViewModel.pan * 100))
                 validator: IntValidator { // TODO use svscraft expression validator instead
                     bottom: -100
                     top: 100
                 }
                 onEditingFinished: function (text) {
-                    mixerDelegate.trackViewModel.pan = parseInt(text) * 0.01
+                    mixerDelegate.trackViewModel.pan = Number.fromLocaleString(Qt.locale(), text) * 0.01
                 }
             }
             Item {
@@ -220,8 +221,8 @@ Item {
                     TrackListEditLabel {
                         width: 48
                         height: 24
-                        text: (Math.abs(mixerDelegate.trackViewModel.gain + 96) < 0.05 ? '-INF ' : mixerDelegate.trackViewModel.gain.toFixed(1)) + "dB"
-                        editText: mixerDelegate.trackViewModel.gain.toFixed(1)
+                        text: (mixerDelegate.trackViewModel.gain + 96 < 0.05 ? "-∞" : Qt.locale().toString(mixerDelegate.trackViewModel.gain, "f", 1)) + " dB"
+                        editText: Qt.locale().toString(mixerDelegate.trackViewModel.gain, "f", 1)
                         center: true
                         validator: DoubleValidator { // TODO use svscraft expression validator instead
                             bottom: -96
@@ -229,7 +230,7 @@ Item {
                             decimals: 1
                         }
                         onEditingFinished: function (text) {
-                            mixerDelegate.trackViewModel.gain = parseFloat(text)
+                            mixerDelegate.trackViewModel.gain = Number.fromLocaleString(Qt.locale(), text)
                         }
                     }
                 }
@@ -244,6 +245,7 @@ Item {
                         color: SFPalette.levelMeterColor
                         LevelMeter {
                             id: leftChannelLevelMeter
+                            LayoutMirroring.enabled: false
                             anchors.top: parent.top
                             anchors.bottom: parent.bottom
                             anchors.left: parent.left
@@ -252,6 +254,7 @@ Item {
                         }
                         LevelMeter {
                             id: rightChannelLevelMeter
+                            LayoutMirroring.enabled: false
                             anchors.top: parent.top
                             anchors.bottom: parent.bottom
                             anchors.left: parent.horizontalCenter
@@ -272,13 +275,14 @@ Item {
                         height: peakText.height
                         Text {
                             id: peakText
+                            anchors.left: parent.left
                             property double value: Math.max(mixerDelegate.trackViewModel.leftLevel, mixerDelegate.trackViewModel.rightLevel)
                             property double maxValue: -96
                             onValueChanged: maxValue = Math.max(maxValue, value)
                             horizontalAlignment: Text.AlignHCenter
                             color: SFPalette.suitableForegroundColor(SFPalette.trackListBackgroundColor)
                             opacity: 0.5
-                            text: (Math.abs(maxValue + 96) < 0.05 ? '' : maxValue.toFixed(1))
+                            text: (Math.abs(maxValue + 96) < 0.05 ? '' : Qt.locale().toString(maxValue, "f", 1))
                             TapHandler {
                                 onSingleTapped: () => {
                                     leftChannelLevelMeter.clipping = false
@@ -336,7 +340,7 @@ Item {
                 }
                 Text {
                     id: trackNumberLabel
-                    text: mixerDelegate.trackNumber
+                    text: Qt.locale().toString(mixerDelegate.trackNumber)
                     color: mixerDelegate.isCurrent ? Theme.accentColor : SFPalette.suitableForegroundColor(SFPalette.trackListBackgroundColor)
                     opacity: mixerDelegate.isCurrent ? 1 : 0.5
                     Behavior on color {

@@ -19,7 +19,9 @@ namespace sflow {
         virtual int itemLength(QObject *item) const;
 
     signals:
+        void itemAboutToInsert(QObject *item);
         void itemInserted(QObject *item);
+        void itemAboutToRemove(QObject *item);
         void itemRemoved(QObject *item);
         void itemUpdated(QObject *item);
     };

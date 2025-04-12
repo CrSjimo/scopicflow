@@ -77,7 +77,7 @@ namespace sflow {
         }
     };
 
-    class PointSequenceViewModelQmlHandle : public SliceableViewModelQmlHandle {
+    class SCOPIC_FLOW_EXPORT PointSequenceViewModelQmlHandle : public SliceableViewModelQmlHandle {
         Q_OBJECT
         Q_PROPERTY(QObject *currentItem READ currentItem WRITE setCurrentItem NOTIFY currentItemChanged)
         Q_PROPERTY(bool intermediate READ intermediate WRITE setIntermediate NOTIFY intermediateChanged)

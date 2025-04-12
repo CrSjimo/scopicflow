@@ -121,12 +121,16 @@ namespace sflow {
     }
     void PointSequenceViewModelQmlHandle::insertItem(QObject *item) {
         Q_D(PointSequenceViewModel);
+        emit itemAboutToInsert(item);
+        emit d->q_ptr->itemAboutToInsert(item);
         d->insertItem(item);
         emit itemInserted(item);
         emit d->q_ptr->itemInserted(item);
     }
     void PointSequenceViewModelQmlHandle::removeItem(QObject *item) {
         Q_D(PointSequenceViewModel);
+        emit itemAboutToRemove(item);
+        emit d->q_ptr->itemAboutToRemove(item);
         d->removeItem(item);
         emit itemRemoved(item);
         emit d->q_ptr->itemRemoved(item);
@@ -235,12 +239,14 @@ namespace sflow {
     }
     void PointSequenceViewModel::insertItem(QObject *item) {
         Q_D(PointSequenceViewModel);
+        emit d->handle->itemAboutToInsert(item);
         d->insertItem(item);
         emit d->handle->itemInserted(item);
 
     }
     void PointSequenceViewModel::removeItem(QObject *item) {
         Q_D(PointSequenceViewModel);
+        emit d->handle->itemAboutToRemove(item);
         d->removeItem(item);
         emit d->handle->itemRemoved(item);
     }

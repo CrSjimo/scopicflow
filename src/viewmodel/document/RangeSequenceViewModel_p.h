@@ -93,7 +93,7 @@ namespace sflow {
 
     };
 
-    class RangeSequenceViewModelQmlHandle : public SliceableViewModelQmlHandle {
+    class SCOPIC_FLOW_EXPORT RangeSequenceViewModelQmlHandle : public SliceableViewModelQmlHandle {
         Q_OBJECT
         Q_PROPERTY(QObject *currentItem READ currentItem WRITE setCurrentItem NOTIFY currentItemChanged)
         Q_PROPERTY(bool intermediate READ intermediate WRITE setIntermediate NOTIFY intermediateChanged)

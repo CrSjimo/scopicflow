@@ -14,58 +14,21 @@ namespace sflow {
         explicit TrackViewModel(QObject *parent = nullptr);
         ~TrackViewModel() override;
 
-        QString name() const;
-
-        bool mute() const;
-
-        bool solo() const;
-
-        bool record() const;
-
-        double gain() const;
-
-        double pan() const;
-
-        bool intermediate() const;
-
-        double leftLevel() const;
-
-        double rightLevel() const;
-
-        bool selected() const;
-
-        double rowHeight() const;
-
-        QColor color() const;
-
-    public slots:
-        SFLOW_VIEWMODEL_SET_FUNC void setName(const QString &value);
-        SFLOW_VIEWMODEL_SET_FUNC void setMute(bool mute);
-        SFLOW_VIEWMODEL_SET_FUNC void setSolo(bool solo);
-        SFLOW_VIEWMODEL_SET_FUNC void setRecord(bool record);
-        SFLOW_VIEWMODEL_SET_FUNC void setGain(double gain);
-        SFLOW_VIEWMODEL_SET_FUNC void setPan(double pan);
-        SFLOW_VIEWMODEL_SET_FUNC void setIntermediate(bool intermediate);
-        SFLOW_VIEWMODEL_SET_FUNC void setLeftLevel(double leftLevel);
-        SFLOW_VIEWMODEL_SET_FUNC void setRightLevel(double rightLevel);
-        SFLOW_VIEWMODEL_SET_FUNC void setSelected(bool selected);
-        SFLOW_VIEWMODEL_SET_FUNC void setRowHeight(double rowHeight);
-        SFLOW_VIEWMODEL_SET_FUNC void setColor(const QColor &color);
-
-    signals:
-        SFLOW_VIEWMODEL_SIGNAL void nameChanged(const QString &name);
-        SFLOW_VIEWMODEL_SIGNAL void muteChanged(bool mute);
-        SFLOW_VIEWMODEL_SIGNAL void soloChanged(bool solo);
-        SFLOW_VIEWMODEL_SIGNAL void recordChanged(bool record);
-        SFLOW_VIEWMODEL_SIGNAL void gainChanged(double gain);
-        SFLOW_VIEWMODEL_SIGNAL void panChanged(double pan);
-        SFLOW_VIEWMODEL_SIGNAL void intermediateChanged(bool intermediate);
-        SFLOW_VIEWMODEL_SIGNAL void selectedChanged(bool selected);
-        SFLOW_VIEWMODEL_SIGNAL void rowHeightChanged(double rowHeight);
-        SFLOW_VIEWMODEL_SIGNAL void colorChanged(const QColor &color);
+        SFLOW_VIEWMODEL_DECLARE_PROPERTY(QString, name, name, setName, resetName)
+        SFLOW_VIEWMODEL_DECLARE_PROPERTY(bool, mute, mute, setMute, resetMute)
+        SFLOW_VIEWMODEL_DECLARE_PROPERTY(bool, solo, solo, setSolo, resetSolo)
+        SFLOW_VIEWMODEL_DECLARE_PROPERTY(bool, record, record, setRecord, resetRecord)
+        SFLOW_VIEWMODEL_DECLARE_PROPERTY(double, gain, gain, setGain, resetGain)
+        SFLOW_VIEWMODEL_DECLARE_PROPERTY(double, pan, pan, setPan, resetPan)
+        SFLOW_VIEWMODEL_DECLARE_PROPERTY(bool, intermediate, intermediate, setIntermediate, resetIntermediate)
+        SFLOW_VIEWMODEL_DECLARE_PROPERTY(double, leftLevel, leftLevel, setLeftLevel, resetLeftLevel)
+        SFLOW_VIEWMODEL_DECLARE_PROPERTY(double, rightLevel, rightLevel, setRightLevel, resetRightLevel)
+        SFLOW_VIEWMODEL_DECLARE_PROPERTY(bool, selected, selected, setSelected, resetSelected)
+        SFLOW_VIEWMODEL_DECLARE_PROPERTY(double, rowHeight, rowHeight, setRowHeight, resetRowHeight)
+        SFLOW_VIEWMODEL_DECLARE_PROPERTY(QColor, color, color, setColor, resetColor)
 
     };
 
-} // sflow
+}
 
 #endif //SCOPIC_FLOW_TRACKVIEWMODEL_H

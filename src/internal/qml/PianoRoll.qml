@@ -165,7 +165,7 @@ Item {
         size: pianoRoll.timeViewModel && pianoRoll.timeLayoutViewModel ? pianoRoll.width / pianoRoll.timeLayoutViewModel.pixelDensity / pianoRoll.timeViewModel.end : 0
         position: pianoRoll.timeViewModel ? pianoRoll.timeViewModel.start / pianoRoll.timeViewModel.end : 0
         onPositionChanged: {
-            if (pianoRoll.timeViewModel && Math.abs(pianoRoll.timeViewModel.start - position * pianoRoll.timeViewModel.end) > Number.EPSILON * 100)
+            if (pianoRoll.timeViewModel && Math.abs(pianoRoll.timeViewModel.start - position * pianoRoll.timeViewModel.end) > 0.01)
                 pianoRoll.timeViewModel.start = position * pianoRoll.timeViewModel.end
         }
         onStartDragged: (pos) => {

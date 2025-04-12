@@ -1,16 +1,13 @@
 #include "TrackListLayoutViewModel.h"
 
+#include <ScopicFlow/private/ViewModelHelper_p.h>
+
 namespace sflow {
-    TrackListLayoutViewModel::TrackListLayoutViewModel(QObject *parent) : QObject(parent), m_viewportOffset(0) {
+    TrackListLayoutViewModel::TrackListLayoutViewModel(QObject *parent) : QQmlPropertyMap(this, parent) {
+        SFLOW_INITIALIZE_VIEWMODEL();
     }
     TrackListLayoutViewModel::~TrackListLayoutViewModel() = default;
-    double TrackListLayoutViewModel::viewportOffset() const {
-        return m_viewportOffset;
-    }
-    void TrackListLayoutViewModel::setViewportOffset(double value) {
-        if (m_viewportOffset != value) {
-            m_viewportOffset = value;
-            emit viewportOffsetChanged(value);
-        }
-    }
+
+    SFLOW_VIEWMODEL_IMPLEMENT_PROPERTY(TrackListLayoutViewModel, viewportOffset, viewportOffset, setViewportOffset, resetViewportOffset)
+
 }

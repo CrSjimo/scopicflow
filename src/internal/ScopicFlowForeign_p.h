@@ -1,5 +1,5 @@
-#ifndef SCOPIC_FLOW_CREATABLEVIEWMODELS_P_H
-#define SCOPIC_FLOW_CREATABLEVIEWMODELS_P_H
+#ifndef SCOPIC_FLOW_SCOPICFLOWFOREIGN_P_H
+#define SCOPIC_FLOW_SCOPICFLOWFOREIGN_P_H
 
 #include <qqmlregistration.h>
 
@@ -11,30 +11,21 @@
 #include <ScopicFlow/ClipViewModel.h>
 
 namespace sflow {
+    class ScopicFlowNamespaceForeign : public QObject {
+        Q_OBJECT
+        QML_NAMED_ELEMENT(ScopicFlow)
+        QML_EXTENDED_NAMESPACE(sflow::ScopicFlow)
+        QML_SINGLETON
+    };
     struct LabelViewModelForeign {
         Q_GADGET
         QML_NAMED_ELEMENT(LabelViewModel)
         QML_FOREIGN(LabelViewModel)
     };
-    struct ClavierViewModelForeign {
-        Q_GADGET
-        QML_NAMED_ELEMENT(ClavierViewModel)
-        QML_FOREIGN(ClavierViewModel)
-    };
-    struct PianoRollNoteAreaBehaviorViewModelForeign {
-        Q_GADGET
-        QML_NAMED_ELEMENT(PianoRollNoteAreaBehaviorViewModel)
-        QML_FOREIGN(PianoRollNoteAreaBehaviorViewModel)
-    };
     struct NoteViewModelForeign {
         Q_GADGET
         QML_NAMED_ELEMENT(NoteViewModel)
         QML_FOREIGN(NoteViewModel)
-    };
-    struct ClipPaneBehaviorViewModelForeign {
-        Q_GADGET
-        QML_NAMED_ELEMENT(ClipPaneBehaviorViewModel)
-        QML_FOREIGN(ClipPaneBehaviorViewModel)
     };
     struct ClipViewModelForeign {
         Q_GADGET
@@ -43,4 +34,4 @@ namespace sflow {
     };
 }
 
-#endif //SCOPIC_FLOW_CREATABLEVIEWMODELS_P_H
+#endif //SCOPIC_FLOW_SCOPICFLOWFOREIGN_P_H

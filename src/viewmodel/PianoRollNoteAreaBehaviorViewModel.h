@@ -1,73 +1,27 @@
 #ifndef SCOPIC_FLOW_PIANOROLLNOTEAREABEHAVIORVIEWMODEL_H
 #define SCOPIC_FLOW_PIANOROLLNOTEAREABEHAVIORVIEWMODEL_H
 
-#include <QObject>
-#include <QColor>
+#include <QQmlPropertyMap>
 
-#include <ScopicFlow/ScopicFlowGlobal.h>
+#include <ScopicFlow/ScopicFlowNamespace.h>
 
 namespace sflow {
 
-    class SCOPIC_FLOW_EXPORT PianoRollNoteAreaBehaviorViewModel : public QObject {
+    class SCOPIC_FLOW_EXPORT PianoRollNoteAreaBehaviorViewModel : public QQmlPropertyMap {
         Q_OBJECT
-        Q_PROPERTY(bool editing READ editing WRITE setEditing NOTIFY editingChanged)
-        Q_PROPERTY(bool unitedExtend READ unitedExtend WRITE setUnitedExtend NOTIFY unitedExtendChanged)
-        Q_PROPERTY(QColor color READ color WRITE setColor NOTIFY colorChanged)
-        Q_PROPERTY(bool compactDisplay READ compactDisplay WRITE setCompactDisplay NOTIFY compactDisplayChanged)
-        Q_PROPERTY(int offset READ offset WRITE setOffset NOTIFY offsetChanged)
-        Q_PROPERTY(int lengthHint READ lengthHint WRITE setLengthHint NOTIFY lengthHintChanged)
-        Q_PROPERTY(sflow::PianoRollNoteAreaBehaviorViewModel::MouseBehavior mouseBehavior READ mouseBehavior WRITE setMouseBehavior NOTIFY mouseBehaviorChanged)
 
     public:
         explicit PianoRollNoteAreaBehaviorViewModel(QObject *parent = nullptr);
         ~PianoRollNoteAreaBehaviorViewModel() override;
 
-        bool editing() const;
-        void setEditing(bool editing);
+        SFLOW_VIEWMODEL_DECLARE_PROPERTY(bool, editing, editing, setEditing, resetEditing)
+        SFLOW_VIEWMODEL_DECLARE_PROPERTY(bool, unitedExtend, unitedExtend, setUnitedExtend, resetUnitedExtend)
+        SFLOW_VIEWMODEL_DECLARE_PROPERTY(QColor, color, color, setColor, resetColor)
+        SFLOW_VIEWMODEL_DECLARE_PROPERTY(bool, compactDisplay, compactDisplay, setCompactDisplay, resetCompactDisplay)
+        SFLOW_VIEWMODEL_DECLARE_PROPERTY(int, offset, offset, setOffset, resetOffset)
+        SFLOW_VIEWMODEL_DECLARE_PROPERTY(int, lengthHint, lengthHint, setLengthHint, resetLengthHint)
+        SFLOW_VIEWMODEL_DECLARE_PROPERTY(ScopicFlow::MouseBehavior, mouseBehavior, mouseBehavior, setMouseBehavior, resetMouseBehavior)
 
-        bool unitedExtend() const;
-        void setUnitedExtend(bool unitedExtend);
-
-        QColor color() const;
-        void setColor(const QColor &color);
-
-        bool compactDisplay() const;
-        void setCompactDisplay(bool compactDisplay);
-
-        int offset() const;
-        void setOffset(int offset);
-
-        int lengthHint() const;
-        void setLengthHint(int lengthHint);
-
-        enum MouseBehavior {
-            None,
-            Pointer,
-            Pen,
-            Eraser,
-            Scissor,
-        };
-        Q_ENUM(MouseBehavior)
-        MouseBehavior mouseBehavior() const;
-        void setMouseBehavior(MouseBehavior mouseBehavior);
-
-    signals:
-        void editingChanged(bool editing);
-        void unitedExtendChanged(bool unitedExtend);
-        void colorChanged(const QColor &color);
-        void compactDisplayChanged(bool compactDisplay);
-        void offsetChanged(int offset);
-        void lengthHintChanged(int lengthHint);
-        void mouseBehaviorChanged(sflow::PianoRollNoteAreaBehaviorViewModel::MouseBehavior mouseBehavior);
-
-    private:
-        bool m_editing;
-        bool m_unitedExtend;
-        bool m_compactDisplay;
-        QColor m_color;
-        int m_lengthHint;
-        int m_offset;
-        MouseBehavior m_mouseBehavior;
     };
 
 }

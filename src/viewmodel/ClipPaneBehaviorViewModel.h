@@ -1,42 +1,21 @@
 #ifndef SCOPIC_FLOW_CLIPPANEBEHAVIORVIEWMODEL_H
 #define SCOPIC_FLOW_CLIPPANEBEHAVIORVIEWMODEL_H
 
-#include <QObject>
+#include <QQmlPropertyMap>
 
-#include <ScopicFlow/ScopicFlowGlobal.h>
+#include <ScopicFlow/ScopicFlowNamespace.h>
 
 namespace sflow {
 
-    class SCOPIC_FLOW_EXPORT ClipPaneBehaviorViewModel : public QObject {
+    class SCOPIC_FLOW_EXPORT ClipPaneBehaviorViewModel : public QQmlPropertyMap {
         Q_OBJECT
-        Q_PROPERTY(int lengthHint READ lengthHint WRITE setLengthHint NOTIFY lengthHintChanged)
-        Q_PROPERTY(sflow::ClipPaneBehaviorViewModel::MouseBehavior mouseBehavior READ mouseBehavior WRITE setMouseBehavior NOTIFY mouseBehaviorChanged)
 
     public:
         explicit ClipPaneBehaviorViewModel(QObject *parent = nullptr);
         ~ClipPaneBehaviorViewModel() override;
 
-        int lengthHint() const;
-        void setLengthHint(int lengthHint);
-
-        enum MouseBehavior {
-            None,
-            Pointer,
-            Pen,
-            Eraser,
-            Scissor,
-        };
-        Q_ENUM(MouseBehavior)
-        MouseBehavior mouseBehavior() const;
-        void setMouseBehavior(MouseBehavior mouseBehavior);
-
-    signals:
-        void lengthHintChanged(int lengthHint);
-        void mouseBehaviorChanged(sflow::ClipPaneBehaviorViewModel::MouseBehavior mouseBehavior);
-
-    private:
-        int m_lengthHint;
-        MouseBehavior m_mouseBehavior;
+        SFLOW_VIEWMODEL_DECLARE_PROPERTY(int, lengthHint, lengthHint, setLengthHint, resetLengthHint)
+        SFLOW_VIEWMODEL_DECLARE_PROPERTY(ScopicFlow::MouseBehavior, mouseBehavior, mouseBehavior, setMouseBehavior, resetMouseBehavior)
     };
 
 }

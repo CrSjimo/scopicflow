@@ -13,25 +13,13 @@ namespace sflow {
         explicit LabelViewModel(QObject *parent = nullptr);
         ~LabelViewModel() override;
 
-        int position() const;
-        QString content() const;
-        bool selected() const;
-        bool intermediate() const;
-
-    public slots:
-        SFLOW_VIEWMODEL_SET_FUNC void setPosition(int position);
-        SFLOW_VIEWMODEL_SET_FUNC void setContent(const QString &content);
-        SFLOW_VIEWMODEL_SET_FUNC void setSelected(bool selected);
-        SFLOW_VIEWMODEL_SET_FUNC void setIntermediate(bool intermediate);
-
-    signals:
-        SFLOW_VIEWMODEL_SIGNAL void positionChanged(int position);
-        SFLOW_VIEWMODEL_SIGNAL void contentChanged(const QString &content);
-        SFLOW_VIEWMODEL_SIGNAL void selectedChanged(bool selected);
-        SFLOW_VIEWMODEL_SIGNAL void intermediateChanged(bool intermediate);
+        SFLOW_VIEWMODEL_DECLARE_PROPERTY(int, position, position, setPosition, resetPosition)
+        SFLOW_VIEWMODEL_DECLARE_PROPERTY(QString, content, content, setContent, resetContent)
+        SFLOW_VIEWMODEL_DECLARE_PROPERTY(bool, selected, selected, setSelected, resetSelected)
+        SFLOW_VIEWMODEL_DECLARE_PROPERTY(bool, intermediate, intermediate, setIntermediate, resetIntermediate)
 
     };
 
-} // sflow
+}
 
 #endif //SCOPIC_FLOW_LABELVIEWMODEL_H

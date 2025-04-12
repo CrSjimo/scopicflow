@@ -38,7 +38,9 @@ namespace sflow {
     signals:
         void currentItemChanged(QObject *item);
         void intermediateChanged(bool intermediate);
+        void itemAboutToInsert(QObject *item);
         void itemInserted(QObject *item);
+        void itemAboutToRemove(QObject *item);
         void itemRemoved(QObject *item);
         void itemSelected(QObject *item);
         void itemDeselected(QObject *item);

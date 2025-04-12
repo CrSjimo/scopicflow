@@ -108,7 +108,7 @@ Item {
         MouseArea {
             id: backRightButtonMouseArea
             anchors.fill: parent
-            visible: clipPane.clipPaneBehaviorViewModel?.mouseBehavior !== ClipPaneBehaviorViewModel.None
+            visible: clipPane.clipPaneBehaviorViewModel?.mouseBehavior !== ScopicFlow.MB_None
             acceptedButtons: Qt.RightButton
             onClicked: (mouse) => {
                 selectionManipulator.select(null, mouse.button, mouse.modifiers)
@@ -118,7 +118,7 @@ Item {
         }
         GenericBackPointerMouseArea {
             id: backPointerMouseArea
-            visible: clipPane.clipPaneBehaviorViewModel?.mouseBehavior === ClipPaneBehaviorViewModel.Pointer
+            visible: clipPane.clipPaneBehaviorViewModel?.mouseBehavior === ScopicFlow.MB_Pointer
             paneItem: clipPane
             verticalManipulator: trackListManipulator
 
@@ -136,7 +136,7 @@ Item {
         }
         GenericBackPenMouseArea {
             id: backPenMouseArea
-            visible: clipPane.clipPaneBehaviorViewModel?.mouseBehavior === ClipPaneBehaviorViewModel.Pen
+            visible: clipPane.clipPaneBehaviorViewModel?.mouseBehavior === ScopicFlow.MB_Pen
             sequenceViewModel: clipPane.clipSequenceViewModel
             paneItem: clipPane
             viewModelComponent: ClipViewModel {}
@@ -291,7 +291,7 @@ Item {
                     MouseArea {
                         id: rightButtonMouseArea
                         anchors.fill: parent
-                        visible: clipPane.clipPaneBehaviorViewModel?.mouseBehavior !== ClipPaneBehaviorViewModel.None
+                        visible: clipPane.clipPaneBehaviorViewModel?.mouseBehavior !== ScopicFlow.MB_None
                         acceptedButtons: Qt.RightButton
                         onClicked: (mouse) => {
                             selectionManipulator.select(model, mouse.button, mouse.modifiers)
@@ -302,7 +302,7 @@ Item {
                     GenericPointerMouseArea {
                         id: pointerMouseArea
 
-                        visible: clipPane.clipPaneBehaviorViewModel?.mouseBehavior === ClipPaneBehaviorViewModel.Pointer || clipPane.clipPaneBehaviorViewModel?.mouseBehavior === ClipPaneBehaviorViewModel.Pen
+                        visible: clipPane.clipPaneBehaviorViewModel?.mouseBehavior === ScopicFlow.MB_Pointer || clipPane.clipPaneBehaviorViewModel?.mouseBehavior === ScopicFlow.MB_Pen
                         verticalManipulator: trackListManipulator
                         paneItem: clipPane
                         sequenceViewModel: clipPane.clipSequenceViewModel
@@ -390,7 +390,7 @@ Item {
                         id: scissorMouseArea
                         model: clipRect.model
                         paneItem: clipPane
-                        visible: clipPane.clipPaneBehaviorViewModel?.mouseBehavior === ClipPaneBehaviorViewModel.Scissor
+                        visible: clipPane.clipPaneBehaviorViewModel?.mouseBehavior === ScopicFlow.MB_Scissor
                         onPressedChanged: () => {
                             if (pressed)
                                 clipRect.bringToFront()
@@ -405,7 +405,7 @@ Item {
                     }
                     GenericEraserMouseArea {
                         id: eraserMouseArea
-                        visible: clipPane.clipPaneBehaviorViewModel?.mouseBehavior === ClipPaneBehaviorViewModel.Eraser
+                        visible: clipPane.clipPaneBehaviorViewModel?.mouseBehavior === ScopicFlow.MB_Eraser
                         onReleased: (mouse) => {
                             if (willBeErased)
                                 clipPane.clipSequenceViewModel.handle.removeItem(clipRect.model)
@@ -460,7 +460,7 @@ Item {
         size: clipPane.timeViewModel && clipPane.timeLayoutViewModel ? clipPane.width / clipPane.timeLayoutViewModel.pixelDensity / clipPane.timeViewModel.end : 0
         position: clipPane.timeViewModel ? clipPane.timeViewModel.start / clipPane.timeViewModel.end : 0
         onPositionChanged: {
-            if (clipPane.timeViewModel && Math.abs(clipPane.timeViewModel.start - position * clipPane.timeViewModel.end) > Number.EPSILON * 100)
+            if (clipPane.timeViewModel && Math.abs(clipPane.timeViewModel.start - position * clipPane.timeViewModel.end) > 0.01)
                 clipPane.timeViewModel.start = position * clipPane.timeViewModel.end
         }
         onStartDragged: (pos) => {

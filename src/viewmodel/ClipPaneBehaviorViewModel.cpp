@@ -1,25 +1,13 @@
 #include "ClipPaneBehaviorViewModel.h"
 
+#include <ScopicFlow/private/ViewModelHelper_p.h>
+
 namespace sflow {
-    ClipPaneBehaviorViewModel::ClipPaneBehaviorViewModel(QObject *parent) : QObject(parent), m_lengthHint(0), m_mouseBehavior(Pointer) {
+    ClipPaneBehaviorViewModel::ClipPaneBehaviorViewModel(QObject *parent) : QQmlPropertyMap(this, parent) {
+        SFLOW_INITIALIZE_VIEWMODEL();
     }
     ClipPaneBehaviorViewModel::~ClipPaneBehaviorViewModel() = default;
-    int ClipPaneBehaviorViewModel::lengthHint() const {
-        return m_lengthHint;
-    }
-    void ClipPaneBehaviorViewModel::setLengthHint(int lengthHint) {
-        if (m_lengthHint != lengthHint) {
-            m_lengthHint = lengthHint;
-            emit lengthHintChanged(lengthHint);
-        }
-    }
-    ClipPaneBehaviorViewModel::MouseBehavior ClipPaneBehaviorViewModel::mouseBehavior() const {
-        return m_mouseBehavior;
-    }
-    void ClipPaneBehaviorViewModel::setMouseBehavior(MouseBehavior mouseBehavior) {
-        if (m_mouseBehavior != mouseBehavior) {
-            m_mouseBehavior = mouseBehavior;
-            emit mouseBehaviorChanged(mouseBehavior);
-        }
-    }
+
+    SFLOW_VIEWMODEL_IMPLEMENT_PROPERTY(ClipPaneBehaviorViewModel, lengthHint, lengthHint, setLengthHint, resetLengthHint)
+    SFLOW_VIEWMODEL_IMPLEMENT_PROPERTY_DEFAULT_VALUE(ClipPaneBehaviorViewModel, mouseBehavior, ScopicFlow::MB_Pointer, mouseBehavior, setMouseBehavior, resetMouseBehavior)
 }

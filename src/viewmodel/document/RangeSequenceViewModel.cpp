@@ -121,12 +121,16 @@ namespace sflow {
     }
     void RangeSequenceViewModelQmlHandle::insertItem(QObject *item) {
         Q_D(RangeSequenceViewModel);
+        emit itemAboutToInsert(item);
+        emit d->q_ptr->itemAboutToInsert(item);
         d->insertItem(item);
         emit itemInserted(item);
         emit d->q_ptr->itemInserted(item);
     }
     void RangeSequenceViewModelQmlHandle::removeItem(QObject *item) {
         Q_D(RangeSequenceViewModel);
+        emit itemAboutToRemove(item);
+        emit d->q_ptr->itemAboutToRemove(item);
         d->removeItem(item);
         emit itemRemoved(item);
         emit d->q_ptr->itemRemoved(item);
@@ -264,11 +268,13 @@ namespace sflow {
     }
     void RangeSequenceViewModel::insertItem(QObject *item) {
         Q_D(RangeSequenceViewModel);
+        emit d->handle->itemAboutToInsert(item);
         d->insertItem(item);
         emit d->handle->itemInserted(item);
     }
     void RangeSequenceViewModel::removeItem(QObject *item) {
         Q_D(RangeSequenceViewModel);
+        emit d->handle->itemAboutToRemove(item);
         d->removeItem(item);
         emit d->handle->itemRemoved(item);
     }

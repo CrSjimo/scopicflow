@@ -17,50 +17,16 @@ namespace sflow {
 
         static constexpr bool isBus() { return true; }
 
-        QString name() const;
-
-        bool mute() const;
-
-        QVariant route() const;
-
-        double gain() const;
-
-        double pan() const;
-
-        bool intermediate() const;
-
-        double leftLevel() const;
-
-        double rightLevel() const;
-
-        bool selected() const;
-
-        QColor color() const;
-
-    public slots:
-        SFLOW_VIEWMODEL_SET_FUNC void setName(const QString &name);
-        SFLOW_VIEWMODEL_SET_FUNC void setMute(bool mute);
-        SFLOW_VIEWMODEL_SET_FUNC void setRoute(const QVariant &route);
-        SFLOW_VIEWMODEL_SET_FUNC void setGain(double gain);
-        SFLOW_VIEWMODEL_SET_FUNC void setPan(double pan);
-        SFLOW_VIEWMODEL_SET_FUNC void setIntermediate(bool intermediate);
-        SFLOW_VIEWMODEL_SET_FUNC void setLeftLevel(double leftLevel);
-        SFLOW_VIEWMODEL_SET_FUNC void setRightLevel(double rightLevel);
-        SFLOW_VIEWMODEL_SET_FUNC void setSelected(bool selected);
-        SFLOW_VIEWMODEL_SET_FUNC void setColor(const QColor &color);
-
-    signals:
-        SFLOW_VIEWMODEL_SIGNAL void nameChanged(const QString &name);
-        SFLOW_VIEWMODEL_SIGNAL void muteChanged(bool mute);
-        SFLOW_VIEWMODEL_SIGNAL void routeChanged(const QVariant &route);
-        SFLOW_VIEWMODEL_SIGNAL void gainChanged(double gain);
-        SFLOW_VIEWMODEL_SIGNAL void panChanged(double pan);
-        SFLOW_VIEWMODEL_SIGNAL void intermediateChanged(bool intermediate);
-        SFLOW_VIEWMODEL_SIGNAL void leftLevelChanged(double leftLevel);
-        SFLOW_VIEWMODEL_SIGNAL void rightLevelChanged(double rightLevel);
-        SFLOW_VIEWMODEL_SIGNAL void selectedChanged(bool selected);
-        SFLOW_VIEWMODEL_SIGNAL void colorChanged(const QColor &color);
-
+        SFLOW_VIEWMODEL_DECLARE_PROPERTY(QString, name, name, setName, resetName)
+        SFLOW_VIEWMODEL_DECLARE_PROPERTY(bool, mute, mute, setMute, resetMute)
+        SFLOW_VIEWMODEL_DECLARE_PROPERTY(QVariant, route, route, setRoute, resetRoute)
+        SFLOW_VIEWMODEL_DECLARE_PROPERTY(double, gain, gain, setGain, resetGain)
+        SFLOW_VIEWMODEL_DECLARE_PROPERTY(double, pan, pan, setPan, resetPan)
+        SFLOW_VIEWMODEL_DECLARE_PROPERTY(bool, intermediate, intermediate, setIntermediate, resetIntermediate)
+        SFLOW_VIEWMODEL_DECLARE_PROPERTY(double, leftLevel, leftLevel, setLeftLevel, resetLeftLevel)
+        SFLOW_VIEWMODEL_DECLARE_PROPERTY(double, rightLevel, rightLevel, setRightLevel, resetRightLevel)
+        SFLOW_VIEWMODEL_DECLARE_PROPERTY(bool, selected, selected, setSelected, resetSelected)
+        SFLOW_VIEWMODEL_DECLARE_PROPERTY(QColor, color, color, setColor, resetColor)
     };
 
 }

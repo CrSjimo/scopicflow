@@ -12,13 +12,9 @@ namespace sflow {
             auto metaObject = o->metaObject();
             for (int i = 0; i < metaObject->methodCount(); i++) {
                 auto method = metaObject->method(i);
-                if (method.tag() != QStringLiteral("SFLOW_VIEWMODEL_SET_FUNC"))
+                if (method.tag() != QStringLiteral("SFLOW_VIEWMODEL_RESET"))
                     continue;
-                auto paramType = method.parameterMetaType(0);
-                auto d = paramType.create();
-                QGenericArgument arg(paramType.name(), d);
-                method.invoke(o, arg);
-                paramType.destroy(d);
+                method.invoke(o);
             }
         }
 
@@ -30,7 +26,7 @@ namespace sflow {
                 if (method.tag() != QStringLiteral("SFLOW_VIEWMODEL_SIGNAL"))
                     continue;
                 auto propertyName = method.name();
-                propertyName.remove(propertyName.length() - 7, 7);
+                propertyName.remove(propertyName.length() - 7, 7); // suppose signal name to be [property name]Changed
                 targetSignals.insert(propertyName, method);
             }
             QObject::connect(o, &QQmlPropertyMap::valueChanged, [o, targetSignals](const QString &key, const QVariant &value) {
@@ -53,6 +49,46 @@ namespace sflow {
 
         }
     };
+
+    namespace impl {
+
+        template <typename>
+        struct ReturnTypeHelper;
+        template <typename ClassType, typename ReturnType>
+        struct ReturnTypeHelper<ReturnType (ClassType::*)() const> {
+            using type = ReturnType;
+        };
+
+        template <typename>
+        struct ParameterTypeHelper;
+        template <typename ClassType, typename ReturnType, typename Arg>
+        struct ParameterTypeHelper<ReturnType (ClassType::*)(Arg)> {
+            using type = Arg;
+        };
+
+    }
+
+#define SFLOW_INITIALIZE_VIEWMODEL() \
+    do { \
+        sflow::ViewModelHelper::initializeProperties(this); \
+        sflow::ViewModelHelper::connectValueChanged(this); \
+    } while(0)
+
+#define SFLOW_VIEWMODEL_IMPLEMENT_PROPERTY_DEFAULT_VALUE(clazz, name, defaultValue, read, write, reset) \
+    sflow::impl::ReturnTypeHelper<decltype(&clazz::read)>::type clazz::read() const { \
+        using type = sflow::impl::ReturnTypeHelper<decltype(&clazz::read)>::type; \
+        return value(#name).value<type>(); \
+    } \
+    void clazz::write(sflow::impl::ParameterTypeHelper<decltype(&clazz::write)>::type a) { \
+        insert(#name, QVariant::fromValue(a)); \
+    } \
+    void clazz::reset() { \
+        insert(#name, QVariant::fromValue(defaultValue)); \
+    }
+
+#define SFLOW_VIEWMODEL_IMPLEMENT_PROPERTY(clazz, name, read, write, reset) \
+    SFLOW_VIEWMODEL_IMPLEMENT_PROPERTY_DEFAULT_VALUE(clazz, name, sflow::impl::ReturnTypeHelper<decltype(&clazz::read)>::type{}, read, write, reset)
+
 }
 
 #endif //SCOPIC_FLOW_EMITHELPER_P_H

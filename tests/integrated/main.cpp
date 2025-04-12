@@ -143,7 +143,7 @@ int main(int argc, char *argv[]) {
     pianoRollNoteAreaBehaviorViewModel.setLengthHint(960);
     PianoRollNoteAreaBehaviorViewModel backPianoRollNoteAreaBehaviorViewModel(&win);
     backPianoRollNoteAreaBehaviorViewModel.setColor(0x3498cb);
-    backPianoRollNoteAreaBehaviorViewModel.setMouseBehavior(PianoRollNoteAreaBehaviorViewModel::None);
+    backPianoRollNoteAreaBehaviorViewModel.setMouseBehavior(ScopicFlow::MB_None);
     backPianoRollNoteAreaBehaviorViewModel.setCompactDisplay(true);
 
     RangeSequenceViewModel clipSequenceViewModel(&win);

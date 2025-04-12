@@ -100,7 +100,7 @@ Item {
         MouseArea {
             id: backRightButtonMouseArea
             anchors.fill: parent
-            visible: noteArea.pianoRollNoteAreaBehaviorViewModel?.mouseBehavior !== PianoRollNoteAreaBehaviorViewModel.None
+            visible: noteArea.pianoRollNoteAreaBehaviorViewModel?.mouseBehavior !== ScopicFlow.MB_None
             acceptedButtons: Qt.RightButton
             onClicked: (mouse) => {
                 selectionManipulator.select(null, mouse.button, mouse.modifiers)
@@ -111,7 +111,7 @@ Item {
 
         GenericBackPointerMouseArea {
             id: backPointerMouseArea
-            visible: noteArea.pianoRollNoteAreaBehaviorViewModel?.mouseBehavior === PianoRollNoteAreaBehaviorViewModel.Pointer
+            visible: noteArea.pianoRollNoteAreaBehaviorViewModel?.mouseBehavior === ScopicFlow.MB_Pointer
             paneItem: noteArea
             verticalManipulator: clavierManipulator
 
@@ -129,7 +129,7 @@ Item {
         }
         GenericBackPenMouseArea {
             id: backPenMouseArea
-            visible: noteArea.pianoRollNoteAreaBehaviorViewModel?.mouseBehavior === PianoRollNoteAreaBehaviorViewModel.Pen
+            visible: noteArea.pianoRollNoteAreaBehaviorViewModel?.mouseBehavior === ScopicFlow.MB_Pen
             sequenceViewModel: noteArea.noteSequenceViewModel
             paneItem: noteArea
             viewModelComponent: NoteViewModel {}
@@ -279,7 +279,7 @@ Item {
                     MouseArea {
                         id: rightButtonMouseArea
                         anchors.fill: parent
-                        visible: noteArea.pianoRollNoteAreaBehaviorViewModel?.mouseBehavior !== PianoRollNoteAreaBehaviorViewModel.None
+                        visible: noteArea.pianoRollNoteAreaBehaviorViewModel?.mouseBehavior !== ScopicFlow.MB_None
                         acceptedButtons: Qt.RightButton
                         onClicked: (mouse) => {
                             selectionManipulator.select(noteRect.model, mouse.button, mouse.modifiers)
@@ -288,7 +288,7 @@ Item {
                     }
                     GenericPointerMouseArea {
                         id: pointerMouseArea
-                        visible: noteArea.pianoRollNoteAreaBehaviorViewModel?.mouseBehavior === PianoRollNoteAreaBehaviorViewModel.Pointer || noteArea.pianoRollNoteAreaBehaviorViewModel?.mouseBehavior === PianoRollNoteAreaBehaviorViewModel.Pen
+                        visible: noteArea.pianoRollNoteAreaBehaviorViewModel?.mouseBehavior === ScopicFlow.MB_Pointer || noteArea.pianoRollNoteAreaBehaviorViewModel?.mouseBehavior === ScopicFlow.MB_Pen
 
                         verticalManipulator: clavierManipulator
                         paneItem: noteArea
@@ -376,7 +376,7 @@ Item {
                         id: scissorMouseArea
                         model: noteRect.model
                         paneItem: noteArea
-                        visible: noteArea.pianoRollNoteAreaBehaviorViewModel?.mouseBehavior === PianoRollNoteAreaBehaviorViewModel.Scissor
+                        visible: noteArea.pianoRollNoteAreaBehaviorViewModel?.mouseBehavior === ScopicFlow.MB_Scissor
                         onPressedChanged: () => {
                             if (pressed)
                                 noteRect.bringToFront()
@@ -394,7 +394,7 @@ Item {
                     }
                     GenericEraserMouseArea {
                         id: eraserMouseArea
-                        visible: noteArea.pianoRollNoteAreaBehaviorViewModel?.mouseBehavior === PianoRollNoteAreaBehaviorViewModel.Eraser
+                        visible: noteArea.pianoRollNoteAreaBehaviorViewModel?.mouseBehavior === ScopicFlow.MB_Eraser
                         onReleased: (mouse) => {
                             if (willBeErased)
                                 noteArea.noteSequenceViewModel.handle.removeItem(noteRect.model)

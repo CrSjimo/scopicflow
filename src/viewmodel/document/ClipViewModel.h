@@ -13,39 +13,15 @@ namespace sflow {
         explicit ClipViewModel(QObject *parent = nullptr);
         ~ClipViewModel() override;
 
-        int position() const;
-        int length() const;
-        int clipStart() const;
-        int maxLength() const;
-        int trackNumber() const;
-        QString name() const;
-        bool selected() const;
-        bool intermediate() const;
-        bool overlapped() const;
-
-    public slots:
-        SFLOW_VIEWMODEL_SET_FUNC void setPosition(int position);
-        SFLOW_VIEWMODEL_SET_FUNC void setLength(int length);
-        SFLOW_VIEWMODEL_SET_FUNC void setClipStart(int clipStart);
-        SFLOW_VIEWMODEL_SET_FUNC void setMaxLength(int maxLength);
-        SFLOW_VIEWMODEL_SET_FUNC void setTrackNumber(int trackNumber);
-        SFLOW_VIEWMODEL_SET_FUNC void setName(const QString &name);
-        SFLOW_VIEWMODEL_SET_FUNC void setSelected(bool selected);
-        SFLOW_VIEWMODEL_SET_FUNC void setIntermediate(bool intermediate);
-
-    private slots:
-        SFLOW_VIEWMODEL_SET_FUNC void setOverlapped(bool overlapped);
-
-    signals:
-        SFLOW_VIEWMODEL_SIGNAL void positionChanged(int position);
-        SFLOW_VIEWMODEL_SIGNAL void lengthChanged(int length);
-        SFLOW_VIEWMODEL_SIGNAL void clipStartChanged(int clipStart);
-        SFLOW_VIEWMODEL_SIGNAL void maxLengthChanged(int maxLength);
-        SFLOW_VIEWMODEL_SIGNAL void trackNumberChanged(int trackNumber);
-        SFLOW_VIEWMODEL_SIGNAL void nameChanged(const QString &name);
-        SFLOW_VIEWMODEL_SIGNAL void selectedChanged(bool selected);
-        SFLOW_VIEWMODEL_SIGNAL void intermediateChanged(bool intermediate);
-        SFLOW_VIEWMODEL_SIGNAL void overlappedChanged(bool overlapped);
+        SFLOW_VIEWMODEL_DECLARE_PROPERTY(int, position, position, setPosition, resetPosition)
+        SFLOW_VIEWMODEL_DECLARE_PROPERTY(int, length, length, setLength, resetLength)
+        SFLOW_VIEWMODEL_DECLARE_PROPERTY(int, clipStart, clipStart, setClipStart, resetClipStart)
+        SFLOW_VIEWMODEL_DECLARE_PROPERTY(int, maxLength, maxLength, setMaxLength, resetMaxLength)
+        SFLOW_VIEWMODEL_DECLARE_PROPERTY(int, trackNumber, trackNumber, setTrackNumber, resetTrackNumber)
+        SFLOW_VIEWMODEL_DECLARE_PROPERTY(QString, name, name, setName, resetName)
+        SFLOW_VIEWMODEL_DECLARE_PROPERTY(bool, selected, selected, setSelected, resetSelected)
+        SFLOW_VIEWMODEL_DECLARE_PROPERTY(bool, intermediate, intermediate, setIntermediate, resetIntermediate)
+        SFLOW_VIEWMODEL_DECLARE_PROPERTY(bool, overlapped, overlapped, setOverlapped, resetOverlapped)
     };
 
 }

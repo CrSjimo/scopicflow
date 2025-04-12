@@ -8,84 +8,20 @@
 
 namespace sflow {
     TrackViewModel::TrackViewModel(QObject *parent) : QQmlPropertyMap(this, parent) {
-        ViewModelHelper::initializeProperties(this);
-        setLeftLevel(std::numeric_limits<double>::lowest());
-        setRightLevel(std::numeric_limits<double>::lowest());
-        setRowHeight(80);
-        ViewModelHelper::connectValueChanged(this);
+        SFLOW_INITIALIZE_VIEWMODEL();
     }
     TrackViewModel::~TrackViewModel() = default;
 
-    QString TrackViewModel::name() const {
-        return value("name").toString();
-    }
-    void TrackViewModel::setName(const QString &value) {
-        insert("name", value);
-    }
-    bool TrackViewModel::mute() const {
-        return value("mute").toBool();
-    }
-    void TrackViewModel::setMute(bool mute) {
-        insert("mute", mute);
-    }
-    bool TrackViewModel::solo() const {
-        return value("solo").toBool();
-    }
-    void TrackViewModel::setSolo(bool solo) {
-        insert("solo", solo);
-    }
-    bool TrackViewModel::record() const {
-        return value("record").toBool();
-    }
-    void TrackViewModel::setRecord(bool record) {
-        insert("record", record);
-    }
-    double TrackViewModel::gain() const {
-        return value("gain").toDouble();
-    }
-    void TrackViewModel::setGain(double gain) {
-        insert("gain", gain);
-    }
-    double TrackViewModel::pan() const {
-        return value("pan").toDouble();
-    }
-    void TrackViewModel::setPan(double pan) {
-        insert("pan", pan);
-    }
-    bool TrackViewModel::intermediate() const {
-        return value("intermediate").toBool();
-    }
-    void TrackViewModel::setIntermediate(bool intermediate) {
-        insert("intermediate", intermediate);
-    }
-    double TrackViewModel::leftLevel() const {
-        return value("leftLevel").toDouble();
-    }
-    void TrackViewModel::setLeftLevel(double leftLevel) {
-        insert("leftLevel", leftLevel);
-    }
-    double TrackViewModel::rightLevel() const {
-        return value("rightValue").toDouble();
-    }
-    void TrackViewModel::setRightLevel(double rightLevel) {
-        insert("rightLevel", rightLevel);
-    }
-    bool TrackViewModel::selected() const {
-        return value("selected").toBool();
-    }
-    void TrackViewModel::setSelected(bool selected) {
-        insert("selected", selected);
-    }
-    double TrackViewModel::rowHeight() const {
-        return value("rowHeight").toDouble();
-    }
-    void TrackViewModel::setRowHeight(double rowHeight) {
-        insert("rowHeight", rowHeight);
-    }
-    QColor TrackViewModel::color() const {
-        return value("color").value<QColor>();
-    }
-    void TrackViewModel::setColor(const QColor &color) {
-        insert("color", color);
-    }
+    SFLOW_VIEWMODEL_IMPLEMENT_PROPERTY(TrackViewModel, name, name, setName, resetName)
+    SFLOW_VIEWMODEL_IMPLEMENT_PROPERTY(TrackViewModel, mute, mute, setMute, resetMute)
+    SFLOW_VIEWMODEL_IMPLEMENT_PROPERTY(TrackViewModel, solo, solo, setSolo, resetSolo)
+    SFLOW_VIEWMODEL_IMPLEMENT_PROPERTY(TrackViewModel, record, record, setRecord, resetRecord)
+    SFLOW_VIEWMODEL_IMPLEMENT_PROPERTY(TrackViewModel, gain, gain, setGain, resetGain)
+    SFLOW_VIEWMODEL_IMPLEMENT_PROPERTY(TrackViewModel, pan, pan, setPan, resetPan)
+    SFLOW_VIEWMODEL_IMPLEMENT_PROPERTY(TrackViewModel, intermediate, intermediate, setIntermediate, resetIntermediate)
+    SFLOW_VIEWMODEL_IMPLEMENT_PROPERTY_DEFAULT_VALUE(TrackViewModel, leftLevel, std::numeric_limits<double>::lowest(), leftLevel, setLeftLevel, resetLeftLevel)
+    SFLOW_VIEWMODEL_IMPLEMENT_PROPERTY_DEFAULT_VALUE(TrackViewModel, rightLevel, std::numeric_limits<double>::lowest(), rightLevel, setRightLevel, resetRightLevel)
+    SFLOW_VIEWMODEL_IMPLEMENT_PROPERTY(TrackViewModel, selected, selected, setSelected, resetSelected)
+    SFLOW_VIEWMODEL_IMPLEMENT_PROPERTY_DEFAULT_VALUE(TrackViewModel, rowHeight, 80, rowHeight, setRowHeight, resetRowHeight)
+    SFLOW_VIEWMODEL_IMPLEMENT_PROPERTY(TrackViewModel, color, color, setColor, resetColor)
 }

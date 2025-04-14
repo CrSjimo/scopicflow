@@ -20,15 +20,17 @@ namespace sflow {
         QColor fillColor;
 
         SVS::AnchoredCurve curve;
+        QHash<QObject *, int> itemPositions;
+        QHash<int, QObject *> positionItems;
 
         double viewPosition = 0;
         double viewLength = 0;
-        int dirtyPosition = 0;
-        int dirtyLength = -1;
+        bool curveDirtyFlag = false;
 
-        void handleItemInserted(QObject *item, bool updateDirty = true);
+        void handleItemInserted(QObject *item);
         void handleItemRemoved(QObject *item);
-        void calculateDirty(QObject *item);
+        void handleItemUpdated(QObject *item);
+        void handleItemUpdatedSlot();
     };
 }
 

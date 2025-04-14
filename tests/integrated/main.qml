@@ -37,6 +37,7 @@ ApplicationWindow {
     required property QtObject busTrackListViewModel
     required property QtObject busMixerLayoutViewModel
     required property QtObject levelTimer
+    required property QtObject anchoredCurveViewModel
     readonly property double minimumPanelSize: 100
 
     component SettingsPanel: ScrollView {
@@ -174,6 +175,7 @@ ApplicationWindow {
                         FormGroup {
                             label: "Enabled"
                             rowItem: Switch {
+                                checked: main.levelTimer.active
                                 onCheckedChanged: () => {
                                     if (checked)
                                         main.levelTimer.start()
@@ -411,8 +413,11 @@ ApplicationWindow {
             Pane {
                 SplitView.preferredHeight: 128
                 focusPolicy: Qt.StrongFocus
-                opacity: 0.5
+                background.opacity: 0.75
                 padding: 0
+                ParameterPanel {
+                    anchors.fill: parent
+                }
             }
         }
     }
@@ -434,6 +439,16 @@ ApplicationWindow {
             scrollBehaviorViewModel: main.scrollBehaviorViewModel
             animationViewModel: main.animationViewModel
         }
+    }
+
+    component ParameterPanel: ScopicFlowInternal.AnchoredCurve {
+        timeViewModel: main.timeViewModel
+        timeLayoutViewModel: main.timeLayoutViewModel
+        anchoredCurveViewModel: main.anchoredCurveViewModel
+        topValue: 60
+        bottomValue: -60
+        strokeColors: [Qt.rgba(1, 1, 1, 1)]
+        fillColor: Qt.rgba(1, 1, 1, 0.25)
     }
 
     SplitView {

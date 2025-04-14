@@ -50,6 +50,7 @@
 #include <ScopicFlow/ClipViewModel.h>
 #include <ScopicFlow/ClipPaneBehaviorViewModel.h>
 #include <ScopicFlow/BusTrackViewModel.h>
+#include <ScopicFlow/AnchorViewModel.h>
 
 using namespace sflow;
 
@@ -200,6 +201,15 @@ int main(int argc, char *argv[]) {
     audioDeviceViewModel.setColor(Qt::transparent);
     busTrackListViewModel.setItems({&masterTrackViewModel, &metronomeViewModel, &audioDeviceViewModel});
 
+    PointSequenceViewModel anchoredCurveViewModel(&win);
+    for (int i = 0; i < 256; i++) {
+        auto anchor = new AnchorViewModel(&win);
+        anchor->setPosition((i % 16) * 120 + (i / 16) * 32 * 120);
+        anchor->setAnchorValue(distribution(generator));
+        anchor->setAnchorType(i % 16 == 15 ? ScopicFlow::AT_Break : ScopicFlow::AT_Pchip);
+        anchoredCurveViewModel.insertItem(anchor);
+    }
+
     QQmlApplicationEngine engine;
     engine.setInitialProperties({
         {"timeViewModel", QVariant::fromValue(&timeViewModel)},
@@ -223,7 +233,8 @@ int main(int argc, char *argv[]) {
         {"mixerLayoutViewModel", QVariant::fromValue(&mixerLayoutViewModel)},
         {"busTrackListViewModel", QVariant::fromValue(&busTrackListViewModel)},
         {"busMixerLayoutViewModel", QVariant::fromValue(&busMixerLayoutViewModel)},
-        {"levelTimer", QVariant::fromValue(&timer)}
+        {"levelTimer", QVariant::fromValue(&timer)},
+        {"anchoredCurveViewModel", QVariant::fromValue(&anchoredCurveViewModel)}
     });
     engine.load(QUrl("qrc:/qt/qml/dev/sjimo/ScopicFlow/Test/main.qml"));
 

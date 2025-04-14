@@ -22,6 +22,7 @@ namespace sflow {
         Q_PROPERTY(int bottomValue READ bottomValue WRITE setBottomValue NOTIFY bottomValueChanged)
         Q_PROPERTY(QList<QColor> strokeColors READ strokeColors WRITE setStrokeColors NOTIFY strokeColorsChanged)
         Q_PROPERTY(QColor fillColor READ fillColor WRITE setFillColor NOTIFY fillColorChanged)
+        Q_PRIVATE_SLOT(d_func(), void handleItemUpdatedSlot())
 
     public:
         explicit AnchoredCurveQuickItem(QQuickItem *parent = nullptr);

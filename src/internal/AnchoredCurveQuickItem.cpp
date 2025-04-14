@@ -14,10 +14,31 @@
 
 namespace sflow {
 
-    void AnchoredCurveQuickItemPrivate::handleItemInserted(QObject *item, bool updateDirty) {
+    void AnchoredCurveQuickItemPrivate::handleItemInserted(QObject *item) {
         Q_Q(AnchoredCurveQuickItem);
-        auto x = item->property("x").value<int>();
-        auto y = item->property("y").value<int>();
+        QObject::connect(item, SIGNAL(positionChanged()), q, SLOT(handleItemUpdatedSlot()));
+        QObject::connect(item, SIGNAL(anchorValueChanged()), q, SLOT(handleItemUpdatedSlot()));
+        QObject::connect(item, SIGNAL(anchorTypeChanged()), q, SLOT(handleItemUpdatedSlot()));
+        QObject::connect(item, SIGNAL(styleFlagChanged()), q, SLOT(update()));
+        handleItemUpdated(item);
+    }
+    void AnchoredCurveQuickItemPrivate::handleItemRemoved(QObject *item) {
+        if (!itemPositions.contains(item))
+            return;
+        curve.removeAnchor(itemPositions.value(item));
+        positionItems.remove(itemPositions.value(item));
+        itemPositions.remove(item);
+        curveDirtyFlag = true;
+    }
+    void AnchoredCurveQuickItemPrivate::handleItemUpdated(QObject *item) {
+        if (itemPositions.contains(item)) {
+            curve.removeAnchor(itemPositions.value(item));
+            positionItems.remove(itemPositions.value(item));
+        }
+        auto x = item->property("position").value<int>();
+        auto y = item->property("anchorValue").value<int>();
+        itemPositions.insert(item, x);
+        positionItems.insert(x, item);
         auto interpolationMode = ([](ScopicFlow::AnchorType anchorType) -> SVS::AnchoredCurve::Anchor::InterpolationMode {
             switch (anchorType) {
                 case ScopicFlow::AT_Break:
@@ -35,34 +56,11 @@ namespace sflow {
         })(item->property("anchorType").value<ScopicFlow::AnchorType>());
         SVS::AnchoredCurve::Anchor anchor(x, y, interpolationMode);
         curve.addAnchor(anchor);
-        if (!updateDirty)
-            return;
-        calculateDirty(item);
+        curveDirtyFlag = true;
     }
-    void AnchoredCurveQuickItemPrivate::handleItemRemoved(QObject *item) {
-        auto x = item->property("x").value<int>();
-        curve.removeAnchor(x);
-        calculateDirty(item);
-    }
-    void AnchoredCurveQuickItemPrivate::calculateDirty(QObject *item) {
-        auto handle = anchoredCurveViewModel->property("handle").value<PointSequenceViewModelQmlHandle *>();
-        int left = item->property("position").value<int>();
-        if (auto prev1 = handle->previousItem(item); prev1) {
-            left = prev1->property("position").value<int>();
-            if (auto prev2 = handle->previousItem(prev1); prev2) {
-                left = prev2->property("position").value<int>();
-            }
-        }
-        int right = item->property("position").value<int>();
-        if (auto next1 = handle->nextItem(item); next1) {
-            right = next1->property("position").value<int>();
-            if (auto next2 = handle->nextItem(next1); next2) {
-                right = next2->property("position").value<int>();
-            }
-        }
-        auto dirtyEnd = qMax(dirtyPosition + dirtyLength, right);
-        dirtyPosition = qMin(dirtyPosition, left);
-        dirtyLength = dirtyEnd - dirtyPosition;
+    void AnchoredCurveQuickItemPrivate::handleItemUpdatedSlot() {
+        Q_Q(AnchoredCurveQuickItem);
+        handleItemUpdated(q->sender());
     }
 
 
@@ -71,6 +69,11 @@ namespace sflow {
         Q_D(AnchoredCurveQuickItem);
         d->q_ptr = this;
         setFlag(ItemHasContents);
+        connect(this, &QQuickItem::widthChanged, this, [=] {
+            d->viewLength = d->timeLayoutViewModel ? width() / d->timeLayoutViewModel->pixelDensity() : 0;
+            update();
+        });
+        connect(this, &QQuickItem::heightChanged, this, &QQuickItem::update);
     }
     AnchoredCurveQuickItem::~AnchoredCurveQuickItem() = default;
     TimeViewModel *AnchoredCurveQuickItem::timeViewModel() const {
@@ -130,8 +133,7 @@ namespace sflow {
         }
         d->anchoredCurveViewModel = anchoredCurveViewModel;
         d->curve = {};
-        d->dirtyPosition = 0;
-        d->dirtyLength = std::numeric_limits<int>::max();
+        d->curveDirtyFlag = true;
         if (anchoredCurveViewModel) {
             auto handle = anchoredCurveViewModel->property("handle").value<PointSequenceViewModelQmlHandle *>();
             connect(handle, &SliceableViewModelQmlHandle::itemInserted, this, [=](QObject *item) {
@@ -143,7 +145,7 @@ namespace sflow {
                 update();
             });
             for (auto item : anchoredCurveViewModel->items()) {
-                d->handleItemInserted(item, false);
+                d->handleItemInserted(item);
             }
         }
         emit anchoredCurveViewModelChanged();
@@ -196,9 +198,6 @@ namespace sflow {
         emit fillColorChanged();
     }
     class AnchoredCurveSGNode : public QSGNode {
-    public:
-        QList<QColor> strokeColors;
-        QColor fillColor;
     };
     QSGNode *AnchoredCurveQuickItem::updatePaintNode(QSGNode *node_, UpdatePaintNodeData *) {
         Q_D(AnchoredCurveQuickItem);
@@ -208,33 +207,58 @@ namespace sflow {
             auto scaleNode = new QSGTransformNode;
             scaleNode->setFlag(QSGNode::OwnedByParent);
             node->appendChildNode(scaleNode);
-            auto strokeGroupNode = new QSGNode;
-            strokeGroupNode->setFlags(QSGNode::OwnedByParent);
-            scaleNode->appendChildNode(strokeGroupNode);
+            auto strokeNode = new QSGGeometryNode;
+            strokeNode->setFlags(QSGNode::OwnedByParent | QSGNode::OwnsGeometry | QSGNode::OwnsMaterial);
+            auto strokeGeometry = new QSGGeometry(QSGGeometry::defaultAttributes_ColoredPoint2D(), 0);
+            strokeGeometry->setDrawingMode(QSGGeometry::DrawLines);
+            strokeNode->setGeometry(strokeGeometry);
+            auto strokeMaterial = new QSGVertexColorMaterial;
+            strokeNode->setMaterial(strokeMaterial);
+            scaleNode->appendChildNode(strokeNode);
             auto fillNode = new QSGGeometryNode;
             fillNode->setFlags(QSGNode::OwnedByParent | QSGNode::OwnsGeometry | QSGNode::OwnsMaterial);
+            auto fillGeometry = new QSGGeometry(QSGGeometry::defaultAttributes_Point2D(), 0);
+            fillGeometry->setDrawingMode(QSGGeometry::DrawTriangleStrip);
+            fillNode->setGeometry(fillGeometry);
             auto fillMaterial = new QSGFlatColorMaterial;
             fillNode->setMaterial(fillMaterial);
             scaleNode->appendChildNode(fillNode);
         }
         auto scaleNode = static_cast<QSGTransformNode *>(node->childAtIndex(0));
-        QMatrix4x4 scaleTransform;
-        scaleTransform.translate(-d->viewPosition, d->bottomValue);
-        scaleTransform.scale(width() / d->viewLength, -height() / (d->topValue - d->bottomValue));
-        scaleNode->setMatrix(scaleTransform);
-        auto strokeGroupNode = static_cast<QSGNode *>(scaleNode->childAtIndex(0));
+        auto strokeNode = static_cast<QSGGeometryNode *>(scaleNode->childAtIndex(0));
+        auto strokeGeometry = strokeNode->geometry();
         auto fillNode = static_cast<QSGGeometryNode *>(scaleNode->childAtIndex(1));
-        if (d->strokeColors != node->strokeColors) {
-            // update all strokes when then stroke color list changes
-            d->dirtyPosition = 0;
-            d->dirtyLength = std::numeric_limits<int>::max();
-        }
-        if (d->fillColor != node->fillColor) {
-            auto fillMaterial = static_cast<QSGFlatColorMaterial *>(fillNode->material());
+        auto fillGeometry = fillNode->geometry();
+        auto fillMaterial = static_cast<QSGFlatColorMaterial *>(fillNode->material());
+
+        if (d->fillColor != fillMaterial->color()) {
             fillMaterial->setColor(d->fillColor);
-            node->fillColor = d->fillColor;
+            fillNode->markDirty(QSGNode::DirtyMaterial);
         }
 
+        auto ceilWidth = static_cast<int>(std::ceil(width()));
+        strokeGeometry->allocate(ceilWidth * 2 - 1);
+        fillGeometry->allocate(ceilWidth * 2);
+        auto mappedZeroValue = (d->topValue - 0.0) / (d->topValue - d->bottomValue) * height();
+        for (int i = 0; i < ceilWidth; i++) {
+            auto position = std::round(d->viewPosition + i * d->viewLength / width());
+            bool hasValue;
+            double prevX = -1;
+            auto value = d->curve.value(position, &hasValue, &prevX);
+            auto mappedValue = (d->topValue - value) / (d->topValue - d->bottomValue) * height();
+            auto item = d->positionItems.value(static_cast<int>(prevX));
+            auto color = hasValue && !d->strokeColors.isEmpty() ? d->strokeColors.at(qBound(0, item ? item->property("styleFlag").toInt() : 0, d->strokeColors.size())) : Qt::transparent;
+            if (i != 0) {
+                auto &p = strokeGeometry->vertexDataAsColoredPoint2D()[2 * i - 1];
+                const auto &p2 = strokeGeometry->vertexDataAsColoredPoint2D()[2 * i - 2];
+                p.set(i, mappedValue, p2.r, p2.g, p2.b, p2.a);
+            }
+            strokeGeometry->vertexDataAsColoredPoint2D()[2 * i].set(i, mappedValue, color.red(), color.green(), color.blue(), color.alpha());
+            fillGeometry->vertexDataAsPoint2D()[i * 2].set(i, mappedZeroValue);
+            fillGeometry->vertexDataAsPoint2D()[i * 2 + 1].set(i, hasValue ? mappedValue : mappedZeroValue);
+        }
+        strokeNode->markDirty(QSGNode::DirtyGeometry);
+        fillNode->markDirty(QSGNode::DirtyGeometry);
 
         return node;
     }

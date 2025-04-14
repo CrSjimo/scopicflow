@@ -145,6 +145,10 @@ Item {
     ColumnLayout {
         spacing: 0
         anchors.fill: parent
+        readonly property bool intermediate: gainSlider.pressed || panDial.pressed
+        onIntermediateChanged: {
+            mixerDelegate.trackViewModel.intermediate = intermediate
+        }
         RowLayout {
             Layout.leftMargin: routeButton.visible ? 28 : 42
             Layout.rightMargin: 8
@@ -209,6 +213,7 @@ Item {
                 ColumnLayout {
                     Layout.fillHeight: true
                     MixerSlider {
+                        id: gainSlider
                         Layout.alignment: Qt.AlignHCenter
                         Layout.fillHeight: true
                         value: SVS.decibelToLinearValue(mixerDelegate.trackViewModel.gain)

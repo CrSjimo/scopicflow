@@ -11,7 +11,7 @@ namespace sflow {
     SFLOW_VIEWMODEL_IMPLEMENT_PROPERTY(NoteViewModel, length, length, setLength, resetLength)
     SFLOW_VIEWMODEL_IMPLEMENT_PROPERTY(NoteViewModel, key, key, setKey, resetKey)
     SFLOW_VIEWMODEL_IMPLEMENT_PROPERTY(NoteViewModel, lyric, lyric, setLyric, resetLyric)
-    SFLOW_VIEWMODEL_IMPLEMENT_PROPERTY(NoteViewModel, selected, selected, setSelected, resetSelected)
-    SFLOW_VIEWMODEL_IMPLEMENT_PROPERTY(NoteViewModel, intermediate, intermediate, setIntermediate, resetIntermediate)
-    SFLOW_VIEWMODEL_IMPLEMENT_PROPERTY(NoteViewModel, overlapped, overlapped, setOverlapped, resetOverlapped)
+    SFLOW_VIEWMODEL_IMPLEMENT_PROPERTY(NoteViewModel, selected, isSelected, setSelected, resetSelected)
+    SFLOW_VIEWMODEL_IMPLEMENT_PROPERTY(NoteViewModel, intermediate, isIntermediate, setIntermediate, resetIntermediate)
+    SFLOW_VIEWMODEL_IMPLEMENT_PROPERTY(NoteViewModel, overlapped, isOverlapped, setOverlapped, resetOverlapped)
 }

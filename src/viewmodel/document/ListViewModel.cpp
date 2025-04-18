@@ -101,7 +101,7 @@ namespace sflow {
             emit d->q_ptr->currentIndexChanged(index);
         }
     }
-    bool ListViewModelQmlHandle::intermediate() const {
+    bool ListViewModelQmlHandle::isIntermediate() const {
         Q_D(const ListViewModel);
         return d->intermediate;
     }
@@ -178,7 +178,7 @@ namespace sflow {
             emit d->handle->currentIndexChanged();
         }
     }
-    bool ListViewModel::intermediate() const {
+    bool ListViewModel::isIntermediate() const {
         Q_D(const ListViewModel);
         return d->intermediate;
     }

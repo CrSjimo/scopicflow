@@ -17,9 +17,9 @@ namespace sflow {
         SFLOW_VIEWMODEL_DECLARE_PROPERTY(int, length, length, setLength, resetLength)
         SFLOW_VIEWMODEL_DECLARE_PROPERTY(int, key, key, setKey, resetKey)
         SFLOW_VIEWMODEL_DECLARE_PROPERTY(QString, lyric, lyric, setLyric, resetLyric)
-        SFLOW_VIEWMODEL_DECLARE_PROPERTY(bool, selected, selected, setSelected, resetSelected)
-        SFLOW_VIEWMODEL_DECLARE_PROPERTY(bool, intermediate, intermediate, setIntermediate, resetIntermediate)
-        SFLOW_VIEWMODEL_DECLARE_PROPERTY(bool, overlapped, overlapped, setOverlapped, resetOverlapped)
+        SFLOW_VIEWMODEL_DECLARE_PROPERTY(bool, selected, isSelected, setSelected, resetSelected)
+        SFLOW_VIEWMODEL_DECLARE_PROPERTY(bool, intermediate, isIntermediate, setIntermediate, resetIntermediate)
+        SFLOW_VIEWMODEL_DECLARE_PROPERTY(bool, overlapped, isOverlapped, setOverlapped, resetOverlapped)
 
     };
 

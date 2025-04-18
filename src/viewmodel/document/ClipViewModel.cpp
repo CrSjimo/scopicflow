@@ -15,7 +15,7 @@ namespace sflow {
     SFLOW_VIEWMODEL_IMPLEMENT_PROPERTY_DEFAULT_VALUE(ClipViewModel, maxLength, std::numeric_limits<int>::max(), maxLength, setMaxLength, resetMaxLength)
     SFLOW_VIEWMODEL_IMPLEMENT_PROPERTY(ClipViewModel, trackNumber, trackNumber, setTrackNumber, resetTrackNumber)
     SFLOW_VIEWMODEL_IMPLEMENT_PROPERTY(ClipViewModel, name, name, setName, resetName)
-    SFLOW_VIEWMODEL_IMPLEMENT_PROPERTY(ClipViewModel, selected, selected, setSelected, resetSelected)
-    SFLOW_VIEWMODEL_IMPLEMENT_PROPERTY(ClipViewModel, intermediate, intermediate, setIntermediate, resetIntermediate)
-    SFLOW_VIEWMODEL_IMPLEMENT_PROPERTY(ClipViewModel, overlapped, overlapped, setOverlapped, resetOverlapped)
+    SFLOW_VIEWMODEL_IMPLEMENT_PROPERTY(ClipViewModel, selected, isSelected, setSelected, resetSelected)
+    SFLOW_VIEWMODEL_IMPLEMENT_PROPERTY(ClipViewModel, intermediate, isIntermediate, setIntermediate, resetIntermediate)
+    SFLOW_VIEWMODEL_IMPLEMENT_PROPERTY(ClipViewModel, overlapped, isOverlapped, setOverlapped, resetOverlapped)
 }

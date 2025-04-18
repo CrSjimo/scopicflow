@@ -14,7 +14,7 @@ namespace sflow {
         explicit LabelSequenceBehaviorViewModel(QObject *parent = nullptr);
         ~LabelSequenceBehaviorViewModel() override;
 
-        SFLOW_VIEWMODEL_DECLARE_PROPERTY(bool, editing, editing, setEditing, resetEditing)
+        SFLOW_VIEWMODEL_DECLARE_PROPERTY(bool, editing, isEditing, setEditing, resetEditing)
         SFLOW_VIEWMODEL_DECLARE_PROPERTY(QColor, color, color, setColor, resetColor)
 
     };

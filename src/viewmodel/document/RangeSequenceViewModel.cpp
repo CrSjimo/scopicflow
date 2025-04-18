@@ -83,7 +83,7 @@ namespace sflow {
             emit d->q_ptr->currentItemChanged(item);
         }
     }
-    bool RangeSequenceViewModelQmlHandle::intermediate() const {
+    bool RangeSequenceViewModelQmlHandle::isIntermediate() const {
         Q_D(const RangeSequenceViewModel);
         return d->intermediate;
     }
@@ -247,7 +247,7 @@ namespace sflow {
             emit d->handle->currentItemChanged();
         }
     }
-    bool RangeSequenceViewModel::intermediate() const {
+    bool RangeSequenceViewModel::isIntermediate() const {
         Q_D(const RangeSequenceViewModel);
         return d->intermediate;
     }

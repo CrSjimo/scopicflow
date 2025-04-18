@@ -15,8 +15,8 @@ namespace sflow {
 
         SFLOW_VIEWMODEL_DECLARE_PROPERTY(int, position, position, setPosition, resetPosition)
         SFLOW_VIEWMODEL_DECLARE_PROPERTY(QString, content, content, setContent, resetContent)
-        SFLOW_VIEWMODEL_DECLARE_PROPERTY(bool, selected, selected, setSelected, resetSelected)
-        SFLOW_VIEWMODEL_DECLARE_PROPERTY(bool, intermediate, intermediate, setIntermediate, resetIntermediate)
+        SFLOW_VIEWMODEL_DECLARE_PROPERTY(bool, selected, isSelected, setSelected, resetSelected)
+        SFLOW_VIEWMODEL_DECLARE_PROPERTY(bool, intermediate, isIntermediate, setIntermediate, resetIntermediate)
 
     };
 

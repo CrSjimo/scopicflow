@@ -10,6 +10,6 @@ namespace sflow {
     }
     LabelSequenceBehaviorViewModel::~LabelSequenceBehaviorViewModel() = default;
 
-    SFLOW_VIEWMODEL_IMPLEMENT_PROPERTY(LabelSequenceBehaviorViewModel, editing, editing, setEditing, resetEditing)
+    SFLOW_VIEWMODEL_IMPLEMENT_PROPERTY(LabelSequenceBehaviorViewModel, editing, isEditing, setEditing, resetEditing)
     SFLOW_VIEWMODEL_IMPLEMENT_PROPERTY(LabelSequenceBehaviorViewModel, color, color, setColor, resetColor)
 }

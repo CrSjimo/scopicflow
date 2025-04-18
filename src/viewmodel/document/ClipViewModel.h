@@ -19,9 +19,9 @@ namespace sflow {
         SFLOW_VIEWMODEL_DECLARE_PROPERTY(int, maxLength, maxLength, setMaxLength, resetMaxLength)
         SFLOW_VIEWMODEL_DECLARE_PROPERTY(int, trackNumber, trackNumber, setTrackNumber, resetTrackNumber)
         SFLOW_VIEWMODEL_DECLARE_PROPERTY(QString, name, name, setName, resetName)
-        SFLOW_VIEWMODEL_DECLARE_PROPERTY(bool, selected, selected, setSelected, resetSelected)
-        SFLOW_VIEWMODEL_DECLARE_PROPERTY(bool, intermediate, intermediate, setIntermediate, resetIntermediate)
-        SFLOW_VIEWMODEL_DECLARE_PROPERTY(bool, overlapped, overlapped, setOverlapped, resetOverlapped)
+        SFLOW_VIEWMODEL_DECLARE_PROPERTY(bool, selected, isSelected, setSelected, resetSelected)
+        SFLOW_VIEWMODEL_DECLARE_PROPERTY(bool, intermediate, isIntermediate, setIntermediate, resetIntermediate)
+        SFLOW_VIEWMODEL_DECLARE_PROPERTY(bool, overlapped, isOverlapped, setOverlapped, resetOverlapped)
     };
 
 }

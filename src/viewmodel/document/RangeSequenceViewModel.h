@@ -24,7 +24,7 @@ namespace sflow {
         QObject *currentItem() const;
         void setCurrentItem(QObject *item);
 
-        bool intermediate() const;
+        bool isIntermediate() const;
         void setIntermediate(bool intermediate);
 
         int count() const;

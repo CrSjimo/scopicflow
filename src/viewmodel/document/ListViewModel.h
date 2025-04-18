@@ -23,7 +23,7 @@ namespace sflow {
         int currentIndex() const;
         void setCurrentIndex(int index);
 
-        bool intermediate() const;
+        bool isIntermediate() const;
         void setIntermediate(bool intermediate);
 
         QObjectList items() const;

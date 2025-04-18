@@ -20,7 +20,7 @@ namespace sflow {
         SFLOW_VIEWMODEL_DECLARE_PROPERTY(int, styleFlag, styleFlag, setStyleFlag, resetStyleFlag)
         SFLOW_VIEWMODEL_DECLARE_PROPERTY(ScopicFlow::AnchorNode, anchorNode, anchorNode, setAnchorNode, resetAnchorNode)
         SFLOW_VIEWMODEL_DECLARE_PROPERTY(bool, free, isFree, setFree, resetFree)
-        SFLOW_VIEWMODEL_DECLARE_PROPERTY(bool, selected, selected, setSelected, resetSelected)
+        SFLOW_VIEWMODEL_DECLARE_PROPERTY(bool, selected, isSelected, setSelected, resetSelected)
 
     };
 

@@ -80,7 +80,7 @@ namespace sflow {
     class SCOPIC_FLOW_EXPORT PointSequenceViewModelQmlHandle : public SliceableViewModelQmlHandle {
         Q_OBJECT
         Q_PROPERTY(QObject *currentItem READ currentItem WRITE setCurrentItem NOTIFY currentItemChanged)
-        Q_PROPERTY(bool intermediate READ intermediate WRITE setIntermediate NOTIFY intermediateChanged)
+        Q_PROPERTY(bool intermediate READ isIntermediate WRITE setIntermediate NOTIFY intermediateChanged)
         Q_PROPERTY(QObjectList selection READ selection NOTIFY selectionChanged)
     public:
         Q_DECLARE_PRIVATE(PointSequenceViewModel)
@@ -90,7 +90,7 @@ namespace sflow {
         QObject *currentItem() const;
         void setCurrentItem(QObject *item);
 
-        bool intermediate() const;
+        bool isIntermediate() const;
         void setIntermediate(bool intermediate);
 
         Q_INVOKABLE QObject *previousItem(QObject *item) const;

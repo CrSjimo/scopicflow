@@ -14,10 +14,10 @@ namespace sflow {
         explicit PianoRollNoteAreaBehaviorViewModel(QObject *parent = nullptr);
         ~PianoRollNoteAreaBehaviorViewModel() override;
 
-        SFLOW_VIEWMODEL_DECLARE_PROPERTY(bool, editing, editing, setEditing, resetEditing)
-        SFLOW_VIEWMODEL_DECLARE_PROPERTY(bool, unitedExtend, unitedExtend, setUnitedExtend, resetUnitedExtend)
+        SFLOW_VIEWMODEL_DECLARE_PROPERTY(bool, editing, isEditing, setEditing, resetEditing)
+        SFLOW_VIEWMODEL_DECLARE_PROPERTY(bool, unitedExtend, isUnitedExtend, setUnitedExtend, resetUnitedExtend)
         SFLOW_VIEWMODEL_DECLARE_PROPERTY(QColor, color, color, setColor, resetColor)
-        SFLOW_VIEWMODEL_DECLARE_PROPERTY(bool, compactDisplay, compactDisplay, setCompactDisplay, resetCompactDisplay)
+        SFLOW_VIEWMODEL_DECLARE_PROPERTY(bool, compactDisplay, isCompactDisplay, setCompactDisplay, resetCompactDisplay)
         SFLOW_VIEWMODEL_DECLARE_PROPERTY(int, offset, offset, setOffset, resetOffset)
         SFLOW_VIEWMODEL_DECLARE_PROPERTY(int, lengthHint, lengthHint, setLengthHint, resetLengthHint)
         SFLOW_VIEWMODEL_DECLARE_PROPERTY(ScopicFlow::MouseBehavior, mouseBehavior, mouseBehavior, setMouseBehavior, resetMouseBehavior)

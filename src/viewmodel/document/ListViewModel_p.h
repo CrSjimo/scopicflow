@@ -9,7 +9,7 @@ namespace sflow {
         Q_OBJECT
         Q_PROPERTY(int count READ count NOTIFY countChanged)
         Q_PROPERTY(int currentIndex READ currentIndex WRITE setCurrentIndex NOTIFY currentIndexChanged)
-        Q_PROPERTY(bool intermediate READ intermediate WRITE setIntermediate NOTIFY intermediateChanged)
+        Q_PROPERTY(bool intermediate READ isIntermediate WRITE setIntermediate NOTIFY intermediateChanged)
         Q_PROPERTY(QObjectList items READ items NOTIFY itemsChanged)
     public:
         Q_DECLARE_PRIVATE(ListViewModel)
@@ -21,7 +21,7 @@ namespace sflow {
         int currentIndex() const;
         void setCurrentIndex(int index);
 
-        bool intermediate() const;
+        bool isIntermediate() const;
         void setIntermediate(bool intermediate);
 
         QObjectList items() const;

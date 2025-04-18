@@ -10,6 +10,6 @@ namespace sflow {
 
     SFLOW_VIEWMODEL_IMPLEMENT_PROPERTY(LabelViewModel, position, position, setPosition, resetPosition)
     SFLOW_VIEWMODEL_IMPLEMENT_PROPERTY(LabelViewModel, content, content, setContent, resetContent)
-    SFLOW_VIEWMODEL_IMPLEMENT_PROPERTY(LabelViewModel, selected, selected, setSelected, resetSelected)
-    SFLOW_VIEWMODEL_IMPLEMENT_PROPERTY(LabelViewModel, intermediate, intermediate, setIntermediate, resetIntermediate)
+    SFLOW_VIEWMODEL_IMPLEMENT_PROPERTY(LabelViewModel, selected, isSelected, setSelected, resetSelected)
+    SFLOW_VIEWMODEL_IMPLEMENT_PROPERTY(LabelViewModel, intermediate, isIntermediate, setIntermediate, resetIntermediate)
 }

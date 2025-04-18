@@ -449,6 +449,17 @@ ApplicationWindow {
         bottomValue: -60
         strokeColors: [Qt.rgba(1, 1, 1, 1)]
         fillColor: Qt.rgba(1, 1, 1, 0.25)
+        ScopicFlowInternal.AnchorEditor {
+            anchors.fill: parent
+            timeViewModel: main.timeViewModel
+            timeLayoutViewModel: main.timeLayoutViewModel
+            anchoredCurveViewModel: main.anchoredCurveViewModel
+            topValue: parent.topValue
+            bottomValue: parent.bottomValue
+            nodeColor: Qt.rgba(0.5, 0.5, 0.5, 1)
+            nodeBorderColor: Qt.rgba(1, 1, 1, 1)
+            nodeSelectedColor: Theme.accentColor
+        }
     }
 
     SplitView {

@@ -6,6 +6,9 @@
 #include <SVSCraftCore/AnchoredCurve.h>
 
 namespace sflow {
+
+    class PointSequenceViewModelQmlHandle;
+
     class AnchoredCurveQuickItemPrivate {
         Q_DECLARE_PUBLIC(AnchoredCurveQuickItem)
     public:
@@ -14,6 +17,7 @@ namespace sflow {
         TimeViewModel *timeViewModel{};
         TimeLayoutViewModel *timeLayoutViewModel{};
         PointSequenceViewModel *anchoredCurveViewModel{};
+        PointSequenceViewModelQmlHandle *handle{};
         int topValue{};
         int bottomValue{};
         QList<QColor> strokeColors;
@@ -31,6 +35,8 @@ namespace sflow {
         void handleItemRemoved(QObject *item);
         void handleItemUpdated(QObject *item);
         void handleItemUpdatedSlot();
+
+        int getPaintPosition(int i);
     };
 }
 

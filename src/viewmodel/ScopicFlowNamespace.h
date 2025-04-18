@@ -29,16 +29,32 @@ namespace sflow {
 
         enum AnchorType {
             AT_Break,
-            AT_Free,
             AT_Linear,
             AT_Zero,
             AT_Pchip,
         };
         Q_ENUM_NS(AnchorType)
 
+        enum AnchorNodeFlag {
+            AN_LeftCircle = 0x0,
+            AN_LeftSquare = 0x1,
+            AN_LeftDiamond = 0x2,
+
+            AN_LeftMask = 0xF,
+
+            AN_RightCircle = 0x00,
+            AN_RightSquare = 0x10,
+            AN_RightDiamond = 0x20,
+
+            AN_RightMask = 0xF0,
+        };
+        Q_ENUM_NS(AnchorNodeFlag)
+        Q_DECLARE_FLAGS(AnchorNode, AnchorNodeFlag)
 
     }
 
 }
+
+Q_DECLARE_OPERATORS_FOR_FLAGS(sflow::ScopicFlow::AnchorNode)
 
 #endif //SCOPIC_FLOW_SCOPICFLOWNAMESPACE_H

@@ -43,7 +43,6 @@ namespace sflow {
             switch (anchorType) {
                 case ScopicFlow::AT_Break:
                     return SVS::AnchoredCurve::Anchor::Break;
-                case ScopicFlow::AT_Free:
                 case ScopicFlow::AT_Linear:
                     return SVS::AnchoredCurve::Anchor::Linear;
                 case ScopicFlow::AT_Zero:
@@ -61,6 +60,17 @@ namespace sflow {
     void AnchoredCurveQuickItemPrivate::handleItemUpdatedSlot() {
         Q_Q(AnchoredCurveQuickItem);
         handleItemUpdated(q->sender());
+    }
+    int AnchoredCurveQuickItemPrivate::getPaintPosition(int i) {
+        Q_Q(AnchoredCurveQuickItem);
+        auto left = std::round(viewPosition + i * viewLength / q->width());
+        if (!handle)
+            return left;
+        auto right = std::round(viewPosition + (i + 1) * viewLength / q->width());
+        auto list = handle->slice(left, right - left);
+        if (list.isEmpty())
+            return left;
+        return list.first()->property("position").toInt();
     }
 
 
@@ -129,18 +139,19 @@ namespace sflow {
         if (d->anchoredCurveViewModel == anchoredCurveViewModel)
             return;
         if (d->anchoredCurveViewModel) {
-            disconnect(d->anchoredCurveViewModel->property("handle").value<SliceableViewModelQmlHandle *>(), nullptr, this, nullptr);
+            disconnect(d->handle, nullptr, this, nullptr);
         }
         d->anchoredCurveViewModel = anchoredCurveViewModel;
+        d->handle = nullptr;
         d->curve = {};
         d->curveDirtyFlag = true;
         if (anchoredCurveViewModel) {
-            auto handle = anchoredCurveViewModel->property("handle").value<PointSequenceViewModelQmlHandle *>();
-            connect(handle, &SliceableViewModelQmlHandle::itemInserted, this, [=](QObject *item) {
+            d->handle = anchoredCurveViewModel->property("handle").value<PointSequenceViewModelQmlHandle *>();
+            connect(d->handle, &SliceableViewModelQmlHandle::itemInserted, this, [=](QObject *item) {
                 d->handleItemInserted(item);
                 update();
             });
-            connect(handle, &SliceableViewModelQmlHandle::itemAboutToRemove, this, [=](QObject *item) {
+            connect(d->handle, &SliceableViewModelQmlHandle::itemAboutToRemove, this, [=](QObject *item) {
                 d->handleItemRemoved(item);
                 update();
             });
@@ -241,7 +252,7 @@ namespace sflow {
         fillGeometry->allocate(ceilWidth * 2);
         auto mappedZeroValue = (d->topValue - 0.0) / (d->topValue - d->bottomValue) * height();
         for (int i = 0; i < ceilWidth; i++) {
-            auto position = std::round(d->viewPosition + i * d->viewLength / width());
+            auto position = d->getPaintPosition(i);
             bool hasValue;
             double prevX = -1;
             auto value = d->curve.value(position, &hasValue, &prevX);

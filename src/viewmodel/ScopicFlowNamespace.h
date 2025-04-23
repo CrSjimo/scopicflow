@@ -24,6 +24,7 @@ namespace sflow {
             MB_Eraser,
             MB_Scissor,
             MB_Pencil,
+            MB_Converter,
         };
         Q_ENUM_NS(MouseBehavior)
 

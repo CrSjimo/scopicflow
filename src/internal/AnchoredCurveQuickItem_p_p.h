@@ -29,7 +29,6 @@ namespace sflow {
 
         double viewPosition = 0;
         double viewLength = 0;
-        bool curveDirtyFlag = false;
 
         void handleItemInserted(QObject *item);
         void handleItemRemoved(QObject *item);

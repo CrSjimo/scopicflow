@@ -26,6 +26,13 @@ Item {
         property bool selected: false
         LayoutMirroring.enabled: false
         LayoutMirroring.childrenInherit: true
+        property color color: selected ? anchorEditor.nodeSelectedColor : anchorEditor.nodeColor
+        Behavior on color {
+            ColorAnimation {
+                duration: Theme.colorAnimationDuration
+                easing.type: Easing.OutCubic
+            }
+        }
         Item {
             anchors.left: parent.left
             anchors.right: parent.horizontalCenter
@@ -43,7 +50,7 @@ Item {
                 anchors.centerIn: leftCenter
                 width: anchorNode.width / ((anchorNode.anchorNode & ScopicFlow.AN_LeftMask) === ScopicFlow.AN_LeftDiamond ? Math.SQRT2 : 1)
                 height: anchorNode.height / ((anchorNode.anchorNode & ScopicFlow.AN_LeftMask) === ScopicFlow.AN_LeftDiamond ? Math.SQRT2 : 1)
-                color: anchorNode.selected ? anchorEditor.nodeSelectedColor : anchorEditor.nodeColor
+                color: anchorNode.color
                 border.color: anchorEditor.nodeBorderColor
                 radius: (anchorNode.anchorNode & ScopicFlow.AN_LeftMask) === ScopicFlow.AN_LeftCircle ? width / 2 : 0
                 rotation: (anchorNode.anchorNode & ScopicFlow.AN_LeftMask) === ScopicFlow.AN_LeftDiamond ? 45 : 0
@@ -66,12 +73,31 @@ Item {
                 anchors.centerIn: rightCenter
                 width: anchorNode.width / ((anchorNode.anchorNode & ScopicFlow.AN_RightMask) === ScopicFlow.AN_RightDiamond ? Math.SQRT2 : 1)
                 height: anchorNode.height / ((anchorNode.anchorNode & ScopicFlow.AN_RightMask) === ScopicFlow.AN_RightDiamond ? Math.SQRT2 : 1)
-                color: anchorNode.selected ? anchorEditor.nodeSelectedColor : anchorEditor.nodeColor
+                color: anchorNode.color
                 border.color: anchorEditor.nodeBorderColor
                 radius: (anchorNode.anchorNode & ScopicFlow.AN_RightMask) === ScopicFlow.AN_RightCircle ? width / 2 : 0
                 rotation: (anchorNode.anchorNode & ScopicFlow.AN_RightMask) === ScopicFlow.AN_RightDiamond ? 45 : 0
             }
         }
+    }
+
+    TimeAlignmentPositionLocator {
+        id: timeLocator
+        anchors.fill: parent
+        timeViewModel: anchorEditor.timeViewModel
+        timeLayoutViewModel: anchorEditor.timeLayoutViewModel
+    }
+
+    TimeManipulator {
+        id: timeManipulator
+        anchors.fill: parent
+        timeViewModel: anchorEditor.timeViewModel
+        timeLayoutViewModel: anchorEditor.timeLayoutViewModel
+    }
+
+    SelectableViewModelManipulator {
+        id: selectionManipulator
+        viewModel: anchorEditor.anchoredCurveViewModel
     }
 
     Item {
@@ -83,6 +109,20 @@ Item {
         anchors.bottom: parent.bottom
         x: -start * pixelDensity
         width: end * pixelDensity
+
+        GenericBackPointerMouseArea {
+            id: backPointerMouseArea
+            paneItem: anchorEditor
+            onRubberBandStartRequired: (p) => {
+                rubberBandLayer.startSelection(p)
+            }
+            onRubberBandUpdateRequired: (p) => {
+                rubberBandLayer.updateSelection(p)
+            }
+            onDoubleClicked: (mouse) => {
+
+            }
+        }
 
         Item {
             id: nodeContainer
@@ -104,6 +144,17 @@ Item {
                         nodeItem.x: nodeItem.model.position * viewport.pixelDensity
                         nodeItem.y: (anchorEditor.topValue - nodeItem.model.anchorValue) / (anchorEditor.topValue - anchorEditor.bottomValue) * anchorEditor.height
                     }
+                    readonly property bool visibleToRubberBand: visible && !model.free
+                    function handleRubberBand() {
+                        if (visibleToRubberBand)
+                            rubberBandLayer.insertItem(model, Qt.rect(x - 4, y - 4, 8, 8))
+                        else
+                            rubberBandLayer.removeItem(model)
+                    }
+                    onVisibleToRubberBandChanged: handleRubberBand()
+                    onXChanged: handleRubberBand()
+                    onYChanged: handleRubberBand()
+                    Component.onDestruction: rubberBandLayer.removeItem(model)
                     AnchorNode {
                         visible: !nodeItem.model.free
                         anchorNode: nodeItem.model.anchorNode
@@ -111,8 +162,47 @@ Item {
                         anchors.centerIn: parent
                         width: 8
                         height: 8
+                        AnchorEditorPointerMouseArea {
+                            id: pointerMouseArea
+                            paneItem: anchorEditor
+                            sequenceViewModel: anchorEditor.anchoredCurveViewModel
+                            model: nodeItem.model
+                            topValue: anchorEditor.topValue
+                            bottomValue: anchorEditor.bottomValue
+
+                            onDraggingChanged: {
+                                if (dragging) {
+                                    cursorIndicatorBinding.enabled = true
+                                    cursorIndicatorBinding.onPositionChanged()
+                                } else {
+                                    cursorIndicatorBinding.enabled = false
+                                    anchorEditor.timeLayoutViewModel.cursorPosition = -1
+                                }
+                            }
+
+                            onDoubleClicked: (mouse) => {
+                                anchorEditor.anchoredCurveViewModel.handle.currentItem = nodeItem.model
+                            }
+                        }
+                    }
+                    Connections {
+                        id: cursorIndicatorBinding
+                        target: nodeItem.model
+                        enabled: false
+                        function onPositionChanged() {
+                            anchorEditor.timeLayoutViewModel.cursorPosition = nodeItem.model.position
+                        }
                     }
                 }
+            }
+        }
+
+        RubberBandLayer {
+            id: rubberBandLayer
+            anchors.fill: parent
+            selectionManipulator: selectionManipulator
+            z: Infinity
+            rubberBand: RubberBandRectangle {
             }
         }
     }

@@ -23,14 +23,16 @@ namespace sflow {
         handleItemUpdated(item);
     }
     void AnchoredCurveQuickItemPrivate::handleItemRemoved(QObject *item) {
+        Q_Q(AnchoredCurveQuickItem);
         if (!itemPositions.contains(item))
             return;
         curve.removeAnchor(itemPositions.value(item));
         positionItems.remove(itemPositions.value(item));
         itemPositions.remove(item);
-        curveDirtyFlag = true;
+        q->update();
     }
     void AnchoredCurveQuickItemPrivate::handleItemUpdated(QObject *item) {
+        Q_Q(AnchoredCurveQuickItem);
         if (itemPositions.contains(item)) {
             curve.removeAnchor(itemPositions.value(item));
             positionItems.remove(itemPositions.value(item));
@@ -55,7 +57,7 @@ namespace sflow {
         })(item->property("anchorType").value<ScopicFlow::AnchorType>());
         SVS::AnchoredCurve::Anchor anchor(x, y, interpolationMode);
         curve.addAnchor(anchor);
-        curveDirtyFlag = true;
+        q->update();
     }
     void AnchoredCurveQuickItemPrivate::handleItemUpdatedSlot() {
         Q_Q(AnchoredCurveQuickItem);
@@ -144,7 +146,6 @@ namespace sflow {
         d->anchoredCurveViewModel = anchoredCurveViewModel;
         d->handle = nullptr;
         d->curve = {};
-        d->curveDirtyFlag = true;
         if (anchoredCurveViewModel) {
             d->handle = anchoredCurveViewModel->property("handle").value<PointSequenceViewModelQmlHandle *>();
             connect(d->handle, &SliceableViewModelQmlHandle::itemInserted, this, [=](QObject *item) {

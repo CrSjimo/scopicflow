@@ -9,7 +9,7 @@
 #include <ScopicFlow/TimeViewModel.h>
 #include <ScopicFlow/TimeLayoutViewModel.h>
 #include <ScopicFlow/AnchorViewModel.h>
-#include <ScopicFlow/PointSequenceViewModel.h>
+#include <ScopicFlow/ParameterRangeViewModel.h>
 #include <ScopicFlow/private/PointSequenceViewModel_p.h>
 
 namespace sflow {
@@ -136,7 +136,8 @@ namespace sflow {
         Q_D(const AnchoredCurveQuickItem);
         return d->anchoredCurveViewModel;
     }
-    void AnchoredCurveQuickItem::setAnchoredCurveViewModel(PointSequenceViewModel *anchoredCurveViewModel) {
+    void AnchoredCurveQuickItem::setAnchoredCurveViewModel(
+        PointSequenceViewModel *anchoredCurveViewModel) {
         Q_D(AnchoredCurveQuickItem);
         if (d->anchoredCurveViewModel == anchoredCurveViewModel)
             return;
@@ -147,47 +148,43 @@ namespace sflow {
         d->handle = nullptr;
         d->curve = {};
         if (anchoredCurveViewModel) {
-            d->handle = anchoredCurveViewModel->property("handle").value<PointSequenceViewModelQmlHandle *>();
-            connect(d->handle, &SliceableViewModelQmlHandle::itemInserted, this, [=](QObject *item) {
-                d->handleItemInserted(item);
-                update();
-            });
-            connect(d->handle, &SliceableViewModelQmlHandle::itemAboutToRemove, this, [=](QObject *item) {
-                d->handleItemRemoved(item);
-                update();
-            });
+            d->handle = anchoredCurveViewModel->property("handle")
+                            .value<PointSequenceViewModelQmlHandle *>();
+            connect(d->handle, &SliceableViewModelQmlHandle::itemInserted, this,
+                    [=](QObject *item) {
+                        d->handleItemInserted(item);
+                        update();
+                    });
+            connect(d->handle, &SliceableViewModelQmlHandle::itemAboutToRemove, this,
+                    [=](QObject *item) {
+                        d->handleItemRemoved(item);
+                        update();
+                    });
             for (auto item : anchoredCurveViewModel->items()) {
                 d->handleItemInserted(item);
             }
         }
         emit anchoredCurveViewModelChanged();
         update();
+    }
+    ParameterRangeViewModel *AnchoredCurveQuickItem::parameterRangeViewModel() const {
+        Q_D(const AnchoredCurveQuickItem);
+        return d->parameterRangeViewModel;
+    }
+    void AnchoredCurveQuickItem::setParameterRangeViewModel(ParameterRangeViewModel *parameterRangeViewModel) {
+        Q_D(AnchoredCurveQuickItem);
+        if (d->parameterRangeViewModel == parameterRangeViewModel)
+            return;
+        if (d->parameterRangeViewModel) {
+            disconnect(d->parameterRangeViewModel, nullptr, this, nullptr);
+        }
+        d->parameterRangeViewModel = parameterRangeViewModel;
+        if (d->parameterRangeViewModel) {
+            connect(d->parameterRangeViewModel, &ParameterRangeViewModel::topValueChanged, this, &QQuickItem::update);
+            connect(d->parameterRangeViewModel, &ParameterRangeViewModel::bottomValueChanged, this, &QQuickItem::update);
+        }
+    }
 
-    }
-    int AnchoredCurveQuickItem::topValue() const {
-        Q_D(const AnchoredCurveQuickItem);
-        return d->topValue;
-    }
-    void AnchoredCurveQuickItem::setTopValue(int topValue) {
-        Q_D(AnchoredCurveQuickItem);
-        if (d->topValue == topValue)
-            return;
-        d->topValue = topValue;
-        update();
-        emit topValueChanged();
-    }
-    int AnchoredCurveQuickItem::bottomValue() const {
-        Q_D(const AnchoredCurveQuickItem);
-        return d->bottomValue;
-    }
-    void AnchoredCurveQuickItem::setBottomValue(int bottomValue) {
-        Q_D(AnchoredCurveQuickItem);
-        if (d->bottomValue == bottomValue)
-            return;
-        d->bottomValue = bottomValue;
-        update();
-        emit bottomValueChanged();
-    }
     QList<QColor> AnchoredCurveQuickItem::strokeColors() const {
         Q_D(const AnchoredCurveQuickItem);
         return d->strokeColors;
@@ -251,13 +248,15 @@ namespace sflow {
         auto ceilWidth = static_cast<int>(std::ceil(width()));
         strokeGeometry->allocate(ceilWidth * 2 - 1);
         fillGeometry->allocate(ceilWidth * 2);
-        auto mappedZeroValue = (d->topValue - 0.0) / (d->topValue - d->bottomValue) * height();
+        auto topValue = d->parameterRangeViewModel ? d->parameterRangeViewModel->topValue() : 0;
+        auto bottomValue = d->parameterRangeViewModel ? d->parameterRangeViewModel->bottomValue() : 0;
+        auto mappedZeroValue = (topValue - 0.0) / (topValue - bottomValue) * height();
         for (int i = 0; i < ceilWidth; i++) {
             auto position = d->getPaintPosition(i);
             bool hasValue;
             double prevX = -1;
             auto value = d->curve.value(position, &hasValue, &prevX);
-            auto mappedValue = (d->topValue - value) / (d->topValue - d->bottomValue) * height();
+            auto mappedValue = (topValue - value) / (topValue - bottomValue) * height();
             auto item = d->positionItems.value(static_cast<int>(prevX));
             auto color = hasValue && !d->strokeColors.isEmpty() ? d->strokeColors.at(qBound(0, item ? item->property("styleFlag").toInt() : 0, d->strokeColors.size())) : Qt::transparent;
             if (i != 0) {

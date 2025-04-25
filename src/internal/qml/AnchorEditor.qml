@@ -12,11 +12,13 @@ Item {
     property QtObject timeViewModel: null
     property QtObject timeLayoutViewModel: null
     property QtObject anchoredCurveViewModel: null
-    property int topValue: 0
-    property int bottomValue: 0
+    property QtObject parameterRangeViewModel: null
     property color nodeColor
     property color nodeBorderColor
     property color nodeSelectedColor
+
+    readonly property int topValue: parameterRangeViewModel?.topValue ?? 0
+    readonly property int bottomValue: parameterRangeViewModel?.bottomValue ?? 0
 
     clip: true
 

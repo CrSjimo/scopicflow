@@ -18,8 +18,7 @@ namespace sflow {
         TimeLayoutViewModel *timeLayoutViewModel{};
         PointSequenceViewModel *anchoredCurveViewModel{};
         PointSequenceViewModelQmlHandle *handle{};
-        int topValue{};
-        int bottomValue{};
+        ParameterRangeViewModel *parameterRangeViewModel{};
         QList<QColor> strokeColors;
         QColor fillColor;
 

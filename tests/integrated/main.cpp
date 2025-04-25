@@ -51,6 +51,7 @@
 #include <ScopicFlow/ClipPaneBehaviorViewModel.h>
 #include <ScopicFlow/BusTrackViewModel.h>
 #include <ScopicFlow/AnchorViewModel.h>
+#include <ScopicFlow/ParameterRangeViewModel.h>
 
 using namespace sflow;
 
@@ -210,6 +211,10 @@ int main(int argc, char *argv[]) {
         anchoredCurveViewModel.insertItem(anchor);
     }
 
+    ParameterRangeViewModel parameterRangeViewModel(&win);
+    parameterRangeViewModel.setTopValue(60);
+    parameterRangeViewModel.setBottomValue(-60);
+
     QQmlApplicationEngine engine;
     engine.setInitialProperties({
         {"timeViewModel", QVariant::fromValue(&timeViewModel)},
@@ -234,7 +239,8 @@ int main(int argc, char *argv[]) {
         {"busTrackListViewModel", QVariant::fromValue(&busTrackListViewModel)},
         {"busMixerLayoutViewModel", QVariant::fromValue(&busMixerLayoutViewModel)},
         {"levelTimer", QVariant::fromValue(&timer)},
-        {"anchoredCurveViewModel", QVariant::fromValue(&anchoredCurveViewModel)}
+        {"anchoredCurveViewModel", QVariant::fromValue(&anchoredCurveViewModel)},
+        {"parameterRangeViewModel", QVariant::fromValue(&parameterRangeViewModel)}
     });
     engine.load(QUrl("qrc:/qt/qml/dev/sjimo/ScopicFlow/Test/main.qml"));
 

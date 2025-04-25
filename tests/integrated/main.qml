@@ -38,6 +38,7 @@ ApplicationWindow {
     required property QtObject busMixerLayoutViewModel
     required property QtObject levelTimer
     required property QtObject anchoredCurveViewModel
+    required property QtObject parameterRangeViewModel
     readonly property double minimumPanelSize: 100
 
     component SettingsPanel: ScrollView {
@@ -445,8 +446,7 @@ ApplicationWindow {
         timeViewModel: main.timeViewModel
         timeLayoutViewModel: main.timeLayoutViewModel
         anchoredCurveViewModel: main.anchoredCurveViewModel
-        topValue: 60
-        bottomValue: -60
+        parameterRangeViewModel: main.parameterRangeViewModel
         strokeColors: [Qt.rgba(1, 1, 1, 1)]
         fillColor: Qt.rgba(1, 1, 1, 0.25)
         ScopicFlowInternal.AnchorEditor {
@@ -454,8 +454,7 @@ ApplicationWindow {
             timeViewModel: main.timeViewModel
             timeLayoutViewModel: main.timeLayoutViewModel
             anchoredCurveViewModel: main.anchoredCurveViewModel
-            topValue: parent.topValue
-            bottomValue: parent.bottomValue
+            parameterRangeViewModel: main.parameterRangeViewModel
             nodeColor: Qt.rgba(0.5, 0.5, 0.5, 1)
             nodeBorderColor: Qt.rgba(1, 1, 1, 1)
             nodeSelectedColor: Theme.accentColor

@@ -32,7 +32,7 @@ Item {
         id: fitHeightAnimation
         to: 80
         easing.type: Easing.OutCubic
-        duration: 250 * (trackListDelegate.animationViewModel?.visualEffectAnimationRatio ?? 1)
+        duration: Theme.visualEffectAnimationDuration
     }
 
     function fitHeight() {
@@ -47,7 +47,7 @@ Item {
         color: trackListDelegate.trackViewModel.selected ? SFPalette.trackListSelectedColorChange.apply(SFPalette.trackListBackgroundColor) : SFPalette.trackListBackgroundColor
         Behavior on color {
             ColorAnimation {
-                duration: 250 * (trackListDelegate.animationViewModel?.colorAnimationRatio ?? 1)
+                duration: Theme.colorAnimationDuration
                 easing.type: Easing.OutCubic
             }
         }
@@ -88,7 +88,7 @@ Item {
                 opacity: trackListDelegate.isCurrent ? 1 : 0
                 Behavior on opacity {
                     NumberAnimation {
-                        duration: 250 * (trackListDelegate.animationViewModel?.colorAnimationRatio ?? 1)
+                        duration: Theme.colorAnimationDuration
                         easing.type: Easing.OutCubic
                     }
                 }
@@ -104,7 +104,7 @@ Item {
                 color: trackListDelegate.isCurrent ? Theme.accentColor : SFPalette.suitableForegroundColor(SFPalette.trackListBackgroundColor)
                 Behavior on color {
                     ColorAnimation {
-                        duration: 250 * (trackListDelegate.animationViewModel?.colorAnimationRatio ?? 1)
+                        duration: Theme.colorAnimationDuration
                         easing.type: Easing.OutCubic
                     }
                 }
@@ -149,7 +149,7 @@ Item {
                 visible: opacity !== 0.0
                 Behavior on opacity {
                     NumberAnimation {
-                        duration: (trackListDelegate.animationViewModel?.visualEffectAnimationRatio ?? 1.0) * 250
+                        duration: Theme.visualEffectAnimationDuration
                         easing.type: Easing.OutCubic
                     }
                 }
@@ -173,7 +173,7 @@ Item {
                         opacity: enabled ? 1 : 0
                         Behavior on opacity {
                             NumberAnimation {
-                                duration: (trackListDelegate.animationViewModel?.visualEffectAnimationRatio ?? 1.0) * 250
+                                duration: Theme.visualEffectAnimationDuration
                                 easing.type: Easing.OutCubic
                             }
                         }

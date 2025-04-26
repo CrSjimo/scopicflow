@@ -32,7 +32,7 @@ Rectangle {
     border.color: Theme.borderColor
     Behavior on border.color {
         ColorAnimation {
-            duration: (labelRect.animationViewModel?.colorAnimationRatio ?? 1.0) * 250
+            duration: Theme.colorAnimationDuration
             easing.type: Easing.OutCubic
         }
     }
@@ -40,7 +40,7 @@ Rectangle {
     color: labelRect.model.selected ? SFPalette.noteSelectedColorChange.apply(labelSequenceBehaviorViewModel?.color ?? Theme.accentColor) : (labelSequenceBehaviorViewModel?.color ?? Theme.accentColor)
     Behavior on color {
         ColorAnimation {
-            duration: (labelRect.animationViewModel?.colorAnimationRatio ?? 1.0) * 250
+            duration: Theme.colorAnimationDuration
             easing.type: Easing.OutCubic
         }
     }
@@ -67,7 +67,7 @@ Rectangle {
         color: SFPalette.suitableForegroundColor(labelSequenceBehaviorViewModel?.color ?? Theme.accentColor)
         Behavior on color {
             ColorAnimation {
-                duration: (labelRect.animationViewModel?.colorAnimationRatio ?? 1.0) * 250
+                duration: Theme.colorAnimationDuration
                 easing.type: Easing.OutCubic
             }
         }

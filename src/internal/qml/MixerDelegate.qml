@@ -132,7 +132,7 @@ Item {
         color: mixerDelegate.trackViewModel.selected ? SFPalette.trackListSelectedColorChange.apply(SFPalette.trackListBackgroundColor) : SFPalette.trackListBackgroundColor
         Behavior on color {
             ColorAnimation {
-                duration: 250 * (mixerDelegate.animationViewModel?.colorAnimationRatio ?? 1)
+                duration: Theme.colorAnimationDuration
                 easing.type: Easing.OutCubic
             }
         }
@@ -330,7 +330,7 @@ Item {
                 property double _opacity: mixerDelegate.isCurrent ? 1 : 0
                 Behavior on _opacity {
                     NumberAnimation {
-                        duration: 250 * (mixerDelegate.animationViewModel?.colorAnimationRatio ?? 1)
+                        duration: Theme.colorAnimationDuration
                         easing.type: Easing.OutCubic
                     }
                 }
@@ -350,7 +350,7 @@ Item {
                     opacity: mixerDelegate.isCurrent ? 1 : 0.5
                     Behavior on color {
                         ColorAnimation {
-                            duration: 250 * (mixerDelegate.animationViewModel?.colorAnimationRatio ?? 1)
+                            duration: Theme.colorAnimationDuration
                             easing.type: Easing.OutCubic
                         }
                     }

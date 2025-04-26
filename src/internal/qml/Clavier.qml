@@ -119,7 +119,7 @@ Item {
 
                 Behavior on color {
                     ColorAnimation {
-                        duration: (clavier.animationViewModel?.colorAnimationRatio ?? 1.0) * 250
+                        duration: Theme.colorAnimationDuration
                         easing.type: Easing.OutCubic
                     }
                 }

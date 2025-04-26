@@ -201,7 +201,7 @@ Item {
                         color: noteRect.model.selected ? SFPalette.noteSelectedColorChange.apply(noteArea.noteColor) : noteArea.noteColor
                         Behavior on color {
                             ColorAnimation {
-                                duration: (noteArea.animationViewModel?.colorAnimationRatio ?? 1.0) * 250
+                                duration: Theme.colorAnimationDuration
                                 easing.type: Easing.OutCubic
                             }
                         }
@@ -217,7 +217,7 @@ Item {
                         border.color: SFPalette.noteBorderColorChange.apply(noteArea.noteColor)
                         Behavior on border.color {
                             ColorAnimation {
-                                duration: (noteArea.animationViewModel?.colorAnimationRatio ?? 1.0) * 250
+                                duration: Theme.colorAnimationDuration
                                 easing.type: Easing.OutCubic
                             }
                         }
@@ -235,7 +235,7 @@ Item {
                         color: SFPalette.suitableForegroundColor(noteArea.noteColor)
                         Behavior on color {
                             ColorAnimation {
-                                duration: (noteArea.animationViewModel?.colorAnimationRatio ?? 1.0) * 250
+                                duration: Theme.colorAnimationDuration
                                 easing.type: Easing.OutCubic
                             }
                         }

@@ -356,7 +356,7 @@ Item {
                     opacity: indicatesTarget || trackHandleMouseArea.pressed || trackHandleMouseArea.originalY !== -1
                     Behavior on opacity {
                         NumberAnimation {
-                            duration: (trackList.animationViewModel?.visualEffectAnimationRatio ?? 1.0) * 250
+                            duration: Theme.visualEffectAnimationDuration
                             easing.type: Easing.OutCubic
                         }
                     }

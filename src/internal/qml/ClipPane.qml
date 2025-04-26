@@ -189,7 +189,7 @@ Item {
                         color: clipRect.model.selected ? SFPalette.clipSelectedColorChange.apply(SFPalette.clipThumbnailColorChange.apply(clipRect.clipColor)) : SFPalette.clipThumbnailColorChange.apply(clipRect.clipColor)
                         Behavior on color {
                             ColorAnimation {
-                                duration: (clipPane.animationViewModel?.colorAnimationRatio ?? 1.0) * 250
+                                duration: Theme.colorAnimationDuration
                                 easing.type: Easing.OutCubic
                             }
                         }
@@ -204,7 +204,7 @@ Item {
                         radius: clipBackground.radius
                         Behavior on color {
                             ColorAnimation {
-                                duration: (clipPane.animationViewModel?.colorAnimationRatio ?? 1.0) * 250
+                                duration: Theme.colorAnimationDuration
                                 easing.type: Easing.OutCubic
                             }
                         }
@@ -224,7 +224,7 @@ Item {
                             color: SFPalette.suitableForegroundColor(clipRect.clipColor)
                             Behavior on color {
                                 ColorAnimation {
-                                    duration: (clipPane.animationViewModel?.colorAnimationRatio ?? 1.0) * 250
+                                    duration: Theme.colorAnimationDuration
                                     easing.type: Easing.OutCubic
                                 }
                             }
@@ -262,7 +262,7 @@ Item {
                         border.color: clipRect.clipColor
                         Behavior on border.color {
                             ColorAnimation {
-                                duration: (clipPane.animationViewModel?.colorAnimationRatio ?? 1.0) * 250
+                                duration: Theme.colorAnimationDuration
                                 easing.type: Easing.OutCubic
                             }
                         }

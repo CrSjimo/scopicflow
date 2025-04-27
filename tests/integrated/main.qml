@@ -14,6 +14,8 @@ ApplicationWindow {
     width: 1024
     height: 800
     LayoutMirroring.childrenInherit: true
+    required property QtObject interactionControllerNotifier
+    required property QtObject transactionControllerNotifier
     required property QtObject timeViewModel
     required property QtObject arrangementTimeViewModel
     required property QtObject timeLayoutViewModel
@@ -40,6 +42,29 @@ ApplicationWindow {
     required property QtObject anchoredCurveViewModel
     required property QtObject parameterRangeViewModel
     readonly property double minimumPanelSize: 100
+
+    Connections {
+        target: main.interactionControllerNotifier
+        function onItemInteracted (interactionType, model, index, containerModel, flag) {
+            console.log(`Item interacted: type=${["II_Pressed", "II_Released", "II_Canceled", "II_HoverEntered", "II_HoverExited", "II_Clicked", "II_DoubleClicked", "II_PressAndHold", "II_ContextMenu"][interactionType]}, model=${model}, index=${index}, containerModel=${containerModel}, flag=${flag}`)
+        }
+        function onSceneInteracted (interactionType, sceneModel, behaviorModel, position, value, flag) {
+            console.log(`Scene interacted: type=${["II_Pressed", "II_Released", "II_Canceled", "II_HoverEntered", "II_HoverExited", "II_Clicked", "II_DoubleClicked", "II_PressAndHold", "II_ContextMenu"][interactionType]}, sceneModel=${sceneModel}, behaviorModel=${behaviorModel}, position=${position}, value=${value}, flag=${flag}`)
+        }
+    }
+
+    Connections {
+        target: main.transactionControllerNotifier
+        function onTransactionAboutToBegin() {
+            console.log("Transaction about to begin")
+        }
+        function onTransactionCommitted() {
+            console.log("Transaction committed")
+        }
+        function onTransactionAborted() {
+            console.log("Transaction aborted")
+        }
+    }
 
     component SettingsPanel: ScrollView {
         id: settingsScrollView
@@ -213,6 +238,8 @@ ApplicationWindow {
                 trackListLayoutViewModel: main.trackListLayoutViewModel
                 scrollBehaviorViewModel: main.scrollBehaviorViewModel
                 animationViewModel: main.animationViewModel
+                interactionControllerNotifier: main.interactionControllerNotifier
+                transactionControllerNotifier: main.transactionControllerNotifier
                 trackExtraDelegate: Rectangle {
                     required property QtObject trackViewModel
                     anchors.fill: parent
@@ -245,6 +272,7 @@ ApplicationWindow {
                 playbackViewModel: main.playbackViewModel
                 scrollBehaviorViewModel: main.scrollBehaviorViewModel
                 animationViewModel: main.animationViewModel
+                interactionControllerNotifier: main.interactionControllerNotifier
             }
             LabelSequence {
                 id: arrangementLabelSequence
@@ -325,6 +353,7 @@ ApplicationWindow {
             clavierViewModel: main.clavierViewModel
             scrollBehaviorViewModel: main.scrollBehaviorViewModel
             animationViewModel: main.animationViewModel
+            interactionControllerNotifier: main.interactionControllerNotifier
             topMargin: pianoRollSplitView.y - timeline.y
             bottomMargin: pianoRoll.bottomMargin
         }
@@ -340,6 +369,7 @@ ApplicationWindow {
             playbackViewModel: main.playbackViewModel
             scrollBehaviorViewModel: main.scrollBehaviorViewModel
             animationViewModel: main.animationViewModel
+            interactionControllerNotifier: main.interactionControllerNotifier
         }
 
         LabelSequence {

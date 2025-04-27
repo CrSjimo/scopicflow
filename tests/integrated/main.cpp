@@ -32,6 +32,8 @@
 #include <SVSCraftQuick/Theme.h>
 #include <SVSCraftGui/ColorChange.h>
 
+#include <ScopicFlow/InteractionControllerNotifier.h>
+#include <ScopicFlow/TransactionControllerNotifier.h>
 #include <ScopicFlow/TimeViewModel.h>
 #include <ScopicFlow/TimeLayoutViewModel.h>
 #include <ScopicFlow/PlaybackViewModel.h>
@@ -68,6 +70,9 @@ int main(int argc, char *argv[]) {
     win.resize(1280, 800);
     auto splitter = new QSplitter;
     splitter->setOrientation(Qt::Vertical);
+
+    InteractionControllerNotifier interactionControllerNotifier(&win);
+    TransactionControllerNotifier transactionControllerNotifier(&win);
 
     TimeLayoutViewModel timeLayoutViewModel(&win);
     timeLayoutViewModel.setPositionAlignment(240);
@@ -217,6 +222,8 @@ int main(int argc, char *argv[]) {
 
     QQmlApplicationEngine engine;
     engine.setInitialProperties({
+        {"interactionControllerNotifier", QVariant::fromValue(&interactionControllerNotifier)},
+        {"transactionControllerNotifier", QVariant::fromValue(&transactionControllerNotifier)},
         {"timeViewModel", QVariant::fromValue(&timeViewModel)},
         {"arrangementTimeViewModel", QVariant::fromValue(&arrangementTimeViewModel)},
         {"timeLayoutViewModel", QVariant::fromValue(&timeLayoutViewModel)},

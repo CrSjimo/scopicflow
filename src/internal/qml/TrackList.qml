@@ -14,12 +14,9 @@ Item {
     property QtObject trackListLayoutViewModel: null
     property QtObject scrollBehaviorViewModel: null
     property QtObject animationViewModel: null
+    property QtObject interactionControllerNotifier: null
+    property QtObject transactionControllerNotifier: null
     property Component trackExtraDelegate: null
-
-    signal trackDoubleClicked(index: int)
-    signal contextMenuRequestedForTrack(index: int)
-    signal contextMenuRequestedForTrackDragging(index: int, target: int)
-    
     function moveTrack(index, target) {
         if (!trackListViewModel)
             return
@@ -32,6 +29,7 @@ Item {
                 handle.rotateItems(target, index + 1 - target, index)
             }
         } else {
+            trackList.transactionControllerNotifier?.transactionAboutToBegin()
             handle.intermediate = true
             let continuousSelectionStart = -1
             let nextTarget = target
@@ -67,6 +65,7 @@ Item {
                     handle.rotateItems(i + 1, nextTarget - i - 1, continuousSelectionStart + 1)
             }
             handle.intermediate = false
+            trackList.transactionControllerNotifier?.transactionCommitted()
         }
         for (let i = 0; i < handle.count; i++) {
             if (handle.itemAt(i) === currentItem) {
@@ -131,6 +130,7 @@ Item {
             anchors.fill: parent
             acceptedButtons: Qt.LeftButton | Qt.RightButton
             cursorShape: undefined
+            hoverEnabled: true
             property bool dragged: false
             property point pressedPoint: Qt.point(0, 0)
 
@@ -145,6 +145,7 @@ Item {
             function handlePositionChanged(x, y, modifiers) {
                 if (!rubberBandLayer.started) {
                     selectionManipulator.select(null, Qt.RightButton, modifiers)
+                    trackList.transactionControllerNotifier?.transactionAboutToBegin()
                     rubberBandLayer.startSelection(Qt.point(x, y))
                 } else {
                     rubberBandLayer.updateSelection(Qt.point(x, y))
@@ -152,11 +153,63 @@ Item {
 
             }
 
+            function sendInteractionNotification(interactionType) {
+                if (!handleBeforeInteractionNotification(interactionType))
+                    return false
+                emitInteractionNotificationSignal(interactionType)
+                return true
+            }
+            function handleBeforeInteractionNotification(interactionType) {
+                if (trackList.interactionControllerNotifier?.handleSceneInteraction(interactionType, trackList.trackListViewModel, trackList.trackListLayoutViewModel, -1, 0))
+                    return false
+                return true
+            }
+            function emitInteractionNotificationSignal(interactionType) {
+                trackList.interactionControllerNotifier?.sceneInteracted(interactionType, trackList.trackListViewModel, trackList.trackListLayoutViewModel, -1, 0)
+            }
+
             onPressed: (mouse) => {
                 dragged = false
                 pressedPoint = Qt.point(mouse.x, mouse.y)
+                if (!sendInteractionNotification(ScopicFlow.II_Pressed))
+                    mouse.accepted = false
             }
+            onReleased: () => {
+                if (rubberBandLayer.started) {
+                    rubberBandLayer.endSelection()
+                    trackList.transactionControllerNotifier?.transactionCommitted()
+                }
+                dragScroller.running = false
+                sendInteractionNotification(ScopicFlow.II_Released)
+            }
+            onCanceled: () => {
+                if (rubberBandLayer.started) {
+                    rubberBandLayer.endSelection()
+                    trackList.transactionControllerNotifier?.transactionAborted()
+                }
+                dragScroller.running = false
+                sendInteractionNotification(ScopicFlow.II_Canceled)
+            }
+            onEntered: sendInteractionNotification(ScopicFlow.II_HoverEntered)
+            onExited: sendInteractionNotification(ScopicFlow.II_HoverExited)
+            onClicked: (mouse) => {
+                if (mouse.button === Qt.LeftButton && !dragged) {
+                    if (!handleBeforeInteractionNotification(ScopicFlow.II_Clicked))
+                        return
+                    selectionManipulator.select(null, mouse.button, mouse.modifiers)
+                    emitInteractionNotificationSignal(ScopicFlow.II_Clicked)
+                } else if (mouse.button === Qt.RightButton) {
+                    if (!handleBeforeInteractionNotification(ScopicFlow.II_ContextMenu))
+                        return
+                    selectionManipulator.select(null, mouse.button, mouse.modifiers)
+                    emitInteractionNotificationSignal(ScopicFlow.II_ContextMenu)
+                }
+            }
+            onDoubleClicked: sendInteractionNotification(ScopicFlow.II_DoubleClicked)
+            onPressAndHold: sendInteractionNotification(ScopicFlow.II_PressAndHold)
             onPositionChanged: (mouse) => {
+                if (!pressed)
+                    return
                 dragged = true
                 let viewportPoint = mapToItem(trackList, mouse.x, mouse.y)
                 dragScroller.viewportPoint = viewportPoint
@@ -166,24 +219,6 @@ Item {
                         handlePositionChanged(mouse.x, mouse.y, mouse.modifiers)
                 })
             }
-            onReleased: canceled()
-            onCanceled: {
-                rubberBandLayer.endSelection()
-                dragScroller.running = false
-            }
-
-            onClicked: function (mouse) {
-                if (dragged)
-                    return
-                selectionManipulator.select(null, mouse.button, mouse.modifiers)
-                if (mouse.button & Qt.RightButton) {
-                    trackList.contextMenuRequestedForTrack(-1)
-                }
-            }
-            onDoubleClicked: {
-                trackList.trackDoubleClicked(-1)
-            }
-            // TODO right button rubber band
         }
 
         Item {
@@ -223,6 +258,7 @@ Item {
                     readonly property bool isTrackListDelegate: true
                     required property int index
                     trackViewModel: trackList.trackListViewModel.handle.items[index]
+                    trackListViewModel: trackList.trackListViewModel
                     trackExtraDelegate: trackList.trackExtraDelegate
                     anchors.left: parent.left
                     anchors.right: parent.right
@@ -232,18 +268,20 @@ Item {
                     isCurrent: trackList.trackListViewModel?.handle.currentIndex === index
 
                     animationViewModel: trackList.animationViewModel
+                    interactionControllerNotifier: trackList.interactionControllerNotifier
+                    transactionControllerNotifier: trackList.transactionControllerNotifier
 
                     height: trackViewModel.rowHeight
                     y: trackListLocator.map[index] ?? 0
-                    onHeightChanged: {
+                    onHeightChanged: () => { // FIXME 改成类似 Slider 那样的绑定关系
                         trackViewModel.rowHeight = height
                         height = Qt.binding(function () { return this.trackViewModel.rowHeight })
                         rubberBandLayer.insertItem(index, Qt.rect(0, y, 1 << 20, height))
                     }
-                    onYChanged: {
+                    onYChanged: () => {
                         rubberBandLayer.insertItem(index, Qt.rect(0, y, 1 << 20, height))
                     }
-                    Component.onDestruction: {
+                    Component.onDestruction: () => {
                         rubberBandLayer.removeItem(index)
                     }
                     mouseArea: MouseArea {
@@ -252,6 +290,7 @@ Item {
                         acceptedButtons: Qt.LeftButton | Qt.RightButton
                         cursorShape: undefined
                         focusPolicy: Qt.StrongFocus
+                        hoverEnabled: true
                         property bool dragged: false
                         property int lastIndicatorIndex: -1
 
@@ -262,6 +301,20 @@ Item {
                                 let point = trackMouseArea.mapFromItem(trackList, x, y)
                                 trackMouseArea.handlePositionChanged(point.x, point.y, modifiers)
                             }
+                        }
+                        function sendInteractionNotification(interactionType) {
+                            if (!handleBeforeInteractionNotification(interactionType))
+                                return false
+                            emitInteractionNotificationSignal(interactionType)
+                            return true
+                        }
+                        function handleBeforeInteractionNotification(interactionType) {
+                            if (trackList.interactionControllerNotifier?.handleItemInteraction(interactionType, trackListDelegate.trackViewModel, trackListDelegate.index, trackList.trackListViewModel, ScopicFlow.InteractionOnTrackItem))
+                                return false
+                            return true
+                        }
+                        function emitInteractionNotificationSignal(interactionType) {
+                            trackList.interactionControllerNotifier?.itemInteracted(interactionType, trackListDelegate.trackViewModel, trackListDelegate.index, trackList.trackListViewModel, ScopicFlow.InteractionOnTrackItem)
                         }
 
                         onPressedChanged: trackLayout.dragging = pressed
@@ -280,10 +333,57 @@ Item {
                             lastIndicatorIndex = index
                         }
 
-                        onPressed: function (mouse) {
+                        onPressed: (mouse) => {
                             dragged = false
+                            if (!sendInteractionNotification(ScopicFlow.II_Pressed))
+                                mouse.accepted = false
                         }
-                        onPositionChanged: function (mouse) {
+                        onReleased: (mouse) => {
+                            cursorShape = undefined
+                            dragScroller.running = false
+                            if (!handleBeforeInteractionNotification(ScopicFlow.II_Released))
+                                return
+                            if (lastIndicatorIndex !== -1) {
+                                if (mouse.button === Qt.LeftButton) {
+                                    trackList.moveTrack(trackListDelegate.index, lastIndicatorIndex)
+                                }
+                                let handle = trackHandlesRepeater.itemAt(lastIndicatorIndex)
+                                handle.indicatesTarget = false
+                            }
+                            lastIndicatorIndex = -1
+                            emitInteractionNotificationSignal(ScopicFlow.II_Released)
+                        }
+                        onCanceled: () => {
+                            cursorShape = undefined
+                            dragScroller.running = false
+                            rubberBandLayer.endSelection()
+                            if (lastIndicatorIndex !== -1) {
+                                let handle = trackHandlesRepeater.itemAt(lastIndicatorIndex)
+                                handle.indicatesTarget = false
+                            }
+                            lastIndicatorIndex = -1
+                            sendInteractionNotification(ScopicFlow.II_Canceled)
+                        }
+                        onEntered: sendInteractionNotification(ScopicFlow.II_HoverEntered)
+                        onExited: sendInteractionNotification(ScopicFlow.II_HoverExited)
+                        onClicked: (mouse) => {
+                            if (mouse.button === Qt.LeftButton && !dragged) {
+                                if (!handleBeforeInteractionNotification(ScopicFlow.II_Clicked))
+                                    return
+                                selectionManipulator.select(trackListDelegate.index, mouse.button, mouse.modifiers)
+                                emitInteractionNotificationSignal(ScopicFlow.II_Clicked)
+                            } else if (mouse.button === Qt.RightButton) {
+                                if (!handleBeforeInteractionNotification(ScopicFlow.II_ContextMenu))
+                                    return
+                                selectionManipulator.select(trackListDelegate.index, mouse.button, mouse.modifiers)
+                                emitInteractionNotificationSignal(ScopicFlow.II_ContextMenu)
+                            }
+                        }
+                        onDoubleClicked: sendInteractionNotification(ScopicFlow.II_DoubleClicked)
+                        onPressAndHold: sendInteractionNotification(ScopicFlow.II_PressAndHold)
+                        onPositionChanged: (mouse) => {
+                            if (!pressed)
+                                return
                             dragged = true
                             selectionManipulator.select(trackListDelegate.index, Qt.RightButton, mouse.modifiers)
                             let viewportPoint = mapToItem(trackList, mouse.x, mouse.y)
@@ -293,46 +393,6 @@ Item {
                                 if (!triggered)
                                     handlePositionChanged(mouse.x, mouse.y, mouse.modifiers)
                             })
-                        }
-                        onReleased: function (mouse) {
-                            cursorShape = undefined
-                            dragScroller.running = false
-                            if (lastIndicatorIndex !== -1) {
-                                if (mouse.button === Qt.LeftButton) {
-                                    trackList.moveTrack(trackListDelegate.index, lastIndicatorIndex)
-                                } else {
-                                    trackList.contextMenuRequestedForTrackDragging(trackListDelegate.index, lastIndicatorIndex)
-                                }
-                                let handle = trackHandlesRepeater.itemAt(lastIndicatorIndex)
-                                handle.indicatesTarget = false
-                            } else {
-                                if (dragged && (mouse.button & Qt.RightButton)) {
-                                    trackList.contextMenuRequestedForTrack(trackListDelegate.index)
-                                }
-                            }
-                            lastIndicatorIndex = -1
-                        }
-                        onCanceled: {
-                            cursorShape = undefined
-                            dragScroller.running = false
-                            rubberBandLayer.endSelection()
-                            if (lastIndicatorIndex !== -1) {
-                                let handle = trackHandlesRepeater.itemAt(lastIndicatorIndex)
-                                handle.indicatesTarget = false
-                            }
-                            lastIndicatorIndex = -1
-                        }
-                        onClicked: function (mouse) {
-                            if (dragged)
-                                return
-                            selectionManipulator.select(trackListDelegate.index, mouse.button, mouse.modifiers)
-                            if (mouse.button & Qt.RightButton) {
-                                trackList.contextMenuRequestedForTrack(trackListDelegate.index ?? -1)
-                            }
-                        }
-
-                        onDoubleClicked: function (mouse) {
-                            trackList.trackDoubleClicked(trackListDelegate.index ?? -1)
                         }
                     }
                 }
@@ -386,10 +446,54 @@ Item {
                             trackHandle.trackViewModel.rowHeight = newHeight
                         }
 
-                        onPressed: function (mouse) {
-                            originalY = mouse.y
+                        function sendInteractionNotification(interactionType) {
+                            if (!handleBeforeInteractionNotification(interactionType))
+                                return false
+                            emitInteractionNotificationSignal(interactionType)
+                            return true
                         }
-                        onPositionChanged: function (mouse) {
+                        function handleBeforeInteractionNotification(interactionType) {
+                            if (trackHandle.index === 0)
+                                return false
+                            if (trackList.interactionControllerNotifier?.handleItemInteraction(interactionType, trackHandle.trackViewModel, trackHandle.index - 1, trackList.trackListViewModel, ScopicFlow.InteractionOnTrackHandle))
+                                return false
+                            return true
+                        }
+                        function emitInteractionNotificationSignal(interactionType) {
+                            trackList.interactionControllerNotifier?.itemInteracted(interactionType, trackHandle.trackViewModel, trackHandle.index - 1, trackList.trackListViewModel, ScopicFlow.InteractionOnTrackHandle)
+                        }
+
+                        onPressed: (mouse) => {
+                            originalY = mouse.y
+                            if (!sendInteractionNotification(ScopicFlow.II_Pressed)) {
+                                mouse.accepted = false
+                            }
+                            trackList.transactionControllerNotifier?.transactionAboutToBegin()
+                        }
+                        onReleased: () => {
+                            dragScroller.running = false
+                            originalY = -1
+                            trackList.transactionControllerNotifier?.transactionCommitted()
+                            sendInteractionNotification(ScopicFlow.II_Released)
+                        }
+                        onCanceled: () => {
+                            dragScroller.running = false
+                            originalY = -1
+                            trackList.transactionControllerNotifier?.transactionAborted()
+                            sendInteractionNotification(ScopicFlow.II_Canceled)
+                        }
+                        onEntered: sendInteractionNotification(ScopicFlow.II_HoverEntered)
+                        onExited: sendInteractionNotification(ScopicFlow.II_HoverExited)
+                        onClicked: sendInteractionNotification(ScopicFlow.II_Clicked)
+                        onDoubleClicked: () => {
+                            if (!handleBeforeInteractionNotification(ScopicFlow.II_DoubleClieked))
+                                return
+                            let delegate = trackLayoutRepeater.itemAt(trackHandle.index - 1)
+                            delegate.fitHeight()
+                            emitInteractionNotificationSignal(ScopicFlow.II_DoubleClicked)
+                        }
+                        onPressAndHold: sendInteractionNotification(ScopicFlow.II_PressAndHold)
+                        onPositionChanged: (mouse) => {
                             if (originalY === -1)
                                 return
                             let viewportPoint = mapToItem(trackList, mouse.x, mouse.y)
@@ -399,15 +503,6 @@ Item {
                                 if (!triggered)
                                     handlePositionChanged(mouse.x, mouse.y, mouse.modifiers)
                             })
-                        }
-                        onReleased: canceled()
-                        onDoubleClicked: {
-                            let delegate = trackLayoutRepeater.itemAt(trackHandle.index - 1)
-                            delegate.fitHeight()
-                        }
-                        onCanceled: {
-                            dragScroller.running = false
-                            originalY = -1
                         }
                     }
                 }
@@ -427,7 +522,7 @@ Item {
         anchors.fill: parent
         viewModel: trackList.scrollBehaviorViewModel
         direction: Qt.Vertical
-        onMoved: function (_, deltaY) {
+        onMoved: (_, deltaY) => {
             trackListManipulator.moveViewBy(deltaY)
         }
     }
@@ -437,7 +532,7 @@ Item {
         viewModel: trackList.scrollBehaviorViewModel
         movableOrientation: Qt.Vertical
         zoomableOrientation: 0
-        onMoved: function (_, deltaY, isPhysicalWheel) {
+        onMoved: (_, deltaY, isPhysicalWheel) => {
             trackListManipulator.moveViewBy(deltaY, isPhysicalWheel)
         }
     }

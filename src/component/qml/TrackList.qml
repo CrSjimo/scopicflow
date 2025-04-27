@@ -10,15 +10,13 @@ Pane {
     property QtObject trackListLayoutViewModel: null
     property QtObject scrollBehaviorViewModel: null
     property QtObject animationViewModel: null
+    property QtObject interactionControllerNotifier: null
+    property QtObject transactionControllerNotifier: null
     
     property Component trackExtraDelegate: null
 
     padding: 0
     focusPolicy: Qt.StrongFocus
-
-    signal trackDoubleClicked(index: int)
-    signal contextMenuRequestedForTrack(index: int)
-    signal contextMenuRequestedForTrackDragging(index: int, target: int)
 
     ScopicFlowInternal.TrackList {
         anchors.fill: parent
@@ -26,11 +24,9 @@ Pane {
         trackListLayoutViewModel: control.trackListLayoutViewModel
         scrollBehaviorViewModel: control.scrollBehaviorViewModel
         animationViewModel: control.animationViewModel
-                trackExtraDelegate: control.trackExtraDelegate
-
-        onTrackDoubleClicked: index => control.trackDoubleClicked(index)
-        onContextMenuRequestedForTrack: index => control.contextMenuRequestedForTrack(index)
-        onContextMenuRequestedForTrackDragging: (index, target) => control.contextMenuRequestedForTrackDragging(index, target)
+        interactionControllerNotifier: control.interactionControllerNotifier
+        transactionControllerNotifier: control.transactionControllerNotifier
+        trackExtraDelegate: control.trackExtraDelegate
 
     }
 }

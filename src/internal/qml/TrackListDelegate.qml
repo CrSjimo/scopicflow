@@ -15,7 +15,7 @@ Item {
     required property int trackNumber
     required property QtObject trackViewModel
 
-    onTrackViewModelChanged: {
+    onTrackViewModelChanged: () => {
         dummyModel.clear()
         if (trackListDelegate.trackViewModel)
             dummyModel.append({trackViewModel: trackListDelegate.trackViewModel})
@@ -24,7 +24,10 @@ Item {
     property bool isCurrent: false
     property bool isLast: false
 
+    property QtObject trackListViewModel: null
     property QtObject animationViewModel: null
+    property QtObject interactionControllerNotifier: null
+    property QtObject transactionControllerNotifier: null
     property Component mouseArea: null
     property Component trackExtraDelegate: null
 
@@ -37,6 +40,21 @@ Item {
 
     function fitHeight() {
         fitHeightAnimation.start()
+    }
+
+    function sendInteractionNotification(interactionType, flags = 0) {
+        if (!handleBeforeInteractionNotification(interactionType, flags))
+            return false
+        emitInteractionNotificationSignal(interactionType, flags)
+        return true
+    }
+    function handleBeforeInteractionNotification(interactionType, flags = 0) {
+        if (trackListDelegate.interactionControllerNotifier?.handleItemInteraction(interactionType, trackListDelegate.trackViewModel, trackListDelegate.index, trackListDelegate.trackListViewModel, flags))
+            return false
+        return true
+    }
+    function emitInteractionNotificationSignal(interactionType, flags = 0) {
+        trackList.interactionControllerNotifier?.itemInteracted(interactionType, trackListDelegate.trackViewModel, trackListDelegate.index, trackListDelegate.trackListViewModel, flags)
     }
 
     Rectangle {
@@ -63,16 +81,6 @@ Item {
             LayoutMirroring.enabled: false
             LayoutMirroring.childrenInherit: true
             width: 48
-
-            Rectangle {
-                id: colorIndicator
-                anchors.left: parent.left
-                anchors.top: parent.top
-                anchors.bottom: parent.bottom
-                anchors.margins: 1
-                width: 8
-                color: trackListDelegate.trackViewModel.color
-            }
 
             Rectangle {
                 id: selectionIndicator
@@ -116,6 +124,27 @@ Item {
             anchors.fill: parent
         }
 
+        Button {
+            id: colorIndicator
+            anchors.top: parent.top
+            anchors.bottom: parent.bottom
+            anchors.left: parent.left
+            LayoutMirroring.enabled: false
+            width: 8
+
+            background: Rectangle {
+                color: trackListDelegate.trackViewModel.color
+            }
+
+            onPressed: trackListDelegate.sendInteractionNotification(ScopicFlow.II_Pressed, ScopicFlow.InteractionOnColorIndicator)
+            onReleased: trackListDelegate.sendInteractionNotification(ScopicFlow.II_Released, ScopicFlow.InteractionOnColorIndicator)
+            onCanceled: trackListDelegate.sendInteractionNotification(ScopicFlow.II_Canceled, ScopicFlow.InteractionOnColorIndicator)
+            onHoveredChanged: trackListDelegate.sendInteractionNotification(hovered ? ScopicFlow.II_HoverEntered : ScopicFlow.II_HoverExited, ScopicFlow.InteractionOnColorIndicator)
+            onClicked: trackListDelegate.sendInteractionNotification(ScopicFlow.II_Clicked, ScopicFlow.InteractionOnColorIndicator)
+            onDoubleClicked: trackListDelegate.sendInteractionNotification(ScopicFlow.II_DoubleClicked, ScopicFlow.InteractionOnColorIndicator)
+            onPressAndHold: trackListDelegate.sendInteractionNotification(ScopicFlow.II_PressAndHold, ScopicFlow.InteractionOnColorIndicator)
+        }
+
         Item {
             anchors.top: parent.top
             anchors.topMargin: 8
@@ -128,14 +157,43 @@ Item {
                 TrackMSR {
                     id: controlsFirstRow
                     trackViewModel: trackListDelegate.trackViewModel
+
+                    muteButton.onPressed: trackListDelegate.sendInteractionNotification(ScopicFlow.II_Pressed, ScopicFlow.InteractionOnMute)
+                    muteButton.onReleased: trackListDelegate.sendInteractionNotification(ScopicFlow.II_Released, ScopicFlow.InteractionOnMute)
+                    muteButton.onCanceled: trackListDelegate.sendInteractionNotification(ScopicFlow.II_Canceled, ScopicFlow.InteractionOnMute)
+                    muteButton.onHoveredChanged: trackListDelegate.sendInteractionNotification(hovered ? ScopicFlow.II_HoverEntered : ScopicFlow.II_HoverExited, ScopicFlow.InteractionOnMute)
+                    muteButton.onClicked: trackListDelegate.sendInteractionNotification(ScopicFlow.II_Clicked, ScopicFlow.InteractionOnMute)
+                    muteButton.onDoubleClicked: trackListDelegate.sendInteractionNotification(ScopicFlow.II_DoubleClicked, ScopicFlow.InteractionOnMute)
+                    muteButton.onPressAndHold: trackListDelegate.sendInteractionNotification(ScopicFlow.II_PressAndHold, ScopicFlow.InteractionOnMute)
+
+                    soloButton.onPressed: trackListDelegate.sendInteractionNotification(ScopicFlow.II_Pressed, ScopicFlow.InteractionOnSolo)
+                    soloButton.onReleased: trackListDelegate.sendInteractionNotification(ScopicFlow.II_Released, ScopicFlow.InteractionOnSolo)
+                    soloButton.onCanceled: trackListDelegate.sendInteractionNotification(ScopicFlow.II_Canceled, ScopicFlow.InteractionOnSolo)
+                    soloButton.onHoveredChanged: trackListDelegate.sendInteractionNotification(hovered ? ScopicFlow.II_HoverEntered : ScopicFlow.II_HoverExited, ScopicFlow.InteractionOnSolo)
+                    soloButton.onClicked: trackListDelegate.sendInteractionNotification(ScopicFlow.II_Clicked, ScopicFlow.InteractionOnSolo)
+                    soloButton.onDoubleClicked: trackListDelegate.sendInteractionNotification(ScopicFlow.II_DoubleClicked, ScopicFlow.InteractionOnSolo)
+                    soloButton.onPressAndHold: trackListDelegate.sendInteractionNotification(ScopicFlow.II_PressAndHold, ScopicFlow.InteractionOnSolo)
+
+                    recordButton.onPressed: trackListDelegate.sendInteractionNotification(ScopicFlow.II_Pressed, ScopicFlow.InteractionOnRecord)
+                    recordButton.onReleased: trackListDelegate.sendInteractionNotification(ScopicFlow.II_Released, ScopicFlow.InteractionOnRecord)
+                    recordButton.onCanceled: trackListDelegate.sendInteractionNotification(ScopicFlow.II_Canceled, ScopicFlow.InteractionOnRecord)
+                    recordButton.onHoveredChanged: trackListDelegate.sendInteractionNotification(hovered ? ScopicFlow.II_HoverEntered : ScopicFlow.II_HoverExited, ScopicFlow.InteractionOnRecord)
+                    recordButton.onClicked: trackListDelegate.sendInteractionNotification(ScopicFlow.II_Clicked, ScopicFlow.InteractionOnRecord)
+                    recordButton.onDoubleClicked: trackListDelegate.sendInteractionNotification(ScopicFlow.II_DoubleClicked, ScopicFlow.InteractionOnRecord)
+                    recordButton.onPressAndHold: trackListDelegate.sendInteractionNotification(ScopicFlow.II_PressAndHold, ScopicFlow.InteractionOnRecord)
                 }
                 TrackListEditLabel {
                     anchors.top: controlsFirstRow.top
                     anchors.bottom: controlsFirstRow.bottom
                     text: trackListDelegate.trackViewModel.name
-                    onEditingFinished: function (text) {
-                        trackListDelegate.trackViewModel.name = text
-                    }
+                    onEditingFinished: (text) => trackListDelegate.trackViewModel.name = text
+                    onPressed: trackListDelegate.sendInteractionNotification(ScopicFlow.II_Pressed, ScopicFlow.InteractionOnTrackName)
+                    onReleased: trackListDelegate.sendInteractionNotification(ScopicFlow.II_Released, ScopicFlow.InteractionOnTrackName)
+                    onCanceled: trackListDelegate.sendInteractionNotification(ScopicFlow.II_Canceled, ScopicFlow.InteractionOnTrackName)
+                    onHoveredChanged: trackListDelegate.sendInteractionNotification(hovered ? ScopicFlow.II_HoverEntered : ScopicFlow.II_HoverExited, ScopicFlow.InteractionOnTrackName)
+                    onClicked: trackListDelegate.sendInteractionNotification(ScopicFlow.II_Clicked, ScopicFlow.InteractionOnTrackName)
+                    onDoubleClicked: trackListDelegate.sendInteractionNotification(ScopicFlow.II_DoubleClicked, ScopicFlow.InteractionOnTrackName)
+                    onPressAndHold: trackListDelegate.sendInteractionNotification(ScopicFlow.II_PressAndHold, ScopicFlow.InteractionOnTrackName)
                 }
 
             }
@@ -154,8 +212,15 @@ Item {
                     }
                 }
                 readonly property bool intermediate: gainSlider.pressed || panDial.pressed
-                onIntermediateChanged: {
-                    trackListDelegate.trackViewModel.intermediate = intermediate
+                onIntermediateChanged: () => {
+                    if (intermediate) {
+                        trackListDelegate.transactionControllerNotifier?.transactionAboutToBegin()
+                        trackListDelegate.trackViewModel.intermediate = true
+                    } else {
+                        trackListDelegate.trackViewModel.intermediate = false
+                        trackListDelegate.transactionControllerNotifier?.transactionCommitted()
+                    }
+
                 }
                 Row {
                     spacing: 4
@@ -180,11 +245,9 @@ Item {
                         from: SVS.decibelToLinearValue(-96) - SVS.decibelToLinearValue(0)
                         to: SVS.decibelToLinearValue(6) - SVS.decibelToLinearValue(0)
                         value: SVS.decibelToLinearValue(trackListDelegate.trackViewModel.gain)
-                        onValueChanged: {
-                            let v = SVS.linearValueToDecibel(value + SVS.decibelToLinearValue(0))
-                            if (Math.abs(trackListDelegate.trackViewModel.gain - v) > Number.EPSILON * 1000)
-                                trackListDelegate.trackViewModel.gain = v
-                        }
+                        onMoved: trackListDelegate.trackViewModel.gain = SVS.linearValueToDecibel(value + SVS.decibelToLinearValue(0))
+                        onPressedChanged: trackListDelegate.sendInteractionNotification(pressed ? ScopicFlow.II_Pressed : ScopicFlow.II_Released, ScopicFlow.InteractionOnGainSlider)
+                        onHoveredChanged: trackListDelegate.sendInteractionNotification(hovered ? ScopicFlow.II_HoverEntered : ScopicFlow.II_HoverExited, ScopicFlow.InteractionOnGainSlider)
                     }
                     TrackListEditLabel {
                         anchors.top: parent.top
@@ -197,9 +260,14 @@ Item {
                             top: 6
                             decimals: 1
                         }
-                        onEditingFinished: function (text) {
-                            trackListDelegate.trackViewModel.gain = Number.fromLocaleString(Qt.locale(), text)
-                        }
+                        onEditingFinished: (text) => trackListDelegate.trackViewModel.gain = Number.fromLocaleString(Qt.locale(), text)
+                        onPressed: trackListDelegate.sendInteractionNotification(ScopicFlow.II_Pressed, ScopicFlow.InteractionOnGainSpinBox)
+                        onReleased: trackListDelegate.sendInteractionNotification(ScopicFlow.II_Released, ScopicFlow.InteractionOnGainSpinBox)
+                        onCanceled: trackListDelegate.sendInteractionNotification(ScopicFlow.II_Canceled, ScopicFlow.InteractionOnGainSpinBox)
+                        onHoveredChanged: trackListDelegate.sendInteractionNotification(hovered ? ScopicFlow.II_HoverEntered : ScopicFlow.II_HoverExited, ScopicFlow.InteractionOnGainSpinBox)
+                        onClicked: trackListDelegate.sendInteractionNotification(ScopicFlow.II_Clicked, ScopicFlow.InteractionOnGainSpinBox)
+                        onDoubleClicked: trackListDelegate.sendInteractionNotification(ScopicFlow.II_DoubleClicked, ScopicFlow.InteractionOnGainSpinBox)
+                        onPressAndHold: trackListDelegate.sendInteractionNotification(ScopicFlow.II_PressAndHold, ScopicFlow.InteractionOnGainSpinBox)
                     }
                 }
                 Row {
@@ -218,9 +286,9 @@ Item {
                         from: -1.0
                         to: 1.0
                         value: trackListDelegate.trackViewModel.pan
-                        onValueChanged: {
-                            trackListDelegate.trackViewModel.pan = value
-                        }
+                        onMoved: trackListDelegate.trackViewModel.pan = value
+                        onPressedChanged: trackListDelegate.sendInteractionNotification(pressed ? ScopicFlow.II_Pressed : ScopicFlow.II_Released, ScopicFlow.InteractionOnPanDial)
+                        onHoveredChanged: trackListDelegate.sendInteractionNotification(hovered ? ScopicFlow.II_HoverEntered : ScopicFlow.II_HoverExited, ScopicFlow.InteractionOnPanDial)
                     }
                     TrackListEditLabel {
                         anchors.top: parent.top
@@ -231,9 +299,14 @@ Item {
                             bottom: -100
                             top: 100
                         }
-                        onEditingFinished: function (text) {
-                            trackListDelegate.trackViewModel.pan = Number.fromLocaleString(Qt.locale(), text) * 0.01
-                        }
+                        onEditingFinished: (text) => trackListDelegate.trackViewModel.pan = Number.fromLocaleString(Qt.locale(), text) * 0.01
+                        onPressed: trackListDelegate.sendInteractionNotification(ScopicFlow.II_Pressed, ScopicFlow.InteractionOnPanSpinBox)
+                        onReleased: trackListDelegate.sendInteractionNotification(ScopicFlow.II_Released, ScopicFlow.InteractionOnPanSpinBox)
+                        onCanceled: trackListDelegate.sendInteractionNotification(ScopicFlow.II_Canceled, ScopicFlow.InteractionOnPanSpinBox)
+                        onHoveredChanged: trackListDelegate.sendInteractionNotification(hovered ? ScopicFlow.II_HoverEntered : ScopicFlow.II_HoverExited, ScopicFlow.InteractionOnPanSpinBox)
+                        onClicked: trackListDelegate.sendInteractionNotification(ScopicFlow.II_Clicked, ScopicFlow.InteractionOnPanSpinBox)
+                        onDoubleClicked: trackListDelegate.sendInteractionNotification(ScopicFlow.II_DoubleClicked, ScopicFlow.InteractionOnPanSpinBox)
+                        onPressAndHold: trackListDelegate.sendInteractionNotification(ScopicFlow.II_PressAndHold, ScopicFlow.InteractionOnPanSpinBox)
                     }
                 }
             }
@@ -281,16 +354,23 @@ Item {
             }
             MouseArea {
                 anchors.fill: parent
-                onClicked: {
+                onPressed: trackListDelegate.sendInteractionNotification(ScopicFlow.II_Pressed, ScopicFlow.InteractionOnLevelMeter)
+                onReleased: trackListDelegate.sendInteractionNotification(ScopicFlow.II_Released, ScopicFlow.InteractionOnLevelMeter)
+                onCanceled: trackListDelegate.sendInteractionNotification(ScopicFlow.II_Canceled, ScopicFlow.InteractionOnLevelMeter)
+                onHoveredChanged: trackListDelegate.sendInteractionNotification(hovered ? ScopicFlow.II_HoverEntered : ScopicFlow.II_HoverExited, ScopicFlow.InteractionOnLevelMeter)
+                onClicked: () => {
                     leftChannelLevelMeter.clipping = false
                     rightChannelLevelMeter.clipping = false
+                    trackListDelegate.sendInteractionNotification(ScopicFlow.II_Clicked, ScopicFlow.InteractionOnLevelMeter)
                 }
+                onDoubleClicked: trackListDelegate.sendInteractionNotification(ScopicFlow.II_DoubleClicked, ScopicFlow.InteractionOnLevelMeter)
+                onPressAndHold: trackListDelegate.sendInteractionNotification(ScopicFlow.II_PressAndHold, ScopicFlow.InteractionOnLevelMeter)
             }
         }
 
     }
 
-    onHeightChanged: {
+    onHeightChanged: () => {
         if (height < 80) {
             controlsSecondRow.opacity = 0
         } else {

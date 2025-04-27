@@ -11,6 +11,7 @@ Pane {
     property QtObject playbackViewModel: null
     property QtObject scrollBehaviorViewModel: null
     property QtObject animationViewModel: null
+    property QtObject interactionControllerNotifier: null
 
     padding: 0
     focusPolicy: Qt.StrongFocus
@@ -21,9 +22,6 @@ Pane {
     function mapToX(tick) {
         return timeline.mapToX(tick)
     }
-    signal positionIndicatorDoubleClicked()
-    signal contextMenuRequestedForTimeline(tick: int)
-    signal contextMenuRequestedForPositionIndicator()
 
     ScopicFlowInternal.Timeline {
         id: timeline
@@ -33,8 +31,6 @@ Pane {
         playbackViewModel: control.playbackViewModel
         scrollBehaviorViewModel: control.scrollBehaviorViewModel
         animationViewModel: control.animationViewModel
-        onPositionIndicatorDoubleClicked: control.positionIndicatorDoubleClicked()
-        onContextMenuRequestedForTimeline: tick => control.contextMenuRequestedForTimeline(tick)
-        onContextMenuRequestedForPositionIndicator: control.contextMenuRequestedForPositionIndicator()
+        interactionControllerNotifier: control.interactionControllerNotifier
     }
 }

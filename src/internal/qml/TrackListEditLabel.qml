@@ -1,13 +1,16 @@
 import QtQml
 import QtQuick
+import QtQuick.Templates as T
 
 import SVSCraft.UIComponents
 
 import dev.sjimo.ScopicFlow.Style
 
-Item {
+T.Control {
     id: editLabel
     width: labelText.width + 8
+    focusPolicy: Qt.StrongFocus
+    hoverEnabled: true
     property string text: ""
     property bool center: false
     property var horizontalAlignment: undefined
@@ -16,6 +19,16 @@ Item {
     readonly property bool editing: popup.opened
 
     signal editingFinished(text: string)
+    signal pressed()
+    signal released()
+    signal canceled()
+    signal clicked()
+    signal doubleClicked()
+    signal pressAndHold()
+
+    function open() {
+        popup.open()
+    }
 
     Text {
         id: labelText
@@ -72,12 +85,26 @@ Item {
         }
     }
 
+    Rectangle {
+        anchors.fill: parent
+        color: "transparent"
+        border.color: Theme.navigationColor
+        border.width: 2
+        visible: editLabel.visualFocus
+        radius: 2
+    }
+
     MouseArea {
         anchors.fill: parent
-        focusPolicy: Qt.StrongFocus
-        onDoubleClicked: {
-            popup.open()
+        onPressed: editLabel.pressed()
+        onReleased: editLabel.released()
+        onCanceled: editLabel.canceled()
+        onClicked: editLable.clicked()
+        onDoubleClicked: () => {
+            editLabel.open()
+            editLabel.doubleClicked()
         }
+        onPressAndHold: editLabel.pressAndHold()
     }
 
 }

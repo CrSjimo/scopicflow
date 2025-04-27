@@ -15,6 +15,7 @@ Item {
     property QtObject playbackViewModel: null
     property QtObject scrollBehaviorViewModel: null
     property QtObject animationViewModel: null
+    property QtObject interactionControllerNotifier: null
 
     readonly property double primaryIndicatorX: locator.mapToX(playbackViewModel?.primaryPosition ?? 0)
     readonly property double secondaryIndicatorX: locator.mapToX(playbackViewModel?.secondaryPosition ?? 0)
@@ -41,11 +42,6 @@ Item {
         timeManipulator.moveViewBy(deltaX)
         setIndicatorPosition(deltaX < 0 ? 0 : width)
     }
-
-    signal positionIndicatorDoubleClicked()
-    signal timelineDoubleClicked(tick: int)
-    signal contextMenuRequestedForTimeline(tick: int)
-    signal contextMenuRequestedForPositionIndicator()
 
     clip: true
     implicitHeight: 24
@@ -151,10 +147,27 @@ Item {
         drag.axis: Drag.XAxis
         drag.minimumX: timeline.zeroTickX - 8
         focusPolicy: Qt.StrongFocus
+        hoverEnabled: true
 
         property bool rejectContextMenu: false
         property double pressedX: 0
 
+        function sendInteractionNotification(interactionType, mouse = null) {
+            if (handleBeforeInteractionNotification(interactionType, mouse))
+                return false
+            emitInteractionNotificationSignal(interactionType, mouse)
+            return true
+        }
+        function handleBeforeInteractionNotification(interactionType, mouse = null) {
+            let position = mouse ? locator.mapToTick(mouse.x) : -1;
+            let flag = mouse && primaryIndicator.contains(mapToItem(primaryIndicator, mouse.x, mouse.y)) ? ScopicFlow.InteractionOnPositionIndicator : ScopicFlow.InteractionOnTimeline
+            return timeline.interactionControllerNotifier?.handleSceneInteraction(interactionType, timeline.timeViewModel, timeline.timeLayoutViewModel, position, 0, flag)
+        }
+        function emitInteractionNotificationSignal(interactionType, mouse = null) {
+            let position = mouse ? locator.mapToTick(mouse.x) : -1;
+            let flag = mouse && primaryIndicator.contains(mapToItem(primaryIndicator, mouse.x, mouse.y)) ? ScopicFlow.InteractionOnPositionIndicator : ScopicFlow.InteractionOnTimeline
+            timeline.interactionControllerNotifier?.sceneInteracted(interactionType, timeline.timeViewModel, timeline.timeLayoutViewModel, position, 0, flag)
+        }
         function handlePositionChanged(x, button) {
             if (button === Qt.LeftButton) {
                 timeline.setIndicatorPosition(x)
@@ -170,17 +183,53 @@ Item {
         DragScroller {
             id: dragScroller
             property int button: 0
-            onMoved: function (deltaX) {
+            onMoved: (deltaX) => {
                 timeManipulator.moveViewBy(deltaX)
                 mouseArea.handlePositionChanged(deltaX < 0 ? 0 : timeline.width, button)
             }
         }
 
-        onPressed: function (mouse) {
+        onPressed: (mouse) => {
             rejectContextMenu = false
             pressedX = mouse.x
+            if (!sendInteractionNotification(ScopicFlow.II_Pressed, mouse)) {
+                mouse.accepted = false
+            }
         }
-        onPositionChanged: function (mouse) {
+        onReleased: (mouse) => {
+            dragScroller.running = false
+            cursorShape = Qt.ArrowCursor
+            let rect = mapFromItem(rubberBandLayerViewport, rubberBandLayer.endSelection())
+            timeline.setZoomedRange(rect.x, rect.width)
+            sendInteractionNotification(ScopicFlow.II_Released, mouse)
+        }
+        onCanceled: () => {
+            dragScroller.running = false
+            cursorShape = Qt.ArrowCursor
+            rubberBandLayer.endSelection()
+            sendInteractionNotification(ScopicFlow.II_Canceled)
+        }
+        onEntered: sendInteractionNotification(ScopicFlow.II_HoverEntered)
+        onExited: sendInteractionNotification(ScopicFlow.II_HoverExited)
+        onClicked: (mouse) => {
+            if (mouse.button === Qt.LeftButton) {
+                if (handleBeforeInteractionNotification(ScopicFlow.II_Clicked, mouse))
+                    return
+                timeline.setIndicatorPosition(mouse.x)
+                emitInteractionNotificationSignal(ScopicFlow.II_Clicked, mouse)
+            } else if (mouse.button === Qt.RightButton && !rejectContextMenu) {
+                sendInteractionNotification(ScopicFlow.II_ContextMenu, mouse)
+            }
+        }
+        onDoubleClicked : (mouse) => {
+            sendInteractionNotification(ScopicFlow.II_DoubleClicked, mouse)
+        }
+        onPressAndHold : (mouse) => {
+            sendInteractionNotification(ScopicFlow.II_PressAndHold, mouse)
+        }
+        onPositionChanged: (mouse) => {
+            if (!pressed)
+                return
             dragScroller.button = mouse.buttons
             dragScroller.determine(mouse.x, timeline.width, 0, 0, (triggered) => {
                 if (triggered)
@@ -188,47 +237,16 @@ Item {
                 handlePositionChanged(mouse.x, mouse.buttons)
             })
         }
-        onReleased: {
-            dragScroller.running = false
-            cursorShape = Qt.ArrowCursor
-            let rect = mapFromItem(rubberBandLayerViewport, rubberBandLayer.endSelection())
-            timeline.setZoomedRange(rect.x, rect.width)
-        }
-        onCanceled: {
-            dragScroller.running = false
-            cursorShape = Qt.ArrowCursor
-            rubberBandLayer.endSelection()
-        }
-        onClicked: function (mouse) {
-            if (mouse.button === Qt.LeftButton) {
-                timeline.setIndicatorPosition(mouse.x)
-            } else if (mouse.button === Qt.RightButton && !rejectContextMenu) {
-                if (primaryIndicator.contains(mapToItem(primaryIndicator, mouse.x, mouse.y))) {
-                    timeline.contextMenuRequestedForPositionIndicator()
-                } else {
-                    timeline.contextMenuRequestedForTimeline(locator.mapToTick(mouse.x))
-                }
-            }
-        }
-        onDoubleClicked : function (mouse) {
-            if (mouse.button === Qt.LeftButton) {
-                if (primaryIndicator.contains(mapToItem(primaryIndicator, mouse.x, mouse.y))) {
-                    timeline.positionIndicatorDoubleClicked()
-                } else {
-                    timeline.timelineDoubleClicked(locator.mapToTick(mouse.x))
-                }
-            }
-        }
     }
 
     StandardScrollHandler {
         anchors.fill: parent
         viewModel: timeline.scrollBehaviorViewModel
         movableOrientation: Qt.Horizontal
-        onZoomed: function (ratioX, _, x, _, isPhysicalWheel) {
+        onZoomed: (ratioX, _, x, _, isPhysicalWheel) => {
             timeManipulator.zoomOnWheel(ratioX, x, isPhysicalWheel)
         }
-        onMoved: function (x, _, isPhysicalWheel) {
+        onMoved: (x, _, isPhysicalWheel) => {
             timeManipulator.moveViewBy(x, isPhysicalWheel)
         }
     }
@@ -237,7 +255,7 @@ Item {
         anchors.fill: parent
         viewModel: timeline.scrollBehaviorViewModel
         direction: Qt.Horizontal
-        onMoved: function (x) {
+        onMoved: (x) => {
             timeManipulator.moveViewBy(x)
         }
     }

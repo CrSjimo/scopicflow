@@ -52,6 +52,43 @@ namespace sflow {
         Q_ENUM_NS(AnchorNodeFlag)
         Q_DECLARE_FLAGS(AnchorNode, AnchorNodeFlag)
 
+        enum ItemInteraction {
+            II_Pressed,
+            II_Released,
+            II_Canceled,
+            II_HoverEntered,
+            II_HoverExited,
+            II_Clicked,
+            II_DoubleClicked,
+            II_PressAndHold,
+            II_ContextMenu,
+        };
+        Q_ENUM_NS(ItemInteraction)
+
+        enum TimelineInteractionOption {
+            InteractionOnTimeline,
+            InteractionOnPositionIndicator,
+        };
+        Q_ENUM_NS(TimelineInteractionOption)
+
+        enum TrackInteractionOption {
+            InteractionOnTrackItem,
+            InteractionOnColorIndicator,
+            InteractionOnMute,
+            InteractionOnSolo,
+            InteractionOnRecord,
+            InteractionOnRoute,
+            InteractionOnTrackName,
+            InteractionOnGainSlider,
+            InteractionOnGainSpinBox,
+            InteractionOnPanDial,
+            InteractionOnPanSpinBox,
+            InteractionOnLevelMeter,
+            InteractionOnPeakLabel,
+            InteractionOnTrackHandle,
+        };
+        Q_ENUM_NS(TrackInteractionOption)
+
     }
 
 }

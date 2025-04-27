@@ -28,10 +28,7 @@ Item {
     property double topMargin: 0
     readonly property double viewportY: clavierViewModel ? height - (128 - clavierViewModel.start) * clavierViewModel.pixelDensity : 0
 
-    signal contextMenuRequestedForNote(key: int)
-    signal noteDoubleClicked(key: int)
-    signal notePressed(key: int)
-    signal noteReleased(key: int)
+    property QtObject interactionControllerNotifier: null
 
     function calculateYFromKey(key) {
         let indexInGroup = key % 12
@@ -52,14 +49,14 @@ Item {
 
     clip: true
 
-    onCursorNoteIndexChanged: {
+    onCursorNoteIndexChanged: () => {
         if (lastNoteIndex >= 0)
             keyRepeater.itemAt(lastNoteIndex).isLeftLabelVisible = false
         if (cursorNoteIndex >= 0)
             keyRepeater.itemAt(cursorNoteIndex).isLeftLabelVisible = true
         lastNoteIndex = cursorNoteIndex
     }
-    onHeightChanged: {
+    onHeightChanged: () => {
         if (clavier.clavierViewModel) {
             clavier.clavierViewModel.start = Math.min(clavier.clavierViewModel.start, 128 - (clavier.height - clavier.topMargin) / clavier.clavierViewModel.pixelDensity)
         }
@@ -107,7 +104,7 @@ Item {
                 border.width: 1
                 bottomRightRadius: isBlackKey ? 4 : 0
                 color: mouseArea.pressed ?
-                        isBlackKey ? SFPalette.blackKeyPressedColor : SFPalette.whiteKeyPressedColor :
+                    isBlackKey ? SFPalette.blackKeyPressedColor : SFPalette.whiteKeyPressedColor :
                     mouseArea.containsMouse ?
                         isBlackKey ? SFPalette.blackKeyHoveredColor : SFPalette.whiteKeyHoveredColor :
                         isBlackKey ? SFPalette.blackKeyColor : SFPalette.whiteKeyColor
@@ -149,27 +146,31 @@ Item {
                     focusPolicy: Qt.StrongFocus
                     hoverEnabled: true
 
-                    onClicked: function (mouse) {
+                    function sendInteractionNotification(interactionType) {
+                        if (clavier.interactionControllerNotifier?.handleSceneInteraction(interactionType, clavier.clavierViewModel, null, 0, parent.index))
+                            return false
+                        clavier.interactionControllerNotifier?.sceneInteracted(interactionType, clavier.clavierViewModel, null, 0, parent.index)
+                        return true
+                    }
+
+                    onPressed: (mouse) => {
+                        if (!sendInteractionNotification(ScopicFlow.II_Pressed))
+                            mouse.accepted = false
+                    }
+                    onReleased: sendInteractionNotification(ScopicFlow.II_Released)
+                    onCanceled: sendInteractionNotification(ScopicFlow.II_Released)
+                    onEntered: sendInteractionNotification(ScopicFlow.II_HoverEntered)
+                    onExited: sendInteractionNotification(ScopicFlow.II_HoverExited)
+                    onClicked: (mouse) => {
                         if (mouse.button === Qt.RightButton) {
-                            clavier.contextMenuRequestedForNote(parent.index)
+                            sendInteractionNotification(ScopicFlow.II_ContextMenu)
+                        } else {
+                            sendInteractionNotification(ScopicFlow.II_Clicked)
                         }
+
                     }
-                    onDoubleClicked: function (mouse) {
-                        if (mouse.button === Qt.LeftButton) {
-                            clavier.noteReleased(parent.index)
-                            clavier.noteDoubleClicked(parent.index)
-                        }
-                    }
-                    onPressed: function (mouse) {
-                        if (mouse.button === Qt.LeftButton) {
-                            clavier.notePressed(parent.index)
-                        }
-                    }
-                    onReleased: function (mouse) {
-                        if (mouse.button === Qt.LeftButton) {
-                            clavier.noteReleased(parent.index)
-                        }
-                    }
+                    onDoubleClicked: sendInteractionNotification(ScopicFlow.II_DoubleClicked)
+                    onPressAndHold: sendInteractionNotification(ScopicFlow.II_PressAndHold)
                 }
             }
         }

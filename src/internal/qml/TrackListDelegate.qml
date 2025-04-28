@@ -54,7 +54,7 @@ Item {
         return true
     }
     function emitInteractionNotificationSignal(interactionType, flags = 0) {
-        trackList.interactionControllerNotifier?.itemInteracted(interactionType, trackListDelegate.trackViewModel, trackListDelegate.index, trackListDelegate.trackListViewModel, flags)
+        trackListDelegate.interactionControllerNotifier?.itemInteracted(interactionType, trackListDelegate.trackViewModel, trackListDelegate.index, trackListDelegate.trackListViewModel, flags)
     }
 
     Rectangle {
@@ -142,7 +142,6 @@ Item {
             onHoveredChanged: trackListDelegate.sendInteractionNotification(hovered ? ScopicFlow.II_HoverEntered : ScopicFlow.II_HoverExited, ScopicFlow.InteractionOnColorIndicator)
             onClicked: trackListDelegate.sendInteractionNotification(ScopicFlow.II_Clicked, ScopicFlow.InteractionOnColorIndicator)
             onDoubleClicked: trackListDelegate.sendInteractionNotification(ScopicFlow.II_DoubleClicked, ScopicFlow.InteractionOnColorIndicator)
-            onPressAndHold: trackListDelegate.sendInteractionNotification(ScopicFlow.II_PressAndHold, ScopicFlow.InteractionOnColorIndicator)
         }
 
         Item {
@@ -164,7 +163,6 @@ Item {
                     muteButton.onHoveredChanged: trackListDelegate.sendInteractionNotification(hovered ? ScopicFlow.II_HoverEntered : ScopicFlow.II_HoverExited, ScopicFlow.InteractionOnMute)
                     muteButton.onClicked: trackListDelegate.sendInteractionNotification(ScopicFlow.II_Clicked, ScopicFlow.InteractionOnMute)
                     muteButton.onDoubleClicked: trackListDelegate.sendInteractionNotification(ScopicFlow.II_DoubleClicked, ScopicFlow.InteractionOnMute)
-                    muteButton.onPressAndHold: trackListDelegate.sendInteractionNotification(ScopicFlow.II_PressAndHold, ScopicFlow.InteractionOnMute)
 
                     soloButton.onPressed: trackListDelegate.sendInteractionNotification(ScopicFlow.II_Pressed, ScopicFlow.InteractionOnSolo)
                     soloButton.onReleased: trackListDelegate.sendInteractionNotification(ScopicFlow.II_Released, ScopicFlow.InteractionOnSolo)
@@ -172,7 +170,6 @@ Item {
                     soloButton.onHoveredChanged: trackListDelegate.sendInteractionNotification(hovered ? ScopicFlow.II_HoverEntered : ScopicFlow.II_HoverExited, ScopicFlow.InteractionOnSolo)
                     soloButton.onClicked: trackListDelegate.sendInteractionNotification(ScopicFlow.II_Clicked, ScopicFlow.InteractionOnSolo)
                     soloButton.onDoubleClicked: trackListDelegate.sendInteractionNotification(ScopicFlow.II_DoubleClicked, ScopicFlow.InteractionOnSolo)
-                    soloButton.onPressAndHold: trackListDelegate.sendInteractionNotification(ScopicFlow.II_PressAndHold, ScopicFlow.InteractionOnSolo)
 
                     recordButton.onPressed: trackListDelegate.sendInteractionNotification(ScopicFlow.II_Pressed, ScopicFlow.InteractionOnRecord)
                     recordButton.onReleased: trackListDelegate.sendInteractionNotification(ScopicFlow.II_Released, ScopicFlow.InteractionOnRecord)
@@ -180,7 +177,6 @@ Item {
                     recordButton.onHoveredChanged: trackListDelegate.sendInteractionNotification(hovered ? ScopicFlow.II_HoverEntered : ScopicFlow.II_HoverExited, ScopicFlow.InteractionOnRecord)
                     recordButton.onClicked: trackListDelegate.sendInteractionNotification(ScopicFlow.II_Clicked, ScopicFlow.InteractionOnRecord)
                     recordButton.onDoubleClicked: trackListDelegate.sendInteractionNotification(ScopicFlow.II_DoubleClicked, ScopicFlow.InteractionOnRecord)
-                    recordButton.onPressAndHold: trackListDelegate.sendInteractionNotification(ScopicFlow.II_PressAndHold, ScopicFlow.InteractionOnRecord)
                 }
                 TrackListEditLabel {
                     anchors.top: controlsFirstRow.top
@@ -193,7 +189,6 @@ Item {
                     onHoveredChanged: trackListDelegate.sendInteractionNotification(hovered ? ScopicFlow.II_HoverEntered : ScopicFlow.II_HoverExited, ScopicFlow.InteractionOnTrackName)
                     onClicked: trackListDelegate.sendInteractionNotification(ScopicFlow.II_Clicked, ScopicFlow.InteractionOnTrackName)
                     onDoubleClicked: trackListDelegate.sendInteractionNotification(ScopicFlow.II_DoubleClicked, ScopicFlow.InteractionOnTrackName)
-                    onPressAndHold: trackListDelegate.sendInteractionNotification(ScopicFlow.II_PressAndHold, ScopicFlow.InteractionOnTrackName)
                 }
 
             }
@@ -267,7 +262,6 @@ Item {
                         onHoveredChanged: trackListDelegate.sendInteractionNotification(hovered ? ScopicFlow.II_HoverEntered : ScopicFlow.II_HoverExited, ScopicFlow.InteractionOnGainSpinBox)
                         onClicked: trackListDelegate.sendInteractionNotification(ScopicFlow.II_Clicked, ScopicFlow.InteractionOnGainSpinBox)
                         onDoubleClicked: trackListDelegate.sendInteractionNotification(ScopicFlow.II_DoubleClicked, ScopicFlow.InteractionOnGainSpinBox)
-                        onPressAndHold: trackListDelegate.sendInteractionNotification(ScopicFlow.II_PressAndHold, ScopicFlow.InteractionOnGainSpinBox)
                     }
                 }
                 Row {
@@ -306,7 +300,6 @@ Item {
                         onHoveredChanged: trackListDelegate.sendInteractionNotification(hovered ? ScopicFlow.II_HoverEntered : ScopicFlow.II_HoverExited, ScopicFlow.InteractionOnPanSpinBox)
                         onClicked: trackListDelegate.sendInteractionNotification(ScopicFlow.II_Clicked, ScopicFlow.InteractionOnPanSpinBox)
                         onDoubleClicked: trackListDelegate.sendInteractionNotification(ScopicFlow.II_DoubleClicked, ScopicFlow.InteractionOnPanSpinBox)
-                        onPressAndHold: trackListDelegate.sendInteractionNotification(ScopicFlow.II_PressAndHold, ScopicFlow.InteractionOnPanSpinBox)
                     }
                 }
             }
@@ -354,17 +347,18 @@ Item {
             }
             MouseArea {
                 anchors.fill: parent
+                hoverEnabled: true
                 onPressed: trackListDelegate.sendInteractionNotification(ScopicFlow.II_Pressed, ScopicFlow.InteractionOnLevelMeter)
                 onReleased: trackListDelegate.sendInteractionNotification(ScopicFlow.II_Released, ScopicFlow.InteractionOnLevelMeter)
                 onCanceled: trackListDelegate.sendInteractionNotification(ScopicFlow.II_Canceled, ScopicFlow.InteractionOnLevelMeter)
-                onHoveredChanged: trackListDelegate.sendInteractionNotification(hovered ? ScopicFlow.II_HoverEntered : ScopicFlow.II_HoverExited, ScopicFlow.InteractionOnLevelMeter)
+                onEntered: trackListDelegate.sendInteractionNotification(ScopicFlow.II_HoverEntered, ScopicFlow.InteractionOnLevelMeter)
+                onExited: trackListDelegate.sendInteractionNotification(ScopicFlow.II_HoverExited, ScopicFlow.InteractionOnLevelMeter)
                 onClicked: () => {
                     leftChannelLevelMeter.clipping = false
                     rightChannelLevelMeter.clipping = false
                     trackListDelegate.sendInteractionNotification(ScopicFlow.II_Clicked, ScopicFlow.InteractionOnLevelMeter)
                 }
                 onDoubleClicked: trackListDelegate.sendInteractionNotification(ScopicFlow.II_DoubleClicked, ScopicFlow.InteractionOnLevelMeter)
-                onPressAndHold: trackListDelegate.sendInteractionNotification(ScopicFlow.II_PressAndHold, ScopicFlow.InteractionOnLevelMeter)
             }
         }
 

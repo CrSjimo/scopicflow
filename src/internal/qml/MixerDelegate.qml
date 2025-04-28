@@ -1,22 +1,3 @@
-/******************************************************************************
- * Copyright (c) 2025 OpenVPI                                                 *
- *                                                                            *
- * This file is part of SVSCraft                                              *
- *                                                                            *
- * SVSCraft is free software: you can redistribute it and/or modify it under  *
- * the terms of the GNU Lesser General Public License as published by the     *
- * Free Software Foundation, either version 3 of the License, or (at your     *
- * option) any later version.                                                 *
- *                                                                            *
- * SVSCraft is distributed in the hope that it will be useful, but WITHOUT    *
- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or      *
- * FITNESS FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public        *
- * License for more details.                                                  *
- *                                                                            *
- * You should have received a copy of the GNU Lesser General Public License   *
- * along with SVSCraft. If not, see <https://www.gnu.org/licenses/>.          *
- ******************************************************************************/
-
 import QtQml
 import QtQuick
 import QtQuick.Layouts
@@ -33,9 +14,13 @@ Item {
     id: mixerDelegate
     width: 128
     required property QtObject trackViewModel
+    required property int index
     required property int trackNumber
     property bool isCurrent: false
+    property QtObject trackListViewModel: null
     property QtObject animationViewModel: null
+    property QtObject interactionControllerNotifier: null
+    property QtObject transactionControllerNotifier: null
     property Component mouseArea: null
 
     component MixerSlider: T.Slider {
@@ -127,6 +112,21 @@ Item {
         }
     }
 
+    function sendInteractionNotification(interactionType, flags = 0) {
+        if (!handleBeforeInteractionNotification(interactionType, flags))
+            return false
+        emitInteractionNotificationSignal(interactionType, flags)
+        return true
+    }
+    function handleBeforeInteractionNotification(interactionType, flags = 0) {
+        if (mixerDelegate.interactionControllerNotifier?.handleItemInteraction(interactionType, mixerDelegate.trackViewModel, mixerDelegate.index, mixerDelegate.trackListViewModel, flags))
+            return false
+        return true
+    }
+    function emitInteractionNotificationSignal(interactionType, flags = 0) {
+        mixerDelegate.interactionControllerNotifier?.itemInteracted(interactionType, mixerDelegate.trackViewModel, mixerDelegate.index, mixerDelegate.trackListViewModel, flags)
+    }
+
     Rectangle {
         anchors.fill: parent
         color: mixerDelegate.trackViewModel.selected ? SFPalette.trackListSelectedColorChange.apply(SFPalette.trackListBackgroundColor) : SFPalette.trackListBackgroundColor
@@ -146,8 +146,14 @@ Item {
         spacing: 0
         anchors.fill: parent
         readonly property bool intermediate: gainSlider.pressed || panDial.pressed
-        onIntermediateChanged: {
-            mixerDelegate.trackViewModel.intermediate = intermediate
+        onIntermediateChanged: () => {
+            if (intermediate) {
+                mixerDelegate.transactionControllerNotifier?.transactionAboutToBegin()
+                mixerDelegate.trackViewModel.intermediate = true
+            } else {
+                mixerDelegate.trackViewModel.intermediate = false
+                mixerDelegate.transactionControllerNotifier?.transactionCommitted()
+            }
         }
         RowLayout {
             Layout.leftMargin: routeButton.visible ? 28 : 42
@@ -160,9 +166,11 @@ Item {
                 from: -1.0
                 to: 1.0
                 value: mixerDelegate.trackViewModel.pan
-                onValueChanged: {
+                onMoved: {
                     mixerDelegate.trackViewModel.pan = value
                 }
+                onPressedChanged: mixerDelegate.sendInteractionNotification(pressed ? ScopicFlow.II_Pressed : ScopicFlow.II_Released, ScopicFlow.InteractionOnPanDial)
+                onHoveredChanged: mixerDelegate.sendInteractionNotification(hovered ? ScopicFlow.II_HoverEntered : ScopicFlow.II_HoverExited, ScopicFlow.InteractionOnPanDial)
             }
             TrackListEditLabel {
                 width: 24
@@ -172,9 +180,13 @@ Item {
                     bottom: -100
                     top: 100
                 }
-                onEditingFinished: function (text) {
-                    mixerDelegate.trackViewModel.pan = Number.fromLocaleString(Qt.locale(), text) * 0.01
-                }
+                onEditingFinished: (text) => mixerDelegate.trackViewModel.pan = Number.fromLocaleString(Qt.locale(), text) * 0.01
+                onPressed: mixerDelegate.sendInteractionNotification(ScopicFlow.II_Pressed, ScopicFlow.InteractionOnPanSpinBox)
+                onReleased: mixerDelegate.sendInteractionNotification(ScopicFlow.II_Released, ScopicFlow.InteractionOnPanSpinBox)
+                onCanceled: mixerDelegate.sendInteractionNotification(ScopicFlow.II_Canceled, ScopicFlow.InteractionOnPanSpinBox)
+                onHoveredChanged: mixerDelegate.sendInteractionNotification(hovered ? ScopicFlow.II_HoverEntered : ScopicFlow.II_HoverExited, ScopicFlow.InteractionOnPanSpinBox)
+                onClicked: mixerDelegate.sendInteractionNotification(ScopicFlow.II_Clicked, ScopicFlow.InteractionOnPanSpinBox)
+                onDoubleClicked: mixerDelegate.sendInteractionNotification(ScopicFlow.II_DoubleClicked, ScopicFlow.InteractionOnPanSpinBox)
             }
             Item {
                 Layout.fillWidth: true
@@ -189,6 +201,14 @@ Item {
                 visible: typeof(mixerDelegate.trackViewModel.route) === "boolean"
                 checked: mixerDelegate.trackViewModel.route ?? false
                 onCheckedChanged: mixerDelegate.trackViewModel.route = checked
+
+                onPressed: mixerDelegate.sendInteractionNotification(ScopicFlow.II_Pressed, ScopicFlow.InteractionOnRoute)
+                onReleased: mixerDelegate.sendInteractionNotification(ScopicFlow.II_Released, ScopicFlow.InteractionOnRoute)
+                onCanceled: mixerDelegate.sendInteractionNotification(ScopicFlow.II_Canceled, ScopicFlow.InteractionOnRoute)
+                onHoveredChanged: mixerDelegate.sendInteractionNotification(hovered ? ScopicFlow.II_HoverEntered : ScopicFlow.II_HoverExited, ScopicFlow.InteractionOnRoute)
+                onClicked: mixerDelegate.sendInteractionNotification(ScopicFlow.II_Clicked, ScopicFlow.InteractionOnRoute)
+                onDoubleClicked: mixerDelegate.sendInteractionNotification(ScopicFlow.II_DoubleClicked, ScopicFlow.InteractionOnRoute)
+
             }
         }
         Rectangle {
@@ -205,6 +225,28 @@ Item {
                 id: msr
                 trackViewModel: mixerDelegate.trackViewModel
                 anchors.horizontalCenter: parent.horizontalCenter
+
+                muteButton.onPressed: mixerDelegate.sendInteractionNotification(ScopicFlow.II_Pressed, ScopicFlow.InteractionOnMute)
+                muteButton.onReleased: mixerDelegate.sendInteractionNotification(ScopicFlow.II_Released, ScopicFlow.InteractionOnMute)
+                muteButton.onCanceled: mixerDelegate.sendInteractionNotification(ScopicFlow.II_Canceled, ScopicFlow.InteractionOnMute)
+                muteButton.onHoveredChanged: mixerDelegate.sendInteractionNotification(hovered ? ScopicFlow.II_HoverEntered : ScopicFlow.II_HoverExited, ScopicFlow.InteractionOnMute)
+                muteButton.onClicked: mixerDelegate.sendInteractionNotification(ScopicFlow.II_Clicked, ScopicFlow.InteractionOnMute)
+                muteButton.onDoubleClicked: mixerDelegate.sendInteractionNotification(ScopicFlow.II_DoubleClicked, ScopicFlow.InteractionOnMute)
+
+                soloButton.onPressed: mixerDelegate.sendInteractionNotification(ScopicFlow.II_Pressed, ScopicFlow.InteractionOnSolo)
+                soloButton.onReleased: mixerDelegate.sendInteractionNotification(ScopicFlow.II_Released, ScopicFlow.InteractionOnSolo)
+                soloButton.onCanceled: mixerDelegate.sendInteractionNotification(ScopicFlow.II_Canceled, ScopicFlow.InteractionOnSolo)
+                soloButton.onHoveredChanged: mixerDelegate.sendInteractionNotification(hovered ? ScopicFlow.II_HoverEntered : ScopicFlow.II_HoverExited, ScopicFlow.InteractionOnSolo)
+                soloButton.onClicked: mixerDelegate.sendInteractionNotification(ScopicFlow.II_Clicked, ScopicFlow.InteractionOnSolo)
+                soloButton.onDoubleClicked: mixerDelegate.sendInteractionNotification(ScopicFlow.II_DoubleClicked, ScopicFlow.InteractionOnSolo)
+
+                recordButton.onPressed: mixerDelegate.sendInteractionNotification(ScopicFlow.II_Pressed, ScopicFlow.InteractionOnRecord)
+                recordButton.onReleased: mixerDelegate.sendInteractionNotification(ScopicFlow.II_Released, ScopicFlow.InteractionOnRecord)
+                recordButton.onCanceled: mixerDelegate.sendInteractionNotification(ScopicFlow.II_Canceled, ScopicFlow.InteractionOnRecord)
+                recordButton.onHoveredChanged: mixerDelegate.sendInteractionNotification(hovered ? ScopicFlow.II_HoverEntered : ScopicFlow.II_HoverExited, ScopicFlow.InteractionOnRecord)
+                recordButton.onClicked: mixerDelegate.sendInteractionNotification(ScopicFlow.II_Clicked, ScopicFlow.InteractionOnRecord)
+                recordButton.onDoubleClicked: mixerDelegate.sendInteractionNotification(ScopicFlow.II_DoubleClicked, ScopicFlow.InteractionOnRecord)
+
             }
             RowLayout {
                 anchors.top: msr.bottom
@@ -217,11 +259,9 @@ Item {
                         Layout.alignment: Qt.AlignHCenter
                         Layout.fillHeight: true
                         value: SVS.decibelToLinearValue(mixerDelegate.trackViewModel.gain)
-                        onValueChanged: {
-                            let v = SVS.linearValueToDecibel(value + SVS.decibelToLinearValue(0))
-                            if (Math.abs(mixerDelegate.trackViewModel.gain - v) > Number.EPSILON * 1000)
-                                mixerDelegate.trackViewModel.gain = v
-                        }
+                        onMoved: mixerDelegate.trackViewModel.gain = SVS.linearValueToDecibel(value + SVS.decibelToLinearValue(0))
+                        onPressedChanged: mixerDelegate.sendInteractionNotification(pressed ? ScopicFlow.II_Pressed : ScopicFlow.II_Released, ScopicFlow.InteractionOnGainSlider)
+                        onHoveredChanged: mixerDelegate.sendInteractionNotification(hovered ? ScopicFlow.II_HoverEntered : ScopicFlow.II_HoverExited, ScopicFlow.InteractionOnGainSlider)
                     }
                     TrackListEditLabel {
                         width: 48
@@ -234,9 +274,13 @@ Item {
                             top: 6
                             decimals: 1
                         }
-                        onEditingFinished: function (text) {
-                            mixerDelegate.trackViewModel.gain = Number.fromLocaleString(Qt.locale(), text)
-                        }
+                        onEditingFinished: (text) => mixerDelegate.trackViewModel.gain = Number.fromLocaleString(Qt.locale(), text)
+                        onPressed: mixerDelegate.sendInteractionNotification(ScopicFlow.II_Pressed, ScopicFlow.InteractionOnGainSpinBox)
+                        onReleased: mixerDelegate.sendInteractionNotification(ScopicFlow.II_Released, ScopicFlow.InteractionOnGainSpinBox)
+                        onCanceled: mixerDelegate.sendInteractionNotification(ScopicFlow.II_Canceled, ScopicFlow.InteractionOnGainSpinBox)
+                        onHoveredChanged: mixerDelegate.sendInteractionNotification(hovered ? ScopicFlow.II_HoverEntered : ScopicFlow.II_HoverExited, ScopicFlow.InteractionOnGainSpinBox)
+                        onClicked: mixerDelegate.sendInteractionNotification(ScopicFlow.II_Clicked, ScopicFlow.InteractionOnGainSpinBox)
+                        onDoubleClicked: mixerDelegate.sendInteractionNotification(ScopicFlow.II_DoubleClicked, ScopicFlow.InteractionOnGainSpinBox)
                     }
                 }
                 ColumnLayout {
@@ -266,12 +310,21 @@ Item {
                             anchors.right: parent.right
                             value: mixerDelegate.trackViewModel.rightLevel
                         }
-                        TapHandler {
-                            onSingleTapped: () => {
+                        MouseArea {
+                            anchors.fill: parent
+                            hoverEnabled: true
+                            onPressed: mixerDelegate.sendInteractionNotification(ScopicFlow.II_Pressed, ScopicFlow.InteractionOnLevelMeter)
+                            onReleased: mixerDelegate.sendInteractionNotification(ScopicFlow.II_Released, ScopicFlow.InteractionOnLevelMeter)
+                            onCanceled: mixerDelegate.sendInteractionNotification(ScopicFlow.II_Canceled, ScopicFlow.InteractionOnLevelMeter)
+                            onEntered: mixerDelegate.sendInteractionNotification(ScopicFlow.II_HoverEntered, ScopicFlow.InteractionOnLevelMeter)
+                            onExited: mixerDelegate.sendInteractionNotification(ScopicFlow.II_HoverExited, ScopicFlow.InteractionOnLevelMeter)
+                            onClicked: () => {
                                 leftChannelLevelMeter.clipping = false
                                 rightChannelLevelMeter.clipping = false
                                 peakText.maxValue = -96
+                                mixerDelegate.sendInteractionNotification(ScopicFlow.II_Clicked, ScopicFlow.InteractionOnLevelMeter)
                             }
+                            onDoubleClicked: mixerDelegate.sendInteractionNotification(ScopicFlow.II_DoubleClicked, ScopicFlow.InteractionOnLevelMeter)
                         }
                     }
                     Item {
@@ -288,12 +341,21 @@ Item {
                             color: SFPalette.suitableForegroundColor(SFPalette.trackListBackgroundColor)
                             opacity: 0.5
                             text: (Math.abs(maxValue + 96) < 0.05 ? '' : Qt.locale().toString(maxValue, "f", 1))
-                            TapHandler {
-                                onSingleTapped: () => {
+                            MouseArea {
+                                anchors.fill: parent
+                                hoverEnabled: true
+                                onPressed: mixerDelegate.sendInteractionNotification(ScopicFlow.II_Pressed, ScopicFlow.InteractionOnPeakLabel)
+                                onReleased: mixerDelegate.sendInteractionNotification(ScopicFlow.II_Released, ScopicFlow.InteractionOnPeakLabel)
+                                onCanceled: mixerDelegate.sendInteractionNotification(ScopicFlow.II_Canceled, ScopicFlow.InteractionOnPeakLabel)
+                                onEntered: mixerDelegate.sendInteractionNotification(ScopicFlow.II_HoverEntered, ScopicFlow.InteractionOnLevelMeter)
+                                onExited: mixerDelegate.sendInteractionNotification(ScopicFlow.II_HoverExited, ScopicFlow.InteractionOnLevelMeter)
+                                onClicked: () => {
                                     leftChannelLevelMeter.clipping = false
                                     rightChannelLevelMeter.clipping = false
                                     peakText.maxValue = -96
+                                    mixerDelegate.sendInteractionNotification(ScopicFlow.II_Clicked, ScopicFlow.InteractionOnPeakLabel)
                                 }
+                                onDoubleClicked: mixerDelegate.sendInteractionNotification(ScopicFlow.II_DoubleClicked, ScopicFlow.InteractionOnPeakLabel)
                             }
                         }
                     }
@@ -318,9 +380,13 @@ Item {
                 height: 24
                 center: true
                 text: mixerDelegate.trackViewModel.name
-                onEditingFinished: function (text) {
-                    mixerDelegate.trackViewModel.name = text
-                }
+                onEditingFinished: (text) => mixerDelegate.trackViewModel.name = text
+                onPressed: mixerDelegate.sendInteractionNotification(ScopicFlow.II_Pressed, ScopicFlow.InteractionOnTrackName)
+                onReleased: mixerDelegate.sendInteractionNotification(ScopicFlow.II_Released, ScopicFlow.InteractionOnTrackName)
+                onCanceled: mixerDelegate.sendInteractionNotification(ScopicFlow.II_Canceled, ScopicFlow.InteractionOnTrackName)
+                onHoveredChanged: mixerDelegate.sendInteractionNotification(hovered ? ScopicFlow.II_HoverEntered : ScopicFlow.II_HoverExited, ScopicFlow.InteractionOnTrackName)
+                onClicked: mixerDelegate.sendInteractionNotification(ScopicFlow.II_Clicked, ScopicFlow.InteractionOnTrackName)
+                onDoubleClicked: mixerDelegate.sendInteractionNotification(ScopicFlow.II_DoubleClicked, ScopicFlow.InteractionOnTrackName)
             }
             RowLayout {
                 Layout.leftMargin: 8
@@ -367,10 +433,18 @@ Item {
                 }
             }
         }
-        Rectangle {
+        Button {
             Layout.fillWidth: true
             height: 8
-            color: mixerDelegate.trackViewModel.color
+            background: Rectangle {
+                color: mixerDelegate.trackViewModel.color
+            }
+            onPressed: mixerDelegate.sendInteractionNotification(ScopicFlow.II_Pressed, ScopicFlow.InteractionOnColorIndicator)
+            onReleased: mixerDelegate.sendInteractionNotification(ScopicFlow.II_Released, ScopicFlow.InteractionOnColorIndicator)
+            onCanceled: mixerDelegate.sendInteractionNotification(ScopicFlow.II_Canceled, ScopicFlow.InteractionOnColorIndicator)
+            onHoveredChanged: mixerDelegate.sendInteractionNotification(hovered ? ScopicFlow.II_HoverEntered : ScopicFlow.II_HoverExited, ScopicFlow.InteractionOnColorIndicator)
+            onClicked: mixerDelegate.sendInteractionNotification(ScopicFlow.II_Clicked, ScopicFlow.InteractionOnColorIndicator)
+            onDoubleClicked: mixerDelegate.sendInteractionNotification(ScopicFlow.II_DoubleClicked, ScopicFlow.InteractionOnColorIndicator)
         }
     }
 }

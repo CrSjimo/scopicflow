@@ -199,14 +199,14 @@ Item {
                     selectionManipulator.select(null, mouse.button, mouse.modifiers)
                     emitInteractionNotificationSignal(ScopicFlow.II_Clicked)
                 } else if (mouse.button === Qt.RightButton) {
-                    if (!handleBeforeInteractionNotification(ScopicFlow.II_ContextMenu))
+                    let interactionType = dragged || (mouse.modifiers & Qt.ControlModifier) ? ScopicFlow.II_ItemContextMenu : ScopicFlow.II_ContextMenu
+                    if (!handleBeforeInteractionNotification(interactionType))
                         return
-                    selectionManipulator.select(null, mouse.button, mouse.modifiers)
-                    emitInteractionNotificationSignal(ScopicFlow.II_ContextMenu)
+                    selectionManipulator.select(null, mouse.button, mouse.modifiers | (dragged ? Qt.ControlModifier : 0))
+                    emitInteractionNotificationSignal(interactionType)
                 }
             }
             onDoubleClicked: sendInteractionNotification(ScopicFlow.II_DoubleClicked)
-            onPressAndHold: sendInteractionNotification(ScopicFlow.II_PressAndHold)
             onPositionChanged: (mouse) => {
                 if (!pressed)
                     return
@@ -380,7 +380,6 @@ Item {
                             }
                         }
                         onDoubleClicked: sendInteractionNotification(ScopicFlow.II_DoubleClicked)
-                        onPressAndHold: sendInteractionNotification(ScopicFlow.II_PressAndHold)
                         onPositionChanged: (mouse) => {
                             if (!pressed)
                                 return
@@ -492,7 +491,6 @@ Item {
                             delegate.fitHeight()
                             emitInteractionNotificationSignal(ScopicFlow.II_DoubleClicked)
                         }
-                        onPressAndHold: sendInteractionNotification(ScopicFlow.II_PressAndHold)
                         onPositionChanged: (mouse) => {
                             if (originalY === -1)
                                 return

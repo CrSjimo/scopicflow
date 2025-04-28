@@ -140,12 +140,22 @@ Item {
                     visible: parent.isRightLabelVisible
                 }
                 MouseArea {
-                    id: mouseArea
-                    acceptedButtons: Qt.LeftButton | Qt.RightButton
+                    acceptedButtons: Qt.RightButton
                     anchors.fill: parent
-                    focusPolicy: Qt.StrongFocus
                     hoverEnabled: true
-
+                    function sendInteractionNotification(interactionType) {
+                        if (clavier.interactionControllerNotifier?.handleSceneInteraction(interactionType, clavier.clavierViewModel, null, 0, parent.index))
+                            return false
+                        clavier.interactionControllerNotifier?.sceneInteracted(interactionType, clavier.clavierViewModel, null, 0, parent.index)
+                        return true
+                    }
+                    onClicked: sendInteractionNotification(ScopicFlow.II_ContextMenu)
+                }
+                MouseArea {
+                    id: mouseArea
+                    acceptedButtons: Qt.LeftButton
+                    anchors.fill: parent
+                    hoverEnabled: true
                     function sendInteractionNotification(interactionType) {
                         if (clavier.interactionControllerNotifier?.handleSceneInteraction(interactionType, clavier.clavierViewModel, null, 0, parent.index))
                             return false
@@ -161,16 +171,8 @@ Item {
                     onCanceled: sendInteractionNotification(ScopicFlow.II_Released)
                     onEntered: sendInteractionNotification(ScopicFlow.II_HoverEntered)
                     onExited: sendInteractionNotification(ScopicFlow.II_HoverExited)
-                    onClicked: (mouse) => {
-                        if (mouse.button === Qt.RightButton) {
-                            sendInteractionNotification(ScopicFlow.II_ContextMenu)
-                        } else {
-                            sendInteractionNotification(ScopicFlow.II_Clicked)
-                        }
-
-                    }
+                    onClicked: sendInteractionNotification(ScopicFlow.II_Clicked)
                     onDoubleClicked: sendInteractionNotification(ScopicFlow.II_DoubleClicked)
-                    onPressAndHold: sendInteractionNotification(ScopicFlow.II_PressAndHold)
                 }
             }
         }

@@ -224,9 +224,6 @@ Item {
         onDoubleClicked : (mouse) => {
             sendInteractionNotification(ScopicFlow.II_DoubleClicked, mouse)
         }
-        onPressAndHold : (mouse) => {
-            sendInteractionNotification(ScopicFlow.II_PressAndHold, mouse)
-        }
         onPositionChanged: (mouse) => {
             if (!pressed)
                 return

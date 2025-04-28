@@ -10,13 +10,12 @@ Pane {
     property QtObject trackListLayoutViewModel: null
     property QtObject scrollBehaviorViewModel: null
     property QtObject animationViewModel: null
+    property QtObject interactionControllerNotifier: null
+    property QtObject transactionControllerNotifier: null
 
     padding: 0
     focusPolicy: Qt.StrongFocus
     implicitWidth: mixer.implicitWidth
-
-    signal trackDoubleClicked(index: int)
-    signal contextMenuRequestedForTrack(index: int)
 
     ScopicFlowInternal.Mixer {
         id: mixer
@@ -26,8 +25,8 @@ Pane {
         scrollBehaviorViewModel: control.scrollBehaviorViewModel
         animationViewModel: control.animationViewModel
 
-        onTrackDoubleClicked: index => control.trackDoubleClicked(index)
-        onContextMenuRequestedForTrack: index => control.contextMenuRequestedForTrack(index)
+        interactionControllerNotifier: control.interactionControllerNotifier
+        transactionControllerNotifier: control.transactionControllerNotifier
 
     }
 }

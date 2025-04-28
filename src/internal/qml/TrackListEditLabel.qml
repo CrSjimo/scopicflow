@@ -24,7 +24,6 @@ T.Control {
     signal canceled()
     signal clicked()
     signal doubleClicked()
-    signal pressAndHold()
 
     function open() {
         popup.open()
@@ -104,7 +103,6 @@ T.Control {
             editLabel.open()
             editLabel.doubleClicked()
         }
-        onPressAndHold: editLabel.pressAndHold()
     }
 
 }

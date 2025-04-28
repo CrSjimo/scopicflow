@@ -60,8 +60,8 @@ namespace sflow {
             II_HoverExited,
             II_Clicked,
             II_DoubleClicked,
-            II_PressAndHold,
             II_ContextMenu,
+            II_ItemContextMenu,
         };
         Q_ENUM_NS(ItemInteraction)
 

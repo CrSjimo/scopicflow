@@ -43,13 +43,37 @@ ApplicationWindow {
     required property QtObject parameterRangeViewModel
     readonly property double minimumPanelSize: 100
 
+    Menu {
+        id: contextMenu
+        width: 400
+        property list<string> a: []
+        Instantiator {
+            model: contextMenu.a
+            delegate: MenuItem {
+                text: modelData
+            }
+            onObjectAdded: (index, object) => contextMenu.insertItem(index, object)
+            onObjectRemoved: (index, object) => contextMenu.removeItem(object)
+        }
+    }
+
     Connections {
         target: main.interactionControllerNotifier
-        function onItemInteracted (interactionType, model, index, containerModel, flag) {
-            console.log(`Item interacted: type=${["II_Pressed", "II_Released", "II_Canceled", "II_HoverEntered", "II_HoverExited", "II_Clicked", "II_DoubleClicked", "II_PressAndHold", "II_ContextMenu"][interactionType]}, model=${model}, index=${index}, containerModel=${containerModel}, flag=${flag}`)
+        function onItemInteracted (interactionType, model, index, containerModel, flags) {
+            let interactionTypeText = ["II_Pressed", "II_Released", "II_Canceled", "II_HoverEntered", "II_HoverExited", "II_Clicked", "II_DoubleClicked", "II_ContextMenu", "II_ItemContextMenu"][interactionType]
+            console.log(`Item interacted: type=${interactionTypeText}, model=${model}, index=${index}, containerModel=${containerModel}, flags=${flags}`)
+            if (/ContextMenu/.test(interactionTypeText)) {
+                contextMenu.a = [`Item Context Menu (${interactionTypeText})`, `Model: ${model}`, `Index: ${index}`, `Container Model: ${containerModel}`, `Flags: ${flags}`]
+                contextMenu.popup()
+            }
         }
-        function onSceneInteracted (interactionType, sceneModel, behaviorModel, position, value, flag) {
-            console.log(`Scene interacted: type=${["II_Pressed", "II_Released", "II_Canceled", "II_HoverEntered", "II_HoverExited", "II_Clicked", "II_DoubleClicked", "II_PressAndHold", "II_ContextMenu"][interactionType]}, sceneModel=${sceneModel}, behaviorModel=${behaviorModel}, position=${position}, value=${value}, flag=${flag}`)
+        function onSceneInteracted (interactionType, sceneModel, behaviorModel, position, value, flags) {
+            let interactionTypeText = ["II_Pressed", "II_Released", "II_Canceled", "II_HoverEntered", "II_HoverExited", "II_Clicked", "II_DoubleClicked", "II_ContextMenu", "II_ItemContextMenu"][interactionType]
+            console.log(`Scene interacted: type=${interactionTypeText}, sceneModel=${sceneModel}, behaviorModel=${behaviorModel}, position=${position}, value=${value}, flags=${flags}`)
+            if (/ContextMenu/.test(interactionTypeText)) {
+                contextMenu.a = [`Scene Context Menu (${interactionTypeText})`, `Scene Model: ${sceneModel}`, `Behavior Model: ${behaviorModel}`, `Position: ${position}`, `Value: ${value}`, `Flags: ${flags}`]
+                contextMenu.popup()
+            }
         }
     }
 
@@ -462,6 +486,8 @@ ApplicationWindow {
             trackListLayoutViewModel: main.mixerLayoutViewModel
             scrollBehaviorViewModel: main.scrollBehaviorViewModel
             animationViewModel: main.animationViewModel
+            interactionControllerNotifier: main.interactionControllerNotifier
+            transactionControllerNotifier: main.transactionControllerNotifier
         }
         Mixer {
             SplitView.maximumWidth: implicitWidth
@@ -469,6 +495,8 @@ ApplicationWindow {
             trackListLayoutViewModel: main.busMixerLayoutViewModel
             scrollBehaviorViewModel: main.scrollBehaviorViewModel
             animationViewModel: main.animationViewModel
+            interactionControllerNotifier: main.interactionControllerNotifier
+            transactionControllerNotifier: main.transactionControllerNotifier
         }
     }
 

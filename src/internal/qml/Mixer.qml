@@ -16,9 +16,8 @@ Item {
     property QtObject trackListLayoutViewModel: null
     property QtObject scrollBehaviorViewModel: null
     property QtObject animationViewModel: null
-
-    signal trackDoubleClicked(index: int)
-    signal contextMenuRequestedForTrack(index: int)
+    property QtObject interactionControllerNotifier: null
+    property QtObject transactionControllerNotifier: null
 
     SelectableViewModelManipulator {
         id: selectionManipulator
@@ -67,13 +66,55 @@ Item {
                     anchors.top: parent.top
                     anchors.bottom: parent.bottom
                     trackViewModel: parent.modelData
+                    trackListViewModel: mixer.trackListViewModel
+                    index: parent.index
                     trackNumber: parent.index + 1
                     isCurrent: parent.index === mixer.trackListViewModel?.handle.currentIndex
                     animationViewModel: mixer.animationViewModel
+                    interactionControllerNotifier: mixer.interactionControllerNotifier
+                    transactionControllerNotifier: mixer.transactionControllerNotifier
                     mouseArea: MouseArea {
                         anchors.fill: parent
+                        hoverEnabled: true
+                        function sendInteractionNotification(interactionType) {
+                            if (!handleBeforeInteractionNotification(interactionType))
+                                return false
+                            emitInteractionNotificationSignal(interactionType)
+                            return true
+                        }
+                        function handleBeforeInteractionNotification(interactionType) {
+                            if (mixer.interactionControllerNotifier?.handleItemInteraction(interactionType, mixerDelegate.modelData, mixerDelegate.index, mixer.trackListViewModel, ScopicFlow.InteractionOnTrackItem))
+                                return false
+                            return true
+                        }
+                        function emitInteractionNotificationSignal(interactionType) {
+                            mixer.interactionControllerNotifier?.itemInteracted(interactionType, mixerDelegate.modelData, mixerDelegate.index, mixer.trackListViewModel, ScopicFlow.InteractionOnTrackItem)
+                        }
+                        onPressed: (mouse) => {
+                            if (!sendInteractionNotification(ScopicFlow.II_Pressed))
+                                mouse.accepted = false
+                        }
+                        onReleased: sendInteractionNotification(ScopicFlow.II_Released)
+                        onCanceled: sendInteractionNotification(ScopicFlow.II_Canceled)
+                        onEntered: sendInteractionNotification(ScopicFlow.II_HoverEntered)
+                        onExited: sendInteractionNotification(ScopicFlow.II_HoverExited)
                         onClicked: (mouse) => {
+                            if (!handleBeforeInteractionNotification(ScopicFlow.II_Click))
+                                return
                             selectionManipulator.select(mixerDelegate.index, mouse.button, mouse.modifiers)
+                            emitInteractionNotificationSignal(ScopicFlow.II_Click)
+                        }
+                        onDoubleClicked: sendInteractionNotification(ScopicFlow.II_DoubleClicked)
+                    }
+                    MouseArea {
+                        anchors.fill: parent
+                        acceptedButtons: Qt.RightButton
+                        onClicked: (mouse) => {
+                            if (mixer.interactionControllerNotifier?.handleItemInteraction(ScopicFlow.II_ContextMenu, mixerDelegate.modelData, mixerDelegate.index, mixer.trackListViewModel, ScopicFlow.InteractionOnTrackItem))
+                                return
+                            selectionManipulator.select(mixerDelegate.index, mouse.button, mouse.modifiers)
+                            mixer.interactionControllerNotifier?.itemInteracted(ScopicFlow.II_ContextMenu, mixerDelegate.modelData, mixerDelegate.index, mixer.trackListViewModel, ScopicFlow.InteractionOnTrackItem)
+
                         }
                     }
                 }

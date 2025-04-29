@@ -1,5 +1,5 @@
 #include "ClipViewModel.h"
-#include "ViewModelHelper_p.h"
+#include <ScopicFlow/private/ViewModelHelper_p.h>
 
 #include <limits>
 

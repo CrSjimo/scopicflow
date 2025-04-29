@@ -3,6 +3,7 @@
 
 #include <qqmlregistration.h>
 
+#include <ScopicFlow/TimeManipulator.h>
 #include <ScopicFlow/LabelViewModel.h>
 #include <ScopicFlow/ClavierViewModel.h>
 #include <ScopicFlow/PianoRollNoteAreaBehaviorViewModel.h>
@@ -16,6 +17,11 @@ namespace sflow {
         QML_NAMED_ELEMENT(ScopicFlow)
         QML_EXTENDED_NAMESPACE(sflow::ScopicFlow)
         QML_SINGLETON
+    };
+    struct TimeManipulatorForeign {
+        Q_GADGET
+        QML_NAMED_ELEMENT(SFTimeManipulator)
+        QML_FOREIGN(TimeManipulator)
     };
     struct LabelViewModelForeign {
         Q_GADGET

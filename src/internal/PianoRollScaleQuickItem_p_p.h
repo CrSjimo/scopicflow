@@ -25,6 +25,8 @@ namespace sflow {
             Bar, Beat, Segment
         };
         QList<QPair<float, ScaleType>> xList;
+
+        void updateTimeline();
     };
 }
 

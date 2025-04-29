@@ -65,6 +65,8 @@ namespace sflow {
     }
     int AnchoredCurveQuickItemPrivate::getPaintPosition(int i) {
         Q_Q(AnchoredCurveQuickItem);
+        auto viewPosition = timeViewModel ? timeViewModel->start() : 0;
+        auto viewLength = timeLayoutViewModel ? q->width() / timeLayoutViewModel->pixelDensity() : 0;
         auto left = std::round(viewPosition + i * viewLength / q->width());
         if (!handle)
             return left;
@@ -82,7 +84,6 @@ namespace sflow {
         d->q_ptr = this;
         setFlag(ItemHasContents);
         connect(this, &QQuickItem::widthChanged, this, [=] {
-            d->viewLength = d->timeLayoutViewModel ? width() / d->timeLayoutViewModel->pixelDensity() : 0;
             update();
         });
         connect(this, &QQuickItem::heightChanged, this, &QQuickItem::update);
@@ -101,12 +102,8 @@ namespace sflow {
         }
         d->timeViewModel = timeViewModel;
         if (timeViewModel) {
-            connect(timeViewModel, &TimeViewModel::startChanged, this, [=] {
-                d->viewPosition = timeViewModel->start();
-                update();
-            });
+            connect(timeViewModel, SIGNAL(startChanged()), this, SLOT(update()));
         }
-        d->viewPosition = timeViewModel ? timeViewModel->start() : 0;
         emit timeViewModelChanged();
         update();
     }
@@ -123,12 +120,8 @@ namespace sflow {
         }
         d->timeLayoutViewModel = timeLayoutViewModel;
         if (timeLayoutViewModel) {
-            connect(timeLayoutViewModel, &TimeLayoutViewModel::pixelDensityChanged, this, [=] {
-                d->viewLength = width() / timeLayoutViewModel->pixelDensity();
-                update();
-            });
+            connect(timeLayoutViewModel, SIGNAL(pixelDensityChanged()), this, SLOT(update()));
         }
-        d->viewLength = timeLayoutViewModel ? width() / timeLayoutViewModel->pixelDensity() : 0;
         emit timeLayoutViewModelChanged();
         update();
     }
@@ -180,8 +173,8 @@ namespace sflow {
         }
         d->parameterRangeViewModel = parameterRangeViewModel;
         if (d->parameterRangeViewModel) {
-            connect(d->parameterRangeViewModel, &ParameterRangeViewModel::topValueChanged, this, &QQuickItem::update);
-            connect(d->parameterRangeViewModel, &ParameterRangeViewModel::bottomValueChanged, this, &QQuickItem::update);
+            connect(d->parameterRangeViewModel, SIGNAL(topValueChanged()), this, SLOT(update()));
+            connect(d->parameterRangeViewModel, SIGNAL(bottomValueChanged()), this, SLOT(update()));
         }
     }
 

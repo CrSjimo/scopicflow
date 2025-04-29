@@ -19,6 +19,7 @@ namespace sflow {
         Q_PROPERTY(QColor beatScaleColor READ beatScaleColor WRITE setBeatScaleColor NOTIFY beatScaleColorChanged)
         Q_PROPERTY(QColor barScaleColor READ barScaleColor WRITE setBarScaleColor NOTIFY barScaleColorChanged)
         Q_PROPERTY(QColor segmentScaleColor READ segmentScaleColor WRITE setSegmentScaleColor NOTIFY segmentScaleColorChanged)
+        Q_PRIVATE_SLOT(d_func(), void updateTimeline())
     public:
         explicit PianoRollScaleQuickItem(QQuickItem *parent = nullptr);
         ~PianoRollScaleQuickItem() override;

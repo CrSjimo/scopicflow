@@ -26,9 +26,6 @@ namespace sflow {
         QHash<QObject *, int> itemPositions;
         QHash<int, QObject *> positionItems;
 
-        double viewPosition = 0;
-        double viewLength = 0;
-
         void handleItemInserted(QObject *item);
         void handleItemRemoved(QObject *item);
         void handleItemUpdated(QObject *item);

@@ -17,6 +17,7 @@ namespace sflow {
         Q_PROPERTY(TimeLayoutViewModel *timeLayoutViewModel READ timeLayoutViewModel WRITE setTimeLayoutViewModel NOTIFY timeLayoutViewModelChanged)
         Q_PROPERTY(QColor color READ color WRITE setColor NOTIFY colorChanged)
         Q_DECLARE_PRIVATE(TimelineScaleQuickItem)
+        Q_PRIVATE_SLOT(d_func(), void updateTimeline())
     public:
         explicit TimelineScaleQuickItem(QQuickItem *parent = nullptr);
         ~TimelineScaleQuickItem() override;

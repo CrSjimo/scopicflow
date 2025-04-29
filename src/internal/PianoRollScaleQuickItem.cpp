@@ -19,6 +19,16 @@ namespace sflow {
         auto deltaTick = tick - timeViewModel->start();
         return deltaTick * timeLayoutViewModel->pixelDensity();
     }
+    void PianoRollScaleQuickItemPrivate::updateTimeline() {
+        Q_Q(PianoRollScaleQuickItem);
+        if (timeline) {
+            QObject::disconnect(timeline, nullptr, q, nullptr);
+        }
+        timeline = timeViewModel->timeline();
+        if (timeline) {
+            QObject::connect(timeline, &SVS::MusicTimeline::changed, q, &QQuickItem::update);
+        }
+    }
 
     PianoRollScaleQuickItem::PianoRollScaleQuickItem(QQuickItem *parent) : QQuickItem(parent), d_ptr(new PianoRollScaleQuickItemPrivate) {
         Q_D(PianoRollScaleQuickItem);
@@ -46,16 +56,8 @@ namespace sflow {
         d->timeline = nullptr;
         if (viewModel) {
             d->timeline = viewModel->timeline();
-            connect(viewModel, &TimeViewModel::startChanged, this, &QQuickItem::update);
-            connect(viewModel, &TimeViewModel::timelineChanged, this, [=] {
-                if (d->timeline) {
-                    disconnect(d->timeline, nullptr, this, nullptr);
-                }
-                d->timeline = viewModel->timeline();
-                if (d->timeline) {
-                    connect(d->timeline, &SVS::MusicTimeline::changed, this, &QQuickItem::update);
-                }
-            });
+            connect(viewModel, SIGNAL(startChanged()), this, SLOT(update()));
+            connect(viewModel, SIGNAL(timelineChanged()), this, SLOT(updateTimeline()));
             if (d->timeline) {
                 connect(d->timeline, &SVS::MusicTimeline::changed, this, &QQuickItem::update);
             }
@@ -77,8 +79,8 @@ namespace sflow {
         }
         d->timeLayoutViewModel = viewModel;
         if (viewModel) {
-            connect(viewModel, &TimeLayoutViewModel::pixelDensityChanged, this, &QQuickItem::update);
-            connect(viewModel, &TimeLayoutViewModel::positionAlignmentChanged, this, &QQuickItem::update);
+            connect(viewModel, SIGNAL(pixelDensityChanged()), this, SLOT(update()));
+            connect(viewModel, SIGNAL(positionAlignmentChanged()), this, SLOT(update()));
         }
         emit timeLayoutViewModelChanged();
         update();

@@ -40,6 +40,8 @@ namespace sflow {
         QPointer<SVS::MusicTimeline> timeline;
 
         QColor color;
+
+        void updateTimeline();
     };
 }
 

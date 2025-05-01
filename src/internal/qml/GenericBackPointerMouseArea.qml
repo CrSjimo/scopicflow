@@ -6,6 +6,8 @@ import dev.sjimo.ScopicFlow.Internal
 MouseArea {
     id: backPointerMouseArea
     anchors.fill: parent
+    hoverEnabled: true
+    acceptedButtons: Qt.LeftButton | Qt.RightButton
     property bool dragged: false
     property double pressedX: 0
     property double pressedY: 0
@@ -13,6 +15,22 @@ MouseArea {
 
     required property Item paneItem
     property QtObject verticalManipulator: null
+
+    property var handleBeforeInteractionNotificationCallback: (..._) => false
+    property var emitInteractionNotificationSignalCallback: (..._) => {}
+
+    function sendInteractionNotification(interactionType) {
+        if (!handleBeforeInteractionNotification(interactionType))
+            return false
+        emitInteractionNotificationSignal(interactionType)
+        return true
+    }
+    function handleBeforeInteractionNotification(interactionType) {
+        return handleBeforeInteractionNotificationCallback(interactionType)
+    }
+    function emitInteractionNotificationSignal(interactionType) {
+        return emitInteractionNotificationSignalCallback(interactionType)
+    }
 
     signal rubberBandStartRequired(p: point)
     signal rubberBandUpdateRequired(p: point)
@@ -39,8 +57,38 @@ MouseArea {
         dragged = false
         pressedX = mouse.x
         pressedY = mouse.y
+        if (!sendInteractionNotification(ScopicFlow.II_Pressed))
+            mouse.accepted = false
+    }
+    onReleased: () => {
+        rubberBandLayer.endSelection()
+        rubberBandDragScroller.running = false
+        sendInteractionNotification(ScopicFlow.II_Released)
+    }
+    onCanceled: () => {
+        rubberBandLayer.endSelection()
+        rubberBandDragScroller.running = false
+        sendInteractionNotification(ScopicFlow.II_Canceled)
+    }
+    onEntered: sendInteractionNotification(ScopicFlow.II_HoverEntered)
+    onExited: sendInteractionNotification(ScopicFlow.II_HoverExited)
+    onClicked: (mouse) => {
+        if (mouse.button === Qt.LeftButton && !dragged) {
+            if (!handleBeforeInteractionNotification(ScopicFlow.II_Clicked))
+                return
+            selectionManipulator.select(null, mouse.button, mouse.modifiers)
+            emitInteractionNotificationSignal(ScopicFlow.II_Clicked)
+        } else if (mouse.button === Qt.RightButton) {
+            let interactionType = dragged || (mouse.modifiers & Qt.ControlModifier) ? ScopicFlow.II_ItemContextMenu : ScopicFlow.II_ContextMenu
+            if (!handleBeforeInteractionNotification(interactionType))
+                return
+            selectionManipulator.select(null, mouse.button, mouse.modifiers | (dragged ? Qt.ControlModifier : 0))
+            emitInteractionNotificationSignal(interactionType)
+        }
     }
     onPositionChanged: (mouse) => {
+        if (!pressed)
+            return
         dragged = true
         if (!rubberBandLayer.started) {
             selectionManipulator.select(null, Qt.RightButton, mouse.modifiers)
@@ -55,15 +103,5 @@ MouseArea {
                 doDragRubberBand(Qt.point(lastTargetPoint.x, mouse.y))
             }
         })
-    }
-    onReleased: canceled()
-    onCanceled: () => {
-        rubberBandLayer.endSelection()
-        rubberBandDragScroller.running = false
-    }
-    onClicked: (mouse) => {
-        if (!dragged) {
-            selectionManipulator.select(null, mouse.button, mouse.modifiers)
-        }
     }
 }

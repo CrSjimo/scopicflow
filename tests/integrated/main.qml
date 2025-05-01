@@ -309,6 +309,8 @@ ApplicationWindow {
                 labelSequenceBehaviorViewModel: main.arrangementLabelSequenceBehaviorViewModel
                 scrollBehaviorViewModel: main.scrollBehaviorViewModel
                 animationViewModel: main.animationViewModel
+                interactionControllerNotifier: main.interactionControllerNotifier
+                transactionControllerNotifier: main.transactionControllerNotifier
             }
             ClipPane {
                 id: clipPane
@@ -409,6 +411,8 @@ ApplicationWindow {
             labelSequenceBehaviorViewModel: main.labelSequenceBehaviorViewModel
             scrollBehaviorViewModel: main.scrollBehaviorViewModel
             animationViewModel: main.animationViewModel
+            interactionControllerNotifier: main.interactionControllerNotifier
+            transactionControllerNotifier: main.transactionControllerNotifier
         }
 
         SplitView {

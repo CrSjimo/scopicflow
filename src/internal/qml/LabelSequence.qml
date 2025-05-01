@@ -16,6 +16,8 @@ Item {
     property QtObject animationViewModel: null
     property QtObject labelSequenceViewModel: null
     property QtObject labelSequenceBehaviorViewModel: null
+    property QtObject interactionControllerNotifier: null
+    property QtObject transactionControllerNotifier: null
 
     Text {
         id: labelLengthReference
@@ -130,6 +132,18 @@ Item {
             id: backPointerMouseArea
             paneItem: labelSequence
 
+            handleBeforeInteractionNotificationCallback: (interactionType) => {
+                let position = containsMouse || pressed ? timeLocator.mapToTick(mouseX) : -1
+                if (labelSequence.interactionControllerNotifier?.handleSceneInteraction(interactionType, labelSequence.labelSequenceViewModel, labelSequence.labelSequenceBehaviorViewModel, position, 0))
+                    return false
+                return true
+            }
+
+            emitInteractionNotificationSignalCallback: (interactionType) => {
+                let position = containsMouse || pressed ? timeLocator.mapToTick(mouseX) : -1
+                labelSequence.interactionControllerNotifier?.sceneInteracted(interactionType, labelSequence.labelSequenceViewModel, labelSequence.labelSequenceBehaviorViewModel, position, 0)
+            }
+
             onRubberBandStartRequired: (p) => {
                 rubberBandLayer.startSelection(Qt.point(p.x, 0))
             }
@@ -137,12 +151,15 @@ Item {
                 rubberBandLayer.updateSelection(Qt.point(p.x, labelSequence.height))
             }
             onDoubleClicked: (mouse) => {
+                if (!handleBeforeInteractionNotification(ScopicFlow.II_DoubleClicked))
+                    return
                 let label = labelViewModelComponent.createObject(null, {
                     position: timeLocator.alignTick(timeLocator.mapToTick(mapToItem(labelSequence, mouse.x, 0).x))
                 })
                 labelSequence.labelSequenceViewModel.handle.insertItem(label)
                 selectionManipulator.select(label, Qt.LeftButton, 0)
                 labelSequence.labelSequenceBehaviorViewModel.editing = true
+                emitInteractionNotificationSignal(ScopicFlow.II_DoubleClicked)
             }
         }
 

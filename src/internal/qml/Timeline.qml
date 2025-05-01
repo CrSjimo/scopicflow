@@ -158,14 +158,14 @@ Item {
             emitInteractionNotificationSignal(interactionType, mouse)
             return true
         }
-        function handleBeforeInteractionNotification(interactionType, mouse = null) {
-            let position = mouse ? locator.mapToTick(mouse.x) : -1;
-            let flag = mouse && primaryIndicator.contains(mapToItem(primaryIndicator, mouse.x, mouse.y)) ? ScopicFlow.InteractionOnPositionIndicator : ScopicFlow.InteractionOnTimeline
+        function handleBeforeInteractionNotification(interactionType) {
+            let position = containsMouse || pressed ? locator.mapToTick(mouseX) : -1
+            let flag = (containsMouse || pressed) && primaryIndicator.contains(mapToItem(primaryIndicator, mouseX, mouseY)) ? ScopicFlow.InteractionOnPositionIndicator : ScopicFlow.InteractionOnTimeline
             return timeline.interactionControllerNotifier?.handleSceneInteraction(interactionType, timeline.timeViewModel, timeline.timeLayoutViewModel, position, 0, flag)
         }
-        function emitInteractionNotificationSignal(interactionType, mouse = null) {
-            let position = mouse ? locator.mapToTick(mouse.x) : -1;
-            let flag = mouse && primaryIndicator.contains(mapToItem(primaryIndicator, mouse.x, mouse.y)) ? ScopicFlow.InteractionOnPositionIndicator : ScopicFlow.InteractionOnTimeline
+        function emitInteractionNotificationSignal(interactionType) {
+            let position = containsMouse || pressed ? locator.mapToTick(mouseX) : -1
+            let flag = (containsMouse || pressed) && primaryIndicator.contains(mapToItem(primaryIndicator, mouseX, mouseY)) ? ScopicFlow.InteractionOnPositionIndicator : ScopicFlow.InteractionOnTimeline
             timeline.interactionControllerNotifier?.sceneInteracted(interactionType, timeline.timeViewModel, timeline.timeLayoutViewModel, position, 0, flag)
         }
         function handlePositionChanged(x, button) {
@@ -192,16 +192,16 @@ Item {
         onPressed: (mouse) => {
             rejectContextMenu = false
             pressedX = mouse.x
-            if (!sendInteractionNotification(ScopicFlow.II_Pressed, mouse)) {
+            if (!sendInteractionNotification(ScopicFlow.II_Pressed)) {
                 mouse.accepted = false
             }
         }
-        onReleased: (mouse) => {
+        onReleased: () => {
             dragScroller.running = false
             cursorShape = Qt.ArrowCursor
             let rect = mapFromItem(rubberBandLayerViewport, rubberBandLayer.endSelection())
             timeline.setZoomedRange(rect.x, rect.width)
-            sendInteractionNotification(ScopicFlow.II_Released, mouse)
+            sendInteractionNotification(ScopicFlow.II_Released)
         }
         onCanceled: () => {
             dragScroller.running = false
@@ -213,17 +213,15 @@ Item {
         onExited: sendInteractionNotification(ScopicFlow.II_HoverExited)
         onClicked: (mouse) => {
             if (mouse.button === Qt.LeftButton) {
-                if (handleBeforeInteractionNotification(ScopicFlow.II_Clicked, mouse))
+                if (handleBeforeInteractionNotification(ScopicFlow.II_Clicked))
                     return
                 timeline.setIndicatorPosition(mouse.x)
-                emitInteractionNotificationSignal(ScopicFlow.II_Clicked, mouse)
+                emitInteractionNotificationSignal(ScopicFlow.II_Clicked)
             } else if (mouse.button === Qt.RightButton && !rejectContextMenu) {
-                sendInteractionNotification(ScopicFlow.II_ContextMenu, mouse)
+                sendInteractionNotification(ScopicFlow.II_ContextMenu)
             }
         }
-        onDoubleClicked : (mouse) => {
-            sendInteractionNotification(ScopicFlow.II_DoubleClicked, mouse)
-        }
+        onDoubleClicked: sendInteractionNotification(ScopicFlow.II_DoubleClicked)
         onPositionChanged: (mouse) => {
             if (!pressed)
                 return

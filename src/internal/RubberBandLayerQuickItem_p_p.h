@@ -12,6 +12,7 @@ namespace sflow {
         QPointer<SelectableViewModelManipulator> selectionManipulator;
         QPointer<QQmlComponent> rubberBandComponent;
         QPointer<QQuickItem> rubberBandItem;
+        QPointer<TransactionControllerNotifier> transactionControllerNotifier;
 
         QPointF startPos;
         QPointF endPos;

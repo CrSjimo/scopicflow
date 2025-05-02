@@ -145,7 +145,6 @@ Item {
             function handlePositionChanged(x, y, modifiers) {
                 if (!rubberBandLayer.started) {
                     selectionManipulator.select(null, Qt.RightButton, modifiers)
-                    trackList.transactionControllerNotifier?.transactionAboutToBegin()
                     rubberBandLayer.startSelection(Qt.point(x, y))
                 } else {
                     rubberBandLayer.updateSelection(Qt.point(x, y))
@@ -176,16 +175,14 @@ Item {
             }
             onReleased: () => {
                 if (rubberBandLayer.started) {
-                    rubberBandLayer.endSelection()
-                    trackList.transactionControllerNotifier?.transactionCommitted()
+                    rubberBandLayer.endSelection(false)
                 }
                 dragScroller.running = false
                 sendInteractionNotification(ScopicFlow.II_Released)
             }
             onCanceled: () => {
                 if (rubberBandLayer.started) {
-                    rubberBandLayer.endSelection()
-                    trackList.transactionControllerNotifier?.transactionAborted()
+                    rubberBandLayer.endSelection(true)
                 }
                 dragScroller.running = false
                 sendInteractionNotification(ScopicFlow.II_Canceled)
@@ -511,6 +508,7 @@ Item {
             id: rubberBandLayer
             anchors.fill: parent
             selectionManipulator: selectionManipulator
+            transactionControllerNotifier: trackList.transactionControllerNotifier
             rubberBand: RubberBandRectangle {
             }
         }

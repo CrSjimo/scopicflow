@@ -43,6 +43,17 @@ namespace sflow {
         Q_D(const RubberBandLayerQuickItem);
         return d->started;
     }
+    TransactionControllerNotifier *RubberBandLayerQuickItem::transactionControllerNotifier() const {
+        Q_D(const RubberBandLayerQuickItem);
+        return d->transactionControllerNotifier;
+    }
+    void RubberBandLayerQuickItem::setTransactionControllerNotifier(TransactionControllerNotifier *transactionControllerNotifier) {
+        Q_D(RubberBandLayerQuickItem);
+        if (d->transactionControllerNotifier == transactionControllerNotifier)
+            return;
+        d->transactionControllerNotifier = transactionControllerNotifier;
+        emit transactionControllerNotifierChanged();
+    }
     void RubberBandLayerQuickItem::insertItem(const QVariant &item, const QRectF &rect) {
         Q_D(RubberBandLayerQuickItem);
         if (!d->selectionManipulator || !d->selectionManipulator->interface())
@@ -70,6 +81,8 @@ namespace sflow {
             d->rubberBandItem->setWidth(0);
             d->rubberBandItem->setHeight(0);
         }
+        if (d->transactionControllerNotifier)
+            emit d->transactionControllerNotifier->transactionAboutToBegin();
         if (d->selectionManipulator && d->selectionManipulator->interface()) {
             d->selectionManipulator->interface()->viewModel()->setProperty("intermediate", true);
         }
@@ -120,7 +133,7 @@ namespace sflow {
             }
         }
     }
-    QRectF RubberBandLayerQuickItem::endSelection() {
+    QRectF RubberBandLayerQuickItem::endSelection(bool canceled) {
         Q_D(RubberBandLayerQuickItem);
         if (!d->started)
             return {};
@@ -131,6 +144,12 @@ namespace sflow {
         d->taggedItems.clear();
         if (d->selectionManipulator && d->selectionManipulator->interface()) {
             d->selectionManipulator->interface()->viewModel()->setProperty("intermediate", false);
+        }
+        if (d->transactionControllerNotifier) {
+            if (canceled)
+                emit d->transactionControllerNotifier->transactionAborted();
+            else
+                emit d->transactionControllerNotifier->transactionCommitted();
         }
         emit startedChanged(false);
         return {d->rubberBandItem->x(), d->rubberBandItem->y(), d->rubberBandItem->width(), d->rubberBandItem->height()};

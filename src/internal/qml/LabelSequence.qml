@@ -66,11 +66,6 @@ Item {
         moveSelectionTo(alignedTick, model)
     }
 
-    signal contextMenuRequested(tick: int)
-    signal contextMenuRequestedForLabel(label: QtObject)
-
-
-
     clip: true
     implicitHeight: 20
 
@@ -205,13 +200,30 @@ Item {
                         }
                     }
 
+                    function sendInteractionNotification(interactionType) {
+                        if (!handleBeforeInteractionNotification(interactionType))
+                            return false
+                        sendInteractionNotification(interactionType)
+                        return true
+                    }
+                    function handleBeforeInteractionNotification(interactionType) {
+                        if (labelSequence.interactionControllerNotifier?.handleItemInteraction(interactionType, labelRect.model, -1, labelSequence.labelSequenceViewModel))
+                            return false
+                        return true
+                    }
+                    function emitInteractionNotificationSignal(interactionType) {
+                        labelSequence.interactionControllerNotifier?.itemInteracted(interactionType, labelRect.model, -1, labelSequence.labelSequenceViewModel)
+                    }
+
                     MouseArea {
                         id: rightButtonMouseArea
                         anchors.fill: parent
                         acceptedButtons: Qt.RightButton
                         onClicked: (mouse) => {
+                            if (!labelRect.handleBeforeInteractionNotification(ScopicFlow.II_ContextMenu))
+                                return
                             selectionManipulator.select(labelRect.model, mouse.button, mouse.modifiers)
-                            labelSequence.contextMenuRequestedForLabel(labelRect.model)
+                            labelRect.emitInteractionNotificationSignal(ScopicFlow.II_ContextMenu)
                         }
                     }
 
@@ -220,10 +232,9 @@ Item {
                         paneItem: labelSequence
                         sequenceViewModel: labelSequence.labelSequenceViewModel
                         model: labelRect.model
-
-                        onPressedChanged: () => {
-                            
-                        }
+                        transactionControllerNotifier: labelSequence.transactionControllerNotifier
+                        handleBeforeInteractionNotificationCallback: (interactionType) => labelRect.handleBeforeInteractionNotification(interactionType)
+                        emitInteractionNotificationSignalCallback: (interactionType) => labelRect.emitInteractionNotificationSignal(interactionType)
 
                         onDraggingChanged: {
                             if (dragging) {
@@ -235,9 +246,12 @@ Item {
                             }
                         }
 
-                        onDoubleClicked: (mouse) => {
+                        onDoubleClicked: () => {
+                            if (!handleBeforeInteractionNotification(ScopicFlow.II_DoubleClicked))
+                                return
                             labelSequence.labelSequenceViewModel.handle.currentItem = labelRect.model
                             labelSequence.labelSequenceBehaviorViewModel.editing = true
+                            emitInteractionNotificationSignal(ScopicFlow.II_DoubleClicked)
                         }
                     }
                 }
@@ -248,6 +262,7 @@ Item {
             id: rubberBandLayer
             anchors.fill: parent
             selectionManipulator: selectionManipulator
+            transactionControllerNotifier: labelSequence.transactionControllerNotifier
             z: 2
             rubberBand: RubberBandRectangle {
             }

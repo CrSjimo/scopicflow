@@ -19,9 +19,6 @@ Pane {
     padding: 0
     focusPolicy: Qt.StrongFocus
 
-    signal contextMenuRequested(tick: int)
-    signal contextMenuRequestedForLabel(label: QtObject)
-
     ScopicFlowInternal.LabelSequence {
         id: labelSequence
         anchors.fill: parent
@@ -35,9 +32,7 @@ Pane {
         animationViewModel: control.animationViewModel
         interactionControllerNotifier: control.interactionControllerNotifier
         transactionControllerNotifier: control.transactionControllerNotifier
-        
-        onContextMenuRequested: tick => control.contextMenuRequested(tick)
-        onContextMenuRequestedForLabel: label => control.contextMenuRequestedForLabel(label)
+
     }
 
 }

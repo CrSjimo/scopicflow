@@ -16,7 +16,7 @@ MouseArea {
     required property Item paneItem
     property QtObject verticalManipulator: null
 
-    property var handleBeforeInteractionNotificationCallback: (..._) => false
+    property var handleBeforeInteractionNotificationCallback: (..._) => true
     property var emitInteractionNotificationSignalCallback: (..._) => {}
 
     function sendInteractionNotification(interactionType) {

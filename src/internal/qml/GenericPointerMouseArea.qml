@@ -6,15 +6,33 @@ import dev.sjimo.ScopicFlow.Internal
 MouseArea {
     id: pointerMouseArea
     anchors.fill: parent
+    hoverEnabled: true
     property double pressedDeltaX: 0
     property double pressedDeltaY: 0
     property bool dragged: false
     readonly property bool dragging: dragged & pressed
 
     property QtObject verticalManipulator: null
+    property QtObject transactionControllerNotifier: null
     required property Item paneItem
     required property QtObject sequenceViewModel
     required property QtObject model
+
+    property var handleBeforeInteractionNotificationCallback: (..._) => true
+    property var emitInteractionNotificationSignalCallback: (..._) => {}
+
+    function sendInteractionNotification(interactionType) {
+        if (!handleBeforeInteractionNotification(interactionType))
+            return false
+        emitInteractionNotificationSignal(interactionType)
+        return true
+    }
+    function handleBeforeInteractionNotification(interactionType) {
+        return handleBeforeInteractionNotificationCallback(interactionType)
+    }
+    function emitInteractionNotificationSignal(interactionType) {
+        return emitInteractionNotificationSignalCallback(interactionType)
+    }
 
     function moveSelectionTo(position) {
         if (position !== model.position) {
@@ -60,10 +78,44 @@ MouseArea {
         dragged = false
         pressedDeltaX = mouse.x
         pressedDeltaY = mouse.y
+        if (!sendInteractionNotification(ScopicFlow.II_Pressed))
+            return false
+    }
+    onReleased: () => {
+        if (dragged) {
+            for (let note of sequenceViewModel.handle.selection) {
+                note.intermediate = false
+            }
+            pointerMouseArea.transactionControllerNotifier?.transactionCommitted()
+        }
+        dragScroller.running = false
+        sendInteractionNotification(ScopicFlow.II_Released)
+    }
+    onCanceled: () => {
+        if (dragged) {
+            for (let note of sequenceViewModel.handle.selection) {
+                note.intermediate = false
+            }
+            pointerMouseArea.transactionControllerNotifier?.transactionAborted()
+        }
+        dragScroller.running = false
+        sendInteractionNotification(ScopicFlow.II_Canceled)
+    }
+    onEntered: sendInteractionNotification(ScopicFlow.II_HoverEntered)
+    onClicked: (mouse) => {
+        if (!dragged) {
+            if (!handleBeforeInteractionNotification(ScopicFlow.II_Clicked))
+                return
+            selectionManipulator.select(model, mouse.button, mouse.modifiers)
+            emitInteractionNotificationSignal(ScopicFlow.II_Clicked)
+        }
     }
     onPositionChanged: (mouse) => {
+        if (!pressed)
+            return
         if (!dragged) {
             dragged = true
+            pointerMouseArea.transactionControllerNotifier?.transactionAboutToBegin()
             for (let note of sequenceViewModel.handle.selection) {
                 note.intermediate = true
             }
@@ -78,18 +130,5 @@ MouseArea {
                 moveSelectedNotesToY(parentPoint.y - pressedDeltaY)
             }
         })
-    }
-    onReleased: canceled()
-    onCanceled: {
-        if (dragged) {
-            for (let note of sequenceViewModel.handle.selection) {
-                note.intermediate = false
-            }
-        }
-        dragScroller.running = false
-    }
-    onClicked: (mouse) => {
-        if (!dragged)
-            selectionManipulator.select(model, mouse.button, mouse.modifiers)
     }
 }

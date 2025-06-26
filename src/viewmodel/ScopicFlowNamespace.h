@@ -89,6 +89,14 @@ namespace sflow {
         };
         Q_ENUM_NS(TrackInteractionOption)
 
+        enum GenericRangeInteractionOption {
+            InteractionByMouseBehavior = 0x000,
+            InteractionOnEdge = 0x100,
+
+            GenericRangeInteractionOption_InteractionOptionMask = 0xff00,
+        };
+        Q_ENUM_NS(GenericRangeInteractionOption)
+
     }
 
 }

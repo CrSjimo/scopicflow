@@ -5,67 +5,76 @@ import SVSCraft.UIComponents
 
 Popup {
     id: popup
-    required property QtObject model
-    required property QtObject containerModel
-    required property string targetProperty
-    property bool removeIfEmpty: false
-    property double radius: 0
 
-    padding: 0
-    background: Item {}
+    required property QtObject containerModel
+    required property QtObject model
+    property double radius: 0
+    property bool removeIfEmpty: false
+    required property string targetProperty
+
     height: parent.height
-    onOpened: {
-        noteEdit.text = model[targetProperty]
-        noteEdit.escaped = false
-        noteEdit.selectAll()
-        noteEdit.forceActiveFocus()
+    padding: 0
+
+    background: Item {
     }
+
     onClosed: {
         if (!noteEdit.escaped)
-            model[targetProperty] = noteEdit.text
+            model[targetProperty] = noteEdit.text;
         if (removeIfEmpty && !model[targetProperty].length)
-            containerModel.handle.removeItem(model)
+            containerModel.handle.removeItem(model);
     }
+    onOpened: {
+        noteEdit.text = model[targetProperty];
+        noteEdit.escaped = false;
+        noteEdit.selectAll();
+        noteEdit.forceActiveFocus();
+    }
+
     TextField {
         id: noteEdit
-        anchors.top: parent.top
+
+        property bool escaped: false
+
         anchors.bottom: parent.bottom
+        anchors.top: parent.top
+        bottomPadding: 0
+        leftPadding: 4
+        rightPadding: 4
+        text: popup.model[popup.targetProperty]
+        topPadding: 0
         width: Math.max(popup.width, implicitWidth)
+
         background: Rectangle {
+            border.color: Theme.accentColor
+            border.width: 1
             color: Theme.textFieldColor
             radius: 2
-            border.width: 1
-            border.color: Theme.accentColor
         }
-        text: popup.model[popup.targetProperty]
-        leftPadding: 4
-        topPadding: 0
-        bottomPadding: 0
-        rightPadding: 4
-        property bool escaped: false
+
+        Keys.onBacktabPressed: {
+            popup.containerModel.handle.currentItem = popup.containerModel.handle.previousItem(popup.model);
+        }
         Keys.onEscapePressed: {
-            escaped = true
-            popup.close()
+            escaped = true;
+            popup.close();
+        }
+        Keys.onPressed: event => {
+            if (event.key === Qt.Key_Home && event.modifiers === Qt.ControlModifier) {
+                popup.containerModel.handle.currentItem = popup.containerModel.handle.firstItem();
+            } else if (event.key === Qt.Key_End && event.modifiers === Qt.ControlModifier) {
+                popup.containerModel.handle.currentItem = popup.containerModel.handle.lastItem();
+            } else {
+                event.accepted = false;
+                return;
+            }
+            event.accepted = true;
         }
         Keys.onReturnPressed: {
-            popup.close()
+            popup.close();
         }
         Keys.onTabPressed: {
-            popup.containerModel.handle.currentItem = popup.containerModel.handle.nextItem(popup.model)
-        }
-        Keys.onBacktabPressed: {
-            popup.containerModel.handle.currentItem = popup.containerModel.handle.previousItem(popup.model)
-        }
-        Keys.onPressed: (event) => {
-            if (event.key === Qt.Key_Home && event.modifiers === Qt.ControlModifier) {
-                popup.containerModel.handle.currentItem = popup.containerModel.handle.firstItem()
-            } else if (event.key === Qt.Key_End && event.modifiers === Qt.ControlModifier) {
-                popup.containerModel.handle.currentItem = popup.containerModel.handle.lastItem()
-            } else {
-                event.accepted = false
-                return
-            }
-            event.accepted = true
+            popup.containerModel.handle.currentItem = popup.containerModel.handle.nextItem(popup.model);
         }
     }
 }

@@ -3,72 +3,66 @@ import QtQuick
 Item {
     id: handler
 
-    property QtObject viewModel: null
     property int movableOrientation: Qt.Horizontal | Qt.Vertical
-    property int zoomableOrientation: movableOrientation
     property int pinchZoomOrientationHint: zoomableOrientation
+    property QtObject viewModel: null
+    property int zoomableOrientation: movableOrientation
 
-    signal zoomed(ratioX: double, ratioY: double, x: double, y: double, isPhysicalWheel: bool)
     signal moved(x: double, y: double, isPhysicalWheel: bool)
+    signal zoomed(ratioX: double, ratioY: double, x: double, y: double, isPhysicalWheel: bool)
 
     MouseArea {
+        readonly property var alternateAxisModifier: handler.viewModel ? handler.viewModel.alternateAxisModifier : Qt.AltModifier
+        readonly property var pageModifier: handler.viewModel ? handler.viewModel.pageModifier : Qt.ShiftModifier
+        readonly property var zoomModifier: handler.viewModel ? handler.viewModel.zoomModifier : Qt.ControlModifier
+
         acceptedButtons: Qt.NoButton
         anchors.fill: parent
         cursorShape: undefined
 
-        readonly property var alternateAxisModifier: handler.viewModel? handler.viewModel.alternateAxisModifier : Qt.AltModifier
-        readonly property var zoomModifier: handler.viewModel? handler.viewModel.zoomModifier : Qt.ControlModifier
-        readonly property var pageModifier: handler.viewModel? handler.viewModel.pageModifier : Qt.ShiftModifier
-
         onWheel: function (wheel) {
-            let isWindows = Qt.platform.os === "windows"
-            let isAxisRevert = isWindows && (wheel.modifiers & Qt.AltModifier)
-            let isAlternateAxis = Boolean(wheel.modifiers & alternateAxisModifier) || Boolean(wheel.modifiers & pageModifier) && handler.viewModel?.usePageModifierAsAlternateAxisZoom
-            let isZoom = Boolean(wheel.modifiers & zoomModifier) || Boolean(wheel.modifiers & pageModifier) && handler.viewModel?.usePageModifierAsAlternateAxisZoom
-            let isPage = Boolean(wheel.modifiers & pageModifier) && !handler.viewModel?.usePageModifierAsAlternateAxisZoom
+            let isWindows = Qt.platform.os === "windows";
+            let isAxisRevert = isWindows && (wheel.modifiers & Qt.AltModifier);
+            let isAlternateAxis = Boolean(wheel.modifiers & alternateAxisModifier) || Boolean(wheel.modifiers & pageModifier) && handler.viewModel?.usePageModifierAsAlternateAxisZoom;
+            let isZoom = Boolean(wheel.modifiers & zoomModifier) || Boolean(wheel.modifiers & pageModifier) && handler.viewModel?.usePageModifierAsAlternateAxisZoom;
+            let isPage = Boolean(wheel.modifiers & pageModifier) && !handler.viewModel?.usePageModifierAsAlternateAxisZoom;
 
-            let deltaPixelX = isAlternateAxis ? (isAxisRevert ? wheel.pixelDelta.x : wheel.pixelDelta.y) : (isAxisRevert ? wheel.pixelDelta.y : wheel.pixelDelta.x)
-            let deltaPixelY = !isAlternateAxis ? (isAxisRevert ? wheel.pixelDelta.x : wheel.pixelDelta.y) : (isAxisRevert ? wheel.pixelDelta.y : wheel.pixelDelta.x)
+            let deltaPixelX = isAlternateAxis ? (isAxisRevert ? wheel.pixelDelta.x : wheel.pixelDelta.y) : (isAxisRevert ? wheel.pixelDelta.y : wheel.pixelDelta.x);
+            let deltaPixelY = !isAlternateAxis ? (isAxisRevert ? wheel.pixelDelta.x : wheel.pixelDelta.y) : (isAxisRevert ? wheel.pixelDelta.y : wheel.pixelDelta.x);
 
-            let deltaX = (isAlternateAxis ? (isAxisRevert ? wheel.angleDelta.x : wheel.angleDelta.y) : (isAxisRevert ? wheel.angleDelta.y : wheel.angleDelta.x)) / 120
-            let deltaY = (!isAlternateAxis ? (isAxisRevert ? wheel.angleDelta.x : wheel.angleDelta.y) : (isAxisRevert ? wheel.angleDelta.y : wheel.angleDelta.x)) / 120
+            let deltaX = (isAlternateAxis ? (isAxisRevert ? wheel.angleDelta.x : wheel.angleDelta.y) : (isAxisRevert ? wheel.angleDelta.y : wheel.angleDelta.x)) / 120;
+            let deltaY = (!isAlternateAxis ? (isAxisRevert ? wheel.angleDelta.x : wheel.angleDelta.y) : (isAxisRevert ? wheel.angleDelta.y : wheel.angleDelta.x)) / 120;
 
-            let wheelHint = (!deltaPixelX && Math.abs(deltaX - Math.floor(deltaX)) < Number.EPSILON) && (!deltaPixelY && Math.abs(deltaY - Math.floor(deltaY)) < Number.EPSILON)
+            let wheelHint = (!deltaPixelX && Math.abs(deltaX - Math.floor(deltaX)) < Number.EPSILON) && (!deltaPixelY && Math.abs(deltaY - Math.floor(deltaY)) < Number.EPSILON);
 
             if (isZoom) {
-                handler.zoomed(
-                    Math.pow(1 + (isPage ? 2.5 : 0.25) * Math.abs(deltaX), Math.sign(deltaX)),
-                    Math.pow(1 + (isPage ? 3 : 0.3) * Math.abs(deltaY), Math.sign(deltaY)),
-                    wheel.x, wheel.y, wheelHint)
+                handler.zoomed(Math.pow(1 + (isPage ? 2.5 : 0.25) * Math.abs(deltaX), Math.sign(deltaX)), Math.pow(1 + (isPage ? 3 : 0.3) * Math.abs(deltaY), Math.sign(deltaY)), wheel.x, wheel.y, wheelHint);
             } else {
                 if (!deltaPixelX)
-                    deltaPixelX = isPage ? Math.sign(deltaX) * handler.width : 0.125 * deltaX * handler.width
+                    deltaPixelX = isPage ? Math.sign(deltaX) * handler.width : 0.125 * deltaX * handler.width;
                 if (!deltaPixelY)
-                    deltaPixelY = isPage ? Math.sign(deltaY) * handler.height : 0.2 * deltaY * handler.height
-                handler.moved(-deltaPixelX, -deltaPixelY, wheelHint)
+                    deltaPixelY = isPage ? Math.sign(deltaY) * handler.height : 0.2 * deltaY * handler.height;
+                handler.moved(-deltaPixelX, -deltaPixelY, wheelHint);
             }
-
         }
     }
-
     PinchArea {
         anchors.fill: parent
 
-        onPinchUpdated: (pinch) => {
-            let scale = pinch.scale / pinch.previousScale
-            let acceptHorizontal = (handler.zoomableOrientation & Qt.Horizontal)
-            let acceptVertical = (handler.zoomableOrientation & Qt.Vertical)
+        onPinchUpdated: pinch => {
+            let scale = pinch.scale / pinch.previousScale;
+            let acceptHorizontal = (handler.zoomableOrientation & Qt.Horizontal);
+            let acceptVertical = (handler.zoomableOrientation & Qt.Vertical);
             if (acceptHorizontal && acceptVertical) {
                 if (handler.viewModel?.pinchDecomposed)
-                    handler.zoomed(scale, scale, pinch.center.x, pinch.center.y, false)
+                    handler.zoomed(scale, scale, pinch.center.x, pinch.center.y, false);
                 else
-                    handler.zoomed((handler.pinchZoomOrientationHint & Qt.Horizontal) ? scale : 1, (handler.pinchZoomOrientationHint & Qt.Vertical) ? scale : 1, pinch.center.x, pinch.center.y, false)
+                    handler.zoomed((handler.pinchZoomOrientationHint & Qt.Horizontal) ? scale : 1, (handler.pinchZoomOrientationHint & Qt.Vertical) ? scale : 1, pinch.center.x, pinch.center.y, false);
             } else if (acceptHorizontal) {
-                parent.zoomed(scale, 1, pinch.center.x, pinch.center.y, false)
+                parent.zoomed(scale, 1, pinch.center.x, pinch.center.y, false);
             } else if (acceptVertical) {
-                parent.zoomed(1, scale, pinch.center.x, pinch.center.y, false)
+                parent.zoomed(1, scale, pinch.center.x, pinch.center.y, false);
             }
-            
         }
     }
 }

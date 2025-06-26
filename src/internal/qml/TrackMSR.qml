@@ -10,42 +10,51 @@ import dev.sjimo.ScopicFlow.Style
 
 RowLayout {
     id: msr
-    required property QtObject trackViewModel
+
     readonly property ToolButton muteButton: muteButton_
-    readonly property ToolButton soloButton: soloButton_
     readonly property ToolButton recordButton: recordButton_
+    readonly property ToolButton soloButton: soloButton_
+    required property QtObject trackViewModel
+
     spacing: 4
+
     ToolButton {
         id: muteButton_
+
         Theme.accentColor: SFPalette.muteColor
         ThemedItem.controlType: SVS.CT_Accent
-        visible: typeof(msr.trackViewModel.mute) === "boolean"
         checkable: true
+        checked: msr.trackViewModel.mute ?? false
         flat: false
         text: 'M'
-        checked: msr.trackViewModel.mute ?? false
+        visible: typeof (msr.trackViewModel.mute) === "boolean"
+
         onCheckedChanged: msr.trackViewModel.mute = checked
     }
     ToolButton {
         id: soloButton_
+
         Theme.accentColor: SFPalette.soloColor
         ThemedItem.controlType: SVS.CT_Accent
-        visible: typeof(msr.trackViewModel.solo) === "boolean"
         checkable: true
+        checked: msr.trackViewModel.solo ?? false
         flat: false
         text: 'S'
-        checked: msr.trackViewModel.solo ?? false
+        visible: typeof (msr.trackViewModel.solo) === "boolean"
+
         onCheckedChanged: msr.trackViewModel.solo = checked
     }
     ToolButton {
         id: recordButton_
+
         Theme.accentColor: SFPalette.recordColor
         ThemedItem.controlType: SVS.CT_Accent
-        visible: typeof(msr.trackViewModel.record) === "boolean"
         checkable: true
+        checked: msr.trackViewModel.record ?? false
         flat: false
         text: 'R'
-        checked: msr.trackViewModel.record ?? false
+        visible: typeof (msr.trackViewModel.record) === "boolean"
+
         onCheckedChanged: msr.trackViewModel.record = checked
     }
 }

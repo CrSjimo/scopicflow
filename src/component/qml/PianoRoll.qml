@@ -6,34 +6,32 @@ import dev.sjimo.ScopicFlow.Internal as ScopicFlowInternal
 
 Pane {
     id: control
-    property QtObject timeViewModel: null
-    property QtObject timeLayoutViewModel: null
-    property QtObject playbackViewModel: null
-    property QtObject clavierViewModel: null
-    property QtObject scrollBehaviorViewModel: null
+
     property QtObject animationViewModel: null
-
-    property double topMargin: 0
     property double bottomMargin: 0
-
+    property QtObject clavierViewModel: null
+    property QtObject playbackViewModel: null
+    property QtObject scrollBehaviorViewModel: null
+    property QtObject timeLayoutViewModel: null
+    property QtObject timeViewModel: null
+    property double topMargin: 0
     property list<Component> viewItems: []
 
-    padding: 0
     focusPolicy: Qt.StrongFocus
+    padding: 0
 
     ScopicFlowInternal.PianoRoll {
         id: pianoRoll
+
         anchors.fill: parent
-        timeViewModel: control.timeViewModel
-        timeLayoutViewModel: control.timeLayoutViewModel
-        playbackViewModel: control.playbackViewModel
-        clavierViewModel: control.clavierViewModel
-        scrollBehaviorViewModel: control.scrollBehaviorViewModel
         animationViewModel: control.animationViewModel
-
-        viewItems: control.viewItems
-
-        topMargin: control.topMargin
         bottomMargin: control.bottomMargin
+        clavierViewModel: control.clavierViewModel
+        playbackViewModel: control.playbackViewModel
+        scrollBehaviorViewModel: control.scrollBehaviorViewModel
+        timeLayoutViewModel: control.timeLayoutViewModel
+        timeViewModel: control.timeViewModel
+        topMargin: control.topMargin
+        viewItems: control.viewItems
     }
 }

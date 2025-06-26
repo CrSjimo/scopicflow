@@ -2,44 +2,45 @@ import QtQml
 import QtQuick
 
 Item {
-    property bool running: false
     property double distanceX: 0
     property double distanceY: 0
+    property bool running: false
 
     signal moved(deltaX: double, deltaY: double)
 
     function determine(x, width, y, height, callback) {
-        let xTriggered = true
+        let xTriggered = true;
         if (x < 0)
-            distanceX = x
+            distanceX = x;
         else if (x > width)
-            distanceX = x - width
+            distanceX = x - width;
         else {
-            distanceX = 0
-            xTriggered = false
+            distanceX = 0;
+            xTriggered = false;
         }
-        let yTriggered = true
+        let yTriggered = true;
         if (y < 0)
-            distanceY = y
+            distanceY = y;
         else if (y > height)
-            distanceY = y - height
+            distanceY = y - height;
         else {
-            distanceY = 0
-            yTriggered = false
+            distanceY = 0;
+            yTriggered = false;
         }
-        running = xTriggered || yTriggered
+        running = xTriggered || yTriggered;
         if (callback)
-            callback(xTriggered, yTriggered)
+            callback(xTriggered, yTriggered);
     }
 
     Timer {
         id: tickingTimer
+
         interval: 10
         repeat: true
         running: parent.running
 
         onTriggered: {
-            parent.moved(Math.max(-1, Math.min(distanceX / 256, 1)) * interval, Math.max(-1, Math.min(distanceY / 256, 1)) * interval)
+            parent.moved(Math.max(-1, Math.min(distanceX / 256, 1)) * interval, Math.max(-1, Math.min(distanceY / 256, 1)) * interval);
         }
     }
 }

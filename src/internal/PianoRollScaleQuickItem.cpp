@@ -8,8 +8,8 @@
 #include <SVSCraftCore/musictime.h>
 #include <SVSCraftCore/musictimesignature.h>
 
-#include <ScopicFlow/TimeViewModel.h>
-#include <ScopicFlow/TimeLayoutViewModel.h>
+#include <ScopicFlowCore/TimeViewModel.h>
+#include <ScopicFlowCore/TimeLayoutViewModel.h>
 
 namespace sflow {
 

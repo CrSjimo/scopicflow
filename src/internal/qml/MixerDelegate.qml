@@ -8,7 +8,7 @@ import SVSCraft.UIComponents
 import SVSCraft.UIComponents.impl
 
 import dev.sjimo.ScopicFlow.Internal
-import dev.sjimo.ScopicFlow.Style
+import dev.sjimo.ScopicFlow
 
 Item {
     id: mixerDelegate

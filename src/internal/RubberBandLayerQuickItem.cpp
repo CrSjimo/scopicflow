@@ -1,7 +1,7 @@
 #include "RubberBandLayerQuickItem_p.h"
 #include "RubberBandLayerQuickItem_p_p.h"
 
-#include <ScopicFlow/private/SelectableViewModelManipulatorInterface_p.h>
+#include <ScopicFlowCore/private/SelectableViewModelManipulatorInterface_p.h>
 
 namespace sflow {
 

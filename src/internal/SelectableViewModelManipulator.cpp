@@ -2,7 +2,7 @@
 
 #include <QQmlEngine>
 
-#include <ScopicFlow/private/SelectableViewModelManipulatorInterface_p.h>
+#include <ScopicFlowCore/private/SelectableViewModelManipulatorInterface_p.h>
 #include <ScopicFlowInternal/private/ScopedIntermediate_p.h>
 
 namespace sflow {

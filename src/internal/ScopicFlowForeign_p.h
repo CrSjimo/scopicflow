@@ -3,13 +3,13 @@
 
 #include <qqmlregistration.h>
 
-#include <ScopicFlow/TimeManipulator.h>
-#include <ScopicFlow/LabelViewModel.h>
-#include <ScopicFlow/ClavierViewModel.h>
-#include <ScopicFlow/PianoRollNoteAreaBehaviorViewModel.h>
-#include <ScopicFlow/NoteViewModel.h>
-#include <ScopicFlow/ClipPaneBehaviorViewModel.h>
-#include <ScopicFlow/ClipViewModel.h>
+#include <ScopicFlowCore/TimeManipulator.h>
+#include <ScopicFlowCore/LabelViewModel.h>
+#include <ScopicFlowCore/ClavierViewModel.h>
+#include <ScopicFlowCore/PianoRollNoteAreaBehaviorViewModel.h>
+#include <ScopicFlowCore/NoteViewModel.h>
+#include <ScopicFlowCore/ClipPaneBehaviorViewModel.h>
+#include <ScopicFlowCore/ClipViewModel.h>
 
 namespace sflow {
     class ScopicFlowNamespaceForeign : public QObject {

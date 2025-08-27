@@ -5,7 +5,7 @@
 
 #include <QHash>
 
-#include <ScopicFlow/private/SliceableViewModelQmlHandle_p.h>
+#include <ScopicFlowCore/private/SliceableViewModelQmlHandle_p.h>
 
 namespace sflow {
 

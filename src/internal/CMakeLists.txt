@@ -1,3 +1,5 @@
+project(ScopicFlowInternal VERSION 0.0.1 LANGUAGES CXX)
+
 file(GLOB_RECURSE _src *.h *.cpp *.qrc)
 file(GLOB_RECURSE _qml_files_abs *.qml *.js *.mjs)
 set(_qml_files)
@@ -12,9 +14,9 @@ foreach(_file IN LISTS _resource_files_abs)
     list(APPEND _resource_files ${_rel_path})
 endforeach()
 
-scopic_flow_add_library(ScopicFlowInternal AUTOGEN STATIC
+scopic_flow_add_library(${PROJECT_NAME} AUTOGEN STATIC
     SOURCES ${_src}
-    LINKS svscraft::Quick ScopicFlowViewModel ScopicFlowStyle ScopicFlowStyleplugin
+    LINKS svscraft::Quick ScopicFlowCore ScopicFlowCoreplugin
     QT_LINKS Core Gui Widgets Qml Quick QuickControls2
     QT_INCLUDE_PRIVATE Core Gui Widgets Qml Quick QuickControls2
 )
@@ -26,20 +28,21 @@ if(QT_KNOWN_POLICY_QTP0004)
     qt_policy(SET QTP0004 NEW)
 endif()
 
-qt_add_qml_module(ScopicFlowInternal
+qt_add_qml_module(${PROJECT_NAME}
     URI dev.sjimo.ScopicFlow.Internal
     QML_FILES ${_qml_files}
     RESOURCES ${_resource_files}
+    NAMESPACE sflow
     OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/dev/sjimo/ScopicFlow/Internal
 )
 
 find_path(INTERVAL_TREE_INCLUDE_DIRS "interval-tree/interval_tree.hpp" REQUIRED)
 
-target_include_directories(ScopicFlowInternal PUBLIC
+target_include_directories(${PROJECT_NAME} PUBLIC
     "$<BUILD_INTERFACE:${INTERVAL_TREE_INCLUDE_DIRS}>"
 )
 
-set_target_properties(ScopicFlowInternal PROPERTIES
+set_target_properties(${PROJECT_NAME} PROPERTIES
     CXX_STANDARD 20
     CXX_STANDARD_REQUIRED TRUE
 )

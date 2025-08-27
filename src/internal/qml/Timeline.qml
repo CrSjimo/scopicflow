@@ -5,7 +5,7 @@ import QtQuick.Shapes
 import SVSCraft.UIComponents
 
 import dev.sjimo.ScopicFlow.Internal
-import dev.sjimo.ScopicFlow.Style
+import dev.sjimo.ScopicFlow
 
 Item {
     id: timeline

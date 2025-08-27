@@ -97,9 +97,8 @@ endmacro()
 # ----------------------------------
 
 add_subdirectory(internal)
-add_subdirectory(component)
-add_subdirectory(style)
-add_subdirectory(viewmodel)
+add_subdirectory(views)
+add_subdirectory(core)
 
 if(SCOPIC_FLOW_INSTALL)
     # Add install target

@@ -1,7 +1,7 @@
 import QtQml
 import QtQuick
 
-import dev.sjimo.ScopicFlow.Style
+import dev.sjimo.ScopicFlow
 
 Item {
     required property QtObject playbackViewModel

@@ -6,11 +6,11 @@
 #include <QSGVertexColorMaterial>
 #include <limits>
 
-#include <ScopicFlow/TimeViewModel.h>
-#include <ScopicFlow/TimeLayoutViewModel.h>
-#include <ScopicFlow/AnchorViewModel.h>
-#include <ScopicFlow/ParameterRangeViewModel.h>
-#include <ScopicFlow/private/PointSequenceViewModel_p.h>
+#include <ScopicFlowCore/TimeViewModel.h>
+#include <ScopicFlowCore/TimeLayoutViewModel.h>
+#include <ScopicFlowCore/AnchorViewModel.h>
+#include <ScopicFlowCore/ParameterRangeViewModel.h>
+#include <ScopicFlowCore/private/PointSequenceViewModel_p.h>
 
 namespace sflow {
 

@@ -1,7 +1,7 @@
 #include "PianoRollNoteAreaRubberBandHelper_p.h"
 #include "PianoRollNoteAreaRubberBandHelper_p_p.h"
 
-#include <ScopicFlow/private/RangeSequenceViewModel_p.h>
+#include <ScopicFlowCore/private/RangeSequenceViewModel_p.h>
 #include <ScopicFlowInternal/private/RubberBandLayerQuickItem_p.h>
 
 namespace sflow {

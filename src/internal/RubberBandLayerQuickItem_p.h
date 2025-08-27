@@ -5,7 +5,7 @@
 #include <QQmlComponent>
 
 #include <ScopicFlowInternal/private/SelectableViewModelManipulator_p.h>
-#include <ScopicFlow/TransactionControllerNotifier.h>
+#include <ScopicFlowCore/TransactionControllerNotifier.h>
 
 namespace sflow {
 

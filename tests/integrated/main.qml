@@ -5,7 +5,7 @@ import QtQuick.Layouts
 import QtQuick.Controls.Basic
 import SVSCraft
 import SVSCraft.UIComponents
-import dev.sjimo.ScopicFlow
+import dev.sjimo.ScopicFlow.Views
 import dev.sjimo.ScopicFlow.Internal as ScopicFlowInternal
 
 ApplicationWindow {
@@ -546,7 +546,7 @@ ApplicationWindow {
                 }
                 DockingPane {
                     title: "设置"
-                    iconSource: "qrc:/qt/qml/dev/sjimo/ScopicFlow/Test/Settings16Filled.svg"
+                    icon.source: "qrc:/qt/qml/dev/sjimo/ScopicFlow/Test/Settings16Filled.svg"
                     SettingsPanel {
                         anchors.fill: parent
                     }
@@ -578,7 +578,7 @@ ApplicationWindow {
                         }
                         DockingPane {
                             title: "编曲面板"
-                            iconSource: "qrc:/qt/qml/dev/sjimo/ScopicFlow/Test/GanttChart20Filled.svg"
+                            icon.source: "qrc:/qt/qml/dev/sjimo/ScopicFlow/Test/GanttChart20Filled.svg"
                             Component.onCompleted: Docking.dockingView.showPane(this)
                             header: ToolBar {
                                 Row {
@@ -646,7 +646,7 @@ ApplicationWindow {
                         }
                         DockingPane {
                             title: "钢琴卷帘"
-                            iconSource: "qrc:/qt/qml/dev/sjimo/ScopicFlow/Test/Midi20Filled.svg"
+                            icon.source: "qrc:/qt/qml/dev/sjimo/ScopicFlow/Test/Midi20Filled.svg"
                             Component.onCompleted: Docking.dockingView.showPane(this)
                             header: ToolBar {
                                 Row {
@@ -688,7 +688,7 @@ ApplicationWindow {
                         }
                         DockingPane {
                             title: "混音器"
-                            iconSource: "qrc:/qt/qml/dev/sjimo/ScopicFlow/Test/Midi20Filled.svg"
+                            icon.source: "qrc:/qt/qml/dev/sjimo/ScopicFlow/Test/Midi20Filled.svg"
                             Component.onCompleted: Docking.dockingView.showPane(this)
                             header: ToolBar {
                                 Row {
@@ -747,7 +747,7 @@ ApplicationWindow {
             }
             DockingPane {
                 title: "设置"
-                iconSource: "qrc:/qt/qml/dev/sjimo/ScopicFlow/Test/Settings16Filled.svg"
+                icon.source: "qrc:/qt/qml/dev/sjimo/ScopicFlow/Test/Settings16Filled.svg"
                 SettingsPanel {
                     anchors.fill: parent
                 }

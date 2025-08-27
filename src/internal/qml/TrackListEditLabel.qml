@@ -4,7 +4,7 @@ import QtQuick.Templates as T
 
 import SVSCraft.UIComponents
 
-import dev.sjimo.ScopicFlow.Style
+import dev.sjimo.ScopicFlow
 
 T.Control {
     id: editLabel

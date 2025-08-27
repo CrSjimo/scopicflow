@@ -32,28 +32,28 @@
 #include <SVSCraftQuick/Theme.h>
 #include <SVSCraftGui/ColorChange.h>
 
-#include <ScopicFlow/InteractionControllerNotifier.h>
-#include <ScopicFlow/TransactionControllerNotifier.h>
-#include <ScopicFlow/TimeViewModel.h>
-#include <ScopicFlow/TimeLayoutViewModel.h>
-#include <ScopicFlow/PlaybackViewModel.h>
-#include <ScopicFlow/ClavierViewModel.h>
-#include <ScopicFlow/ScrollBehaviorViewModel.h>
-#include <ScopicFlow/AnimationViewModel.h>
-#include <ScopicFlow/PointSequenceViewModel.h>
-#include <ScopicFlow/LabelViewModel.h>
-#include <ScopicFlow/ListViewModel.h>
-#include <ScopicFlow/TrackListLayoutViewModel.h>
-#include <ScopicFlow/TrackViewModel.h>
-#include <ScopicFlow/NoteViewModel.h>
-#include <ScopicFlow/LabelSequenceBehaviorViewModel.h>
-#include <ScopicFlow/RangeSequenceViewModel.h>
-#include <ScopicFlow/PianoRollNoteAreaBehaviorViewModel.h>
-#include <ScopicFlow/ClipViewModel.h>
-#include <ScopicFlow/ClipPaneBehaviorViewModel.h>
-#include <ScopicFlow/BusTrackViewModel.h>
-#include <ScopicFlow/AnchorViewModel.h>
-#include <ScopicFlow/ParameterRangeViewModel.h>
+#include <ScopicFlowCore/InteractionControllerNotifier.h>
+#include <ScopicFlowCore/TransactionControllerNotifier.h>
+#include <ScopicFlowCore/TimeViewModel.h>
+#include <ScopicFlowCore/TimeLayoutViewModel.h>
+#include <ScopicFlowCore/PlaybackViewModel.h>
+#include <ScopicFlowCore/ClavierViewModel.h>
+#include <ScopicFlowCore/ScrollBehaviorViewModel.h>
+#include <ScopicFlowCore/AnimationViewModel.h>
+#include <ScopicFlowCore/PointSequenceViewModel.h>
+#include <ScopicFlowCore/LabelViewModel.h>
+#include <ScopicFlowCore/ListViewModel.h>
+#include <ScopicFlowCore/TrackListLayoutViewModel.h>
+#include <ScopicFlowCore/TrackViewModel.h>
+#include <ScopicFlowCore/NoteViewModel.h>
+#include <ScopicFlowCore/LabelSequenceBehaviorViewModel.h>
+#include <ScopicFlowCore/RangeSequenceViewModel.h>
+#include <ScopicFlowCore/PianoRollNoteAreaBehaviorViewModel.h>
+#include <ScopicFlowCore/ClipViewModel.h>
+#include <ScopicFlowCore/ClipPaneBehaviorViewModel.h>
+#include <ScopicFlowCore/BusTrackViewModel.h>
+#include <ScopicFlowCore/AnchorViewModel.h>
+#include <ScopicFlowCore/ParameterRangeViewModel.h>
 
 using namespace sflow;
 

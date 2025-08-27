@@ -1,6 +1,6 @@
 import QtQuick
 
-import dev.sjimo.ScopicFlow.Style
+import dev.sjimo.ScopicFlow
 
 Item {
     id: levelMeter

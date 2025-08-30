@@ -1,6 +1,7 @@
 import QtQml
 import QtQuick
 
+import dev.sjimo.ScopicFlow
 import dev.sjimo.ScopicFlow.Internal
 
 MouseArea {
@@ -20,7 +21,7 @@ MouseArea {
     required property Component viewModelComponent
 
     function handlePositionChanged(x) {
-        let length = timeLocator.alignTick(timeLocator.mapToTick(mapToItem(paneItem, x, 0).x) - timeLocator.mapToTick(mapToItem(paneItem, pressedX, 0).x));
+        let length = timeManipulator.alignTick(timeManipulator.mapToTick(mapToItem(paneItem, x, 0).x) - timeManipulator.mapToTick(mapToItem(paneItem, pressedX, 0).x));
         if (!item) {
             let realLength = length || lengthHint;
             if (realLength) {
@@ -37,7 +38,7 @@ MouseArea {
         } else {
             if (!lengthHintModified && !length)
                 return;
-            length = Math.max(timeLocator.timeLayoutViewModel.positionAlignment, length);
+            length = Math.max(timeManipulator.timeLayoutViewModel.positionAlignment, length);
             item.length = length;
             lengthHintModified = true;
         }
@@ -81,7 +82,7 @@ MouseArea {
         dragged = false;
         item = null;
         pressedX = mouse.x;
-        pressedPosition = timeLocator.alignTick(timeLocator.mapToTick(mapToItem(paneItem, mouse.x, 0).x));
+        pressedPosition = timeManipulator.alignTick(timeManipulator.mapToTick(mapToItem(paneItem, mouse.x, 0).x));
         pressedMappedYObject = mapY(mouse.y);
         lengthHintModified = !lengthHint;
     }

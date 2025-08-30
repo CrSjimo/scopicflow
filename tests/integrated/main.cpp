@@ -93,8 +93,6 @@ int main(int argc, char *argv[]) {
 
     ScrollBehaviorViewModel scrollBehaviorViewModel(&win);
 
-    AnimationViewModel animationViewModel(&win);
-
     PointSequenceViewModel labelSequenceViewModel(&win);
     for (int i = 0; i < 16; i++) {
         auto label = new LabelViewModel(&win);
@@ -234,7 +232,6 @@ int main(int argc, char *argv[]) {
         {"labelSequenceViewModel", QVariant::fromValue(&labelSequenceViewModel)},
         {"playbackViewModel", QVariant::fromValue(&playbackViewModel)},
         {"scrollBehaviorViewModel", QVariant::fromValue(&scrollBehaviorViewModel)},
-        {"animationViewModel", QVariant::fromValue(&animationViewModel)},
         {"labelSequenceBehaviorViewModel", QVariant::fromValue(&labelSequenceBehaviorViewModel)},
         {"arrangementLabelSequenceBehaviorViewModel", QVariant::fromValue(&arrangementLabelSequenceBehaviorViewModel)},
         {"pianoRollNoteAreaBehaviorViewModel", QVariant::fromValue(&pianoRollNoteAreaBehaviorViewModel)},

@@ -1,6 +1,7 @@
 import QtQml
 import QtQuick
 
+import dev.sjimo.ScopicFlow
 import dev.sjimo.ScopicFlow.Internal
 
 MouseArea {
@@ -27,7 +28,7 @@ MouseArea {
         return handleBeforeInteractionNotificationCallback(interactionType);
     }
     function moveSelectedNotesToX(x) {
-        moveSelectionTo(timeLocator.alignTick(timeLocator.mapToTick(x)));
+        moveSelectionTo(timeManipulator.alignTick(timeManipulator.mapToTick(x)));
     }
     function moveSelectionTo(position) {
         if (position !== model.position) {

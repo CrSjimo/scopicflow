@@ -3,8 +3,8 @@ import QtQuick
 
 import SVSCraft.UIComponents
 
-import dev.sjimo.ScopicFlow.Internal
 import dev.sjimo.ScopicFlow
+import dev.sjimo.ScopicFlow.Internal
 
 Item {
     id: clipPane
@@ -28,18 +28,8 @@ Item {
 
     clip: true
 
-    TimeAlignmentPositionLocator {
-        id: timeLocator
-
-        anchors.fill: parent
-        timeLayoutViewModel: clipPane.timeLayoutViewModel
-        timeViewModel: clipPane.timeViewModel
-    }
     TimeManipulator {
         id: timeManipulator
-
-        anchors.fill: parent
-        animationViewModel: clipPane.animationViewModel
         timeLayoutViewModel: clipPane.timeLayoutViewModel
         timeViewModel: clipPane.timeViewModel
     }
@@ -119,7 +109,7 @@ Item {
             onClicked: mouse => {
                 selectionManipulator.select(null, mouse.button, mouse.modifiers);
                 let parentPoint = mapToItem(clipPane, mouse.x, mouse.y);
-                clipPane.contextMenuRequired(timeLocator.mapToTick(parentPoint.x), trackListLocator.mapToIndex(mouse.y));
+                clipPane.contextMenuRequired(timeManipulator.mapToTick(parentPoint.x), trackListLocator.mapToIndex(mouse.y));
             }
         }
         GenericBackPointerMouseArea {
@@ -131,7 +121,7 @@ Item {
 
             onDoubleClicked: mouse => {
                 let parentPoint = mapToItem(clipPane, mouse.x, mouse.y);
-                clipPane.doubleClicked(timeLocator.mapToTick(parentPoint.x), trackListLocator.mapToIndex(mouse.y));
+                clipPane.doubleClicked(timeManipulator.mapToTick(parentPoint.x), trackListLocator.mapToIndex(mouse.y));
             }
             onRubberBandStartRequired: p => {
                 rubberBandLayer.startSelection(p);
@@ -533,7 +523,7 @@ Item {
             trackListManipulator.moveViewBy(y, isPhysicalWheel);
         }
         onZoomed: function (ratioX, _, x, _, isPhysicalWheel) {
-            timeManipulator.zoomOnWheel(ratioX, x, isPhysicalWheel);
+            timeManipulator.zoomViewBy(ratioX, x, isPhysicalWheel);
         }
     }
     MiddleButtonMoveHandler {

@@ -3,8 +3,8 @@ import QtQuick
 
 import SVSCraft.UIComponents
 
-import dev.sjimo.ScopicFlow.Internal
 import dev.sjimo.ScopicFlow
+import dev.sjimo.ScopicFlow.Internal
 
 Item {
     id: noteArea
@@ -54,32 +54,13 @@ Item {
 
         property double start: (noteArea.timeViewModel?.start ?? 0) - (noteArea.pianoRollNoteAreaBehaviorViewModel?.offset ?? 0)
     }
-    TimeAlignmentPositionLocator {
-        id: timeLocator
-
-        anchors.fill: parent
-        timeLayoutViewModel: noteArea.timeLayoutViewModel
-        timeViewModel: pseudoTimeViewModel
-    }
-    ClavierLocator {
-        id: clavierLocator
-
-        anchors.fill: parent
-        clavierViewModel: noteArea.clavierViewModel
-    }
     TimeManipulator {
         id: timeManipulator
-
-        anchors.fill: parent
-        animationViewModel: noteArea.animationViewModel
         timeLayoutViewModel: noteArea.timeLayoutViewModel
         timeViewModel: noteArea.timeViewModel
     }
     ClavierManipulator {
         id: clavierManipulator
-
-        anchors.fill: parent
-        animationViewModel: noteArea.animationViewModel
         clavierViewModel: noteArea.clavierViewModel
     }
     PianoRollNoteAreaRubberBandHelper {
@@ -115,7 +96,7 @@ Item {
             onClicked: mouse => {
                 selectionManipulator.select(null, mouse.button, mouse.modifiers);
                 let parentPoint = mapToItem(noteArea, mouse.x, mouse.y);
-                noteArea.contextMenuRequired(timeLocator.mapToTick(parentPoint.x), clavierLocator.mapToKey(parentPoint.y));
+                noteArea.contextMenuRequired(timeManipulator.mapToTick(parentPoint.x), clavierManipulator.mapToKey(parentPoint.y));
             }
         }
         GenericBackPointerMouseArea {
@@ -127,7 +108,7 @@ Item {
 
             onDoubleClicked: mouse => {
                 let parentPoint = mapToItem(noteArea, mouse.x, mouse.y);
-                noteArea.doubleClicked(timeLocator.mapToTick(parentPoint.x), clavierLocator.mapToKey(parentPoint.y));
+                noteArea.doubleClicked(timeManipulator.mapToTick(parentPoint.x), clavierManipulator.mapToKey(parentPoint.y));
             }
             onRubberBandStartRequired: p => {
                 rubberBandLayer.startSelection(rubberBandHelper.viewportPointToRubberBandPoint(p));
@@ -141,7 +122,7 @@ Item {
 
             lengthHint: noteArea.pianoRollNoteAreaBehaviorViewModel?.lengthHint ?? 0
             mapY: y => {
-                return clavierLocator.mapToKey(mapToItem(noteArea, 0, y).y);
+                return clavierManipulator.mapToKey(mapToItem(noteArea, 0, y).y);
             }
             mappedYProperty: "key"
             paneItem: noteArea

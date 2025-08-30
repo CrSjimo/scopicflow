@@ -4,11 +4,21 @@
 #include <ScopicFlowCore/ScopicFlowCoreGlobal.h>
 
 #include <QMetaObject>
+#include <qqmlintegration.h>
 
 namespace sflow {
 
     namespace ScopicFlow {
         Q_NAMESPACE_EXPORT(SCOPIC_FLOW_CORE_EXPORT)
+        QML_ELEMENT
+
+        enum AlignOption {
+            AO_Round,
+            AO_Floor,
+            AO_Ceil,
+            AO_Visible,
+        };
+        Q_ENUM_NS(AlignOption)
 
         enum LabelStrategy {
             LS_All,

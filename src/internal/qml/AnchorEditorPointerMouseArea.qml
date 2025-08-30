@@ -1,6 +1,7 @@
 import QtQml
 import QtQuick
 
+import dev.sjimo.ScopicFlow
 import dev.sjimo.ScopicFlow.Internal
 
 MouseArea {
@@ -18,7 +19,7 @@ MouseArea {
     property QtObject verticalManipulator: null
 
     function moveSelectedNotesToX(x) {
-        moveSelectionTo(timeLocator.alignTick(timeLocator.mapToTick(x)));
+        moveSelectionTo(timeManipulator.alignTick(timeManipulator.mapToTick(x)));
     }
     function moveSelectedNotesToY(y) {
         let anchorValue = topValue - (y / paneItem.height) * (topValue - bottomValue);

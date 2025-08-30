@@ -1,6 +1,7 @@
 import QtQml
 import QtQuick
 
+import dev.sjimo.ScopicFlow
 import dev.sjimo.ScopicFlow.Internal
 
 MouseArea {
@@ -24,7 +25,7 @@ MouseArea {
         }
     }
     onPressed: mouse => {
-        pressedPosition = Math.max(model.position + timeLocator.timeLayoutViewModel.positionAlignment, Math.min(timeLocator.alignTick(timeLocator.mapToTick(mapToItem(paneItem, mouse.x, 0).x)), model.position + model.length - timeLocator.timeLayoutViewModel.positionAlignment));
+        pressedPosition = Math.max(model.position + timeManipulator.timeLayoutViewModel.positionAlignment, Math.min(timeManipulator.alignTick(timeManipulator.mapToTick(mapToItem(paneItem, mouse.x, 0).x)), model.position + model.length - timeManipulator.timeLayoutViewModel.positionAlignment));
         pressedY = mouse.y;
         dragged = false;
     }

@@ -1,81 +1,126 @@
 import QtQml
 import QtQuick
+import QtQuick.Templates as T
 import QtQuick.Shapes
 
 import SVSCraft.UIComponents
 
-import dev.sjimo.ScopicFlow.Internal
 import dev.sjimo.ScopicFlow
+import dev.sjimo.ScopicFlow.Internal
 
-Item {
+T.Pane {
     id: timeline
 
-    property QtObject animationViewModel: null
-    readonly property double cursorIndicatorX: locator.mapToX(playbackViewModel?.cursorPosition ?? -1)
-    property QtObject interactionControllerNotifier: null
-    property QtObject playbackViewModel: null
-    readonly property double primaryIndicatorX: locator.mapToX(playbackViewModel?.primaryPosition ?? 0)
-    property QtObject scrollBehaviorViewModel: null
-    readonly property double secondaryIndicatorX: locator.mapToX(playbackViewModel?.secondaryPosition ?? 0)
     property QtObject timeLayoutViewModel: null
     property QtObject timeViewModel: null
+    property QtObject playbackViewModel: null
+    property QtObject scrollBehaviorViewModel: null
+    property QtObject interactionControllerNotifier: null
 
-    function moveViewOnDraggingPositionIndicator(deltaX) {
-        if (!timeViewModel || !timeLayoutViewModel || !playbackViewModel)
-            return;
-        timeManipulator.moveViewBy(deltaX);
-        setIndicatorPosition(deltaX < 0 ? 0 : width);
-    }
-    function setIndicatorPosition(x) {
-        if (!timeViewModel || !timeLayoutViewModel || !playbackViewModel)
-            return;
-        playbackViewModel.primaryPosition = playbackViewModel.secondaryPosition = locator.alignTickVisible(locator.mapToTick(x));
-    }
-    function setZoomedRange(selectionX, selectionWidth) {
-        if (!timeViewModel || !timeLayoutViewModel)
-            return;
-        let start = locator.mapToTick(selectionX);
-        let end = locator.mapToTick(selectionX + selectionWidth);
-        if (end - start < timeLayoutViewModel.positionAlignment)
-            return;
-        timeViewModel.start = start;
-        timeLayoutViewModel.pixelDensity = Math.max(timeLayoutViewModel.minimumPixelDensity, Math.min(width / (end - start), timeLayoutViewModel.maximumPixelDensity));
-    }
-
+    Accessible.name: qsTr("Timeline")
+    focus: true
+    focusPolicy: Qt.StrongFocus
     clip: true
     implicitHeight: 24
+    background: Rectangle { color: SFPalette.timelineBackgroundColor }
 
-    TimeAlignmentPositionLocator {
-        id: locator
+    component PlayheadIndicator: Item {
+        id: indicator
+        LayoutMirroring.enabled: false
+        LayoutMirroring.childrenInherit: true
+        implicitHeight: 14.333333333333334 // 43 / 3
+        implicitWidth: 18.475208614068027 // 32 / sqrt(3)
+        property color color
 
-        anchors.fill: parent
-        timeLayoutViewModel: timeline.timeLayoutViewModel
-        timeViewModel: timeline.timeViewModel
+        Shape {
+            id: shape
+            width: parent.width
+            height: parent.height
+            anchors.horizontalCenter: parent.left
+            ShapePath {
+                id: indicatorPath
+
+                fillColor: indicator.color
+                strokeWidth: 0
+
+                PathLine {
+                    x: shape.width * 0.25
+                    y: 0
+                }
+                PathLine {
+                    x: shape.width * 0.75
+                    y: 0
+                }
+                PathArc {
+                    radiusX: 4 / 3
+                    radiusY: 4 / 3
+                    x: shape.width * 0.875
+                    y: 4
+                }
+                PathLine {
+                    x: shape.width * 0.625
+                    y: 12
+                }
+                PathArc {
+                    radiusX: 4 / 3
+                    radiusY: 4 / 3
+                    x: shape.width * 0.375
+                    y: 12
+                }
+                PathLine {
+                    x: shape.width * 0.125
+                    y: 4
+                }
+                PathArc {
+                    radiusX: 4 / 3
+                    radiusY: 4 / 3
+                    x: shape.width * 0.25
+                    y: 0
+                }
+            }
+        }
+
+    }
+
+    // helpers
+    QtObject {
+        id: d
+        readonly property double cursorIndicatorX: timeManipulator.mapToPosition(playbackViewModel?.cursorPosition ?? -1)
+        readonly property double primaryIndicatorX: timeManipulator.mapToPosition(playbackViewModel?.primaryPosition ?? 0)
+        readonly property double secondaryIndicatorX: timeManipulator.mapToPosition(playbackViewModel?.secondaryPosition ?? 0)
+
+        function setIndicatorPosition(x) {
+            if (!timeline.timeViewModel || !timeline.timeLayoutViewModel || !timeline.playbackViewModel)
+                return;
+            timeline.playbackViewModel.primaryPosition = timeline.playbackViewModel.secondaryPosition = timeManipulator.alignTick(timeManipulator.mapToTick(x), ScopicFlow.AO_Visible);
+        }
+        function setZoomedRange(selectionX, selectionWidth) {
+            if (!timeline.timeViewModel || !timeline.timeLayoutViewModel)
+                return;
+            let start = timeManipulator.mapToTick(selectionX);
+            let end = timeManipulator.mapToTick(selectionX + selectionWidth);
+            if (end - start < timeline.timeLayoutViewModel.positionAlignment)
+                return;
+            timeline.timeViewModel.start = start;
+            timeline.timeLayoutViewModel.pixelDensity = Math.max(timeline.timeLayoutViewModel.minimumPixelDensity, Math.min(width / (end - start), timeline.timeLayoutViewModel.maximumPixelDensity));
+        }
     }
     TimeManipulator {
         id: timeManipulator
-
-        anchors.fill: parent
-        animationViewModel: timeline.animationViewModel
         timeLayoutViewModel: timeline.timeLayoutViewModel
         timeViewModel: timeline.timeViewModel
     }
-    Rectangle {
-        id: backgroundRect
-
-        anchors.fill: parent
-        color: SFPalette.timelineBackgroundColor
-    }
+    
+    // visual components
     TimelineScale {
         id: timelineScale
-
         anchors.fill: parent
         color: SFPalette.suitableForegroundColor(SFPalette.timelineBackgroundColor)
         timeLayoutViewModel: timeline.timeLayoutViewModel
         timeViewModel: timeline.timeViewModel
     }
     Item {
-        id: rubberBandLayerViewport
+        id: viewportContainer
 
         anchors.bottom: parent.bottom
         anchors.top: parent.top
@@ -92,148 +137,43 @@ Item {
             }
         }
     }
-    Shape {
+    PlayheadIndicator {
         id: secondaryIndicator
-
         anchors.bottom: parent.bottom
-        height: 14.3333
-        width: 32 / Math.sqrt(3)
-        x: timeline.secondaryIndicatorX - 16 / Math.sqrt(3)
-
-        ShapePath {
-            id: indicatorPath
-
-            fillColor: SFPalette.playheadSecondaryColor
-            strokeWidth: 0
-
-            PathLine {
-                x: 8 / Math.sqrt(3)
-                y: 0
-            }
-            PathLine {
-                x: 24 / Math.sqrt(3)
-                y: 0
-            }
-            PathArc {
-                radiusX: 4 / 3
-                radiusY: 4 / 3
-                x: 28 / Math.sqrt(3)
-                y: 4
-            }
-            PathLine {
-                x: 20 / Math.sqrt(3)
-                y: 12
-            }
-            PathArc {
-                radiusX: 4 / 3
-                radiusY: 4 / 3
-                x: 12 / Math.sqrt(3)
-                y: 12
-            }
-            PathLine {
-                x: 4 / Math.sqrt(3)
-                y: 4
-            }
-            PathArc {
-                radiusX: 4 / 3
-                radiusY: 4 / 3
-                x: 8 / Math.sqrt(3)
-                y: 0
-            }
-        }
+        x: d.secondaryIndicatorX
+        color: SFPalette.playheadSecondaryColor
     }
-    Shape {
+    PlayheadIndicator {
         id: primaryIndicator
-
         anchors.bottom: parent.bottom
-        height: 14.3333
-        width: 32 / Math.sqrt(3)
-        x: timeline.primaryIndicatorX - 16 / Math.sqrt(3)
-
-        ShapePath {
-            fillColor: SFPalette.playheadPrimaryColor
-            strokeWidth: 0
-
-            PathLine {
-                x: 8 / Math.sqrt(3)
-                y: 0
-            }
-            PathLine {
-                x: 24 / Math.sqrt(3)
-                y: 0
-            }
-            PathArc {
-                radiusX: 4 / 3
-                radiusY: 4 / 3
-                x: 28 / Math.sqrt(3)
-                y: 4
-            }
-            PathLine {
-                x: 20 / Math.sqrt(3)
-                y: 12
-            }
-            PathArc {
-                radiusX: 4 / 3
-                radiusY: 4 / 3
-                x: 12 / Math.sqrt(3)
-                y: 12
-            }
-            PathLine {
-                x: 4 / Math.sqrt(3)
-                y: 4
-            }
-            PathArc {
-                radiusX: 4 / 3
-                radiusY: 4 / 3
-                x: 8 / Math.sqrt(3)
-                y: 0
-            }
-        }
+        x: d.primaryIndicatorX
+        color: SFPalette.playheadPrimaryColor
     }
     Rectangle {
         id: cursorIndicator
-
         anchors.bottom: parent.bottom
         anchors.top: parent.top
         color: SFPalette.cursorIndicatorColor
-        visible: timeline.cursorIndicatorX >= 0
+        visible: d.cursorIndicatorX >= 0
         width: 1
-        x: timeline.cursorIndicatorX - 0.5
+        x: d.cursorIndicatorX - 0.5
     }
     MouseArea {
         id: mouseArea
 
         property double pressedX: 0
         property bool rejectContextMenu: false
-
-        function emitInteractionNotificationSignal(interactionType) {
-            let position = containsMouse || pressed ? locator.mapToTick(mouseX) : -1;
-            let flag = (containsMouse || pressed) && primaryIndicator.contains(mapToItem(primaryIndicator, mouseX, mouseY)) ? ScopicFlow.InteractionOnPositionIndicator : ScopicFlow.InteractionOnTimeline;
-            timeline.interactionControllerNotifier?.sceneInteracted(interactionType, timeline.timeViewModel, timeline.timeLayoutViewModel, position, 0, flag);
-        }
-        function handleBeforeInteractionNotification(interactionType) {
-            let position = containsMouse || pressed ? locator.mapToTick(mouseX) : -1;
-            let flag = (containsMouse || pressed) && primaryIndicator.contains(mapToItem(primaryIndicator, mouseX, mouseY)) ? ScopicFlow.InteractionOnPositionIndicator : ScopicFlow.InteractionOnTimeline;
-            return timeline.interactionControllerNotifier?.handleSceneInteraction(interactionType, timeline.timeViewModel, timeline.timeLayoutViewModel, position, 0, flag);
-        }
         function handlePositionChanged(x, button) {
             if (button === Qt.LeftButton) {
-                timeline.setIndicatorPosition(x);
+                d.setIndicatorPosition(x);
             } else {
                 rejectContextMenu = true;
                 if (!rubberBandLayer.started) {
-                    rubberBandLayer.startSelection(mapToItem(rubberBandLayerViewport, locator.mapToX(locator.alignTickVisible(locator.mapToTick(pressedX))), 0));
+                    rubberBandLayer.startSelection(mapToItem(viewportContainer, timeManipulator.mapToPosition(timeManipulator.alignTick(timeManipulator.mapToTick(pressedX), ScopicFlow.AO_Visible)), 0));
                 }
-                rubberBandLayer.updateSelection(mapToItem(rubberBandLayerViewport, locator.mapToX(locator.alignTickVisible(locator.mapToTick(x))), timeline.height));
+                rubberBandLayer.updateSelection(mapToItem(viewportContainer, timeManipulator.mapToPosition(timeManipulator.alignTick(timeManipulator.mapToTick(x), ScopicFlow.AO_Visible)), timeline.height));
             }
         }
-        function sendInteractionNotification(interactionType, mouse = null) {
-            if (handleBeforeInteractionNotification(interactionType, mouse))
-                return false;
-            emitInteractionNotificationSignal(interactionType, mouse);
-            return true;
-        }
-
         acceptedButtons: Qt.LeftButton | Qt.RightButton
         anchors.fill: parent
         drag.axis: Drag.XAxis
@@ -245,21 +185,14 @@ Item {
             dragScroller.running = false;
             cursorShape = Qt.ArrowCursor;
             rubberBandLayer.endSelection();
-            sendInteractionNotification(ScopicFlow.II_Canceled);
         }
         onClicked: mouse => {
             if (mouse.button === Qt.LeftButton) {
-                if (handleBeforeInteractionNotification(ScopicFlow.II_Clicked))
-                    return;
-                timeline.setIndicatorPosition(mouse.x);
-                emitInteractionNotificationSignal(ScopicFlow.II_Clicked);
+                d.setIndicatorPosition(mouse.x);
             } else if (mouse.button === Qt.RightButton && !rejectContextMenu) {
-                sendInteractionNotification(ScopicFlow.II_ContextMenu);
+
             }
         }
-        onDoubleClicked: sendInteractionNotification(ScopicFlow.II_DoubleClicked)
-        onEntered: sendInteractionNotification(ScopicFlow.II_HoverEntered)
-        onExited: sendInteractionNotification(ScopicFlow.II_HoverExited)
         onPositionChanged: mouse => {
             if (!pressed)
                 return;
@@ -273,16 +206,12 @@ Item {
         onPressed: mouse => {
             rejectContextMenu = false;
             pressedX = mouse.x;
-            if (!sendInteractionNotification(ScopicFlow.II_Pressed)) {
-                mouse.accepted = false;
-            }
         }
         onReleased: () => {
             dragScroller.running = false;
             cursorShape = Qt.ArrowCursor;
-            let rect = mapFromItem(rubberBandLayerViewport, rubberBandLayer.endSelection());
-            timeline.setZoomedRange(rect.x, rect.width);
-            sendInteractionNotification(ScopicFlow.II_Released);
+            let rect = mapFromItem(viewportContainer, rubberBandLayer.endSelection());
+            d.setZoomedRange(rect.x, rect.width);
         }
 
         DragScroller {
@@ -296,6 +225,8 @@ Item {
             }
         }
     }
+    
+    // scroll
     StandardScrollHandler {
         anchors.fill: parent
         movableOrientation: Qt.Horizontal
@@ -305,7 +236,7 @@ Item {
             timeManipulator.moveViewBy(x, isPhysicalWheel);
         }
         onZoomed: (ratioX, _, x, _, isPhysicalWheel) => {
-            timeManipulator.zoomOnWheel(ratioX, x, isPhysicalWheel);
+            timeManipulator.zoomViewBy(ratioX, x, isPhysicalWheel);
         }
     }
     MiddleButtonMoveHandler {

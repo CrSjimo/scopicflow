@@ -28,7 +28,6 @@ ApplicationWindow {
     required property QtObject arrangementLabelSequenceBehaviorViewModel
     required property QtObject playbackViewModel
     required property QtObject scrollBehaviorViewModel
-    required property QtObject animationViewModel
     property QtObject noteSequenceViewModel: null
     required property QtObject pianoRollNoteAreaBehaviorViewModel
     required property QtObject backNoteSequenceViewModel
@@ -261,7 +260,6 @@ ApplicationWindow {
                 trackListViewModel: main.trackListViewModel
                 trackListLayoutViewModel: main.trackListLayoutViewModel
                 scrollBehaviorViewModel: main.scrollBehaviorViewModel
-                animationViewModel: main.animationViewModel
                 interactionControllerNotifier: main.interactionControllerNotifier
                 transactionControllerNotifier: main.transactionControllerNotifier
                 trackExtraDelegate: Rectangle {
@@ -295,7 +293,6 @@ ApplicationWindow {
                 timeLayoutViewModel: main.arrangementTimeLayoutViewModel
                 playbackViewModel: main.playbackViewModel
                 scrollBehaviorViewModel: main.scrollBehaviorViewModel
-                animationViewModel: main.animationViewModel
                 interactionControllerNotifier: main.interactionControllerNotifier
             }
             LabelSequence {
@@ -308,7 +305,6 @@ ApplicationWindow {
                 labelSequenceViewModel: main.labelSequenceViewModel
                 labelSequenceBehaviorViewModel: main.arrangementLabelSequenceBehaviorViewModel
                 scrollBehaviorViewModel: main.scrollBehaviorViewModel
-                animationViewModel: main.animationViewModel
                 interactionControllerNotifier: main.interactionControllerNotifier
                 transactionControllerNotifier: main.transactionControllerNotifier
             }
@@ -320,7 +316,6 @@ ApplicationWindow {
                 timeLayoutViewModel: main.arrangementTimeLayoutViewModel
                 playbackViewModel: main.playbackViewModel
                 scrollBehaviorViewModel: main.scrollBehaviorViewModel
-                animationViewModel: main.animationViewModel
                 trackListViewModel: main.trackListViewModel
                 trackListLayoutViewModel: main.trackListLayoutViewModel
                 clipSequenceViewModel: main.clipSequenceViewModel
@@ -378,10 +373,9 @@ ApplicationWindow {
 
             clavierViewModel: main.clavierViewModel
             scrollBehaviorViewModel: main.scrollBehaviorViewModel
-            animationViewModel: main.animationViewModel
             interactionControllerNotifier: main.interactionControllerNotifier
-            topMargin: pianoRollSplitView.y - timeline.y
-            bottomMargin: pianoRoll.bottomMargin
+            topExpansion: pianoRollSplitView.y - timeline.y
+            bottomExpansion: pianoRollSplitView.height - pianoRollRealViewport.height
         }
 
         Timeline {
@@ -394,7 +388,6 @@ ApplicationWindow {
             timeLayoutViewModel: main.timeLayoutViewModel
             playbackViewModel: main.playbackViewModel
             scrollBehaviorViewModel: main.scrollBehaviorViewModel
-            animationViewModel: main.animationViewModel
             interactionControllerNotifier: main.interactionControllerNotifier
         }
 
@@ -410,7 +403,6 @@ ApplicationWindow {
             labelSequenceViewModel: main.labelSequenceViewModel
             labelSequenceBehaviorViewModel: main.labelSequenceBehaviorViewModel
             scrollBehaviorViewModel: main.scrollBehaviorViewModel
-            animationViewModel: main.animationViewModel
             interactionControllerNotifier: main.interactionControllerNotifier
             transactionControllerNotifier: main.transactionControllerNotifier
         }
@@ -423,6 +415,7 @@ ApplicationWindow {
             Layout.fillWidth: true
             Layout.fillHeight: true
             Item {
+                id: pianoRollRealViewport
                 SplitView.fillHeight: true
                 PianoRoll {
                     id: pianoRoll
@@ -436,7 +429,6 @@ ApplicationWindow {
                     playbackViewModel: main.playbackViewModel
                     clavierViewModel: main.clavierViewModel
                     scrollBehaviorViewModel: main.scrollBehaviorViewModel
-                    animationViewModel: main.animationViewModel
 
                     viewItems: [
                         Component {
@@ -446,7 +438,6 @@ ApplicationWindow {
                                 timeViewModel: main.timeViewModel
                                 timeLayoutViewModel: main.timeLayoutViewModel
                                 clavierViewModel: main.clavierViewModel
-                                animationViewModel: main.animationViewModel
                                 noteSequenceViewModel: main.noteSequenceViewModel
                                 pianoRollNoteAreaBehaviorViewModel: main.pianoRollNoteAreaBehaviorViewModel
                             }
@@ -459,7 +450,6 @@ ApplicationWindow {
                                 timeViewModel: main.timeViewModel
                                 timeLayoutViewModel: main.timeLayoutViewModel
                                 clavierViewModel: main.clavierViewModel
-                                animationViewModel: main.animationViewModel
                                 noteSequenceViewModel: main.backNoteSequenceViewModel
                                 pianoRollNoteAreaBehaviorViewModel: main.backPianoRollNoteAreaBehaviorViewModel
                             }
@@ -489,7 +479,6 @@ ApplicationWindow {
             trackListViewModel: main.trackListViewModel
             trackListLayoutViewModel: main.mixerLayoutViewModel
             scrollBehaviorViewModel: main.scrollBehaviorViewModel
-            animationViewModel: main.animationViewModel
             interactionControllerNotifier: main.interactionControllerNotifier
             transactionControllerNotifier: main.transactionControllerNotifier
         }
@@ -498,7 +487,6 @@ ApplicationWindow {
             trackListViewModel: main.busTrackListViewModel
             trackListLayoutViewModel: main.busMixerLayoutViewModel
             scrollBehaviorViewModel: main.scrollBehaviorViewModel
-            animationViewModel: main.animationViewModel
             interactionControllerNotifier: main.interactionControllerNotifier
             transactionControllerNotifier: main.transactionControllerNotifier
         }

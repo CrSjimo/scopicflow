@@ -3,8 +3,8 @@ import QtQuick
 
 import SVSCraft.UIComponents
 
-import dev.sjimo.ScopicFlow.Internal
 import dev.sjimo.ScopicFlow
+import dev.sjimo.ScopicFlow.Internal
 
 Item {
     id: pianoRoll
@@ -46,20 +46,14 @@ Item {
 
     TimeManipulator {
         id: timeManipulator
-
-        anchors.fill: parent
-        animationViewModel: pianoRoll.animationViewModel
         timeLayoutViewModel: pianoRoll.timeLayoutViewModel
         timeViewModel: pianoRoll.timeViewModel
     }
     ClavierManipulator {
         id: clavierManipulator
-
-        anchors.fill: parent
-        anchors.topMargin: pianoRoll.topMargin
-        animationViewModel: pianoRoll.animationViewModel
         clavierViewModel: pianoRoll.clavierViewModel
-        startOffset: -pianoRoll.bottomMargin
+        topExpansion: pianoRoll.topMargin
+        bottomExpansion: -pianoRoll.bottomMargin
     }
     Rectangle {
         id: background
@@ -197,8 +191,8 @@ Item {
             clavierManipulator.moveViewBy(y, isPhysicalWheel);
         }
         onZoomed: function (ratioX, ratioY, x, y, isPhysicalWheel) {
-            timeManipulator.zoomOnWheel(ratioX, x, isPhysicalWheel);
-            clavierManipulator.zoomOnWheel(ratioY, y, isPhysicalWheel);
+            timeManipulator.zoomViewBy(ratioX, x, isPhysicalWheel);
+            clavierManipulator.zoomViewBy(ratioY, y, isPhysicalWheel);
         }
     }
     MiddleButtonMoveHandler {

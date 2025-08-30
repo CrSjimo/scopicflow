@@ -3,8 +3,8 @@ import QtQuick
 
 import SVSCraft.UIComponents
 
-import dev.sjimo.ScopicFlow.Internal
 import dev.sjimo.ScopicFlow
+import dev.sjimo.ScopicFlow.Internal
 
 Item {
     id: labelSequence
@@ -27,11 +27,11 @@ Item {
     }
     function moveSelectedLabelOnDragScrolling(isBackward, model) {
         let x = isBackward ? 0 : width;
-        let alignedTick = isBackward ? timeLocator.alignTickCeil(timeLocator.mapToTick(x)) : timeLocator.alignTickFloor(timeLocator.mapToTick(x));
+        let alignedTick = isBackward ? timeManipulator.alignTick(timeManipulator.mapToTick(x), ScopicFlow.AO_Ceil) : timeManipulator.alignTick(timeManipulator.mapToTick(x), ScopicFlow.AO_Floor);
         moveSelectionTo(alignedTick, model);
     }
     function moveSelectedLabelsTo(x, model) {
-        moveSelectionTo(timeLocator.alignTick(timeLocator.mapToTick(x)), model);
+        moveSelectionTo(timeManipulator.alignTick(timeManipulator.mapToTick(x)), model);
     }
     function moveSelectionTo(position, model) {
         if (position !== model.position) {
@@ -76,18 +76,8 @@ Item {
         LabelViewModel {
         }
     }
-    TimeAlignmentPositionLocator {
-        id: timeLocator
-
-        anchors.fill: parent
-        timeLayoutViewModel: labelSequence.timeLayoutViewModel
-        timeViewModel: labelSequence.timeViewModel
-    }
     TimeManipulator {
         id: timeManipulator
-
-        anchors.fill: parent
-        animationViewModel: labelSequence.animationViewModel
         timeLayoutViewModel: labelSequence.timeLayoutViewModel
         timeViewModel: labelSequence.timeViewModel
     }
@@ -130,11 +120,11 @@ Item {
             id: backPointerMouseArea
 
             emitInteractionNotificationSignalCallback: interactionType => {
-                let position = containsMouse || pressed ? timeLocator.mapToTick(mouseX) : -1;
+                let position = containsMouse || pressed ? timeManipulator.mapToTick(mouseX) : -1;
                 labelSequence.interactionControllerNotifier?.sceneInteracted(interactionType, labelSequence.labelSequenceViewModel, labelSequence.labelSequenceBehaviorViewModel, position, 0);
             }
             handleBeforeInteractionNotificationCallback: interactionType => {
-                let position = containsMouse || pressed ? timeLocator.mapToTick(mouseX) : -1;
+                let position = containsMouse || pressed ? timeManipulator.mapToTick(mouseX) : -1;
                 if (labelSequence.interactionControllerNotifier?.handleSceneInteraction(interactionType, labelSequence.labelSequenceViewModel, labelSequence.labelSequenceBehaviorViewModel, position, 0))
                     return false;
                 return true;
@@ -145,7 +135,7 @@ Item {
                 if (!handleBeforeInteractionNotification(ScopicFlow.II_DoubleClicked))
                     return;
                 let label = labelViewModelComponent.createObject(null, {
-                    position: timeLocator.alignTick(timeLocator.mapToTick(mapToItem(labelSequence, mouse.x, 0).x))
+                    position: timeManipulator.alignTick(timeManipulator.mapToTick(mapToItem(labelSequence, mouse.x, 0).x))
                 });
                 labelSequence.labelSequenceViewModel.handle.insertItem(label);
                 selectionManipulator.select(label, Qt.LeftButton, 0);
@@ -289,7 +279,7 @@ Item {
         viewModel: labelSequence.scrollBehaviorViewModel
 
         onMoved: (x, _, isPhysicalWheel) => timeManipulator.moveViewBy(x, isPhysicalWheel)
-        onZoomed: (ratioX, _, x, _, isPhysicalWheel) => timeManipulator.zoomOnWheel(ratioX, x, isPhysicalWheel)
+        onZoomed: (ratioX, _, x, _, isPhysicalWheel) => timeManipulator.zoomViewBy(ratioX, x, isPhysicalWheel)
     }
     MiddleButtonMoveHandler {
         anchors.fill: parent

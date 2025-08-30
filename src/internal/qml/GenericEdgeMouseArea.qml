@@ -1,6 +1,7 @@
 import QtQml
 import QtQuick
 
+import dev.sjimo.ScopicFlow
 import dev.sjimo.ScopicFlow.Internal
 
 MouseArea {
@@ -18,14 +19,14 @@ MouseArea {
     property int unitedExtendRestrict: 0
 
     function extendSelectedNotesOnDragScrolling(directionX) {
-        let alignedTick = directionX < 0 ? timeLocator.alignTickCeil(timeLocator.mapToTick(0)) : timeLocator.alignTickFloor(timeLocator.mapToTick(paneItem.width));
+        let alignedTick = directionX < 0 ? timeManipulator.alignTick(timeManipulator.mapToTick(0), ScopicFlow.AO_Ceil) : timeManipulator.alignTick(timeManipulator.mapToTick(paneItem.width), ScopicFlow.AO_Floor);
         if (leftEdge)
             extendSelectionLeftTo(alignedTick);
         else
             extendSelectionRightTo(alignedTick);
     }
     function extendSelectedNotesToX(x) {
-        let alignedTick = Math.max(timeLocator.alignTickCeil(timeLocator.mapToTick(0)), Math.min(timeLocator.alignTick(timeLocator.mapToTick(x)), timeLocator.alignTickFloor(timeLocator.mapToTick(paneItem.width))));
+        let alignedTick = Math.max(timeManipulator.alignTick(timeManipulator.mapToTick(0), ScopicFlow.AO_Ceil), Math.min(timeManipulator.alignTick(timeManipulator.mapToTick(x)), timeManipulator.alignTick(timeManipulator.mapToTick(paneItem.width), ScopicFlow.AO_Floor)));
         if (leftEdge)
             extendSelectionLeftTo(alignedTick);
         else
@@ -67,8 +68,8 @@ MouseArea {
                     return;
                 if (typeof (note.maxLength) === "number" && note.length + deltaPosition + (note.clipStart ?? 0) > note.maxLength)
                     return;
-                if (note.position + note.length + deltaPosition > timeLocator.timeViewModel.end)
-                    timeLocator.timeViewModel.end = note.position + note.length + deltaPosition;
+                if (note.position + note.length + deltaPosition > timeManipulator.timeViewModel.end)
+                    timeManipulator.timeViewModel.end = note.position + note.length + deltaPosition;
             }
             if (unitedExtendRestrict) {
                 let note = sequenceViewModel.handle.selection[0];

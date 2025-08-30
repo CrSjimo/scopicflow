@@ -4,8 +4,8 @@ import QtQuick
 import SVSCraft
 import SVSCraft.UIComponents
 
-import dev.sjimo.ScopicFlow.Internal
 import dev.sjimo.ScopicFlow
+import dev.sjimo.ScopicFlow.Internal
 
 Item {
     id: anchorEditor
@@ -22,17 +22,8 @@ Item {
 
     clip: true
 
-    TimeAlignmentPositionLocator {
-        id: timeLocator
-
-        anchors.fill: parent
-        timeLayoutViewModel: anchorEditor.timeLayoutViewModel
-        timeViewModel: anchorEditor.timeViewModel
-    }
     TimeManipulator {
         id: timeManipulator
-
-        anchors.fill: parent
         timeLayoutViewModel: anchorEditor.timeLayoutViewModel
         timeViewModel: anchorEditor.timeViewModel
     }

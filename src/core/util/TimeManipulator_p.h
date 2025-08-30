@@ -14,11 +14,15 @@ namespace sflow {
         TimeViewModel *timeViewModel{};
         TimeLayoutViewModel *timeLayoutViewModel{};
         double viewSize{};
+        bool isViewSizeExplicitSet{};
 
         QVariantAnimation startAnimation;
         QVariantAnimation pixelDensityAnimation;
         bool currentAnimationFixStartToZero{};
         double animationCenter{};
+
+        void setViewSize(double size);
+        void updateParent();
     };
 }
 

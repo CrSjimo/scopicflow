@@ -3,8 +3,8 @@ import QtQuick
 
 import SVSCraft.UIComponents
 
-import dev.sjimo.ScopicFlow.Internal
 import dev.sjimo.ScopicFlow
+import dev.sjimo.ScopicFlow.Internal
 
 Rectangle {
     id: labelRect

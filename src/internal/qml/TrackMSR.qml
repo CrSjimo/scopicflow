@@ -5,8 +5,8 @@ import QtQuick.Layouts
 import SVSCraft
 import SVSCraft.UIComponents
 
-import dev.sjimo.ScopicFlow.Internal
 import dev.sjimo.ScopicFlow
+import dev.sjimo.ScopicFlow.Internal
 
 RowLayout {
     id: msr

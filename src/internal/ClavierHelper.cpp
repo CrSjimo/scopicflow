@@ -1,6 +1,6 @@
 #include "ClavierHelper_p.h"
 
-#include <SVSCraftCore/musicpitch.h>
+#include <SVSCraftCore/MusicPitch.h>
 
 namespace sflow {
 

@@ -3,7 +3,7 @@
 
 #include <ScopicFlowInternal/private/PianoRollScaleQuickItem_p.h>
 
-#include <SVSCraftCore/musictimeline.h>
+#include <SVSCraftCore/MusicTimeline.h>
 
 namespace sflow {
     class PianoRollScaleQuickItemPrivate {

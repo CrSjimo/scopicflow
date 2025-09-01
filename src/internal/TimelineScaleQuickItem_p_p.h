@@ -4,7 +4,7 @@
 #include <QVariantAnimation>
 #include <QSGNode>
 
-#include <SVSCraftCore/musictimeline.h>
+#include <SVSCraftCore/MusicTimeline.h>
 
 #include <ScopicFlowInternal/private/TimelineScaleQuickItem_p.h>
 

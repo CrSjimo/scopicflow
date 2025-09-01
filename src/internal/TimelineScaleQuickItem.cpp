@@ -7,9 +7,9 @@
 #include <QSGTextNode>
 #include <QTextLayout>
 
-#include <SVSCraftCore/musictimeline.h>
-#include <SVSCraftCore/musictime.h>
-#include <SVSCraftCore/musictimesignature.h>
+#include <SVSCraftCore/MusicTimeline.h>
+#include <SVSCraftCore/MusicTime.h>
+#include <SVSCraftCore/MusicTimeSignature.h>
 
 #include <ScopicFlowCore/TimeViewModel.h>
 #include <ScopicFlowCore/TimeLayoutViewModel.h>

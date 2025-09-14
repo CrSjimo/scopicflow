@@ -1,10 +1,12 @@
 project(ScopicFlowCore VERSION 0.0.1 LANGUAGES CXX)
 
+qm_import(Qml)
+
 file(GLOB_RECURSE _src *.h *.cpp *.qrc)
 
-scopic_flow_add_library(ScopicFlowCore AUTOGEN STATIC
+scopic_flow_add_library(ScopicFlowCore AUTOGEN
     SOURCES ${_src}
-    LINKS svscraft::Core
+    LINKS svscraft::Core svscraft::Gui svscraft::Qml svscraft::Quick
     QT_LINKS Core Gui Widgets Qml Quick QuickControls2
     QT_INCLUDE_PRIVATE Core Gui Widgets Qml Quick QuickControls2
     INCLUDE_PRIVATE *
@@ -28,8 +30,10 @@ qt_add_qml_module(${PROJECT_NAME}
     QML_FILES ${_qml_files}
     RESOURCES ${_resource_files}
     NAMESPACE sflow
-    OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/dev/sjimo/ScopicFlow
+    OUTPUT_DIRECTORY ${QMSETUP_BUILD_DIR}/qml/dev/sjimo/ScopicFlow
 )
+
+qm_install_qml_modules(${PROJECT_NAME})
 
 set_target_properties(${PROJECT_NAME} PROPERTIES
     CXX_STANDARD 20

@@ -44,6 +44,11 @@ set(SCOPIC_FLOW_SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/src)
 find_package(qmsetup REQUIRED)
 
 qm_import(Filesystem)
+
+if (NOT DEFINED QMSETUP_BUILD_DIR)
+    set(QMSETUP_BUILD_DIR "${CMAKE_BINARY_DIR}/out")
+endif()
+
 qm_init_directories()
 
 # ----------------------------------

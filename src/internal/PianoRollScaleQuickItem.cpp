@@ -6,7 +6,7 @@
 
 #include <SVSCraftCore/MusicTimeline.h>
 #include <SVSCraftCore/MusicTime.h>
-#include <SVSCraftCore/MusicTimeSignature.h.h>
+#include <SVSCraftCore/MusicTimeSignature.h>
 
 #include <ScopicFlowCore/TimeViewModel.h>
 #include <ScopicFlowCore/TimeLayoutViewModel.h>

@@ -3,12 +3,7 @@ project(ScopicFlowViews VERSION 0.0.1 LANGUAGES CXX)
 qm_import(Qml)
 
 file(GLOB_RECURSE _src *.h *.cpp *.qrc)
-file(GLOB_RECURSE _qml_files_abs *.qml *.js *.mjs)
-set(_qml_files)
-foreach(_file IN LISTS _qml_files_abs)
-    file(RELATIVE_PATH _rel_path ${CMAKE_CURRENT_SOURCE_DIR} ${_file})
-    list(APPEND _qml_files ${_rel_path})
-endforeach()
+file(GLOB_RECURSE _qml_files RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} *.qml *.js *.mjs)
 
 scopic_flow_add_library(${PROJECT_NAME} AUTOGEN
     SOURCES ${_src}

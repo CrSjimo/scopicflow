@@ -131,7 +131,7 @@ Item {
                 )
                 previousScaleX = scaleX;
                 previousScaleY = scaleY;
-            } else if (handler.viewModel?.affectVelocity) {
+            } else if (handler.viewModel?.autoScroll) {
                 deltaTickingX = calculateScrollingSpeed(mouse.x - originalX) * tickingTimer.interval;
                 deltaTickingY = calculateScrollingSpeed(mouse.y - originalY) * tickingTimer.interval;
                 if (m.deltaTickingX !== 0 || m.deltaTickingY !== 0) {
@@ -148,7 +148,7 @@ Item {
         }
         onPressed: function (mouse) {
             isZoom = handler.viewModel?.isZoom(mouse.modifiers) ?? false;
-            if (handler.viewModel?.affectVelocity || isZoom) {
+            if (handler.viewModel?.autoScroll || isZoom) {
                 indicator.x = mouse.x - indicator.width / 2;
                 indicator.y = mouse.y - indicator.height / 2;
                 indicator.open();
@@ -181,7 +181,66 @@ Item {
             width: 24
 
             Shape {
+                id: centerMagnifier
+
                 anchors.fill: parent
+                visible: m.isZoom
+
+                ShapePath {
+                    fillColor: "white"
+                    strokeColor: "black"
+                    strokeWidth: 1
+                    startX: indicator.width * 0.5
+                    startY: indicator.height * 0.25
+                    PathArc {
+                        x: indicator.width * 0.7152
+                        y: indicator.height * 0.6271
+                        radiusX: indicator.width * 0.25
+                        radiusY: indicator.height * 0.25
+                    }
+                    PathLine {
+                        x: indicator.width * 1.0052
+                        y: indicator.height * 0.9271
+                    }
+                    PathLine {
+                        x: indicator.width * 0.9271
+                        y: indicator.height * 1.0052
+                    }
+                    PathLine {
+                        x: indicator.width * 0.6271
+                        y: indicator.height * 0.7152
+                    }
+                    PathArc {
+                        x: indicator.width * 0.5
+                        y: indicator.height * 0.25
+                        radiusX: indicator.width * 0.25
+                        radiusY: indicator.height * 0.25
+                        useLargeArc: true
+                    }
+                    PathMove {
+                        x: indicator.width * 0.5
+                        y: indicator.height * 0.375
+                    }
+                    PathArc {
+                        x: indicator.width * 0.5
+                        y: indicator.height * 0.625
+                        radiusX: indicator.width * 0.125
+                        radiusY: indicator.height * 0.125
+                    }
+                    PathArc {
+                        x: indicator.width * 0.5
+                        y: indicator.height * 0.375
+                        radiusX: indicator.width * 0.125
+                        radiusY: indicator.height * 0.125
+                    }
+                }
+            }
+
+            Shape {
+                id: centerPoint
+
+                anchors.fill: parent
+                visible: !m.isZoom
 
                 ShapePath {
                     fillColor: "white"
@@ -199,6 +258,8 @@ Item {
                 }
             }
             Shape {
+                id: topTriangle
+
                 anchors.fill: parent
                 visible: (handler.movableOrientation & Qt.Vertical) && (m.deltaTickingY < 0 || (m.deltaTickingX === 0 || !(handler.movableOrientation & Qt.Horizontal)) && m.deltaTickingY === 0)
 
@@ -214,6 +275,8 @@ Item {
                 }
             }
             Shape {
+                id: rightTriangle
+
                 anchors.fill: parent
                 visible: (handler.movableOrientation & Qt.Horizontal) && (m.deltaTickingX > 0 || m.deltaTickingX === 0 && (m.deltaTickingY === 0 || !(handler.movableOrientation & Qt.Vertical)))
 
@@ -229,6 +292,8 @@ Item {
                 }
             }
             Shape {
+                id: bottomTriangle
+
                 anchors.fill: parent
                 visible: (handler.movableOrientation & Qt.Vertical) && (m.deltaTickingY > 0 || (m.deltaTickingX === 0 || !(handler.movableOrientation & Qt.Horizontal)) && m.deltaTickingY === 0)
 
@@ -244,6 +309,8 @@ Item {
                 }
             }
             Shape {
+                id: leftTriangle
+
                 anchors.fill: parent
                 visible: (handler.movableOrientation & Qt.Horizontal) && (m.deltaTickingX < 0 || m.deltaTickingX === 0 && (m.deltaTickingY === 0 || !(handler.movableOrientation & Qt.Vertical)))
 

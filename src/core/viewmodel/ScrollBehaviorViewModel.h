@@ -16,7 +16,7 @@ namespace sflow {
         Q_PROPERTY(Qt::KeyboardModifier zoomModifier READ zoomModifier WRITE setZoomModifier NOTIFY zoomModifierChanged)
         Q_PROPERTY(Qt::KeyboardModifier pageModifier READ pageModifier WRITE setPageModifier NOTIFY pageModifierChanged)
         Q_PROPERTY(bool usePageModifierAsAlternateAxisZoom READ usePageModifierAsAlternateAxisZoom WRITE setUsePageModifierAsAlternateAxisZoom NOTIFY usePageModifierAsAlternateAxisZoomChanged)
-        Q_PROPERTY(bool affectVelocity READ affectVelocity WRITE setAffectVelocity NOTIFY affectVelocityChanged)
+        Q_PROPERTY(bool autoScroll READ autoScroll WRITE setAutoScroll NOTIFY autoScrollChanged)
         Q_PROPERTY(bool pinchDecomposed READ pinchDecomposed WRITE setPinchDecomposed NOTIFY pinchDecomposedChanged)
     public:
         explicit ScrollBehaviorViewModel(QObject *parent = nullptr);
@@ -38,8 +38,8 @@ namespace sflow {
         Q_INVOKABLE bool isZoom(Qt::KeyboardModifiers modifiers) const;
         Q_INVOKABLE bool isPage(Qt::KeyboardModifiers modifiers) const;
 
-        bool affectVelocity() const;
-        void setAffectVelocity(bool affectVelocity);
+        bool autoScroll() const;
+        void setAutoScroll(bool autoScroll);
 
         bool pinchDecomposed() const;
         void setPinchDecomposed(bool pinchDecomposed);
@@ -49,7 +49,7 @@ namespace sflow {
         void zoomModifierChanged(Qt::KeyboardModifier modifier);
         void pageModifierChanged(Qt::KeyboardModifier modifier);
         void usePageModifierAsAlternateAxisZoomChanged(bool usePageModifierAsAlternateAxisZoom);
-        void affectVelocityChanged(bool affectVeloCity);
+        void autoScrollChanged(bool autoScroll);
         void pinchDecomposedChanged(bool pinchDecomposed);
 
     private:
@@ -57,7 +57,7 @@ namespace sflow {
         Qt::KeyboardModifier m_zoomModifier;
         Qt::KeyboardModifier m_pageModifier;
         bool m_usePageModifierAsAlternateAxisZoom;
-        bool m_affectVelocity;
+        bool m_autoScroll;
         bool m_pinchDecomposed;
     };
 

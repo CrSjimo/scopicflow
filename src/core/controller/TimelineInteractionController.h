@@ -15,11 +15,8 @@ namespace sflow {
         ~TimelineInteractionController() override;
 
         enum InteractionFlag {
-            ScrollByWheel = 0x1,
-            ScrollByMiddleButton = 0x2,
-            ZoomByWheel = 0x4,
-            ZoomByMiddleButton = 0x8,
-            MovePositionIndicator = 0x10,
+            MovePositionIndicator = 0x1,
+            ZoomByRubberBand = 0x2,
         };
         Q_ENUM(InteractionFlag)
         Q_DECLARE_FLAGS(Interaction, InteractionFlag)

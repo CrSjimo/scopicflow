@@ -3,7 +3,7 @@
 namespace sflow {
     TimelineInteractionController::TimelineInteractionController(QObject *parent)
         : QObject(parent),
-          m_interaction(ScrollByWheel | ScrollByMiddleButton | ZoomByWheel | ZoomByMiddleButton | MovePositionIndicator) {
+          m_interaction(MovePositionIndicator) {
 
     }
 

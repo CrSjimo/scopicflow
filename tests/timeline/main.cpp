@@ -35,7 +35,7 @@ int main(int argc, char **argv) {
     PlaybackViewModel playbackViewModel(&a);
 
     ScrollBehaviorViewModel scrollBehaviorViewModel(&a);
-    scrollBehaviorViewModel.setAffectVelocity(true);
+    // scrollBehaviorViewModel.setAffectVelocity(true);
 
     QQmlApplicationEngine engine;
     engine.setInitialProperties({

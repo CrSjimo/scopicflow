@@ -3,7 +3,7 @@
 namespace sflow {
     ScrollBehaviorViewModel::ScrollBehaviorViewModel(QObject *parent) : QObject(parent),
     m_alternateAxisModifier(Qt::AltModifier), m_zoomModifier(Qt::ControlModifier), m_pageModifier(Qt::ShiftModifier),
-    m_usePageModifierAsAlternateAxisZoom(false), m_affectVelocity(false), m_pinchDecomposed(false) {
+    m_usePageModifierAsAlternateAxisZoom(false), m_autoScroll(false), m_pinchDecomposed(false) {
     }
     ScrollBehaviorViewModel::~ScrollBehaviorViewModel() = default;
 
@@ -66,13 +66,13 @@ namespace sflow {
         return (modifiers & m_pageModifier) && !m_usePageModifierAsAlternateAxisZoom;
     }
 
-    bool ScrollBehaviorViewModel::affectVelocity() const {
-        return m_affectVelocity;
+    bool ScrollBehaviorViewModel::autoScroll() const {
+        return m_autoScroll;
     }
-    void ScrollBehaviorViewModel::setAffectVelocity(bool affectVelocity) {
-        if (m_affectVelocity != affectVelocity) {
-            m_affectVelocity = affectVelocity;
-            emit affectVelocityChanged(affectVelocity);
+    void ScrollBehaviorViewModel::setAutoScroll(bool autoScroll) {
+        if (m_autoScroll != autoScroll) {
+            m_autoScroll = autoScroll;
+            emit autoScrollChanged(autoScroll);
         }
     }
 

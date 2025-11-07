@@ -11,11 +11,10 @@ import dev.sjimo.ScopicFlow.Internal
 T.Pane {
     id: timeline
 
-    property QtObject timeLayoutViewModel: null
-    property QtObject timeViewModel: null
-    property QtObject playbackViewModel: null
-    property QtObject scrollBehaviorViewModel: null
-    property QtObject interactionControllerNotifier: null
+    property TimeLayoutViewModel timeLayoutViewModel: null
+    property TimeViewModel timeViewModel: null
+    property PlaybackViewModel playbackViewModel: null
+    property ScrollBehaviorViewModel scrollBehaviorViewModel: null
 
     Accessible.name: qsTr("Timeline")
     focus: true

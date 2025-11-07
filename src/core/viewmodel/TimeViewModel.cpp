@@ -16,3 +16,5 @@ namespace sflow {
     SFLOW_VIEWMODEL_IMPLEMENT_PROPERTY_DEFAULT_VALUE(TimeViewModel, end, 48000, end, setEnd, resetEnd)
     SFLOW_VIEWMODEL_IMPLEMENT_PROPERTY(TimeViewModel, timeline, timeline, setTimeline, resetTimeline)
 }
+
+#include "moc_TimeViewModel.cpp"

@@ -3,6 +3,7 @@
 
 #include <QObject>
 #include <QHash>
+#include <qqmlintegration.h>
 
 #include <ScopicFlowCore/ScopicFlowCoreGlobal.h>
 
@@ -10,6 +11,7 @@ namespace sflow {
 
     class SCOPIC_FLOW_CORE_EXPORT ScrollBehaviorViewModel : public QObject {
         Q_OBJECT
+        QML_ELEMENT
         Q_PROPERTY(Qt::KeyboardModifier alternateAxisModifier READ alternateAxisModifier WRITE setAlternateAxisModifier NOTIFY alternateAxisModifierChanged)
         Q_PROPERTY(Qt::KeyboardModifier zoomModifier READ zoomModifier WRITE setZoomModifier NOTIFY zoomModifierChanged)
         Q_PROPERTY(Qt::KeyboardModifier pageModifier READ pageModifier WRITE setPageModifier NOTIFY pageModifierChanged)
@@ -31,6 +33,10 @@ namespace sflow {
 
         bool usePageModifierAsAlternateAxisZoom() const;
         void setUsePageModifierAsAlternateAxisZoom(bool usePageModifierAsAlternateAxisZoom);
+
+        Q_INVOKABLE bool isAlternateAxis(Qt::KeyboardModifiers modifiers) const;
+        Q_INVOKABLE bool isZoom(Qt::KeyboardModifiers modifiers) const;
+        Q_INVOKABLE bool isPage(Qt::KeyboardModifiers modifiers) const;
 
         bool affectVelocity() const;
         void setAffectVelocity(bool affectVelocity);

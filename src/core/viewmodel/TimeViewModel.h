@@ -1,6 +1,7 @@
 #ifndef SCOPIC_FLOW_TIMEVIEWMODEL_H
 #define SCOPIC_FLOW_TIMEVIEWMODEL_H
 
+#include <qqmlintegration.h>
 #include <QQmlPropertyMap>
 
 #include <ScopicFlowCore/ScopicFlowCoreGlobal.h>
@@ -13,9 +14,7 @@ namespace sflow {
 
     class SCOPIC_FLOW_CORE_EXPORT TimeViewModel : public QQmlPropertyMap {
         Q_OBJECT
-        Q_PROPERTY(double start READ start WRITE setStart NOTIFY startChanged)
-        Q_PROPERTY(double end READ end WRITE setEnd NOTIFY endChanged)
-
+        QML_ELEMENT
     public:
         explicit TimeViewModel(QObject *parent = nullptr);
         ~TimeViewModel() override;
@@ -25,6 +24,6 @@ namespace sflow {
         SFLOW_VIEWMODEL_DECLARE_PROPERTY(SVS::MusicTimeline *, timeline, timeline, setTimeline, resetTimeline)
     };
 
-} // sflow
+}
 
 #endif //SCOPIC_FLOW_TIMEVIEWMODEL_H

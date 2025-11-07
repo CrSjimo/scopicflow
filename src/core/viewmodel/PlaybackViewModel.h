@@ -1,6 +1,7 @@
 #ifndef SCOPIC_FLOW_PLAYBACKVIEWMODEL_H
 #define SCOPIC_FLOW_PLAYBACKVIEWMODEL_H
 
+#include <qqmlintegration.h>
 #include <QQmlPropertyMap>
 
 #include <ScopicFlowCore/ScopicFlowCoreGlobal.h>
@@ -9,7 +10,7 @@ namespace sflow {
 
     class SCOPIC_FLOW_CORE_EXPORT PlaybackViewModel : public QQmlPropertyMap {
         Q_OBJECT
-
+        QML_ELEMENT
     public:
         explicit PlaybackViewModel(QObject *parent = nullptr);
         ~PlaybackViewModel() override;

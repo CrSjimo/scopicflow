@@ -43,6 +43,29 @@ namespace sflow {
             emit usePageModifierAsAlternateAxisZoomChanged(usePageModifierAsAlternateAxisZoom);
         }
     }
+
+    bool ScrollBehaviorViewModel::isAlternateAxis(Qt::KeyboardModifiers modifiers) const {
+        // FIXME
+        auto isWindows =
+#ifdef Q_OS_WIN
+            true
+#else
+            false
+#endif;
+        ;
+        auto isAxisRevert = isWindows && (modifiers & Qt::AltModifier);
+        auto isRealAlternateAxis = (modifiers & m_alternateAxisModifier) || (modifiers & m_pageModifier) && m_usePageModifierAsAlternateAxisZoom;
+        return isRealAlternateAxis == isAxisRevert;
+    }
+
+    bool ScrollBehaviorViewModel::isZoom(Qt::KeyboardModifiers modifiers) const {
+        return (modifiers & m_zoomModifier) || (modifiers & m_pageModifier) && m_usePageModifierAsAlternateAxisZoom;
+    }
+
+    bool ScrollBehaviorViewModel::isPage(Qt::KeyboardModifiers modifiers) const {
+        return (modifiers & m_pageModifier) && !m_usePageModifierAsAlternateAxisZoom;
+    }
+
     bool ScrollBehaviorViewModel::affectVelocity() const {
         return m_affectVelocity;
     }

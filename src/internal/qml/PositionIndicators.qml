@@ -8,6 +8,10 @@ Item {
     required property QtObject timeLayoutViewModel
     required property QtObject timeViewModel
 
+    readonly property Rectangle primaryIndicator: primaryIndicator
+    readonly property Rectangle secondaryIndicator: secondaryIndicator
+    readonly property Rectangle cursorIndicator: cursorIndicator
+
     Rectangle {
         id: secondaryIndicator
 
@@ -15,7 +19,7 @@ Item {
         anchors.top: parent.top
         color: SFPalette.playheadSecondaryColor
         width: 1
-        x: parent.timeViewModel && parent.timeLayoutViewModel && parent.playbackViewModel ? (parent.playbackViewModel.secondaryPositon - parent.timeViewModel.start) * parent.timeLayoutViewModel.pixelDensity - 0.5 : 0
+        x: parent.timeViewModel && parent.timeLayoutViewModel && parent.playbackViewModel ? (parent.playbackViewModel.secondaryPosition - parent.timeViewModel.start) * parent.timeLayoutViewModel.pixelDensity - 0.5 : 0
     }
     Rectangle {
         id: primaryIndicator
@@ -32,6 +36,7 @@ Item {
         anchors.bottom: parent.bottom
         anchors.top: parent.top
         color: SFPalette.cursorIndicatorColor
+        visible: parent.timeLayoutViewModel && parent.timeLayoutViewModel.cursorPosition >= 0
         width: 1
         x: parent.timeViewModel && parent.timeLayoutViewModel ? (parent.timeLayoutViewModel.cursorPosition - parent.timeViewModel.start) * parent.timeLayoutViewModel.pixelDensity - 0.5 : 0
     }

@@ -1,16 +1,22 @@
+import QtQml
 import QtQuick
+import QtQuick.Templates as T
+import QtQuick.Shapes
+
+import dev.sjimo.ScopicFlow
 
 Item {
     id: handler
 
+    property ScrollBehaviorViewModel viewModel: null
     property int movableOrientation: Qt.Horizontal | Qt.Vertical
-    property int pinchZoomOrientationHint: zoomableOrientation
-    property QtObject viewModel: null
     property int zoomableOrientation: movableOrientation
+    property int pinchOrientationHint: Qt.Horizontal
 
     signal moved(x: double, y: double, isPhysicalWheel: bool)
     signal zoomed(ratioX: double, ratioY: double, x: double, y: double, isPhysicalWheel: bool)
 
+    // Wheel
     MouseArea {
         acceptedButtons: Qt.NoButton
         anchors.fill: parent
@@ -50,22 +56,213 @@ Item {
             }
         }
     }
+
+    // Pinch
     PinchArea {
         anchors.fill: parent
-
         onPinchUpdated: pinch => {
-            let scale = pinch.scale / pinch.previousScale;
-            let acceptHorizontal = (handler.zoomableOrientation & Qt.Horizontal);
-            let acceptVertical = (handler.zoomableOrientation & Qt.Vertical);
+            let scale = pinch.scale / pinch.previousScale
+            let acceptHorizontal = (handler.zoomableOrientation & Qt.Horizontal)
+            let acceptVertical = (handler.zoomableOrientation & Qt.Vertical)
             if (acceptHorizontal && acceptVertical) {
-                if (handler.viewModel?.pinchDecomposed)
-                    handler.zoomed(scale, scale, pinch.center.x, pinch.center.y, false);
-                else
-                    handler.zoomed((handler.pinchZoomOrientationHint & Qt.Horizontal) ? scale : 1, (handler.pinchZoomOrientationHint & Qt.Vertical) ? scale : 1, pinch.center.x, pinch.center.y, false);
+                handler.zoomed(
+                    pinchOrientationHint === Qt.Horizontal ? scale : 1,
+                    pinchOrientationHint === Qt.Vertical ? scale : 1,
+                    pinch.center.x,
+                    pinch.center.y,
+                    false
+                )
             } else if (acceptHorizontal) {
-                handler.zoomed(scale, 1, pinch.center.x, pinch.center.y, false);
+                handler.zoomed(scale, 1, pinch.center.x, pinch.center.y, false)
             } else if (acceptVertical) {
-                handler.zoomed(1, scale, pinch.center.x, pinch.center.y, false);
+                handler.zoomed(1, scale, pinch.center.x, pinch.center.y, false)
+            }
+        }
+    }
+
+    // Middle button
+    MouseArea {
+        id: m
+
+        property bool isZoom: false
+        property double originalX: 0
+        property double originalY: 0
+        property double deltaTickingX: 0
+        property double deltaTickingY: 0
+        property double previousScaleX: 1
+        property double previousScaleY: 1
+
+        function calculateScrollingSpeed(x) {
+            if (Math.abs(x) < 8)
+                return 0;
+            return Math.sign(x) * Math.abs(x / 256);
+        }
+
+        function setCursorShape(s) {
+            cursorShape = s;
+            popupMouseArea.cursorShape = s
+        }
+
+        acceptedButtons: Qt.MiddleButton
+        anchors.fill: parent
+        cursorShape: undefined
+
+        onCanceled: {
+            tickingTimer.stop();
+            setCursorShape(undefined)
+            deltaTickingX = 0;
+            deltaTickingY = 0;
+            previousScaleX = 1;
+            previousScaleY = 1;
+            indicator.close();
+        }
+        onPositionChanged: function (mouse) {
+            if (isZoom) {
+                let deltaX = (mouse.x - originalX) / 32;
+                let deltaY = (mouse.y - originalY) / 32;
+                let scaleX = Math.pow(1 + 0.25 * Math.abs(deltaX), Math.sign(deltaX))
+                let scaleY = Math.pow(1 + 0.3 * Math.abs(deltaY), Math.sign(deltaY))
+                handler.zoomed(
+                    (handler.zoomableOrientation & Qt.Horizontal) ? scaleX / previousScaleX : 1,
+                    (handler.zoomableOrientation & Qt.Vertical) ? scaleY / previousScaleY : 1,
+                    originalX,
+                    originalY,
+                    false
+                )
+                previousScaleX = scaleX;
+                previousScaleY = scaleY;
+            } else if (handler.viewModel?.affectVelocity) {
+                deltaTickingX = calculateScrollingSpeed(mouse.x - originalX) * tickingTimer.interval;
+                deltaTickingY = calculateScrollingSpeed(mouse.y - originalY) * tickingTimer.interval;
+                if (m.deltaTickingX !== 0 || m.deltaTickingY !== 0) {
+                    setCursorShape(Qt.OpenHandCursor);
+                } else {
+                    setCursorShape(Qt.ArrowCursor);
+                }
+                tickingTimer.start();
+            } else {
+                handler.moved(originalX - mouse.x, originalY - mouse.y, false);
+                originalX = mouse.x;
+                originalY = mouse.y;
+            }
+        }
+        onPressed: function (mouse) {
+            isZoom = handler.viewModel?.isZoom(mouse.modifiers) ?? false;
+            if (handler.viewModel?.affectVelocity || isZoom) {
+                indicator.x = mouse.x - indicator.width / 2;
+                indicator.y = mouse.y - indicator.height / 2;
+                indicator.open();
+                setCursorShape(Qt.ArrowCursor);
+            } else {
+                setCursorShape(Qt.ClosedHandCursor);
+            }
+            originalX = mouse.x;
+            originalY = mouse.y;
+        }
+        onReleased: canceled()
+
+        Timer {
+            id: tickingTimer
+
+            interval: 10
+            repeat: true
+
+            onTriggered: {
+                handler.moved(m.deltaTickingX, m.deltaTickingY, false);
+            }
+        }
+
+        T.Popup {
+            id: indicator
+
+            closePolicy: T.Popup.NoAutoClose
+            height: 24
+            padding: 0
+            width: 24
+
+            Shape {
+                anchors.fill: parent
+
+                ShapePath {
+                    fillColor: "white"
+                    strokeColor: "black"
+                    strokeWidth: 1
+
+                    PathAngleArc {
+                        centerX: indicator.width * 0.5
+                        centerY: indicator.height * 0.5
+                        radiusX: indicator.width * 0.125
+                        radiusY: indicator.height * 0.125
+                        startAngle: 0
+                        sweepAngle: 360
+                    }
+                }
+            }
+            Shape {
+                anchors.fill: parent
+                visible: (handler.movableOrientation & Qt.Vertical) && (m.deltaTickingY < 0 || (m.deltaTickingX === 0 || !(handler.movableOrientation & Qt.Horizontal)) && m.deltaTickingY === 0)
+
+                ShapePath {
+                    fillColor: "white"
+                    strokeColor: "black"
+                    strokeWidth: 1
+
+                    PathMove { x: indicator.width * 0.5; y: 0 }
+                    PathLine { x: indicator.width * 0.375; y: indicator.height * 0.25 }
+                    PathLine { x: indicator.width * 0.625; y: indicator.height * 0.25 }
+                    PathLine { x: indicator.width * 0.5; y: 0 }
+                }
+            }
+            Shape {
+                anchors.fill: parent
+                visible: (handler.movableOrientation & Qt.Horizontal) && (m.deltaTickingX > 0 || m.deltaTickingX === 0 && (m.deltaTickingY === 0 || !(handler.movableOrientation & Qt.Vertical)))
+
+                ShapePath {
+                    fillColor: "white"
+                    strokeColor: "black"
+                    strokeWidth: 1
+
+                    PathMove { x: indicator.width; y: indicator.height * 0.5 }
+                    PathLine { x: indicator.width * 0.75; y: indicator.height * 0.375 }
+                    PathLine { x: indicator.width * 0.75; y: indicator.height * 0.625 }
+                    PathLine { x: indicator.width; y: indicator.height * 0.5 }
+                }
+            }
+            Shape {
+                anchors.fill: parent
+                visible: (handler.movableOrientation & Qt.Vertical) && (m.deltaTickingY > 0 || (m.deltaTickingX === 0 || !(handler.movableOrientation & Qt.Horizontal)) && m.deltaTickingY === 0)
+
+                ShapePath {
+                    fillColor: "white"
+                    strokeColor: "black"
+                    strokeWidth: 1
+
+                    PathMove { x: indicator.width * 0.5; y: indicator.height }
+                    PathLine { x: indicator.width * 0.375; y: indicator.height * 0.75 }
+                    PathLine { x: indicator.width * 0.625; y: indicator.height * 0.75 }
+                    PathLine { x: indicator.width / 2; y: indicator.height }
+                }
+            }
+            Shape {
+                anchors.fill: parent
+                visible: (handler.movableOrientation & Qt.Horizontal) && (m.deltaTickingX < 0 || m.deltaTickingX === 0 && (m.deltaTickingY === 0 || !(handler.movableOrientation & Qt.Vertical)))
+
+                ShapePath {
+                    fillColor: "white"
+                    strokeColor: "black"
+                    strokeWidth: 1
+
+                    PathMove { x: 0; y: indicator.height * 0.5 }
+                    PathLine { x: indicator.width * 0.25; y: indicator.height * 0.375 }
+                    PathLine { x: indicator.width * 0.25; y: indicator.height * 0.625 }
+                    PathLine { x: 0; y: indicator.height * 0.5 }
+                }
+            }
+            MouseArea {
+                id: popupMouseArea
+                acceptedButtons: Qt.NoButton
+                anchors.fill: parent
+                cursorShape: m.cursorShape
             }
         }
     }

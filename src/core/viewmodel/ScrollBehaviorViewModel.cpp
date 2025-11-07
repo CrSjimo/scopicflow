@@ -55,7 +55,7 @@ namespace sflow {
         ;
         auto isAxisRevert = isWindows && (modifiers & Qt::AltModifier);
         auto isRealAlternateAxis = (modifiers & m_alternateAxisModifier) || (modifiers & m_pageModifier) && m_usePageModifierAsAlternateAxisZoom;
-        return isRealAlternateAxis == isAxisRevert;
+        return isRealAlternateAxis != isAxisRevert;
     }
 
     bool ScrollBehaviorViewModel::isZoom(Qt::KeyboardModifiers modifiers) const {

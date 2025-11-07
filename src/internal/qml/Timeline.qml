@@ -3,6 +3,7 @@ import QtQuick
 import QtQuick.Templates as T
 import QtQuick.Shapes
 
+import SVSCraft
 import SVSCraft.UIComponents
 
 import dev.sjimo.ScopicFlow
@@ -21,7 +22,9 @@ T.Pane {
     focusPolicy: Qt.StrongFocus
     clip: true
     implicitHeight: 24
-    background: Rectangle { color: SFPalette.timelineBackgroundColor }
+    background: Rectangle {
+        color: Theme.backgroundColor(timeline.ThemedItem.backgroundLevel)
+    }
 
     component PlayheadIndicator: Item {
         id: indicator
@@ -81,7 +84,7 @@ T.Pane {
 
     }
 
-    // helpers
+    // Helpers
     QtObject {
         id: d
         readonly property double cursorIndicatorX: timeManipulator.mapToPosition(playbackViewModel?.cursorPosition ?? -1)
@@ -106,121 +109,96 @@ T.Pane {
     }
     TimeManipulator {
         id: timeManipulator
+        parent: timeline
         timeLayoutViewModel: timeline.timeLayoutViewModel
         timeViewModel: timeline.timeViewModel
     }
     
-    // visual components
+    // Visual components
     TimelineScale {
         id: timelineScale
         anchors.fill: parent
-        color: SFPalette.suitableForegroundColor(SFPalette.timelineBackgroundColor)
+        color: Theme.foregroundColor(timeline.ThemedItem.foregroundLevel)
         timeLayoutViewModel: timeline.timeLayoutViewModel
         timeViewModel: timeline.timeViewModel
     }
     Item {
         id: viewportContainer
-
-        anchors.bottom: parent.bottom
-        anchors.top: parent.top
-        width: (timeline.timeViewModel?.end ?? 0) * (timeline.timeLayoutViewModel?.pixelDensity ?? 0)
         x: -(timeline.timeViewModel?.start ?? 0) * (timeline.timeLayoutViewModel?.pixelDensity ?? 0)
+        y: 0
+        width: (timeline.timeViewModel?.end ?? 0) * (timeline.timeLayoutViewModel?.pixelDensity ?? 0)
+        height: parent.height
 
-        RubberBandLayer {
-            id: rubberBandLayer
-
-            anchors.fill: parent
-
-            rubberBand: Rectangle {
-                color: Qt.rgba(timelineScale.color.r, timelineScale.color.g, timelineScale.color.b, 0.5 * timelineScale.color.a)
-            }
+        Rectangle {
+            id: zoomRubberBand
+            x: 0
+            y: 0
+            width: 0
+            height: parent.height
+            color: Qt.rgba(timelineScale.color.r, timelineScale.color.g, timelineScale.color.b, 0.5 * timelineScale.color.a)
         }
     }
-    PlayheadIndicator {
-        id: secondaryIndicator
-        anchors.bottom: parent.bottom
-        x: d.secondaryIndicatorX
-        color: SFPalette.playheadSecondaryColor
+
+    PositionIndicators {
+        id: positionIndicators
+
+        anchors.fill: parent
+        timeViewModel: timeline.timeViewModel
+        playbackViewModel: timeline.playbackViewModel
+        timeLayoutViewModel: timeline.timeLayoutViewModel
+        primaryIndicator.visible: false
+        secondaryIndicator.visible: false
+
+        PlayheadIndicator {
+            anchors.bottom: parent.bottom
+            x: positionIndicators.primaryIndicator.x
+            color: SFPalette.playheadPrimaryColor
+        }
+
+        PlayheadIndicator {
+            anchors.bottom: parent.bottom
+            x: positionIndicators.secondaryIndicator.x
+            color: SFPalette.playheadSecondaryColor
+        }
     }
-    PlayheadIndicator {
-        id: primaryIndicator
-        anchors.bottom: parent.bottom
-        x: d.primaryIndicatorX
-        color: SFPalette.playheadPrimaryColor
-    }
-    Rectangle {
-        id: cursorIndicator
-        anchors.bottom: parent.bottom
-        anchors.top: parent.top
-        color: SFPalette.cursorIndicatorColor
-        visible: d.cursorIndicatorX >= 0
-        width: 1
-        x: d.cursorIndicatorX - 0.5
-    }
+
+    // Left button
     MouseArea {
-        id: mouseArea
+        id: leftButtonMouseArea
 
         property double pressedX: 0
         property bool rejectContextMenu: false
-        function handlePositionChanged(x, button) {
-            if (button === Qt.LeftButton) {
-                d.setIndicatorPosition(x);
-            } else {
-                rejectContextMenu = true;
-                if (!rubberBandLayer.started) {
-                    rubberBandLayer.startSelection(mapToItem(viewportContainer, timeManipulator.mapToPosition(timeManipulator.alignTick(timeManipulator.mapToTick(pressedX), ScopicFlow.AO_Visible)), 0));
-                }
-                rubberBandLayer.updateSelection(mapToItem(viewportContainer, timeManipulator.mapToPosition(timeManipulator.alignTick(timeManipulator.mapToTick(x), ScopicFlow.AO_Visible)), timeline.height));
-            }
-        }
-        acceptedButtons: Qt.LeftButton | Qt.RightButton
+
+        acceptedButtons: Qt.LeftButton
         anchors.fill: parent
-        drag.axis: Drag.XAxis
-        drag.minimumX: timeline.zeroTickX - 8
-        focusPolicy: Qt.StrongFocus
-        hoverEnabled: true
 
         onCanceled: () => {
             dragScroller.running = false;
-            cursorShape = Qt.ArrowCursor;
-            rubberBandLayer.endSelection();
+            cursorShape = undefined;
+
         }
         onClicked: mouse => {
-            if (mouse.button === Qt.LeftButton) {
-                d.setIndicatorPosition(mouse.x);
-            } else if (mouse.button === Qt.RightButton && !rejectContextMenu) {
-
-            }
+            d.setIndicatorPosition(mouse.x);
         }
         onPositionChanged: mouse => {
             if (!pressed)
                 return;
-            dragScroller.button = mouse.buttons;
             dragScroller.determine(mouse.x, timeline.width, 0, 0, triggered => {
                 if (triggered)
                     return;
-                handlePositionChanged(mouse.x, mouse.buttons);
+                d.setIndicatorPosition(mouse.x);
             });
         }
         onPressed: mouse => {
-            rejectContextMenu = false;
             pressedX = mouse.x;
         }
-        onReleased: () => {
-            dragScroller.running = false;
-            cursorShape = Qt.ArrowCursor;
-            let rect = mapFromItem(viewportContainer, rubberBandLayer.endSelection());
-            d.setZoomedRange(rect.x, rect.width);
-        }
+        onReleased: canceled()
 
         DragScroller {
             id: dragScroller
-
-            property int button: 0
-
             onMoved: deltaX => {
                 timeManipulator.moveViewBy(deltaX);
-                mouseArea.handlePositionChanged(deltaX < 0 ? 0 : timeline.width, button);
+                d.setIndicatorPosition(deltaX < 0 ? 0 : timeline.width);
             }
         }
     }
@@ -238,13 +216,5 @@ T.Pane {
             timeManipulator.zoomViewBy(ratioX, x, isPhysicalWheel);
         }
     }
-    MiddleButtonMoveHandler {
-        anchors.fill: parent
-        direction: Qt.Horizontal
-        viewModel: timeline.scrollBehaviorViewModel
 
-        onMoved: x => {
-            timeManipulator.moveViewBy(x);
-        }
-    }
 }

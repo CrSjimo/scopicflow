@@ -4,9 +4,13 @@
 #include <QObject>
 #include <qqmlintegration.h>
 
+#include <ScopicFlowCore/ScopicFlowCoreGlobal.h>
+
+class QQuickItem;
+
 namespace sflow {
 
-    class TimelineInteractionController : public QObject {
+    class SCOPIC_FLOW_CORE_EXPORT TimelineInteractionController : public QObject {
         Q_OBJECT
         QML_ELEMENT
         Q_PROPERTY(Interaction interaction READ interaction NOTIFY interactionChanged)
@@ -27,13 +31,13 @@ namespace sflow {
     Q_SIGNALS:
         void interactionChanged();
 
-        void interactionOperationStarted(QObject *timeline, InteractionFlag type);
-        void interactionOperationFinished(QObject *timeline, InteractionFlag type);
-        void hoverEntered(QObject *timeline, int position);
-        void hoverMoved(QObject *timeline, int position);
-        void hoverExited(QObject *timeline);
-        void doubleClicked(QObject *timeline, int position);
-        void contextMenuRequested(QObject *timeline);
+        void interactionOperationStarted(QQuickItem *timeline, InteractionFlag type);
+        void interactionOperationFinished(QQuickItem *timeline, InteractionFlag type);
+        void hoverEntered(QQuickItem *timeline, int position);
+        void hoverMoved(QQuickItem *timeline, int position);
+        void hoverExited(QQuickItem *timeline);
+        void doubleClicked(QQuickItem *timeline, int position);
+        void contextMenuRequested(QQuickItem *timeline, int position);
 
     private:
         Interaction m_interaction;

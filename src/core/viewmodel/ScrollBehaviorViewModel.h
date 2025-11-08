@@ -17,7 +17,7 @@ namespace sflow {
         Q_PROPERTY(Qt::KeyboardModifier pageModifier READ pageModifier WRITE setPageModifier NOTIFY pageModifierChanged)
         Q_PROPERTY(bool usePageModifierAsAlternateAxisZoom READ usePageModifierAsAlternateAxisZoom WRITE setUsePageModifierAsAlternateAxisZoom NOTIFY usePageModifierAsAlternateAxisZoomChanged)
         Q_PROPERTY(bool autoScroll READ autoScroll WRITE setAutoScroll NOTIFY autoScrollChanged)
-        Q_PROPERTY(bool pinchDecomposed READ pinchDecomposed WRITE setPinchDecomposed NOTIFY pinchDecomposedChanged)
+        Q_PROPERTY(ScrollTypes scrollTypes READ scrollTypes WRITE setScrollTypes NOTIFY scrollTypesChanged)
     public:
         explicit ScrollBehaviorViewModel(QObject *parent = nullptr);
         ~ScrollBehaviorViewModel() override;
@@ -41,16 +41,25 @@ namespace sflow {
         bool autoScroll() const;
         void setAutoScroll(bool autoScroll);
 
-        bool pinchDecomposed() const;
-        void setPinchDecomposed(bool pinchDecomposed);
+        enum ScrollType {
+            Wheel = 0x1,
+            Pinch = 0x2,
+            MiddleButton = 0x4,
+            LeftButton = 0x8,
+        };
+        Q_ENUM(ScrollType)
+        Q_DECLARE_FLAGS(ScrollTypes, ScrollType)
+
+        ScrollTypes scrollTypes() const;
+        void setScrollTypes(ScrollTypes scrollTypes);
 
     signals:
-        void alternateAxisModifierChanged(Qt::KeyboardModifier modifier);
-        void zoomModifierChanged(Qt::KeyboardModifier modifier);
-        void pageModifierChanged(Qt::KeyboardModifier modifier);
-        void usePageModifierAsAlternateAxisZoomChanged(bool usePageModifierAsAlternateAxisZoom);
-        void autoScrollChanged(bool autoScroll);
-        void pinchDecomposedChanged(bool pinchDecomposed);
+        void alternateAxisModifierChanged();
+        void zoomModifierChanged();
+        void pageModifierChanged();
+        void usePageModifierAsAlternateAxisZoomChanged();
+        void autoScrollChanged();
+        void scrollTypesChanged();
 
     private:
         Qt::KeyboardModifier m_alternateAxisModifier;
@@ -58,8 +67,10 @@ namespace sflow {
         Qt::KeyboardModifier m_pageModifier;
         bool m_usePageModifierAsAlternateAxisZoom;
         bool m_autoScroll;
-        bool m_pinchDecomposed;
+        ScrollTypes m_scrollTypes;
     };
+
+    Q_DECLARE_OPERATORS_FOR_FLAGS(ScrollBehaviorViewModel::ScrollTypes)
 
 } // sflow
 

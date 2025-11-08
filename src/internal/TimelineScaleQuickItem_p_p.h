@@ -20,14 +20,14 @@ namespace sflow {
         TimelineScaleQuickItemPrivate *d;
 
         QTextLayout *createTextLayoutForBarNumber(int bar);
-        QSGTextNode *createTextNodeForBarNumber(int bar, const QColor &color);
+        QSGTextNode *createTextNodeForBarNumber(int bar);
         QTextLayout *createTextLayoutForTimeSignature(int numerator, int denominator);
-        QSGTextNode *createTextNodeForTimeSignature(int numerator, int denominator, const QColor &color);
+        QSGTextNode *createTextNodeForTimeSignature(int numerator, int denominator);
 
-        QHash<int, QTextLayout *> barNumberTextLayouts;
-        QHash<int, QSGTextNode *> barNumberTextNodes;
-        QHash<qint64, QTextLayout *> timeSignatureTextLayouts;
-        QHash<qint64, QSGTextNode *> timeSignatureTextNodes;
+        QHash<int, QSharedPointer<QTextLayout>> barNumberTextLayouts;
+        QHash<int, QSharedPointer<QSGTextNode>> barNumberTextNodes;
+        QHash<qint64, QSharedPointer<QTextLayout>> timeSignatureTextLayouts;
+        QQuickWindow *window{};
     };
 
     class TimelineScaleQuickItemPrivate {
@@ -40,6 +40,7 @@ namespace sflow {
         QPointer<SVS::MusicTimeline> timeline;
 
         QColor color;
+        QFont font;
 
         void updateTimeline();
     };

@@ -21,6 +21,7 @@ Item {
         acceptedButtons: Qt.NoButton
         anchors.fill: parent
         cursorShape: undefined
+        enabled: (handler.viewModel?.scrollTypes ?? 0) & ScrollBehaviorViewModel.Wheel
 
         onWheel: function (wheel) {
             let isAlternateAxis = handler.viewModel?.isAlternateAxis(wheel.modifiers) ?? false
@@ -60,6 +61,8 @@ Item {
     // Pinch
     PinchArea {
         anchors.fill: parent
+        enabled: (handler.viewModel?.scrollTypes ?? 0) & ScrollBehaviorViewModel.Pinch
+
         onPinchUpdated: pinch => {
             let scale = pinch.scale / pinch.previousScale
             let acceptHorizontal = (handler.zoomableOrientation & Qt.Horizontal)
@@ -103,7 +106,9 @@ Item {
             popupMouseArea.cursorShape = s
         }
 
-        acceptedButtons: Qt.MiddleButton
+        acceptedButtons:
+            (((handler.viewModel?.scrollTypes ?? 0) & ScrollBehaviorViewModel.MiddleButton) ? Qt.MiddleButton : Qt.NoButton) |
+            (((handler.viewModel?.scrollTypes ?? 0) & ScrollBehaviorViewModel.LeftButton) ? Qt.LeftButton : Qt.NoButton)
         anchors.fill: parent
         cursorShape: undefined
 
@@ -134,11 +139,6 @@ Item {
             } else if (handler.viewModel?.autoScroll) {
                 deltaTickingX = calculateScrollingSpeed(mouse.x - originalX) * tickingTimer.interval;
                 deltaTickingY = calculateScrollingSpeed(mouse.y - originalY) * tickingTimer.interval;
-                if (m.deltaTickingX !== 0 || m.deltaTickingY !== 0) {
-                    setCursorShape(Qt.OpenHandCursor);
-                } else {
-                    setCursorShape(Qt.ArrowCursor);
-                }
                 tickingTimer.start();
             } else {
                 handler.moved(originalX - mouse.x, originalY - mouse.y, false);
@@ -154,7 +154,7 @@ Item {
                 indicator.open();
                 setCursorShape(Qt.ArrowCursor);
             } else {
-                setCursorShape(Qt.ClosedHandCursor);
+                setCursorShape(Qt.OpenHandCursor);
             }
             originalX = mouse.x;
             originalY = mouse.y;

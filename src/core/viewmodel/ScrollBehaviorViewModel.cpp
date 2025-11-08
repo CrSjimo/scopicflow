@@ -3,7 +3,7 @@
 namespace sflow {
     ScrollBehaviorViewModel::ScrollBehaviorViewModel(QObject *parent) : QObject(parent),
     m_alternateAxisModifier(Qt::AltModifier), m_zoomModifier(Qt::ControlModifier), m_pageModifier(Qt::ShiftModifier),
-    m_usePageModifierAsAlternateAxisZoom(false), m_autoScroll(false), m_pinchDecomposed(false) {
+    m_usePageModifierAsAlternateAxisZoom(false), m_autoScroll(false), m_scrollTypes(Wheel | Pinch | MiddleButton) {
     }
     ScrollBehaviorViewModel::~ScrollBehaviorViewModel() = default;
 
@@ -13,7 +13,7 @@ namespace sflow {
     void ScrollBehaviorViewModel::setAlternateAxisModifier(Qt::KeyboardModifier modifier) {
         if (m_alternateAxisModifier != modifier) {
             m_alternateAxisModifier = modifier;
-            emit alternateAxisModifierChanged(modifier);
+            emit alternateAxisModifierChanged();
         }
     }
     Qt::KeyboardModifier ScrollBehaviorViewModel::zoomModifier() const {
@@ -22,7 +22,7 @@ namespace sflow {
     void ScrollBehaviorViewModel::setZoomModifier(Qt::KeyboardModifier modifier) {
         if (m_zoomModifier != modifier) {
             m_zoomModifier = modifier;
-            emit zoomModifierChanged(modifier);
+            emit zoomModifierChanged();
         }
     }
     Qt::KeyboardModifier ScrollBehaviorViewModel::pageModifier() const {
@@ -31,7 +31,7 @@ namespace sflow {
     void ScrollBehaviorViewModel::setPageModifier(Qt::KeyboardModifier modifier) {
         if (m_pageModifier != modifier) {
             m_pageModifier = modifier;
-            emit pageModifierChanged(modifier);
+            emit pageModifierChanged();
         }
     }
     bool ScrollBehaviorViewModel::usePageModifierAsAlternateAxisZoom() const {
@@ -40,7 +40,7 @@ namespace sflow {
     void ScrollBehaviorViewModel::setUsePageModifierAsAlternateAxisZoom(bool usePageModifierAsAlternateAxisZoom) {
         if(m_usePageModifierAsAlternateAxisZoom != usePageModifierAsAlternateAxisZoom) {
             m_usePageModifierAsAlternateAxisZoom = usePageModifierAsAlternateAxisZoom;
-            emit usePageModifierAsAlternateAxisZoomChanged(usePageModifierAsAlternateAxisZoom);
+            emit usePageModifierAsAlternateAxisZoomChanged();
         }
     }
 
@@ -72,17 +72,16 @@ namespace sflow {
     void ScrollBehaviorViewModel::setAutoScroll(bool autoScroll) {
         if (m_autoScroll != autoScroll) {
             m_autoScroll = autoScroll;
-            emit autoScrollChanged(autoScroll);
+            emit autoScrollChanged();
         }
     }
-
-    bool ScrollBehaviorViewModel::pinchDecomposed() const {
-        return m_pinchDecomposed;
+    ScrollBehaviorViewModel::ScrollTypes ScrollBehaviorViewModel::scrollTypes() const {
+        return m_scrollTypes;
     }
-    void ScrollBehaviorViewModel::setPinchDecomposed(bool pinchDecomposed) {
-        if (m_pinchDecomposed != pinchDecomposed) {
-            m_pinchDecomposed = pinchDecomposed;
-            emit pinchDecomposedChanged(pinchDecomposed);
+    void ScrollBehaviorViewModel::setScrollTypes(ScrollTypes scrollTypes) {
+        if (m_scrollTypes != scrollTypes) {
+            m_scrollTypes = scrollTypes;
+            emit scrollTypesChanged();
         }
     }
 

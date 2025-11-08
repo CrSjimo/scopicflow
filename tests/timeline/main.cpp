@@ -9,6 +9,7 @@
 #include <ScopicFlowCore/TimeViewModel.h>
 #include <ScopicFlowCore/PlaybackViewModel.h>
 #include <ScopicFlowCore/ScrollBehaviorViewModel.h>
+#include <ScopicFlowCore/TimelineInteractionController.h>
 
 using namespace sflow;
 
@@ -35,14 +36,17 @@ int main(int argc, char **argv) {
     PlaybackViewModel playbackViewModel(&a);
 
     ScrollBehaviorViewModel scrollBehaviorViewModel(&a);
-    // scrollBehaviorViewModel.setAffectVelocity(true);
+    scrollBehaviorViewModel.setAutoScroll(true);
+
+    TimelineInteractionController timelineInteractionController(&a);
 
     QQmlApplicationEngine engine;
     engine.setInitialProperties({
         {"timeLayoutViewModel", QVariant::fromValue(&timeLayoutViewModel)},
         {"timeViewModel", QVariant::fromValue(&timeViewModel)},
         {"playbackViewModel", QVariant::fromValue(&playbackViewModel)},
-        {"scrollBehaviorViewModel", QVariant::fromValue(&scrollBehaviorViewModel)}
+        {"scrollBehaviorViewModel", QVariant::fromValue(&scrollBehaviorViewModel)},
+        {"timelineInteractionController", QVariant::fromValue(&timelineInteractionController)}
     });
     engine.load(":/qt/qml/dev/sjimo/ScopicFlow/Test/Timeline/main.qml");
 

@@ -19,6 +19,7 @@ ApplicationWindow {
     required property TimeViewModel timeViewModel
     required property PlaybackViewModel playbackViewModel
     required property ScrollBehaviorViewModel scrollBehaviorViewModel
+    required property TimelineInteractionController timelineInteractionController
 
     Timeline {
         id: timeline
@@ -27,6 +28,7 @@ ApplicationWindow {
         timeViewModel: main.timeViewModel
         playbackViewModel: main.playbackViewModel
         scrollBehaviorViewModel: main.scrollBehaviorViewModel
+        timelineInteractionController: main.timelineInteractionController
     }
 
 }

@@ -1,9 +1,11 @@
 #include "TimelineInteractionController.h"
 
+#include <QQuickItem>
+
 namespace sflow {
     TimelineInteractionController::TimelineInteractionController(QObject *parent)
         : QObject(parent),
-          m_interaction(MovePositionIndicator) {
+          m_interaction(MovePositionIndicator | ZoomByRubberBand) {
 
     }
 
@@ -20,3 +22,5 @@ namespace sflow {
         return m_interaction;
     }
 }
+
+#include "moc_TimelineInteractionController.cpp"

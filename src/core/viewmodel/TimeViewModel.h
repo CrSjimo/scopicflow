@@ -21,7 +21,7 @@ namespace sflow {
 
         SFLOW_VIEWMODEL_DECLARE_PROPERTY(double, start, start, setStart, resetStart)
         SFLOW_VIEWMODEL_DECLARE_PROPERTY(double, end, end, setEnd, resetEnd)
-        SFLOW_VIEWMODEL_DECLARE_PROPERTY(SVS::MusicTimeline *, timeline, timeline, setTimeline, resetTimeline)
+        SFLOW_VIEWMODEL_DECLARE_PROPERTY(const SVS::MusicTimeline *, timeline, timeline, setTimeline, resetTimeline)
     };
 
 }

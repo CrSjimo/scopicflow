@@ -37,7 +37,7 @@ namespace sflow {
 
         QPointer<TimeViewModel> timeViewModel;
         QPointer<TimeLayoutViewModel> timeLayoutViewModel;
-        QPointer<SVS::MusicTimeline> timeline;
+        QPointer<const SVS::MusicTimeline> timeline;
 
         QColor color;
         QFont font;

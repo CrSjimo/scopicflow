@@ -1,16 +1,67 @@
 #include "TimeLayoutViewModel.h"
 
-#include <ScopicFlowCore/private/ViewModelHelper_p.h>
-
 namespace sflow {
-    TimeLayoutViewModel::TimeLayoutViewModel(QObject *parent) : QQmlPropertyMap(this, parent) {
-        SFLOW_INITIALIZE_VIEWMODEL();
+
+    TimeLayoutViewModel::TimeLayoutViewModel(QObject *parent) : QObject(parent),
+        m_pixelDensity(0.2), m_maximumPixelDensity(1.0), m_minimumPixelDensity(0.00390625),
+        m_cursorPosition(-1), m_positionAlignment(480) {
     }
+
     TimeLayoutViewModel::~TimeLayoutViewModel() = default;
 
-    SFLOW_VIEWMODEL_IMPLEMENT_PROPERTY_DEFAULT_VALUE(TimeLayoutViewModel, pixelDensity, 0.2, pixelDensity, setPixelDensity, resetPixelDensity)
-    SFLOW_VIEWMODEL_IMPLEMENT_PROPERTY_DEFAULT_VALUE(TimeLayoutViewModel, maximumPixelDensity, 1.0, maximumPixelDensity, setMaximumPixelDensity, resetMaximumPixelDensity)
-    SFLOW_VIEWMODEL_IMPLEMENT_PROPERTY_DEFAULT_VALUE(TimeLayoutViewModel, minimumPixelDensity, 0.00390625, minimumPixelDensity, setMinimumPixelDensity, resetMinimumPixelDensity)
-    SFLOW_VIEWMODEL_IMPLEMENT_PROPERTY_DEFAULT_VALUE(TimeLayoutViewModel, cursorPosition, -1, cursorPosition, setCursorPosition, resetCursorPosition)
-    SFLOW_VIEWMODEL_IMPLEMENT_PROPERTY_DEFAULT_VALUE(TimeLayoutViewModel, positionAlignment, 480, positionAlignment, setPositionAlignment, resetPositionAlignment)
+    double TimeLayoutViewModel::pixelDensity() const {
+        return m_pixelDensity;
+    }
+
+    void TimeLayoutViewModel::setPixelDensity(double pixelDensity) {
+        if (m_pixelDensity != pixelDensity) {
+            m_pixelDensity = pixelDensity;
+            Q_EMIT pixelDensityChanged();
+        }
+    }
+
+    double TimeLayoutViewModel::maximumPixelDensity() const {
+        return m_maximumPixelDensity;
+    }
+
+    void TimeLayoutViewModel::setMaximumPixelDensity(double maximumPixelDensity) {
+        if (m_maximumPixelDensity != maximumPixelDensity) {
+            m_maximumPixelDensity = maximumPixelDensity;
+            Q_EMIT maximumPixelDensityChanged();
+        }
+    }
+
+    double TimeLayoutViewModel::minimumPixelDensity() const {
+        return m_minimumPixelDensity;
+    }
+
+    void TimeLayoutViewModel::setMinimumPixelDensity(double minimumPixelDensity) {
+        if (m_minimumPixelDensity != minimumPixelDensity) {
+            m_minimumPixelDensity = minimumPixelDensity;
+            Q_EMIT minimumPixelDensityChanged();
+        }
+    }
+
+    int TimeLayoutViewModel::cursorPosition() const {
+        return m_cursorPosition;
+    }
+
+    void TimeLayoutViewModel::setCursorPosition(int cursorPosition) {
+        if (m_cursorPosition != cursorPosition) {
+            m_cursorPosition = cursorPosition;
+            Q_EMIT cursorPositionChanged();
+        }
+    }
+
+    int TimeLayoutViewModel::positionAlignment() const {
+        return m_positionAlignment;
+    }
+
+    void TimeLayoutViewModel::setPositionAlignment(int positionAlignment) {
+        if (m_positionAlignment != positionAlignment) {
+            m_positionAlignment = positionAlignment;
+            Q_EMIT positionAlignmentChanged();
+        }
+    }
+
 }

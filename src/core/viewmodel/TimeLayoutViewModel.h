@@ -1,26 +1,53 @@
 #ifndef SCOPIC_FLOW_TIMELAYOUTVIEWMODEL_H
 #define SCOPIC_FLOW_TIMELAYOUTVIEWMODEL_H
 
+#include <QObject>
 #include <qqmlintegration.h>
-#include <QQmlPropertyMap>
 
 #include <ScopicFlowCore/ScopicFlowCoreGlobal.h>
 
 namespace sflow {
 
-    class SCOPIC_FLOW_CORE_EXPORT TimeLayoutViewModel : public QQmlPropertyMap {
+    class SCOPIC_FLOW_CORE_EXPORT TimeLayoutViewModel : public QObject {
         Q_OBJECT
         QML_ELEMENT
+        Q_PROPERTY(double pixelDensity READ pixelDensity WRITE setPixelDensity NOTIFY pixelDensityChanged)
+        Q_PROPERTY(double maximumPixelDensity READ maximumPixelDensity WRITE setMaximumPixelDensity NOTIFY maximumPixelDensityChanged)
+        Q_PROPERTY(double minimumPixelDensity READ minimumPixelDensity WRITE setMinimumPixelDensity NOTIFY minimumPixelDensityChanged)
+        Q_PROPERTY(int cursorPosition READ cursorPosition WRITE setCursorPosition NOTIFY cursorPositionChanged)
+        Q_PROPERTY(int positionAlignment READ positionAlignment WRITE setPositionAlignment NOTIFY positionAlignmentChanged)
     public:
         explicit TimeLayoutViewModel(QObject *parent = nullptr);
         ~TimeLayoutViewModel() override;
 
-        SFLOW_VIEWMODEL_DECLARE_PROPERTY(double, pixelDensity, pixelDensity, setPixelDensity, resetPixelDensity)
-        SFLOW_VIEWMODEL_DECLARE_PROPERTY(double, maximumPixelDensity, maximumPixelDensity, setMaximumPixelDensity, resetMaximumPixelDensity)
-        SFLOW_VIEWMODEL_DECLARE_PROPERTY(double, minimumPixelDensity, minimumPixelDensity, setMinimumPixelDensity, resetMinimumPixelDensity)
-        SFLOW_VIEWMODEL_DECLARE_PROPERTY(int, cursorPosition, cursorPosition, setCursorPosition, resetCursorPosition)
-        SFLOW_VIEWMODEL_DECLARE_PROPERTY(int, positionAlignment, positionAlignment, setPositionAlignment, resetPositionAlignment)
+        double pixelDensity() const;
+        void setPixelDensity(double pixelDensity);
 
+        double maximumPixelDensity() const;
+        void setMaximumPixelDensity(double maximumPixelDensity);
+
+        double minimumPixelDensity() const;
+        void setMinimumPixelDensity(double minimumPixelDensity);
+
+        int cursorPosition() const;
+        void setCursorPosition(int cursorPosition);
+
+        int positionAlignment() const;
+        void setPositionAlignment(int positionAlignment);
+
+    Q_SIGNALS:
+        void pixelDensityChanged();
+        void maximumPixelDensityChanged();
+        void minimumPixelDensityChanged();
+        void cursorPositionChanged();
+        void positionAlignmentChanged();
+
+    private:
+        double m_pixelDensity;
+        double m_maximumPixelDensity;
+        double m_minimumPixelDensity;
+        int m_cursorPosition;
+        int m_positionAlignment;
     };
 
 }

@@ -1,14 +1,28 @@
 #include "PlaybackViewModel.h"
 
-#include <ScopicFlowCore/private/ViewModelHelper_p.h>
-
 namespace sflow {
-    PlaybackViewModel::PlaybackViewModel(QObject *parent) : QQmlPropertyMap(this, parent) {
-        SFLOW_INITIALIZE_VIEWMODEL();
+    PlaybackViewModel::PlaybackViewModel(QObject *parent) : QObject(parent),
+    m_primaryPosition(0), m_secondaryPosition(0) {
     }
     PlaybackViewModel::~PlaybackViewModel() = default;
 
-    SFLOW_VIEWMODEL_IMPLEMENT_PROPERTY(PlaybackViewModel, primaryPosition, primaryPosition, setPrimaryPosition, resetPrimaryPosition)
-    SFLOW_VIEWMODEL_IMPLEMENT_PROPERTY(PlaybackViewModel, secondaryPosition, secondaryPosition, setSecondaryPosition, resetSecondaryPosition)
+    int PlaybackViewModel::primaryPosition() const {
+        return m_primaryPosition;
+    }
+    void PlaybackViewModel::setPrimaryPosition(int primaryPosition) {
+        if (m_primaryPosition != primaryPosition) {
+            m_primaryPosition = primaryPosition;
+            Q_EMIT primaryPositionChanged();
+        }
+    }
+    int PlaybackViewModel::secondaryPosition() const {
+        return m_secondaryPosition;
+    }
+    void PlaybackViewModel::setSecondaryPosition(int secondaryPosition) {
+        if (m_secondaryPosition != secondaryPosition) {
+            m_secondaryPosition = secondaryPosition;
+            Q_EMIT secondaryPositionChanged();
+        }
+    }
 
 }

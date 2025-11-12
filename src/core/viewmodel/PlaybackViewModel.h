@@ -1,22 +1,35 @@
 #ifndef SCOPIC_FLOW_PLAYBACKVIEWMODEL_H
 #define SCOPIC_FLOW_PLAYBACKVIEWMODEL_H
 
+#include <QObject>
 #include <qqmlintegration.h>
-#include <QQmlPropertyMap>
 
 #include <ScopicFlowCore/ScopicFlowCoreGlobal.h>
 
 namespace sflow {
 
-    class SCOPIC_FLOW_CORE_EXPORT PlaybackViewModel : public QQmlPropertyMap {
+    class SCOPIC_FLOW_CORE_EXPORT PlaybackViewModel : public QObject {
         Q_OBJECT
         QML_ELEMENT
+        Q_PROPERTY(int primaryPosition READ primaryPosition WRITE setPrimaryPosition NOTIFY primaryPositionChanged)
+        Q_PROPERTY(int secondaryPosition READ secondaryPosition WRITE setSecondaryPosition NOTIFY secondaryPositionChanged)
     public:
         explicit PlaybackViewModel(QObject *parent = nullptr);
         ~PlaybackViewModel() override;
 
-        SFLOW_VIEWMODEL_DECLARE_PROPERTY(int, primaryPosition, primaryPosition, setPrimaryPosition, resetPrimaryPosition)
-        SFLOW_VIEWMODEL_DECLARE_PROPERTY(int, secondaryPosition, secondaryPosition, setSecondaryPosition, resetSecondaryPosition)
+        int primaryPosition() const;
+        void setPrimaryPosition(int primaryPosition);
+
+        int secondaryPosition() const;
+        void setSecondaryPosition(int secondaryPosition);
+
+    Q_SIGNALS:
+        void primaryPositionChanged();
+        void secondaryPositionChanged();
+
+    private:
+        int m_primaryPosition;
+        int m_secondaryPosition;
     };
 
 }

@@ -7,6 +7,8 @@
 #include <ScopicFlowCore/ScopicFlowCoreGlobal.h>
 #include <ScopicFlowCore/ScopicFlowNamespace.h>
 
+class QQuickItem;
+
 namespace sflow {
 
     class TimeViewModel;
@@ -20,7 +22,7 @@ namespace sflow {
         Q_DECLARE_PRIVATE(TimeManipulator)
         Q_PROPERTY(TimeViewModel *timeViewModel READ timeViewModel WRITE setTimeViewModel NOTIFY timeViewModelChanged)
         Q_PROPERTY(TimeLayoutViewModel *timeLayoutViewModel READ timeLayoutViewModel WRITE setTimeLayoutViewModel NOTIFY timeLayoutViewModelChanged)
-        Q_PROPERTY(QObject *parent READ parent WRITE setParent NOTIFY parentChanged)
+        Q_PROPERTY(QQuickItem *target READ target WRITE setTarget NOTIFY targetChanged)
         Q_PROPERTY(double viewSize READ viewSize WRITE setViewSize RESET resetViewSize NOTIFY viewSizeChanged)
     public:
         explicit TimeManipulator(QObject *parent = nullptr);
@@ -32,8 +34,8 @@ namespace sflow {
         TimeLayoutViewModel *timeLayoutViewModel() const;
         void setTimeLayoutViewModel(TimeLayoutViewModel *timeLayoutViewModel);
 
-        QObject *parent() const;
-        void setParent(QObject *parent);
+        QQuickItem *target() const;
+        void setTarget(QQuickItem *target);
 
         double viewSize() const;
         void setViewSize(double viewSize);
@@ -50,7 +52,7 @@ namespace sflow {
     signals:
         void timeViewModelChanged();
         void timeLayoutViewModelChanged();
-        void parentChanged();
+        void targetChanged();
         void viewSizeChanged();
 
     private:

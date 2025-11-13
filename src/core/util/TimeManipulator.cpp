@@ -19,12 +19,12 @@ namespace sflow {
     }
     void TimeManipulatorPrivate::updateParent() {
         Q_Q(TimeManipulator);
-        if (auto item = qobject_cast<QQuickItem *>(q->parent())) {
-            QObject::connect(item, &QQuickItem::widthChanged, q, [=, this] {
+        if (target) {
+            QObject::connect(target, &QQuickItem::widthChanged, q, [=, this] {
                 if (!isViewSizeExplicitSet)
-                    setViewSize(item->width());
+                    setViewSize(target->width());
             });
-            setViewSize(item->width());
+            setViewSize(target->width());
         }
     }
 
@@ -74,18 +74,19 @@ namespace sflow {
             emit timeLayoutViewModelChanged();
         }
     }
-    QObject *TimeManipulator::parent() const {
-        return QObject::parent();
+    QQuickItem *TimeManipulator::target() const {
+        Q_D(const TimeManipulator);
+        return d->target;
     }
-    void TimeManipulator::setParent(QObject *parent) {
+    void TimeManipulator::setTarget(QQuickItem *target) {
         Q_D(TimeManipulator);
-        if (parent != QObject::parent()) {
-            if (QObject::parent()) {
-                disconnect(QObject::parent(), nullptr, this, nullptr);
+        if (target != d->target) {
+            if (d->target) {
+                disconnect(d->target, nullptr, this, nullptr);
             }
-            QObject::setParent(parent);
+            d->target = target;
             d->updateParent();
-            emit parentChanged();
+            emit targetChanged();
         }
     }
     double TimeManipulator::viewSize() const {

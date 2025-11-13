@@ -5,7 +5,7 @@ import QtQuick.Shapes
 
 import dev.sjimo.ScopicFlow
 
-Item {
+FocusScope {
     id: handler
 
     property ScrollBehaviorViewModel viewModel: null
@@ -111,6 +111,8 @@ Item {
             (((handler.viewModel?.scrollTypes ?? 0) & ScrollBehaviorViewModel.LeftButton) ? Qt.LeftButton : Qt.NoButton)
         anchors.fill: parent
         cursorShape: undefined
+        focus: true
+        focusPolicy: Qt.ClickFocus
 
         onCanceled: {
             tickingTimer.stop();

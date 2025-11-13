@@ -9,7 +9,7 @@ import SVSCraft.UIComponents
 import dev.sjimo.ScopicFlow
 import dev.sjimo.ScopicFlow.Internal
 
-T.Pane {
+FocusScope {
     id: timeline
 
     property TimeLayoutViewModel timeLayoutViewModel: null
@@ -19,6 +19,7 @@ T.Pane {
     property TimelineInteractionController timelineInteractionController: null
 
     Accessible.name: qsTr("Timeline")
+    Accessible.role: Accessible.Pane
     focus: true
     focusPolicy: Qt.StrongFocus
     clip: true
@@ -28,12 +29,13 @@ T.Pane {
 
     TimeManipulator {
         id: timeManipulator
-        parent: timeline
+        target: timeline
         timeLayoutViewModel: timeline.timeLayoutViewModel
         timeViewModel: timeline.timeViewModel
     }
 
-    background: Rectangle {
+    Rectangle {
+        anchors.fill: parent
         color: Theme.backgroundColor(timeline.ThemedItem.backgroundLevel)
     }
 
@@ -94,6 +96,8 @@ T.Pane {
 
         acceptedButtons: Qt.LeftButton
         anchors.fill: parent
+        focus: true
+        focusPolicy: Qt.ClickFocus
 
         function setIndicatorPosition(x) {
             if (!timeline.timeViewModel || !timeline.timeLayoutViewModel || !timeline.playbackViewModel)
@@ -183,6 +187,8 @@ T.Pane {
 
         acceptedButtons: Qt.RightButton
         anchors.fill: parent
+        focus: true
+        focusPolicy: Qt.ClickFocus
 
         onClicked: mouse => {
             if (timeline.timelineInteractionController) {

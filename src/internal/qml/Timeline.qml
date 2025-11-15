@@ -43,6 +43,7 @@ FocusScope {
         id: timelineScale
         anchors.fill: parent
         color: Theme.foregroundColor(timeline.ThemedItem.foregroundLevel)
+        font: Theme.font
         timeLayoutViewModel: timeline.timeLayoutViewModel
         timeViewModel: timeline.timeViewModel
     }

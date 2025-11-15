@@ -35,7 +35,8 @@ namespace sflow {
     }
     QSGTextNode *ScaleSGNode::createTextNodeForBarNumber(int bar) {
         auto textNode = barNumberTextNodes.value(bar);
-        if (textNode && d->q_ptr->window() == window && textNode->color() == d->color) {
+        auto layout = barNumberTextLayouts.value(bar);
+        if (layout && layout->font() == d->font && textNode && d->q_ptr->window() == window && textNode->color() == d->color) {
             return textNode.get();
         }
         if (barNumberTextNodes.size() > 1024) {
@@ -243,8 +244,8 @@ namespace sflow {
             if (!isEmphasized)
                 continue;
 
-            auto barNumberLayout = scaleNode->createTextLayoutForBarNumber(musicTime.measure());
             auto textNode = scaleNode->createTextNodeForBarNumber(musicTime.measure());
+            auto barNumberLayout = scaleNode->createTextLayoutForBarNumber(musicTime.measure());
             QMatrix4x4 transform;
             transform.translate(x + 2, height() - 16);
             textNode->setMatrix(transform);

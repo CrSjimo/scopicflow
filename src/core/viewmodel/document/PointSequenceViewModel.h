@@ -2,6 +2,7 @@
 #define SFLOW_POINTSEQUENCEVIEWMODEL_H
 
 #include <QObject>
+#include <qqmlintegration.h>
 
 #include <ScopicFlowCore/ScopicFlowCoreGlobal.h>
 
@@ -13,6 +14,7 @@ namespace sflow {
 
     class SCOPIC_FLOW_CORE_EXPORT PointSequenceViewModel : public QObject {
         Q_OBJECT
+        QML_ELEMENT
         Q_DECLARE_PRIVATE(PointSequenceViewModel)
         Q_PRIVATE_PROPERTY(d_func(), PointSequenceViewModelSliceableManipulatorInterface *iSliceable MEMBER iSliceable CONSTANT)
         Q_PRIVATE_PROPERTY(d_func(), PointSequenceViewModelSelectableManipulatorInterface *iSelectable MEMBER iSelectable CONSTANT)

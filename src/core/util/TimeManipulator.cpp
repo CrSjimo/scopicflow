@@ -179,7 +179,7 @@ namespace sflow {
                        animated, restrictEnd);
         }
     }
-    int TimeManipulator::alignTick(int tick, ScopicFlow::AlignOption alignOption) const {
+    int TimeManipulator::alignPosition(int tick, ScopicFlow::AlignOption alignOption) const {
         Q_D(const TimeManipulator);
         if (!d->timeViewModel || !d->timeLayoutViewModel)
             return tick;
@@ -192,8 +192,8 @@ namespace sflow {
             case ScopicFlow::AO_Ceil:
                 return (tick + align - 1) / align * align;
             case ScopicFlow::AO_Visible: {
-                tick = alignTick(qMax(0, tick), ScopicFlow::AO_Round);
-                auto pos =  mapToPosition(tick);
+                tick = alignPosition(qMax(0, tick), ScopicFlow::AO_Round);
+                auto pos =  mapToX(tick);
                 if (pos < 0)
                     tick += align;
                 else if (pos > viewSize())
@@ -204,17 +204,17 @@ namespace sflow {
                 return tick;
         }
     }
-    int TimeManipulator::mapToTick(double position) const {
+    int TimeManipulator::mapToPosition(double position) const {
         Q_D(const TimeManipulator);
         if (!d->timeViewModel || !d->timeLayoutViewModel)
             return 0;
         return qRound(d->timeViewModel->start() + position / d->timeLayoutViewModel->pixelDensity());
     }
-    double TimeManipulator::mapToPosition(int tick) const {
+    double TimeManipulator::mapToX(int position) const {
         Q_D(const TimeManipulator);
         if (!d->timeViewModel || !d->timeLayoutViewModel)
             return 0;
-        return (tick - d->timeViewModel->start()) * d->timeLayoutViewModel->pixelDensity();
+        return (position - d->timeViewModel->start()) * d->timeLayoutViewModel->pixelDensity();
     }
 }
 

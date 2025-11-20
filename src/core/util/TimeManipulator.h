@@ -45,9 +45,9 @@ namespace sflow {
         Q_INVOKABLE void zoomViewBy(double ratio, double center, bool animated = false, bool restrictEnd = false);
         Q_INVOKABLE void ensureVisible(int position, int length, double leftPadding = 0, double rightPadding = 0, bool animated = false, bool restrictEnd = false);
 
-        Q_INVOKABLE int alignTick(int tick, ScopicFlow::AlignOption alignOption = ScopicFlow::AO_Round) const;
-        Q_INVOKABLE int mapToTick(double position) const;
-        Q_INVOKABLE double mapToPosition(int tick) const;
+        Q_INVOKABLE int alignPosition(int position, ScopicFlow::AlignOption alignOption = ScopicFlow::AO_Round) const;
+        Q_INVOKABLE int mapToPosition(double x) const;
+        Q_INVOKABLE double mapToX(int position) const;
 
     signals:
         void timeViewModelChanged();

@@ -27,6 +27,12 @@ FocusScope {
     LayoutMirroring.enabled: false
     LayoutMirroring.childrenInherit: true
 
+    Keys.onMenuPressed: () => {
+        if (timelineInteractionController) {
+            timelineInteractionController.contextMenuRequested(timeline, -1)
+        }
+    }
+
     TimeManipulator {
         id: timeManipulator
         target: timeline
@@ -48,12 +54,18 @@ FocusScope {
         timeViewModel: timeline.timeViewModel
     }
 
-    Item {
+    GenericBackRightButtonMouseArea {
+        id: rightButtonMouseArea
+
+        controller: timelineInteractionController
+        timeManipulator: timeManipulator
+    }
+
+    TimeViewportContainer {
         id: viewportContainer
-        x: -(timeline.timeViewModel?.start ?? 0) * (timeline.timeLayoutViewModel?.pixelDensity ?? 0)
-        y: 0
-        width: (timeline.timeViewModel?.end ?? 0) * (timeline.timeLayoutViewModel?.pixelDensity ?? 0)
-        height: parent.height
+
+        timeViewModel: timeline.timeViewModel
+        timeLayoutViewModel: timeline.timeLayoutViewModel
 
         Rectangle {
             id: zoomRubberBand
@@ -103,13 +115,13 @@ FocusScope {
         function setIndicatorPosition(x) {
             if (!timeline.timeViewModel || !timeline.timeLayoutViewModel || !timeline.playbackViewModel)
                 return;
-            timeline.playbackViewModel.primaryPosition = timeline.playbackViewModel.secondaryPosition = timeManipulator.alignTick(timeManipulator.mapToTick(x), ScopicFlow.AO_Visible);
+            timeline.playbackViewModel.primaryPosition = timeline.playbackViewModel.secondaryPosition = timeManipulator.alignPosition(timeManipulator.mapToPosition(x), ScopicFlow.AO_Visible);
         }
         function setZoomedRange(selectionX, selectionWidth) {
             if (!timeline.timeViewModel || !timeline.timeLayoutViewModel)
                 return;
-            let start = timeManipulator.mapToTick(selectionX);
-            let end = timeManipulator.mapToTick(selectionX + selectionWidth);
+            let start = timeManipulator.mapToPosition(selectionX);
+            let end = timeManipulator.mapToPosition(selectionX + selectionWidth);
             if (end - start < timeline.timeLayoutViewModel.positionAlignment)
                 return;
             timeline.timeViewModel.start = start;
@@ -170,7 +182,7 @@ FocusScope {
         }
         onDoubleClicked: (mouse) => {
             if (timeline.timelineInteractionController) {
-                timeline.timelineInteractionController.doubleClicked(timeline, timeManipulator.mapToTick(mouse.x))
+                timeline.timelineInteractionController.doubleClicked(timeline, timeManipulator.mapToPosition(mouse.x))
             }
         }
 
@@ -184,21 +196,6 @@ FocusScope {
     }
 
     MouseArea {
-        id: rightButtonMouseArea
-
-        acceptedButtons: Qt.RightButton
-        anchors.fill: parent
-        focus: true
-        focusPolicy: Qt.ClickFocus
-
-        onClicked: mouse => {
-            if (timeline.timelineInteractionController) {
-                timeline.timelineInteractionController.contextMenuRequested(timeline, timeManipulator.mapToTick(mouse.x))
-            }
-        }
-    }
-
-    MouseArea {
         id: hoverMouseArea
 
         acceptedButtons: Qt.NoButton
@@ -207,13 +204,13 @@ FocusScope {
 
         onEntered: () => {
             if (timeline.timelineInteractionController) {
-                timeline.timelineInteractionController.hoverEntered(timeline, timeManipulator.mapToTick(mouseX))
+                timeline.timelineInteractionController.hoverEntered(timeline, timeManipulator.mapToPosition(mouseX))
             }
         }
 
         onPositionChanged: () => {
             if (timeline.timelineInteractionController) {
-                timeline.timelineInteractionController.hoverMoved(timeline, timeManipulator.mapToTick(mouseX))
+                timeline.timelineInteractionController.hoverMoved(timeline, timeManipulator.mapToPosition(mouseX))
             }
         }
 
@@ -223,12 +220,6 @@ FocusScope {
             }
         }
 
-    }
-
-    Keys.onMenuPressed: () => {
-        if (timeline.timelineInteractionController) {
-            timeline.timelineInteractionController.contextMenuRequested(timeline, -1)
-        }
     }
 
     StandardScrollHandler {

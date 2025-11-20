@@ -19,6 +19,12 @@ FocusScope {
     clip: true
     implicitHeight: 20
 
+    Keys.onMenuPressed: () => {
+        if (labelSequenceInteractionController) {
+            labelSequenceInteractionController.contextMenuRequested(labelSequence, -1)
+        }
+    }
+
     QtObject {
         id: helper
 
@@ -30,11 +36,11 @@ FocusScope {
         }
         function moveSelectedLabelOnDragScrolling(isBackward, model) {
             let x = isBackward ? 0 : width;
-            let alignedTick = isBackward ? timeManipulator.alignTick(timeManipulator.mapToTick(x), ScopicFlow.AO_Ceil) : timeManipulator.alignTick(timeManipulator.mapToTick(x), ScopicFlow.AO_Floor);
+            let alignedTick = isBackward ? timeManipulator.alignPosition(timeManipulator.mapToPosition(x), ScopicFlow.AO_Ceil) : timeManipulator.alignPosition(timeManipulator.mapToPosition(x), ScopicFlow.AO_Floor);
             moveSelectionTo(alignedTick, model);
         }
         function moveSelectedLabelsTo(x, model) {
-            moveSelectionTo(timeManipulator.alignTick(timeManipulator.mapToTick(x)), model);
+            moveSelectionTo(timeManipulator.alignPosition(timeManipulator.mapToPosition(x)), model);
         }
         function moveSelectionTo(position, model) {
             if (position !== model.position) {
@@ -89,63 +95,29 @@ FocusScope {
         anchors.fill: parent
         color: Theme.backgroundColor(labelSequence.ThemedItem.backgroundLevel)
     }
-    Item {
-        id: viewport
 
-        readonly property double end: labelSequence.timeViewModel?.end ?? 0
-        readonly property double pixelDensity: labelSequence.timeLayoutViewModel?.pixelDensity ?? 0
-        readonly property double start: labelSequence.timeViewModel?.start ?? 0
+    GenericBackRightButtonMouseArea {
+        id: rightButtonMouseArea
 
-        anchors.bottom: parent.bottom
-        anchors.top: parent.top
-        clip: true
-        width: end * pixelDensity
-        x: -start * pixelDensity
+        controller: labelSequence.labelSequenceInteractionController
+        timeManipulator: timeManipulator
+    }
 
-        MouseArea {
-            id: backRightButtonMouseArea
+    GenericBackPointerMouseArea {
+        id: backPointerMouseArea
+        interactionFlag: LabelSequenceInteractionController.SelectByRubberBand
+        timeManipulator: timeManipulator
+        rubberBandLayer: rubberBandLayer
+        selectionManipulator: selectionManipulator
+        mapPoint: (p) => Qt.point(mapToItem(rubberBandLayer, p.x, 0).x, rubberBandLayer.started ? height : 0)
+    }
 
-            acceptedButtons: Qt.RightButton
-            anchors.fill: parent
+    TimeViewportContainer {
+        id: viewportContainer
 
-            onClicked: mouse => {
-                labelSequence.contextMenuRequested(Math.round(mouse.x / labelSequence.timeLayoutViewModel.pixelDensity));
-                selectionManipulator.select(null, mouse.button, mouse.modifiers);
-            }
-        }
-        GenericBackPointerMouseArea {
-            id: backPointerMouseArea
+        timeViewModel: labelSequence.timeViewModel
+        timeLayoutViewModel: labelSequence.timeLayoutViewModel
 
-            emitInteractionNotificationSignalCallback: interactionType => {
-                let position = containsMouse || pressed ? timeManipulator.mapToTick(mouseX) : -1;
-                labelSequence.interactionControllerNotifier?.sceneInteracted(interactionType, labelSequence.labelSequenceViewModel, labelSequence.labelSequenceBehaviorViewModel, position, 0);
-            }
-            handleBeforeInteractionNotificationCallback: interactionType => {
-                let position = containsMouse || pressed ? timeManipulator.mapToTick(mouseX) : -1;
-                if (labelSequence.interactionControllerNotifier?.handleSceneInteraction(interactionType, labelSequence.labelSequenceViewModel, labelSequence.labelSequenceBehaviorViewModel, position, 0))
-                    return false;
-                return true;
-            }
-            paneItem: labelSequence
-
-            onDoubleClicked: mouse => {
-                if (!handleBeforeInteractionNotification(ScopicFlow.II_DoubleClicked))
-                    return;
-                let label = labelViewModelComponent.createObject(null, {
-                    position: timeManipulator.alignTick(timeManipulator.mapToTick(mapToItem(labelSequence, mouse.x, 0).x))
-                });
-                labelSequence.labelSequenceViewModel.handle.insertItem(label);
-                selectionManipulator.select(label, Qt.LeftButton, 0);
-                labelSequence.labelSequenceBehaviorViewModel.editing = true;
-                emitInteractionNotificationSignal(ScopicFlow.II_DoubleClicked);
-            }
-            onRubberBandStartRequired: p => {
-                rubberBandLayer.startSelection(Qt.point(p.x, 0));
-            }
-            onRubberBandUpdateRequired: p => {
-                rubberBandLayer.updateSelection(Qt.point(p.x, labelSequence.height));
-            }
-        }
         Item {
             id: labelContainer
 
@@ -264,12 +236,6 @@ FocusScope {
             }
         }
     }
-    PositionIndicators {
-        anchors.fill: parent
-        playbackViewModel: labelSequence.playbackViewModel
-        timeLayoutViewModel: labelSequence.timeLayoutViewModel
-        timeViewModel: labelSequence.timeViewModel
-    }
     StandardScrollHandler {
         anchors.fill: parent
         movableOrientation: Qt.Horizontal
@@ -277,12 +243,5 @@ FocusScope {
 
         onMoved: (x, _, isPhysicalWheel) => timeManipulator.moveViewBy(x, isPhysicalWheel)
         onZoomed: (ratioX, _, x, _, isPhysicalWheel) => timeManipulator.zoomViewBy(ratioX, x, isPhysicalWheel)
-    }
-    MiddleButtonMoveHandler {
-        anchors.fill: parent
-        direction: Qt.Horizontal
-        viewModel: labelSequence.scrollBehaviorViewModel
-
-        onMoved: x => timeManipulator.moveViewBy(x)
     }
 }

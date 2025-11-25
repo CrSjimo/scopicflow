@@ -4,9 +4,9 @@ import QtQuick
 import dev.sjimo.ScopicFlow
 
 Item {
-    required property QtObject playbackViewModel
-    required property QtObject timeLayoutViewModel
-    required property QtObject timeViewModel
+    property QtObject playbackViewModel: null
+    property QtObject timeLayoutViewModel: null
+    property QtObject timeViewModel: null
 
     readonly property Rectangle primaryIndicator: primaryIndicator
     readonly property Rectangle secondaryIndicator: secondaryIndicator

@@ -10,17 +10,20 @@ namespace sflow {
         d->q_ptr = this;
     }
     RubberBandLayerQuickItem::~RubberBandLayerQuickItem() = default;
-    SelectableViewModelManipulator *RubberBandLayerQuickItem::selectionManipulator() const {
+
+    SelectableViewModelManipulatorInterface * RubberBandLayerQuickItem::iSelectable() const {
         Q_D(const RubberBandLayerQuickItem);
-        return d->selectionManipulator;
+        return d->iSelectable;
     }
-    void RubberBandLayerQuickItem::setSelectionManipulator(SelectableViewModelManipulator *selectionManipulator) {
+
+    void RubberBandLayerQuickItem::setISelectable(SelectableViewModelManipulatorInterface *iSelectable) {
         Q_D(RubberBandLayerQuickItem);
-        if (d->selectionManipulator == selectionManipulator)
+        if (d->iSelectable == iSelectable)
             return;
-        d->selectionManipulator = selectionManipulator;
-        emit selectionManipulatorChanged();
+        d->iSelectable = iSelectable;
+        emit iSelectableChanged();
     }
+
     QQmlComponent *RubberBandLayerQuickItem::rubberBand() const {
         Q_D(const RubberBandLayerQuickItem);
         return d->rubberBandComponent;
@@ -45,15 +48,15 @@ namespace sflow {
     }
     void RubberBandLayerQuickItem::insertItem(const QVariant &item, const QRectF &rect) {
         Q_D(RubberBandLayerQuickItem);
-        if (!d->selectionManipulator || !d->selectionManipulator->interface())
+        if (!d->iSelectable)
             return;
-        d->itemRects.insert(d->selectionManipulator->interface()->getId(item), rect);
+        d->itemRects.insert(d->iSelectable->getId(item), rect);
     }
     void RubberBandLayerQuickItem::removeItem(const QVariant &item) {
         Q_D(RubberBandLayerQuickItem);
-        if (!d->selectionManipulator || !d->selectionManipulator->interface())
+        if (!d->iSelectable)
             return;
-        auto id = d->selectionManipulator->interface()->getId(item);
+        auto id = d->iSelectable->getId(item);
         d->itemRects.remove(id);
         d->taggedItems.remove(id);
     }
@@ -88,17 +91,16 @@ namespace sflow {
             d->rubberBandItem->setWidth(rubberBandRect.width());
             d->rubberBandItem->setHeight(rubberBandRect.height());
         }
-        if (!d->selectionManipulator || !d->selectionManipulator->interface())
+        if (!d->iSelectable)
             return;
-        auto selectionInterface = d->selectionManipulator->interface();
         // TODO: Current implementation is high in time complexity. Optimize it in future
         // Step 1: toggle-select ALL(not covered by rubber band && tagged)
         QList<qsizetype> disjointItemIds;
         for (auto itemId : d->taggedItems) {
             auto itemRect = d->itemRects.value(itemId);
             if (!rubberBandRect.intersects(itemRect)) {
-                auto item = d->selectionManipulator->interface()->fromId(itemId);
-                selectionInterface->setSelected(item, !selectionInterface->isSelected(item));
+                auto item = d->iSelectable->fromId(itemId);
+                d->iSelectable->setSelected(item, !d->iSelectable->isSelected(item));
                 disjointItemIds.append(itemId);
             }
         }
@@ -110,8 +112,8 @@ namespace sflow {
         for (auto p = d->itemRects.constKeyValueBegin(); p != d->itemRects.constKeyValueEnd(); p++) {
             auto [itemId, itemRect] = *p;
             if (!d->taggedItems.contains(itemId) && rubberBandRect.intersects(itemRect)) {
-                auto item = d->selectionManipulator->interface()->fromId(itemId);
-                selectionInterface->setSelected(item, !selectionInterface->isSelected(item));
+                auto item = d->iSelectable->fromId(itemId);
+                d->iSelectable->setSelected(item, !d->iSelectable->isSelected(item));
                 // Step 4: tag ALL(covered by rubber band && not tagged)
                 d->taggedItems.insert(itemId);
             }
@@ -130,3 +132,5 @@ namespace sflow {
         return {d->rubberBandItem->x(), d->rubberBandItem->y(), d->rubberBandItem->width(), d->rubberBandItem->height()};
     }
 }
+
+#include "moc_RubberBandLayerQuickItem_p.cpp"

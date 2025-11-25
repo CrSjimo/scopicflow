@@ -34,28 +34,6 @@ FocusScope {
                 timeManipulator.ensureVisible(labelSequence.labelSequenceViewModel.currentItem.position, 0, 0, labelLengthReference.implicitWidth + 8);
             }
         }
-        function moveSelectedLabelOnDragScrolling(isBackward, model) {
-            let x = isBackward ? 0 : width;
-            let alignedTick = isBackward ? timeManipulator.alignPosition(timeManipulator.mapToPosition(x), ScopicFlow.AO_Ceil) : timeManipulator.alignPosition(timeManipulator.mapToPosition(x), ScopicFlow.AO_Floor);
-            moveSelectionTo(alignedTick, model);
-        }
-        function moveSelectedLabelsTo(x, model) {
-            moveSelectionTo(timeManipulator.alignPosition(timeManipulator.mapToPosition(x)), model);
-        }
-        function moveSelectionTo(position, model) {
-            if (position !== model.position) {
-                let deltaPosition = position - model.position;
-                for (let label of labelSequence.labelSequenceViewModel.selection) {
-                    if (label.position + deltaPosition < 0)
-                        return;
-                    if (label.position + deltaPosition > labelSequence.timeViewModel.end)
-                        labelSequence.timeViewModel.end = label.position + deltaPosition;
-                }
-                for (let label of labelSequence.labelSequenceViewModel.selection) {
-                    label.position = label.position + deltaPosition;
-                }
-            }
-        }
 
         readonly property Text labelLengthReference: Text {
             id: labelLengthReference
@@ -84,11 +62,6 @@ FocusScope {
         timeLayoutViewModel: labelSequence.timeLayoutViewModel
         timeViewModel: labelSequence.timeViewModel
     }
-    SelectableViewModelManipulator {
-        id: selectionManipulator
-
-        viewModel: labelSequence.labelSequenceViewModel
-    }
     Rectangle {
         id: background
 
@@ -105,10 +78,12 @@ FocusScope {
 
     GenericBackPointerMouseArea {
         id: backPointerMouseArea
+
+        controller: labelSequence.labelSequenceInteractionController
         interactionFlag: LabelSequenceInteractionController.SelectByRubberBand
         timeManipulator: timeManipulator
         rubberBandLayer: rubberBandLayer
-        selectionManipulator: selectionManipulator
+        iSelectable: labelSequence.labelSequenceViewModel.iSelectable
         mapPoint: (p) => Qt.point(mapToItem(rubberBandLayer, p.x, 0).x, rubberBandLayer.started ? height : 0)
     }
 
@@ -128,7 +103,6 @@ FocusScope {
             delegate: LabelSequenceDelegate {
                 id: labelRect
                 function handleRubberBand() {
-                    selectionManipulator.viewModel; // Magic. Do not delete this line.
                     if (visible)
                         rubberBandLayer.insertItem(labelViewModel, Qt.rect(x, 0, width, 1 << 20));
                     else
@@ -147,6 +121,16 @@ FocusScope {
                     labelRect.x: labelRect.labelViewModel.position * (labelSequence.timeLayoutViewModel?.pixelDensity ?? 0)
                     when: labelRect.SequenceSlicerLoader.inRange
                 }
+
+                readonly property TimeManipulator timeManipulator_: timeManipulator
+                GenericPointerMouseArea {
+                    id: pointerMouseArea
+                    paneItem: labelSequence
+                    viewModel: labelRect.labelViewModel
+                    sequenceViewModel: labelSequence.labelSequenceViewModel
+                    timeManipulator: labelRect.timeManipulator_
+                }
+
                 Connections {
                     id: cursorIndicatorBinding
 
@@ -163,7 +147,7 @@ FocusScope {
             id: rubberBandLayer
 
             anchors.fill: parent
-            selectionManipulator: selectionManipulator
+            iSelectable: labelSequence.labelSequenceViewModel?.iSelectable ?? null
             z: 2
 
             rubberBand: RubberBandRectangle {

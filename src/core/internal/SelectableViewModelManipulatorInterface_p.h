@@ -35,6 +35,8 @@ namespace sflow {
 
         virtual QObject *viewModel() const = 0;
 
+        Q_INVOKABLE void select(const QVariant &item, int button, int modifiers);
+
     };
 
 }

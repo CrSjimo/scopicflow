@@ -12,7 +12,7 @@ MouseArea {
     property TimeManipulator timeManipulator: null
     property QtObject verticalManipulator: null
     property RubberBandLayer rubberBandLayer: null
-    property SelectableViewModelManipulator selectionManipulator: null
+    property QtObject iSelectable: null
     property Item target: parent
     property var mapPoint: p => p
 
@@ -27,14 +27,14 @@ MouseArea {
         rubberBandDragScroller.running = false;
     }
     onClicked: mouse => {
-        if (!dragged) {
-            selectionManipulator.select(null, mouse.button, mouse.modifiers);
+        if (!helper.dragged) {
+            iSelectable.select(null, mouse.button, mouse.modifiers);
         }
     }
     onPositionChanged: mouse => {
         helper.dragged = true;
         if (!rubberBandLayer.started) {
-            selectionManipulator.select(null, Qt.RightButton, mouse.modifiers);
+            iSelectable.select(null, Qt.RightButton, mouse.modifiers);
             controller.interactionOperationStarted(target, interactionFlag)
             rubberBandLayer.startSelection(helper.pressedPoint);
         }
@@ -65,7 +65,6 @@ MouseArea {
 
         function doDragRubberBand(targetPoint) {
             mouseArea.rubberBandLayer.updateSelection(mouseArea.mapPoint(targetPoint));
-            rubberBandUpdateRequired(targetPoint);
             lastTargetPoint = targetPoint;
         }
     }
@@ -81,7 +80,7 @@ MouseArea {
                 mouseArea.verticalManipulator.moveViewBy(deltaY);
             }
             if (deltaX !== 0) {
-                helper.doDragRubberBand(Qt.point(deltaX > 0 ? mouseArea.width : 0, 0, helper.lastTargetPoint.y));
+                helper.doDragRubberBand(Qt.point(deltaX > 0 ? mouseArea.width : 0, helper.lastTargetPoint.y));
             }
             if (deltaY !== 0) {
                 helper.doDragRubberBand(Qt.point(helper.lastTargetPoint.x, deltaY > 0 ? mouseArea.height : 0));

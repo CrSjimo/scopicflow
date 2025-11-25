@@ -18,14 +18,18 @@ Rectangle {
 
     readonly property QtObject labelViewModel: SequenceSlicerLoader.viewModel
 
-    border.color: Theme.borderColor
+    border.color: current ? Theme.controlCheckedColorChange.apply(Theme.accentColor) : Theme.borderColor
     border.width: 1
     clip: true
-    color: label.labelViewModel?.selected ? Theme.controlCheckedColorChange.apply(Theme.buttonColor) : Theme.buttonColor
+    color: labelViewModel?.selected ? Theme.controlCheckedColorChange.apply(Theme.buttonColor) : Theme.buttonColor
     implicitWidth: labelText.width + 8
     opacity: editing ? 0 : 1
     radius: 2
     visible: SequenceSlicerLoader.inRange
+
+    z: {
+        z = current ? Infinity : labelViewModel?.selected ? 2147483647 : 0
+    }
 
     Behavior on border.color {
         ColorAnimation {
@@ -42,6 +46,7 @@ Rectangle {
 
     Binding {
         label.current: label.labelSequenceViewModel?.currentItem === label.labelViewModel
+        label.z: label.current ? Infinity : label.labelViewModel?.selected ? 2147483647 : 0
         when: label.SequenceSlicerLoader.inRange
     }
     Text {

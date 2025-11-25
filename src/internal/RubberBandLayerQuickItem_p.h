@@ -4,17 +4,16 @@
 #include <QQuickItem>
 #include <QQmlComponent>
 
-#include <ScopicFlowInternal/private/SelectableViewModelManipulator_p.h>
-
 namespace sflow {
 
     class RubberBandLayerQuickItemPrivate;
+    class SelectableViewModelManipulatorInterface;
 
     class RubberBandLayerQuickItem : public QQuickItem {
         Q_OBJECT
         QML_NAMED_ELEMENT(RubberBandLayer)
         Q_DECLARE_PRIVATE(RubberBandLayerQuickItem)
-        Q_PROPERTY(SelectableViewModelManipulator *selectionManipulator READ selectionManipulator WRITE setSelectionManipulator NOTIFY selectionManipulatorChanged)
+        Q_PROPERTY(SelectableViewModelManipulatorInterface *iSelectable READ iSelectable WRITE setISelectable NOTIFY iSelectableChanged)
         Q_PROPERTY(QQmlComponent *rubberBand READ rubberBand WRITE setRubberBand NOTIFY rubberBandChanged)
         Q_PROPERTY(bool started READ started NOTIFY startedChanged)
 
@@ -22,8 +21,8 @@ namespace sflow {
         explicit RubberBandLayerQuickItem(QQuickItem *parent = nullptr);
         ~RubberBandLayerQuickItem() override;
 
-        SelectableViewModelManipulator *selectionManipulator() const;
-        void setSelectionManipulator(SelectableViewModelManipulator *selectionManipulator);
+        SelectableViewModelManipulatorInterface *iSelectable() const;
+        void setISelectable(SelectableViewModelManipulatorInterface *iSelectable);
 
         QQmlComponent *rubberBand() const;
         void setRubberBand(QQmlComponent *rubberBand);
@@ -38,7 +37,7 @@ namespace sflow {
         Q_INVOKABLE QRectF endSelection(bool canceled = false);
 
     signals:
-        void selectionManipulatorChanged();
+        void iSelectableChanged();
         void rubberBandChanged();
         void startedChanged(bool started);
         void transactionControllerNotifierChanged();

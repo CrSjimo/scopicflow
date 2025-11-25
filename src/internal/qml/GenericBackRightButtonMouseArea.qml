@@ -12,7 +12,7 @@ MouseArea {
 
     property TimeManipulator timeManipulator: null
     property var verticalManipulator: null
-    property SelectableViewModelManipulator selectionManipulator: null
+    property QtObject iSelectable: null
     property var controller: null
     property Item target: parent
 
@@ -29,8 +29,8 @@ MouseArea {
                 controller.contextMenuRequested(target, timeManipulator.mapToPosition(mouse.x))
             }
         }
-        if (selectionManipulator) {
-            selectionManipulator.select(null, Qt.RightButton, mouse.modifiers);
+        if (iSelectable) {
+            iSelectable.select(null, Qt.RightButton, mouse.modifiers);
         }
     }
 

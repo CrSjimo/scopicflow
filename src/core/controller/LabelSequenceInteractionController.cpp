@@ -6,7 +6,7 @@
 namespace sflow {
     LabelSequenceInteractionController::LabelSequenceInteractionController(QObject *parent)
         : QObject(parent),
-          m_interaction(SelectByRubberBand), m_itemInteraction(Move) {
+          m_interaction(SelectByRubberBand), m_itemInteraction(Move | Select) {
 
     }
 

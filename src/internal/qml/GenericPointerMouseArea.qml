@@ -9,11 +9,20 @@ MouseArea {
 
     readonly property bool dragging: helper.dragged & pressed
 
-    required property Item paneItem
-    required property QtObject viewModel
-    required property QtObject sequenceViewModel
-    required property TimeManipulator timeManipulator
+    property QtObject controller: null
+    property int moveInteractionFlag: 0
+    property int selectInteractionFlag: 0
+    property Item target: parent
+    property Item paneItem: null
+    property QtObject viewModel: null
+    property QtObject sequenceViewModel: null
+    property TimeManipulator timeManipulator: null
     property QtObject verticalManipulator: null
+
+    acceptedButtons: Qt.LeftButton
+    anchors.fill: parent
+    focus: true
+    focusPolicy: Qt.ClickFocus
 
     signal moveSelectedNotesToYRequested(y: double)
 
@@ -42,23 +51,33 @@ MouseArea {
         }
     }
 
-    anchors.fill: parent
-
     onCanceled: () => {
         dragScroller.running = false;
+        if (helper.dragged) {
+            helper.dragged = false;
+            controller.itemInteractionOperationFinished(paneItem, viewModel, moveInteractionFlag)
+        }
     }
     onClicked: mouse => {
         if (!helper.dragged) {
-            mouseArea.sequenceViewModel.iSelectable.select(viewModel, mouse.button, mouse.modifiers);
+            if (controller.itemInteraction & mouseArea.selectInteractionFlag) {
+                controller.itemInteractionOperationStarted(paneItem, viewModel, mouseArea.selectInteractionFlag)
+                sequenceViewModel.iSelectable.select(viewModel, mouse.button, mouse.modifiers);
+                controller.itemInteractionOperationFinished(paneItem, viewModel, mouseArea.selectInteractionFlag)
+            }
         }
     }
     onPositionChanged: mouse => {
-        if (!pressed)
+        if (!(controller?.itemInteraction & moveInteractionFlag)) {
             return;
-        if (!helper.dragged) {
-            helper.dragged = true;
         }
-        mouseArea.sequenceViewModel.iSelectable.select(viewModel, Qt.RightButton, mouse.modifiers);
+        helper.dragged = true;
+        controller.itemInteractionOperationStarted(paneItem, viewModel, moveInteractionFlag)
+        if (controller.itemInteraction & mouseArea.selectInteractionFlag) {
+            controller.itemInteractionOperationStarted(paneItem, viewModel, mouseArea.selectInteractionFlag)
+            sequenceViewModel.iSelectable.select(viewModel, Qt.RightButton, mouse.modifiers);
+            controller.itemInteractionOperationFinished(paneItem, viewModel, mouseArea.selectInteractionFlag)
+        }
         let parentPoint = mapToItem(paneItem, mouse.x, mouse.y);
         dragScroller.determine(parentPoint.x, paneItem.width, parentPoint.y, paneItem.height, (triggeredX, triggeredY) => {
             if (!triggeredX) {
@@ -70,13 +89,15 @@ MouseArea {
         });
     }
     onPressed: mouse => {
+        if ((mouse.modifiers & Qt.ControlModifier) || (mouse.modifiers & Qt.AltModifier)) {
+            mouse.accepted = false
+            return
+        }
         helper.dragged = false;
         helper.pressedDeltaX = mouse.x;
         helper.pressedDeltaY = mouse.y;
     }
-    onReleased: () => {
-        dragScroller.running = false;
-    }
+    onReleased: canceled()
 
     DragScroller {
         id: dragScroller

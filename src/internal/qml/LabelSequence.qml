@@ -93,53 +93,59 @@ FocusScope {
         timeViewModel: labelSequence.timeViewModel
         timeLayoutViewModel: labelSequence.timeLayoutViewModel
 
-        SequenceSlicer {
-            leftOutBound: 256
-            viewModel: labelSequence.labelSequenceViewModel
-            sliceWidth: labelSequence.width
-            timeLayoutViewModel: labelSequence.timeLayoutViewModel
-            timeViewModel: labelSequence.timeViewModel
+        Item {
+            anchors.fill: parent
+            SequenceSlicer {
+                leftOutBound: 256
+                viewModel: labelSequence.labelSequenceViewModel
+                sliceWidth: labelSequence.width
+                timeLayoutViewModel: labelSequence.timeLayoutViewModel
+                timeViewModel: labelSequence.timeViewModel
 
-            delegate: LabelSequenceDelegate {
-                id: labelRect
-                function handleRubberBand() {
-                    if (visible)
-                        rubberBandLayer.insertItem(labelViewModel, Qt.rect(x, 0, width, 1 << 20));
-                    else
-                        rubberBandLayer.removeItem(labelViewModel);
-                }
-
-                height: parent.height
-                labelSequenceViewModel: labelSequence.labelSequenceViewModel
-
-                Component.onDestruction: rubberBandLayer.removeItem(labelViewModel)
-                onVisibleChanged: handleRubberBand()
-                onWidthChanged: handleRubberBand()
-                onXChanged: handleRubberBand()
-
-                Binding {
-                    labelRect.x: labelRect.labelViewModel.position * (labelSequence.timeLayoutViewModel?.pixelDensity ?? 0)
-                    when: labelRect.SequenceSlicerLoader.inRange
-                }
-
-                readonly property TimeManipulator timeManipulator_: timeManipulator
-                GenericPointerMouseArea {
-                    id: pointerMouseArea
-                    paneItem: labelSequence
-                    viewModel: labelRect.labelViewModel
-                    sequenceViewModel: labelSequence.labelSequenceViewModel
-                    timeManipulator: labelRect.timeManipulator_
-                }
-
-                Connections {
-                    id: cursorIndicatorBinding
-
-                    function onPositionChanged() {
-                        labelSequence.timeLayoutViewModel.cursorPosition = labelRect.labelViewModel.position;
+                delegate: LabelSequenceDelegate {
+                    id: labelRect
+                    function handleRubberBand() {
+                        if (visible)
+                            rubberBandLayer.insertItem(labelViewModel, Qt.rect(x, 0, width, 1 << 20));
+                        else
+                            rubberBandLayer.removeItem(labelViewModel);
                     }
 
-                    enabled: false
-                    target: labelRect.labelViewModel
+                    height: parent.height
+                    labelSequenceViewModel: labelSequence.labelSequenceViewModel
+
+                    Component.onDestruction: rubberBandLayer.removeItem(labelViewModel)
+                    onVisibleChanged: handleRubberBand()
+                    onWidthChanged: handleRubberBand()
+                    onXChanged: handleRubberBand()
+
+                    Binding {
+                        labelRect.x: labelRect.labelViewModel.position * (labelSequence.timeLayoutViewModel?.pixelDensity ?? 0)
+                        when: labelRect.SequenceSlicerLoader.inRange
+                    }
+
+                    readonly property TimeManipulator timeManipulator_: timeManipulator
+                    GenericPointerMouseArea {
+                        id: pointerMouseArea
+                        controller: labelSequence.labelSequenceInteractionController
+                        moveInteractionFlag: LabelSequenceInteractionController.Move
+                        selectInteractionFlag: LabelSequenceInteractionController.Select
+                        paneItem: labelSequence
+                        viewModel: labelRect.labelViewModel
+                        sequenceViewModel: labelSequence.labelSequenceViewModel
+                        timeManipulator: labelRect.timeManipulator_
+                    }
+
+                    Connections {
+                        id: cursorIndicatorBinding
+
+                        function onPositionChanged() {
+                            labelSequence.timeLayoutViewModel.cursorPosition = labelRect.labelViewModel.position;
+                        }
+
+                        enabled: false
+                        target: labelRect.labelViewModel
+                    }
                 }
             }
         }

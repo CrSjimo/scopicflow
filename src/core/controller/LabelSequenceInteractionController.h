@@ -33,6 +33,7 @@ namespace sflow {
 
         enum ItemInteractionFlag {
             Move = 0x1,
+            Select = 0x2,
         };
         Q_ENUM(ItemInteractionFlag)
         Q_DECLARE_FLAGS(ItemInteraction, ItemInteractionFlag)

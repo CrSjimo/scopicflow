@@ -7,7 +7,7 @@ import SVSCraft.UIComponents
 import dev.sjimo.ScopicFlow
 import dev.sjimo.ScopicFlow.Internal
 
-Rectangle {
+FocusScope {
     id: label
 
     property bool current: {
@@ -18,29 +18,33 @@ Rectangle {
 
     readonly property QtObject labelViewModel: SequenceSlicerLoader.viewModel
 
-    border.color: current ? Theme.controlCheckedColorChange.apply(Theme.accentColor) : Theme.borderColor
-    border.width: 1
     clip: true
-    color: labelViewModel?.selected ? Theme.controlCheckedColorChange.apply(Theme.buttonColor) : Theme.buttonColor
     implicitWidth: labelText.width + 8
     opacity: editing ? 0 : 1
-    radius: 2
     visible: SequenceSlicerLoader.inRange
 
     z: {
         z = current ? Infinity : labelViewModel?.selected ? 2147483647 : 0
     }
 
-    Behavior on border.color {
-        ColorAnimation {
-            duration: Theme.colorAnimationDuration
-            easing.type: Easing.OutCubic
+    Rectangle {
+        anchors.fill: parent
+        border.color: label.current && labelSequence.activeFocus ? Theme.controlCheckedColorChange.apply(Theme.accentColor) : Theme.borderColor
+        border.width: 1
+        color: label.labelViewModel?.selected ? Theme.controlCheckedColorChange.apply(Theme.buttonColor) : Theme.buttonColor
+        radius: 2
+
+        Behavior on border.color {
+            ColorAnimation {
+                duration: Theme.colorAnimationDuration
+                easing.type: Easing.OutCubic
+            }
         }
-    }
-    Behavior on color {
-        ColorAnimation {
-            duration: Theme.colorAnimationDuration
-            easing.type: Easing.OutCubic
+        Behavior on color {
+            ColorAnimation {
+                duration: Theme.colorAnimationDuration
+                easing.type: Easing.OutCubic
+            }
         }
     }
 
@@ -70,7 +74,7 @@ Rectangle {
 
         containerModel: label.labelSequenceViewModel
         model: label.labelViewModel
-        radius: label.radius
+        // radius: label.radius
         removeIfEmpty: true
         targetProperty: "content"
     }

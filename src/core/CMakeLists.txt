@@ -9,7 +9,7 @@ scopic_flow_add_library(ScopicFlowCore AUTOGEN
     LINKS svscraft::Core svscraft::Gui svscraft::Qml svscraft::Quick
     QT_LINKS Core Gui Widgets Qml Quick QuickControls2
     QT_INCLUDE_PRIVATE Core Gui Widgets Qml Quick QuickControls2
-    INCLUDE_PRIVATE *
+    INCLUDE_PRIVATE * viewmodel/document
 )
 
 find_path(INTERVAL_TREE_INCLUDE_DIRS "interval-tree/interval_tree.hpp" REQUIRED)

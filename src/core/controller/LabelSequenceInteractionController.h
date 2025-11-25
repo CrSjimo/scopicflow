@@ -1,8 +1,6 @@
 #ifndef SCOPIC_FLOW_LABELSEQUENCEINTERACTIONCONTROLLER_H
 #define SCOPIC_FLOW_LABELSEQUENCEINTERACTIONCONTROLLER_H
 
-#include "document/LabelViewModel.h"
-
 #include <QObject>
 #include <qqmlintegration.h>
 

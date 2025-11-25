@@ -40,7 +40,7 @@ T.Popup {
         bottomPadding: 0
         leftPadding: 4
         rightPadding: 4
-        text: popup.model[popup.targetProperty]
+        text: popup.model?.[popup.targetProperty] ?? ""
         topPadding: 0
         width: Math.max(popup.width, implicitWidth)
 

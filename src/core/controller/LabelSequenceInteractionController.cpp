@@ -1,6 +1,7 @@
 #include "LabelSequenceInteractionController.h"
 
 #include <QQuickItem>
+#include <ScopicFlowCore/LabelViewModel.h>
 
 namespace sflow {
     LabelSequenceInteractionController::LabelSequenceInteractionController(QObject *parent)

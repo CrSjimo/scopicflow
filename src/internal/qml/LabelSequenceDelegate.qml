@@ -11,7 +11,7 @@ Rectangle {
     id: label
 
     property bool current: {
-        current = labelSequenceViewModel.handle.currentItem === model;
+        current = labelSequenceViewModel?.currentItem === labelViewModel;
     }
     property bool editing: popup.opened
     required property QtObject labelSequenceViewModel
@@ -21,7 +21,7 @@ Rectangle {
     border.color: Theme.borderColor
     border.width: 1
     clip: true
-    color: label.labelViewModel.selected ? Theme.controlCheckedColorChange.apply(Theme.buttonColor) : Theme.buttonColor
+    color: label.labelViewModel?.selected ? Theme.controlCheckedColorChange.apply(Theme.buttonColor) : Theme.buttonColor
     implicitWidth: labelText.width + 8
     opacity: editing ? 0 : 1
     radius: 2
@@ -41,8 +41,7 @@ Rectangle {
     }
 
     Binding {
-        label.current: label.labelSequenceViewModel && label.labelSequenceViewModel.handle.currentItem === label.labelViewModel
-        label.editingRequired: (label.labelSequenceBehaviorViewModel?.editing ?? false) && label.current
+        label.current: label.labelSequenceViewModel?.currentItem === label.labelViewModel
         when: label.SequenceSlicerLoader.inRange
     }
     Text {
@@ -52,7 +51,7 @@ Rectangle {
         anchors.leftMargin: 4
         anchors.verticalCenter: parent.verticalCenter
         color: Theme.foregroundPrimaryColor
-        text: label.labelViewModel.content
+        text: label.labelViewModel?.content ?? ""
 
         Behavior on color {
             ColorAnimation {

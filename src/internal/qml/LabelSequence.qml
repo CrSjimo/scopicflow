@@ -1,5 +1,6 @@
 import QtQml
 import QtQuick
+import QtQuick.Controls
 
 import SVSCraft
 import SVSCraft.UIComponents
@@ -19,6 +20,24 @@ FocusScope {
     clip: true
     implicitHeight: 20
 
+    function editInPlace(labelViewModel: LabelViewModel) {
+        inPlaceEditPopup.close()
+        if (labelViewModel) {
+            timeManipulator.ensureVisible(labelViewModel.position, 0, 0, labelItemWidth(labelViewModel));
+            inPlaceEditPopup.model = labelViewModel
+            inPlaceEditPopup.open()
+        }
+
+    }
+
+    function labelItemWidth(labelViewModel: LabelViewModel): double {
+        if (!labelViewModel) {
+            return 0
+        }
+        helper.labelLengthReference.text = labelViewModel.content
+        return labelLengthReference.implicitWidth + 8
+    }
+
     Keys.onMenuPressed: () => {
         if (labelSequenceInteractionController) {
             labelSequenceInteractionController.contextMenuRequested(labelSequence, -1)
@@ -28,25 +47,10 @@ FocusScope {
     QtObject {
         id: helper
 
-        function ensureCurrentItemVisibleWhileEditing() {
-            if (labelSequence.labelSequenceViewModel?.currentItem) { // TODO and editing
-                labelLengthReference.text = labelSequence.labelSequenceViewModel.currentItem.content;
-                timeManipulator.ensureVisible(labelSequence.labelSequenceViewModel.currentItem.position, 0, 0, labelLengthReference.implicitWidth + 8);
-            }
-        }
-
         readonly property Text labelLengthReference: Text {
             id: labelLengthReference
 
             visible: false
-        }
-
-        readonly property Connections connections: Connections {
-            function onCurrentItemChanged() {
-                helper.ensureCurrentItemVisibleWhileEditing();
-            }
-
-            target: labelSequence.labelSequenceViewModel
         }
     }
     Component {
@@ -73,6 +77,8 @@ FocusScope {
         id: rightButtonMouseArea
 
         controller: labelSequence.labelSequenceInteractionController
+        selectInteractionFlag: LabelSequenceInteractionController.Select
+        iSelectable: labelSequence.labelSequenceViewModel.iSelectable
         timeManipulator: timeManipulator
     }
 
@@ -80,7 +86,8 @@ FocusScope {
         id: backPointerMouseArea
 
         controller: labelSequence.labelSequenceInteractionController
-        interactionFlag: LabelSequenceInteractionController.SelectByRubberBand
+        selectByRubberBandInteractionFlag: LabelSequenceInteractionController.SelectByRubberBand
+        selectInteractionFlag: LabelSequenceInteractionController.Select
         timeManipulator: timeManipulator
         rubberBandLayer: rubberBandLayer
         iSelectable: labelSequence.labelSequenceViewModel.iSelectable
@@ -96,6 +103,7 @@ FocusScope {
         Item {
             anchors.fill: parent
             SequenceSlicer {
+                id: slicer
                 leftOutBound: 256
                 viewModel: labelSequence.labelSequenceViewModel
                 sliceWidth: labelSequence.width
@@ -157,6 +165,24 @@ FocusScope {
             z: 2
 
             rubberBand: RubberBandRectangle {
+            }
+        }
+        ItemPopupEdit {
+            id: inPlaceEditPopup
+
+            readonly property Item associatedItem: slicer.itemForModel(model)
+            containerModel: labelSequence.labelSequenceViewModel
+            targetProperty: "content"
+            radius: 2
+            width: associatedItem?.width ?? 0
+            height: parent.height
+            x: associatedItem?.x ?? 0
+
+            onEditPreviousRequested: labelSequence.editInPlace(labelSequence.labelSequenceViewModel.iSelectable.previousItem(model))
+            onEditNextRequested: labelSequence.editInPlace(labelSequence.labelSequenceViewModel.iSelectable.nextItem(model))
+            onVisibleChanged: () => {
+                if (associatedItem)
+                    associatedItem.editing = visible
             }
         }
     }

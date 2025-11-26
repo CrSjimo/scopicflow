@@ -54,7 +54,7 @@ namespace sflow {
         void handleItemRemoved(QObject *item);
         void handleItemUpdated(QObject *item);
 
-        void createView(QObject *itemModel);
+        QQuickItem *createView(QObject *itemModel);
         void showViewIfExistsOrElseCreate(QObject *itemModel);
         void destroyView(QObject *itemModel);
         void hideView(QObject *itemModel);

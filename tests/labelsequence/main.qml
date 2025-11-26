@@ -21,6 +21,12 @@ ApplicationWindow {
     required property PointSequenceViewModel labelSequenceViewModel
     required property LabelSequenceInteractionController labelSequenceInteractionController
 
+    Connections {
+        target: main.labelSequenceInteractionController
+        function onItemDoubleClicked(view, item) {
+            view.editInPlace(item)
+        }
+    }
 
     LabelSequence {
         id: labelSequence

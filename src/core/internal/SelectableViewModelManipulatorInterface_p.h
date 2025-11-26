@@ -16,10 +16,10 @@ namespace sflow {
         virtual void setSelected(const QVariant &item, bool selected) = 0;
         virtual bool isSelected(const QVariant &item) const = 0;
 
-        virtual QVariant nextItem(const QVariant &item) const = 0;
-        virtual QVariant previousItem(const QVariant &item) const = 0;
-        virtual QVariant firstItem() const = 0;
-        virtual QVariant lastItem() const = 0;
+        Q_INVOKABLE virtual QVariant nextItem(const QVariant &item) const = 0;
+        Q_INVOKABLE virtual QVariant previousItem(const QVariant &item) const = 0;
+        Q_INVOKABLE virtual QVariant firstItem() const = 0;
+        Q_INVOKABLE virtual QVariant lastItem() const = 0;
 
         virtual QVariant currentItem() const = 0;
         virtual void setCurrentItem(const QVariant &item) = 0;

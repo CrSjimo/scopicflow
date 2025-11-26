@@ -8,7 +8,8 @@ MouseArea {
     id: mouseArea
 
     property var controller: null
-    property int interactionFlag: 0
+    property int selectInteractionFlag: 0
+    property int selectByRubberBandInteractionFlag: 0
     property TimeManipulator timeManipulator: null
     property QtObject verticalManipulator: null
     property RubberBandLayer rubberBandLayer: null
@@ -18,7 +19,7 @@ MouseArea {
 
     acceptedButtons: Qt.LeftButton
     anchors.fill: parent
-    enabled: (controller?.interaction ?? 0) & interactionFlag
+    enabled: (controller?.interaction ?? 0) & selectByRubberBandInteractionFlag
     focus: true
     focusPolicy: Qt.ClickFocus
 
@@ -28,14 +29,32 @@ MouseArea {
     }
     onClicked: mouse => {
         if (!helper.dragged) {
-            iSelectable.select(null, mouse.button, mouse.modifiers);
+            if (controller.itemInteraction & selectInteractionFlag) {
+                controller.itemInteractionOperationStarted(target, null, selectInteractionFlag)
+                iSelectable.select(null, mouse.button, mouse.modifiers);
+                controller.itemInteractionOperationFinished(target, null, selectInteractionFlag)
+            }
+        }
+    }
+    onDoubleClicked: mouse => {
+        if (!helper.dragged) {
+            if (controller.itemInteraction & selectInteractionFlag) {
+                controller.itemInteractionOperationStarted(target, null, selectInteractionFlag)
+                iSelectable.select(null, mouse.button, mouse.modifiers);
+                controller.itemInteractionOperationFinished(target, null, selectInteractionFlag)
+            }
+            controller.doubleClicked(target, timeManipulator.mapToPosition(mouse.x))
         }
     }
     onPositionChanged: mouse => {
         helper.dragged = true;
         if (!rubberBandLayer.started) {
-            iSelectable.select(null, Qt.RightButton, mouse.modifiers);
-            controller.interactionOperationStarted(target, interactionFlag)
+            if (controller.itemInteraction & selectInteractionFlag) {
+                controller.itemInteractionOperationStarted(target, null, mouseArea.selectInteractionFlag)
+                iSelectable.select(null, mouse.button, mouse.modifiers);
+                controller.itemInteractionOperationFinished(target, null, mouseArea.selectInteractionFlag)
+            }
+            controller.interactionOperationStarted(target, selectByRubberBandInteractionFlag)
             rubberBandLayer.startSelection(helper.pressedPoint);
         }
         rubberBandDragScroller.determine(mouse.x, width, mouse.y, height, (triggeredX, triggeredY) => {
@@ -53,7 +72,7 @@ MouseArea {
     }
     onReleased: () => {
         rubberBandLayer.endSelection();
-        controller.interactionOperationFinished(target, interactionFlag)
+        controller.interactionOperationFinished(target, selectByRubberBandInteractionFlag)
         rubberBandDragScroller.running = false;
     }
 

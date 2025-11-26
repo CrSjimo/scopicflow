@@ -101,10 +101,10 @@ namespace sflow {
             hideView(itemModel);
         }
     }
-    void SequenceSlicerLoaderPrivate::createView(QObject *itemModel) {
+    QQuickItem *SequenceSlicerLoaderPrivate::createView(QObject *itemModel) {
         Q_Q(SequenceSlicerLoader);
         if (!delegate)
-            return;
+            return nullptr;
         bool visible = inRange(itemModel);
         auto item = qobject_cast<QQuickItem *>(delegate->createWithInitialProperties({
             {"parent", QVariant::fromValue(q->parentItem())},
@@ -117,6 +117,7 @@ namespace sflow {
         } else {
             invisibleItems.insert(itemModel, item);
         }
+        return item;
     }
     void SequenceSlicerLoaderPrivate::showViewIfExistsOrElseCreate(QObject *itemModel) {
         if (invisibleItems.contains(itemModel)) {
@@ -202,5 +203,16 @@ namespace sflow {
         d->range = p;
         d->handleRangeChanged();
         Q_EMIT rangeChanged();
+    }
+
+    QQuickItem * SequenceSlicerLoader::itemForModel(QObject *model) {
+        Q_D(SequenceSlicerLoader);
+        if (!model)
+            return nullptr;
+        if (auto item = d->visibleItems.value(model))
+            return item;
+        if (auto item = d->invisibleItems.value(model))
+            return item;
+        return d->createView(model);
     }
 }

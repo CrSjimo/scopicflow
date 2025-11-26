@@ -67,6 +67,16 @@ MouseArea {
             }
         }
     }
+    onDoubleClicked: mouse => {
+        if (!helper.dragged) {
+            if (controller.itemInteraction & mouseArea.selectInteractionFlag) {
+                controller.itemInteractionOperationStarted(paneItem, viewModel, mouseArea.selectInteractionFlag)
+                sequenceViewModel.iSelectable.select(viewModel, mouse.button, mouse.modifiers);
+                controller.itemInteractionOperationFinished(paneItem, viewModel, mouseArea.selectInteractionFlag)
+            }
+        }
+        controller.itemDoubleClicked(paneItem, viewModel)
+    }
     onPositionChanged: mouse => {
         if (!(controller?.itemInteraction & moveInteractionFlag)) {
             return;

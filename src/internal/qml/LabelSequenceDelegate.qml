@@ -13,7 +13,7 @@ FocusScope {
     property bool current: {
         current = labelSequenceViewModel?.currentItem === labelViewModel;
     }
-    property bool editing: popup.opened
+    property bool editing: false
     required property QtObject labelSequenceViewModel
 
     readonly property QtObject labelViewModel: SequenceSlicerLoader.viewModel
@@ -21,10 +21,10 @@ FocusScope {
     clip: true
     implicitWidth: labelText.width + 8
     opacity: editing ? 0 : 1
-    visible: SequenceSlicerLoader.inRange
+    visible: SequenceSlicerLoader.inRange && !editing
 
     z: {
-        z = current ? Infinity : labelViewModel?.selected ? 2147483647 : 0
+        z = current ? 2 : labelViewModel?.selected ? 1 : 0
     }
 
     Rectangle {
@@ -50,7 +50,7 @@ FocusScope {
 
     Binding {
         label.current: label.labelSequenceViewModel?.currentItem === label.labelViewModel
-        label.z: label.current ? Infinity : label.labelViewModel?.selected ? 2147483647 : 0
+        label.z: label.current ? 2 : label.labelViewModel?.selected ? 1 : 0
         when: label.SequenceSlicerLoader.inRange
     }
     Text {
@@ -68,14 +68,5 @@ FocusScope {
                 easing.type: Easing.OutCubic
             }
         }
-    }
-    ItemPopupEdit {
-        id: popup
-
-        containerModel: label.labelSequenceViewModel
-        model: label.labelViewModel
-        // radius: label.radius
-        removeIfEmpty: true
-        targetProperty: "content"
     }
 }

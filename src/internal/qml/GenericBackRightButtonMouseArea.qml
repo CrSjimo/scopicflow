@@ -11,6 +11,7 @@ MouseArea {
     id: mouseArea
 
     property TimeManipulator timeManipulator: null
+    property int selectInteractionFlag: 0
     property var verticalManipulator: null
     property QtObject iSelectable: null
     property var controller: null
@@ -29,8 +30,10 @@ MouseArea {
                 controller.contextMenuRequested(target, timeManipulator.mapToPosition(mouse.x))
             }
         }
-        if (iSelectable) {
-            iSelectable.select(null, Qt.RightButton, mouse.modifiers);
+        if (iSelectable && controller && ((controller.itemInteraction ?? 0) & selectInteractionFlag)) {
+            controller.itemInteractionOperationStarted(target, null, selectInteractionFlag)
+            iSelectable.select(null, mouse.button, mouse.modifiers);
+            controller.itemInteractionOperationFinished(target, null, selectInteractionFlag)
         }
     }
 

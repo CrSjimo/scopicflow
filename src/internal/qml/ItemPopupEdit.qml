@@ -8,20 +8,16 @@ T.Popup {
     id: popup
 
     required property QtObject containerModel
-    required property QtObject model
-    property double radius: 0
-    property bool removeIfEmpty: false
     required property string targetProperty
 
-    height: parent.height
-    width: parent.width
+    property QtObject model: null
+    property double radius: 0
+
     padding: 0
 
     onClosed: {
         if (!textField.escaped)
             model[targetProperty] = textField.text;
-        if (removeIfEmpty && !model[targetProperty].length)
-            containerModel.removeItem(model);
     }
     onOpened: {
         textField.text = model[targetProperty];
@@ -30,19 +26,21 @@ T.Popup {
         textField.forceActiveFocus();
     }
 
+    signal editPreviousRequested()
+    signal editNextRequested()
+
     T.TextField {
         id: textField
 
         property bool escaped: false
 
-        anchors.bottom: parent.bottom
-        anchors.top: parent.top
-        bottomPadding: 0
         leftPadding: 4
         rightPadding: 4
         text: popup.model?.[popup.targetProperty] ?? ""
-        topPadding: 0
-        width: Math.max(popup.width, implicitWidth)
+        topPadding: 0.5 * (height - contentHeight)
+        width: Math.max(popup.width, contentWidth + 8)
+        height: popup.height
+        color: Theme.foregroundPrimaryColor
 
         background: Rectangle {
             border.color: Theme.accentColor
@@ -51,9 +49,7 @@ T.Popup {
             radius: 2
         }
 
-        Keys.onBacktabPressed: {
-            popup.containerModel.currentItem = popup.containerModel.iSelectable.previousItem(popup.model);
-        }
+        Keys.onBacktabPressed: editPreviousRequested()
         Keys.onEscapePressed: {
             escaped = true;
             popup.close();
@@ -72,8 +68,6 @@ T.Popup {
         Keys.onReturnPressed: {
             popup.close();
         }
-        Keys.onTabPressed: {
-            popup.containerModel.currentItem = popup.containerModel.iSelectable.nextItem(popup.model);
-        }
+        Keys.onTabPressed: editNextRequested()
     }
 }

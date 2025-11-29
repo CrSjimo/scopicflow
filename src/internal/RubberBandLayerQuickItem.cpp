@@ -1,7 +1,7 @@
 #include "RubberBandLayerQuickItem_p.h"
 #include "RubberBandLayerQuickItem_p_p.h"
 
-#include <ScopicFlowCore/private/SelectableViewModelManipulatorInterface_p.h>
+#include <ScopicFlowCore/SelectionController.h>
 
 namespace sflow {
 
@@ -11,17 +11,15 @@ namespace sflow {
     }
     RubberBandLayerQuickItem::~RubberBandLayerQuickItem() = default;
 
-    SelectableViewModelManipulatorInterface * RubberBandLayerQuickItem::iSelectable() const {
+    SelectionController *RubberBandLayerQuickItem::selectionController() const {
         Q_D(const RubberBandLayerQuickItem);
-        return d->iSelectable;
+        return d->selectionController;
     }
 
-    void RubberBandLayerQuickItem::setISelectable(SelectableViewModelManipulatorInterface *iSelectable) {
+    void RubberBandLayerQuickItem::setSelectionController(SelectionController *selectionController) {
         Q_D(RubberBandLayerQuickItem);
-        if (d->iSelectable == iSelectable)
-            return;
-        d->iSelectable = iSelectable;
-        emit iSelectableChanged();
+        d->selectionController = selectionController;
+        emit selectionControllerChanged();
     }
 
     QQmlComponent *RubberBandLayerQuickItem::rubberBand() const {
@@ -46,19 +44,18 @@ namespace sflow {
         Q_D(const RubberBandLayerQuickItem);
         return d->started;
     }
-    void RubberBandLayerQuickItem::insertItem(const QVariant &item, const QRectF &rect) {
+    void RubberBandLayerQuickItem::insertItem(QObject *item, const QRectF &rect) {
         Q_D(RubberBandLayerQuickItem);
-        if (!d->iSelectable)
+        if (!d->selectionController)
             return;
-        d->itemRects.insert(d->iSelectable->getId(item), rect);
+        d->itemRects.insert(item, rect);
     }
-    void RubberBandLayerQuickItem::removeItem(const QVariant &item) {
+    void RubberBandLayerQuickItem::removeItem(QObject *item) {
         Q_D(RubberBandLayerQuickItem);
-        if (!d->iSelectable)
+        if (!d->selectionController)
             return;
-        auto id = d->iSelectable->getId(item);
-        d->itemRects.remove(id);
-        d->taggedItems.remove(id);
+        d->itemRects.remove(item);
+        d->taggedItems.remove(item);
     }
     void RubberBandLayerQuickItem::startSelection(const QPointF &startPos) {
         Q_D(RubberBandLayerQuickItem);
@@ -91,31 +88,28 @@ namespace sflow {
             d->rubberBandItem->setWidth(rubberBandRect.width());
             d->rubberBandItem->setHeight(rubberBandRect.height());
         }
-        if (!d->iSelectable)
+        if (!d->selectionController)
             return;
         // TODO: Current implementation is high in time complexity. Optimize it in future
         // Step 1: toggle-select ALL(not covered by rubber band && tagged)
-        QList<qsizetype> disjointItemIds;
-        for (auto itemId : d->taggedItems) {
-            auto itemRect = d->itemRects.value(itemId);
+        QList<QObject *> disjointItems;
+        for (auto item : d->taggedItems) {
+            auto itemRect = d->itemRects.value(item);
             if (!rubberBandRect.intersects(itemRect)) {
-                auto item = d->iSelectable->fromId(itemId);
-                d->iSelectable->setSelected(item, !d->iSelectable->isSelected(item));
-                disjointItemIds.append(itemId);
+                d->selectionController->select(item, SelectionController::Toggle);
+                disjointItems.append(item);
             }
         }
         // Step 2: remove tag from ALL(not covered by rubber band && tagged)
-        for (auto itemId : disjointItemIds) {
+        for (auto itemId : disjointItems) {
             d->taggedItems.remove(itemId);
         }
         // Step 3: toggle-select ALL(covered by rubber band && not tagged)
-        for (auto p = d->itemRects.constKeyValueBegin(); p != d->itemRects.constKeyValueEnd(); p++) {
-            auto [itemId, itemRect] = *p;
-            if (!d->taggedItems.contains(itemId) && rubberBandRect.intersects(itemRect)) {
-                auto item = d->iSelectable->fromId(itemId);
-                d->iSelectable->setSelected(item, !d->iSelectable->isSelected(item));
+        for (const auto &[item, itemRect] : d->itemRects.asKeyValueRange()) {
+            if (!d->taggedItems.contains(item) && rubberBandRect.intersects(itemRect)) {
+                d->selectionController->select(item, SelectionController::Toggle);
                 // Step 4: tag ALL(covered by rubber band && not tagged)
-                d->taggedItems.insert(itemId);
+                d->taggedItems.insert(item);
             }
         }
     }

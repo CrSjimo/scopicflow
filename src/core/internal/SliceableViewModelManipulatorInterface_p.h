@@ -17,6 +17,7 @@ namespace sflow {
         virtual QObjectList slice(int position, int length) const = 0;
         virtual int itemPosition(QObject *item) const = 0;
         virtual int itemLength(QObject *item) const;
+        virtual QObjectList itemsBetween(QObject *item1, QObject *item2) const = 0;
 
     signals:
         void itemAboutToInsert(QObject *item);

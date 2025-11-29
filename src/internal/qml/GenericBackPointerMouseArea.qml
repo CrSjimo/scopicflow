@@ -13,7 +13,7 @@ MouseArea {
     property TimeManipulator timeManipulator: null
     property QtObject verticalManipulator: null
     property RubberBandLayer rubberBandLayer: null
-    property QtObject iSelectable: null
+    property SelectionController selectionController: null
     property Item target: parent
     property var mapPoint: p => p
 
@@ -31,7 +31,7 @@ MouseArea {
         if (!helper.dragged) {
             if (controller.itemInteraction & selectInteractionFlag) {
                 controller.itemInteractionOperationStarted(target, null, selectInteractionFlag)
-                iSelectable.select(null, mouse.button, mouse.modifiers);
+                selectionController.selectByMouse(null, mouse.button, mouse.modifiers);
                 controller.itemInteractionOperationFinished(target, null, selectInteractionFlag)
             }
         }
@@ -40,10 +40,19 @@ MouseArea {
         if (!helper.dragged) {
             if (controller.itemInteraction & selectInteractionFlag) {
                 controller.itemInteractionOperationStarted(target, null, selectInteractionFlag)
-                iSelectable.select(null, mouse.button, mouse.modifiers);
+                selectionController.selectByMouse(null, SelectionController.ClearPreviousSelection);
                 controller.itemInteractionOperationFinished(target, null, selectInteractionFlag)
             }
-            controller.doubleClicked(target, timeManipulator.mapToPosition(mouse.x))
+            if (timeManipulator && verticalManipulator) {
+                controller.doubleClicked(target, timeManipulator.mapToPosition(mouse.x), verticalManipulator.mapToPosition(mouse.y))
+            } else if (timeManipulator) {
+                controller.doubleClicked(target, timeManipulator.mapToPosition(mouse.x))
+            } else if (verticalManipulator) {
+                controller.doubleClicked(target, verticalManipulator.mapToPosition(mouse.y))
+            } else {
+                controller.doubleClicked(target)
+            }
+
         }
     }
     onPositionChanged: mouse => {
@@ -51,7 +60,7 @@ MouseArea {
         if (!rubberBandLayer.started) {
             if (controller.itemInteraction & selectInteractionFlag) {
                 controller.itemInteractionOperationStarted(target, null, mouseArea.selectInteractionFlag)
-                iSelectable.select(null, mouse.button, mouse.modifiers);
+                selectionController.selectByMouse(null, SelectionController.ClearPreviousSelection);
                 controller.itemInteractionOperationFinished(target, null, mouseArea.selectInteractionFlag)
             }
             controller.interactionOperationStarted(target, selectByRubberBandInteractionFlag)

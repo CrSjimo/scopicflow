@@ -195,30 +195,12 @@ FocusScope {
         }
     }
 
-    MouseArea {
+    GenericBackHoverMouseArea {
         id: hoverMouseArea
 
-        acceptedButtons: Qt.NoButton
-        anchors.fill: parent
-        hoverEnabled: true
-
-        onEntered: () => {
-            if (timeline.timelineInteractionController) {
-                timeline.timelineInteractionController.hoverEntered(timeline, timeManipulator.mapToPosition(mouseX))
-            }
-        }
-
-        onPositionChanged: () => {
-            if (timeline.timelineInteractionController) {
-                timeline.timelineInteractionController.hoverMoved(timeline, timeManipulator.mapToPosition(mouseX))
-            }
-        }
-
-        onExited: () => {
-            if (timeline.timelineInteractionController) {
-                timeline.timelineInteractionController.hoverExited(timeline)
-            }
-        }
+        controller: timeline.timelineInteractionController
+        target: timeline
+        timeManipulator: timeManipulator
 
     }
 

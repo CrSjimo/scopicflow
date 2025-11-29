@@ -41,6 +41,17 @@ namespace sflow {
         void setItemInteraction(ItemInteraction itemInteraction);
         ItemInteraction itemInteraction() const;
 
+        enum InPlaceEditOperation {
+            StartEditing,
+            CommitEditing,
+            AbortEditing,
+            MovePrevious,
+            MoveNext,
+            MoveHome,
+            MoveEnd,
+        };
+        Q_ENUM(InPlaceEditOperation)
+
     Q_SIGNALS:
         void interactionChanged();
         void itemInteractionChanged();
@@ -58,6 +69,8 @@ namespace sflow {
         void itemDoubleClicked(QQuickItem *labelSequence, LabelViewModel *item);
         void contextMenuRequested(QQuickItem *labelSequence, int position);
         void itemContextMenuRequested(QQuickItem *labelSequence, LabelViewModel *item);
+
+        void inPlaceEditOperationTriggered(QQuickItem *labelSequence, LabelViewModel *item, InPlaceEditOperation operation);
 
     private:
         Interaction m_interaction;

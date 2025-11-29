@@ -18,6 +18,7 @@ MouseArea {
     property QtObject sequenceViewModel: null
     property TimeManipulator timeManipulator: null
     property QtObject verticalManipulator: null
+    property SelectionController selectionController: null
 
     acceptedButtons: Qt.LeftButton
     anchors.fill: parent
@@ -40,12 +41,12 @@ MouseArea {
             let deltaPosition = position - mouseArea.viewModel.position
             if (deltaPosition === 0)
                 return;
-
-            for (let note of mouseArea.sequenceViewModel.selection) {
+            let selection = mouseArea.selectionController.getSelectedItems()
+            for (let note of selection) {
                 if (note.position + deltaPosition < 0)
                     return;
             }
-            for (let note of mouseArea.sequenceViewModel.selection) {
+            for (let note of selection) {
                 note.position = note.position + deltaPosition;
             }
         }
@@ -60,22 +61,17 @@ MouseArea {
     }
     onClicked: mouse => {
         if (!helper.dragged) {
-            if (controller.itemInteraction & mouseArea.selectInteractionFlag) {
+            if (selectionController && (controller.itemInteraction & mouseArea.selectInteractionFlag)) {
                 controller.itemInteractionOperationStarted(paneItem, viewModel, mouseArea.selectInteractionFlag)
-                sequenceViewModel.iSelectable.select(viewModel, mouse.button, mouse.modifiers);
+                selectionController.selectByMouse(viewModel, mouse.button, mouse.modifiers);
                 controller.itemInteractionOperationFinished(paneItem, viewModel, mouseArea.selectInteractionFlag)
             }
         }
     }
     onDoubleClicked: mouse => {
         if (!helper.dragged) {
-            if (controller.itemInteraction & mouseArea.selectInteractionFlag) {
-                controller.itemInteractionOperationStarted(paneItem, viewModel, mouseArea.selectInteractionFlag)
-                sequenceViewModel.iSelectable.select(viewModel, mouse.button, mouse.modifiers);
-                controller.itemInteractionOperationFinished(paneItem, viewModel, mouseArea.selectInteractionFlag)
-            }
+            controller.itemDoubleClicked(paneItem, viewModel)
         }
-        controller.itemDoubleClicked(paneItem, viewModel)
     }
     onPositionChanged: mouse => {
         if (!(controller?.itemInteraction & moveInteractionFlag)) {
@@ -83,9 +79,9 @@ MouseArea {
         }
         helper.dragged = true;
         controller.itemInteractionOperationStarted(paneItem, viewModel, moveInteractionFlag)
-        if (controller.itemInteraction & mouseArea.selectInteractionFlag) {
+        if (selectionController && (controller.itemInteraction & mouseArea.selectInteractionFlag)) {
             controller.itemInteractionOperationStarted(paneItem, viewModel, mouseArea.selectInteractionFlag)
-            sequenceViewModel.iSelectable.select(viewModel, Qt.RightButton, mouse.modifiers);
+            selectionController.selectByMouse(viewModel, Qt.RightButton, mouse.modifiers);
             controller.itemInteractionOperationFinished(paneItem, viewModel, mouseArea.selectInteractionFlag)
         }
         let parentPoint = mapToItem(paneItem, mouse.x, mouse.y);
@@ -99,7 +95,7 @@ MouseArea {
         });
     }
     onPressed: mouse => {
-        if ((mouse.modifiers & Qt.ControlModifier) || (mouse.modifiers & Qt.AltModifier)) {
+        if ((mouse.modifiers & Qt.AltModifier)) {
             mouse.accepted = false
             return
         }

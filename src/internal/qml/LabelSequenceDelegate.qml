@@ -11,10 +11,11 @@ FocusScope {
     id: label
 
     property bool current: {
-        current = labelSequenceViewModel?.currentItem === labelViewModel;
+        current = selectionController?.currentItem === labelViewModel;
     }
     property bool editing: false
-    required property QtObject labelSequenceViewModel
+    required property PointSequenceViewModel labelSequenceViewModel
+    required property SelectionController selectionController
 
     readonly property QtObject labelViewModel: SequenceSlicerLoader.viewModel
 
@@ -49,7 +50,7 @@ FocusScope {
     }
 
     Binding {
-        label.current: label.labelSequenceViewModel?.currentItem === label.labelViewModel
+        label.current: label.selectionController?.currentItem === label.labelViewModel
         label.z: label.current ? 2 : label.labelViewModel?.selected ? 1 : 0
         when: label.SequenceSlicerLoader.inRange
     }

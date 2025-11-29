@@ -16,6 +16,7 @@ FocusScope {
     property TimeLayoutViewModel timeLayoutViewModel: null
     property TimeViewModel timeViewModel: null
     property LabelSequenceInteractionController labelSequenceInteractionController: null
+    property SelectionController selectionController: null
 
     clip: true
     implicitHeight: 20
@@ -25,6 +26,7 @@ FocusScope {
         if (labelViewModel) {
             timeManipulator.ensureVisible(labelViewModel.position, 0, 0, labelItemWidth(labelViewModel));
             inPlaceEditPopup.model = labelViewModel
+            labelSequenceInteractionController.inPlaceEditOperationTriggered(labelSequence, labelViewModel, LabelSequenceInteractionController.StartEditing)
             inPlaceEditPopup.open()
         }
 
@@ -78,7 +80,7 @@ FocusScope {
 
         controller: labelSequence.labelSequenceInteractionController
         selectInteractionFlag: LabelSequenceInteractionController.Select
-        iSelectable: labelSequence.labelSequenceViewModel.iSelectable
+        selectionController: labelSequence.selectionController
         timeManipulator: timeManipulator
     }
 
@@ -90,8 +92,17 @@ FocusScope {
         selectInteractionFlag: LabelSequenceInteractionController.Select
         timeManipulator: timeManipulator
         rubberBandLayer: rubberBandLayer
-        iSelectable: labelSequence.labelSequenceViewModel.iSelectable
+        selectionController: labelSequence.selectionController
         mapPoint: (p) => Qt.point(mapToItem(rubberBandLayer, p.x, 0).x, rubberBandLayer.started ? height : 0)
+    }
+
+    GenericBackHoverMouseArea {
+        id: hoverMouseArea
+
+        controller: labelSequence.labelSequenceInteractionController
+        target: labelSequence
+        timeManipulator: timeManipulator
+
     }
 
     TimeViewportContainer {
@@ -121,6 +132,7 @@ FocusScope {
 
                     height: parent.height
                     labelSequenceViewModel: labelSequence.labelSequenceViewModel
+                    selectionController: labelSequence.selectionController
 
                     Component.onDestruction: rubberBandLayer.removeItem(labelViewModel)
                     onVisibleChanged: handleRubberBand()
@@ -133,6 +145,22 @@ FocusScope {
                     }
 
                     readonly property TimeManipulator timeManipulator_: timeManipulator
+                    GenericRightButtonMouseArea {
+                        id: rightButtonMouseArea
+
+                        controller: labelSequence.labelSequenceInteractionController
+                        selectInteractionFlag: LabelSequenceInteractionController.Select
+                        selectionController: labelSequence.selectionController
+                        paneItem: labelSequence
+                        viewModel: labelRect.labelViewModel
+                    }
+                    GenericHoverMouseArea {
+                        id: hoverMouseArea
+
+                        controller: labelSequence.labelSequenceInteractionController
+                        paneItem: labelSequence
+                        viewModel: labelRect.labelViewModel
+                    }
                     GenericPointerMouseArea {
                         id: pointerMouseArea
                         controller: labelSequence.labelSequenceInteractionController
@@ -142,6 +170,7 @@ FocusScope {
                         viewModel: labelRect.labelViewModel
                         sequenceViewModel: labelSequence.labelSequenceViewModel
                         timeManipulator: labelRect.timeManipulator_
+                        selectionController: labelSequence.selectionController
                     }
 
                     Connections {
@@ -161,7 +190,7 @@ FocusScope {
             id: rubberBandLayer
 
             anchors.fill: parent
-            iSelectable: labelSequence.labelSequenceViewModel?.iSelectable ?? null
+            selectionController: labelSequence.selectionController
             z: 2
 
             rubberBand: RubberBandRectangle {
@@ -178,8 +207,12 @@ FocusScope {
             height: parent.height
             x: associatedItem?.x ?? 0
 
-            onEditPreviousRequested: labelSequence.editInPlace(labelSequence.labelSequenceViewModel.iSelectable.previousItem(model))
-            onEditNextRequested: labelSequence.editInPlace(labelSequence.labelSequenceViewModel.iSelectable.nextItem(model))
+            onEditPreviousRequested: labelSequence.labelSequenceInteractionController.inPlaceEditOperationTriggered(labelSequence, model, LabelSequenceInteractionController.MovePrevious)
+            onEditNextRequested: labelSequence.labelSequenceInteractionController.inPlaceEditOperationTriggered(labelSequence, model, LabelSequenceInteractionController.MoveNext)
+            onEditHomeRequested: labelSequence.labelSequenceInteractionController.inPlaceEditOperationTriggered(labelSequence, model, LabelSequenceInteractionController.MoveHome)
+            onEditEndRequested: labelSequence.labelSequenceInteractionController.inPlaceEditOperationTriggered(labelSequence, model, LabelSequenceInteractionController.MoveEnd)
+            onAccepted: labelSequence.labelSequenceInteractionController.inPlaceEditOperationTriggered(labelSequence, model, LabelSequenceInteractionController.CommitEditing)
+            onRejected: labelSequence.labelSequenceInteractionController.inPlaceEditOperationTriggered(labelSequence, model, LabelSequenceInteractionController.AbortEditing)
             onVisibleChanged: () => {
                 if (associatedItem)
                     associatedItem.editing = visible

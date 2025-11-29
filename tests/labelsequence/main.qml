@@ -20,6 +20,7 @@ ApplicationWindow {
     required property ScrollBehaviorViewModel scrollBehaviorViewModel
     required property PointSequenceViewModel labelSequenceViewModel
     required property LabelSequenceInteractionController labelSequenceInteractionController
+    required property SelectionController selectionController
 
     Connections {
         target: main.labelSequenceInteractionController
@@ -36,6 +37,7 @@ ApplicationWindow {
         scrollBehaviorViewModel: main.scrollBehaviorViewModel
         labelSequenceViewModel: main.labelSequenceViewModel
         labelSequenceInteractionController: main.labelSequenceInteractionController
+        selectionController: main.selectionController
     }
 
 }

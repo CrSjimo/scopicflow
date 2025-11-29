@@ -16,8 +16,12 @@ T.Popup {
     padding: 0
 
     onClosed: {
-        if (!textField.escaped)
+        if (!textField.escaped) {
             model[targetProperty] = textField.text;
+            accepted()
+        } else {
+            rejected()
+        }
     }
     onOpened: {
         textField.text = model[targetProperty];
@@ -28,6 +32,10 @@ T.Popup {
 
     signal editPreviousRequested()
     signal editNextRequested()
+    signal editHomeRequested()
+    signal editEndRequested()
+    signal accepted()
+    signal rejected()
 
     T.TextField {
         id: textField
@@ -56,9 +64,9 @@ T.Popup {
         }
         Keys.onPressed: event => {
             if (event.key === Qt.Key_Home && (event.modifiers & Qt.ControlModifier)) {
-                popup.containerModel.currentItem = popup.containerModel.iSelectable.firstItem();
+                popup.editHomeRequested()
             } else if (event.key === Qt.Key_End && (event.modifiers & Qt.ControlModifier)) {
-                popup.containerModel.currentItem = popup.containerModel.iSelectable.lastItem();
+                popup.editEndRequested()
             } else {
                 event.accepted = false;
                 return;

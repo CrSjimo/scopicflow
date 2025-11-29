@@ -2,6 +2,7 @@
 #include "SequenceSlicerLoader_p_p.h"
 
 #include <QSet>
+#include <QQmlInfo>
 
 namespace sflow {
 
@@ -109,6 +110,10 @@ namespace sflow {
         auto item = qobject_cast<QQuickItem *>(delegate->createWithInitialProperties({
             {"parent", QVariant::fromValue(q->parentItem())},
         }, qmlContext(q)));
+        if (!item) {
+            qmlWarning(q) << "Failed to create item: " << delegate->errorString();
+            return nullptr;
+        }
         auto ctx = qobject_cast<SequenceSlicerLoaderContext *>(qmlAttachedPropertiesObject<SequenceSlicerLoader>(item));
         ctx->setViewModel(itemModel);
         ctx->setInRange(visible);
@@ -216,3 +221,5 @@ namespace sflow {
         return d->createView(model);
     }
 }
+
+#include "moc_SequenceSlicerLoader_p.cpp"

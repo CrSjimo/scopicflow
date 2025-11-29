@@ -9,7 +9,7 @@ namespace sflow {
     public:
         RubberBandLayerQuickItem *q_ptr;
 
-        QPointer<SelectableViewModelManipulatorInterface> iSelectable;
+        QPointer<SelectionController> selectionController;
         QPointer<QQmlComponent> rubberBandComponent;
         QPointer<QQuickItem> rubberBandItem;
 
@@ -18,8 +18,8 @@ namespace sflow {
 
         bool started = false;
 
-        QHash<qsizetype, QRectF> itemRects;
-        QSet<qsizetype> taggedItems;
+        QHash<QObject *, QRectF> itemRects;
+        QSet<QObject *> taggedItems;
     };
 }
 

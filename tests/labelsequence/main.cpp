@@ -11,6 +11,7 @@
 #include <ScopicFlowCore/PointSequenceViewModel.h>
 #include <ScopicFlowCore/LabelViewModel.h>
 #include <ScopicFlowCore/LabelSequenceInteractionController.h>
+#include <ScopicFlowCore/StandardSelectionController.h>
 
 using namespace sflow;
 
@@ -48,13 +49,16 @@ int main(int argc, char **argv) {
 
     LabelSequenceInteractionController labelSequenceInteractionController(&a);
 
+    StandardSelectionController selectionController(&labelSequenceViewModel, &a);
+
     QQmlApplicationEngine engine;
     engine.setInitialProperties({
         {"timeLayoutViewModel", QVariant::fromValue(&timeLayoutViewModel)},
         {"timeViewModel", QVariant::fromValue(&timeViewModel)},
         {"labelSequenceViewModel", QVariant::fromValue(&labelSequenceViewModel)},
         {"scrollBehaviorViewModel", QVariant::fromValue(&scrollBehaviorViewModel)},
-        {"labelSequenceInteractionController", QVariant::fromValue(&labelSequenceInteractionController)}
+        {"labelSequenceInteractionController", QVariant::fromValue(&labelSequenceInteractionController)},
+        {"selectionController", QVariant::fromValue(&selectionController)}
     });
     engine.load(":/qt/qml/dev/sjimo/ScopicFlow/Test/LabelSequence/main.qml");
 

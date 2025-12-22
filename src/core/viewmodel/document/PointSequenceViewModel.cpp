@@ -6,6 +6,12 @@
 namespace sflow {
 
     PointSequenceViewModelSliceableManipulatorInterface::PointSequenceViewModelSliceableManipulatorInterface(PointSequenceViewModelPrivate *d) : SliceableViewModelManipulatorInterface(d->q_ptr), d_ptr(d) {
+        auto q = d->q_ptr;
+        connect(q, &PointSequenceViewModel::itemUpdated, this, &PointSequenceViewModelSliceableManipulatorInterface::itemUpdated);
+        connect(q, &PointSequenceViewModel::itemAboutToInsert, this, &PointSequenceViewModelSliceableManipulatorInterface::itemAboutToInsert);
+        connect(q, &PointSequenceViewModel::itemInserted, this, &PointSequenceViewModelSliceableManipulatorInterface::itemInserted);
+        connect(q, &PointSequenceViewModel::itemAboutToRemove, this, &PointSequenceViewModelSliceableManipulatorInterface::itemAboutToRemove);
+        connect(q, &PointSequenceViewModel::itemRemoved, this, &PointSequenceViewModelSliceableManipulatorInterface::itemRemoved);
     }
     PointSequenceViewModelSliceableManipulatorInterface::~PointSequenceViewModelSliceableManipulatorInterface() = default;
 

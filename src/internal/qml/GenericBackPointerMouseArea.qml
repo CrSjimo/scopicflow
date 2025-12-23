@@ -40,7 +40,7 @@ MouseArea {
         if (!helper.dragged) {
             if (controller.itemInteraction & selectInteractionFlag) {
                 controller.itemInteractionOperationStarted(target, null, selectInteractionFlag)
-                selectionController.selectByMouse(null, SelectionController.ClearPreviousSelection);
+                selectionController.selectByMouse(null, mouse.button, SelectionController.ClearPreviousSelection);
                 controller.itemInteractionOperationFinished(target, null, selectInteractionFlag)
             }
             if (timeManipulator && verticalManipulator) {

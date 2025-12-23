@@ -60,7 +60,7 @@ MouseArea {
         if (!rubberBandLayer.started) {
             if (controller.itemInteraction & selectInteractionFlag) {
                 controller.itemInteractionOperationStarted(target, null, mouseArea.selectInteractionFlag)
-                selectionController.selectByMouse(null, SelectionController.ClearPreviousSelection);
+                selectionController.selectByMouse(null, mouse.button, SelectionController.ClearPreviousSelection);
                 controller.itemInteractionOperationFinished(target, null, mouseArea.selectInteractionFlag)
             }
             controller.interactionOperationStarted(target, selectByRubberBandInteractionFlag)

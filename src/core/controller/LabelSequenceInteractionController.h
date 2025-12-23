@@ -78,6 +78,7 @@ namespace sflow {
     };
 
     Q_DECLARE_OPERATORS_FOR_FLAGS(LabelSequenceInteractionController::Interaction)
+    Q_DECLARE_OPERATORS_FOR_FLAGS(LabelSequenceInteractionController::ItemInteraction)
 
 }
 

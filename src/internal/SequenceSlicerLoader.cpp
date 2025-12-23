@@ -192,7 +192,7 @@ namespace sflow {
         if (d->viewModel == viewModel)
             return;
         d->viewModel = viewModel;
-        d->setHandle(viewModel->property("iSliceable").value<SliceableViewModelManipulatorInterface *>());
+        d->setHandle(viewModel ? viewModel->property("iSliceable").value<SliceableViewModelManipulatorInterface *>() : nullptr);
         Q_EMIT viewModelChanged();
     }
 

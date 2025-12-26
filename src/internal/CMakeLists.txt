@@ -8,7 +8,7 @@ file(GLOB_RECURSE _resource_files RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} assets/*)
 
 scopic_flow_add_library(${PROJECT_NAME} AUTOGEN
     SOURCES ${_src}
-    LINKS svscraft::Core svscraft::Gui svscraft::Qml svscraft::Quick ScopicFlowCore
+    LINKS svscraft::Core svscraft::Gui svscraft::Qml svscraft::Quick svscraft::FluentSystemIcons ScopicFlowCore
     QT_LINKS Core Gui Widgets Qml Quick QuickControls2
     QT_INCLUDE_PRIVATE Core Gui Widgets Qml Quick QuickControls2
 )

@@ -12,16 +12,11 @@ Item {
     readonly property color lowColor: SFPalette.levelLowColor
     readonly property color middleColor: SFPalette.levelMediumColor
     property double minimum: -60
-    property double safeThreshold: -18
+    property double safeThreshold: -36
     property double value: minimum
-    property double warningThreshold: -6
+    property double warningThreshold: -12
 
     width: 4
-
-    onValueChanged: {
-        if (value > 0)
-            clipping = true;
-    }
 
     Rectangle {
         id: clippingIndicator

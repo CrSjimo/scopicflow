@@ -7,6 +7,7 @@ namespace sflow {
     TrackViewModel::TrackViewModel(QObject *parent)
         : QObject(parent), m_mute(false), m_solo(false), m_record(false), m_gain(0.0), m_pan(0.0),
           m_leftLevel(std::numeric_limits<double>::lowest()), m_rightLevel(std::numeric_limits<double>::lowest()),
+          m_leftClipping(false), m_rightClipping(false),
           m_rowHeight(80.0), m_color(Qt::transparent), m_muteEnabled(true), m_soloEnabled(true),
           m_recordEnabled(true), m_selected(false) {
     }
@@ -98,6 +99,28 @@ namespace sflow {
         if (m_rightLevel != rightLevel) {
             m_rightLevel = rightLevel;
             Q_EMIT rightLevelChanged();
+        }
+    }
+
+    bool TrackViewModel::isLeftClipping() const {
+        return m_leftClipping;
+    }
+
+    void TrackViewModel::setLeftClipping(bool clipping) {
+        if (m_leftClipping != clipping) {
+            m_leftClipping = clipping;
+            Q_EMIT leftClippingChanged();
+        }
+    }
+
+    bool TrackViewModel::isRightClipping() const {
+        return m_rightClipping;
+    }
+
+    void TrackViewModel::setRightClipping(bool clipping) {
+        if (m_rightClipping != clipping) {
+            m_rightClipping = clipping;
+            Q_EMIT rightClippingChanged();
         }
     }
 

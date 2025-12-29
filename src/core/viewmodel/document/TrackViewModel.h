@@ -20,6 +20,8 @@ namespace sflow {
         Q_PROPERTY(double pan READ pan WRITE setPan NOTIFY panChanged)
         Q_PROPERTY(double leftLevel READ leftLevel WRITE setLeftLevel NOTIFY leftLevelChanged)
         Q_PROPERTY(double rightLevel READ rightLevel WRITE setRightLevel NOTIFY rightLevelChanged)
+        Q_PROPERTY(bool leftClipping READ isLeftClipping WRITE setLeftClipping NOTIFY leftClippingChanged)
+        Q_PROPERTY(bool rightClipping READ isRightClipping WRITE setRightClipping NOTIFY rightClippingChanged)
         Q_PROPERTY(double rowHeight READ rowHeight WRITE setRowHeight NOTIFY rowHeightChanged)
         Q_PROPERTY(QColor color READ color WRITE setColor NOTIFY colorChanged)
         Q_PROPERTY(bool muteEnabled READ isMuteEnabled WRITE setMuteEnabled NOTIFY muteEnabledChanged)
@@ -54,6 +56,12 @@ namespace sflow {
         double rightLevel() const;
         void setRightLevel(double rightLevel);
 
+        bool isLeftClipping() const;
+        void setLeftClipping(bool clipping);
+
+        bool isRightClipping() const;
+        void setRightClipping(bool clipping);
+
         double rowHeight() const;
         void setRowHeight(double rowHeight);
 
@@ -81,6 +89,8 @@ namespace sflow {
         void panChanged();
         void leftLevelChanged();
         void rightLevelChanged();
+        void leftClippingChanged();
+        void rightClippingChanged();
         void rowHeightChanged();
         void colorChanged();
         void muteEnabledChanged();
@@ -97,6 +107,8 @@ namespace sflow {
         double m_pan;
         double m_leftLevel;
         double m_rightLevel;
+        bool m_leftClipping;
+        bool m_rightClipping;
         double m_rowHeight;
         QColor m_color;
         bool m_muteEnabled;

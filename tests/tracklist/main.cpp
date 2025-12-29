@@ -20,6 +20,8 @@ int main(int argc, char **argv) {
     TrackViewModel trackViewModel(&a);
     trackViewModel.setName("Test");
     trackViewModel.setColor(Qt::magenta);
+    trackViewModel.setLeftLevel(0);
+    trackViewModel.setRightClipping(true);
     // trackViewModel.setSelected(true);
 
     QQmlApplicationEngine engine;

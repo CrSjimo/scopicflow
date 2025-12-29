@@ -21,6 +21,7 @@ T.Control {
 
     function open() {
         popup.open();
+        editingStarted()
     }
 
     focusPolicy: Qt.StrongFocus
@@ -101,9 +102,8 @@ T.Control {
     }
     MouseArea {
         anchors.fill: parent
-        onDoubleClicked: () => {
-            editLabel.open();
-            editLabel.editingStarted();
-        }
+        onDoubleClicked: editLabel.open();
     }
+    Accessible.onPressAction: editLabel.open();
+    Keys.onSpacePressed: editLabel.open();
 }

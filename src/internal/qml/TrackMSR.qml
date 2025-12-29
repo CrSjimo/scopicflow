@@ -26,7 +26,9 @@ RowLayout {
         checkable: true
         checked: msr.trackViewModel.mute ?? false
         flat: false
-        text: 'M'
+        text: 'Mute'
+        Component.onCompleted: contentItem.text = 'M'
+        DescriptiveText.toolTip: text
     }
     ToolButton {
         id: soloButton_
@@ -36,7 +38,9 @@ RowLayout {
         checkable: true
         checked: msr.trackViewModel.solo ?? false
         flat: false
-        text: 'S'
+        text: 'Solo'
+        Component.onCompleted: contentItem.text = 'S'
+        DescriptiveText.toolTip: text
     }
     ToolButton {
         id: recordButton_
@@ -46,6 +50,8 @@ RowLayout {
         checkable: true
         checked: msr.trackViewModel.record ?? false
         flat: false
-        text: 'R'
+        text: 'Record'
+        Component.onCompleted: contentItem.text = 'R'
+        DescriptiveText.toolTip: text
     }
 }

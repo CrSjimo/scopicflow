@@ -22,6 +22,7 @@ Item {
     required property SelectionController selectionController
     required property QtObject trackViewModel
     required property string trackNumber
+    property bool rightAligned: false
 
     function fitHeight() {
         fitHeightAnimation.start();
@@ -54,203 +55,214 @@ Item {
                 easing.type: Easing.OutCubic
             }
         }
+    }
 
+    RowLayout {
+        anchors.fill: parent
+        spacing: 8
+        layoutDirection: track.rightAligned ? Qt.RightToLeft : Qt.LeftToRight
+        T.Button {
+            id: colorIndicator
+
+            Layout.fillHeight: true
+            implicitWidth: 8
+
+            background: Rectangle {
+                color: track.trackViewModel.color
+            }
+
+        }
         RowLayout {
-            anchors.fill: parent
+            Layout.fillHeight: true
             spacing: 8
-            T.Button {
-                id: colorIndicator
+            layoutDirection: track.rightAligned ? Qt.RightToLeft : Qt.LeftToRight
+
+            Rectangle {
+                id: focusIndicator
 
                 Layout.fillHeight: true
-                implicitWidth: 8
-
-                background: Rectangle {
-                    color: track.trackViewModel.color
-                }
-
-            }
-            Item {
-                Layout.fillHeight: true
-                implicitWidth: 24
-
-                Rectangle {
-                    id: focusIndicator
-
-                    anchors.bottom: parent.bottom
-                    anchors.left: parent.left
-                    anchors.leftMargin: 0
-                    anchors.margins: 8
-                    anchors.top: parent.top
-                    color: Theme.accentColor
-                    opacity: track.current ? 1 : 0
-                    radius: 1
-                    width: 2
-
-                    Behavior on opacity {
-                        NumberAnimation {
-                            duration: Theme.colorAnimationDuration
-                            easing.type: Easing.OutCubic
-                        }
-                    }
-                }
-                Text {
-                    id: trackNumberLabel
-
-                    anchors.left: focusIndicator.right
-                    anchors.leftMargin: 4
-                    anchors.verticalCenter: parent.top
-                    anchors.verticalCenterOffset: 20
-                    color: track.current ? Theme.accentColor : Theme.foregroundPrimaryColor
-                    text: track.trackNumber
-
-                    Behavior on color {
-                        ColorAnimation {
-                            duration: Theme.colorAnimationDuration
-                            easing.type: Easing.OutCubic
-                        }
-                    }
-                }
-            }
-            Item {
-                Layout.fillWidth: true
                 Layout.topMargin: 8
-                Layout.alignment: Qt.AlignTop
-                implicitHeight: 64
+                Layout.bottomMargin: 7
+                color: Theme.accentColor
+                opacity: track.current ? 1 : 0
+                radius: 1
+                implicitWidth: 2
 
-                Row {
-                    anchors.left: parent.left
-                    anchors.top: parent.top
-                    spacing: 8
+                Behavior on opacity {
+                    NumberAnimation {
+                        duration: Theme.colorAnimationDuration
+                        easing.type: Easing.OutCubic
+                    }
+                }
+            }
+            Text {
+                id: trackNumberLabel
+                color: track.current ? Theme.accentColor : Theme.foregroundPrimaryColor
+                text: track.trackNumber
+                Layout.minimumWidth: 16
+                Layout.maximumWidth: 16
+                Layout.bottomMargin: 40
+                horizontalAlignment: track.rightAligned ? Qt.AlignRight : Qt.AlignLeft
 
-                    TrackMSR {
-                        id: controlsFirstRow
-                        trackViewModel: track.trackViewModel
+                Behavior on color {
+                    ColorAnimation {
+                        duration: Theme.colorAnimationDuration
+                        easing.type: Easing.OutCubic
+                    }
+                }
+            }
+        }
+        Item {
+            Layout.fillWidth: true
+            Layout.topMargin: 8
+            Layout.alignment: Qt.AlignTop
+            implicitHeight: 32
+
+            Row {
+                anchors.left: parent.left
+                anchors.top: parent.top
+                spacing: 8
+
+                TrackMSR {
+                    id: controlsFirstRow
+                    trackViewModel: track.trackViewModel
+                }
+                TrackEditLabel {
+                    anchors.bottom: controlsFirstRow.bottom
+                    anchors.top: controlsFirstRow.top
+                    text: track.trackViewModel.name
+                }
+            }
+            RowLayout {
+                id: controlsSecondRow
+
+                anchors.left: parent.left
+                anchors.right: parent.right
+                anchors.top: parent.top
+                anchors.topMargin: 40
+                spacing: 0
+                visible: opacity !== 0.0
+
+                Behavior on opacity {
+                    NumberAnimation {
+                        duration: Theme.visualEffectAnimationDuration
+                        easing.type: Easing.OutCubic
+                    }
+                }
+
+                RowLayout {
+                    spacing: 2
+                    Layout.fillWidth: true
+                    Layout.fillHeight: true
+
+                    IconImage {
+                        color: Theme.foregroundPrimaryColor
+                        source: "image://fluent-system-icons/cellular_data_1?size=20"
+                        sourceSize.width: 24
+                        sourceSize.height: 24
+                    }
+                    Slider {
+                        id: gainSlider
+                        Layout.fillWidth: true
+
+                        Accessible.name: qsTr("Gain")
+                        DescriptiveText.toolTip: Accessible.name
+                        DescriptiveText.activated: hovered
+
+                        from: SVS.decibelToLinearValue(-96) - SVS.decibelToLinearValue(0)
+                        to: SVS.decibelToLinearValue(6) - SVS.decibelToLinearValue(0)
+                        value: SVS.decibelToLinearValue(track.trackViewModel.gain)
+
+                        readonly property bool visualVisible: width > 32
+                        enabled: visualVisible
+                        opacity: visualVisible ? 1 : 0
+
+                        Behavior on opacity {
+                            NumberAnimation {
+                                duration: Theme.visualEffectAnimationDuration
+                                easing.type: Easing.OutCubic
+                            }
+                        }
+
                     }
                     TrackEditLabel {
-                        anchors.bottom: controlsFirstRow.bottom
-                        anchors.top: controlsFirstRow.top
-                        text: track.trackViewModel.name
+                        Layout.fillHeight: true
+                        editText: Qt.locale().toString(track.trackViewModel.gain, "f", 1)
+                        text: (track.trackViewModel.gain + 96 < 0.05 ? "-∞" : Qt.locale().toString(track.trackViewModel.gain, "f", 1)) + " dB"
+                        implicitWidth: 64
+
+                        validator: DoubleValidator {
+                            bottom: -96
+                            decimals: 1
+                            top: 6
+                        }
                     }
                 }
                 RowLayout {
-                    id: controlsSecondRow
+                    spacing: 4
+                    Layout.fillHeight: true
 
-                    anchors.left: parent.left
-                    anchors.right: parent.right
-                    anchors.top: parent.top
-                    anchors.topMargin: 40
-                    spacing: 24
-                    visible: opacity !== 0.0
-
-                    Behavior on opacity {
-                        NumberAnimation {
-                            duration: Theme.visualEffectAnimationDuration
-                            easing.type: Easing.OutCubic
-                        }
+                    IconImage {
+                        color: Theme.foregroundPrimaryColor
+                        source: "image://fluent-system-icons/live?size=20"
+                        sourceSize.width: 24
+                        sourceSize.height: 24
                     }
+                    Dial {
+                        id: panDial
 
-                    RowLayout {
-                        spacing: 4
-                        Layout.fillWidth: true
-                        Layout.fillHeight: true
+                        Accessible.name: qsTr("Pan")
+                        DescriptiveText.toolTip: Accessible.name
+                        DescriptiveText.activated: hovered
 
-                        IconImage {
-                            color: Theme.foregroundPrimaryColor
-                            source: "image://fluent-system-icons/cellular_data_1?size=20"
-                            sourceSize.width: 24
-                            sourceSize.height: 24
-                        }
-                        Slider {
-                            id: gainSlider
-                            Layout.fillWidth: true
+                        leftPadding: 2
 
-                            from: SVS.decibelToLinearValue(-96) - SVS.decibelToLinearValue(0)
-                            to: SVS.decibelToLinearValue(6) - SVS.decibelToLinearValue(0)
-                            value: SVS.decibelToLinearValue(track.trackViewModel.gain)
-
-                            readonly property bool visualVisible: width > 32
-                            enabled: visualVisible
-                            opacity: visualVisible ? 1 : 0
-
-                            Behavior on opacity {
-                                NumberAnimation {
-                                    duration: Theme.visualEffectAnimationDuration
-                                    easing.type: Easing.OutCubic
-                                }
-                            }
-
-                        }
-                        TrackEditLabel {
-                            Layout.fillHeight: true
-                            editText: Qt.locale().toString(track.trackViewModel.gain, "f", 1)
-                            text: (track.trackViewModel.gain + 96 < 0.05 ? "-∞" : Qt.locale().toString(track.trackViewModel.gain, "f", 1)) + " dB"
-                            implicitWidth: 32
-
-                            validator: DoubleValidator {
-                                bottom: -96
-                                decimals: 1
-                                top: 6
-                            }
-                        }
+                        from: -1.0
+                        height: 24
+                        to: 1.0
+                        value: track.trackViewModel.pan
                     }
-                    RowLayout {
-                        spacing: 8
+                    TrackEditLabel {
                         Layout.fillHeight: true
+                        text: Qt.locale().toString(Math.round(track.trackViewModel.pan * 100))
+                        implicitWidth: 32
 
-                        IconImage {
-                            color: Theme.foregroundPrimaryColor
-                            source: "image://fluent-system-icons/live?size=20"
-                            sourceSize.width: 24
-                            sourceSize.height: 24
-                        }
-                        Dial {
-                            id: panDial
-
-                            from: -1.0
-                            height: 24
-                            to: 1.0
-                            value: track.trackViewModel.pan
-                        }
-                        TrackEditLabel {
-                            Layout.fillHeight: true
-                            text: Qt.locale().toString(Math.round(track.trackViewModel.pan * 100))
-                            implicitWidth: 32
-
-                            validator: IntValidator {
-                                bottom: -100
-                                top: 100
-                            }
+                        validator: IntValidator {
+                            bottom: -100
+                            top: 100
                         }
                     }
                 }
             }
-            Rectangle {
-                Layout.fillHeight: true
-                color: SFPalette.levelMeterColor
-                implicitWidth: 12
+        }
+        Rectangle {
+            Layout.fillHeight: true
+            color: SFPalette.levelMeterColor
+            implicitWidth: 12
 
-                LevelMeter {
-                    id: leftChannelLevelMeter
+            LevelMeter {
+                id: leftChannelLevelMeter
 
-                    anchors.bottom: parent.bottom
-                    anchors.left: parent.left
-                    anchors.right: parent.horizontalCenter
-                    anchors.top: parent.top
-                    value: track.trackViewModel.leftLevel
-                }
-                LevelMeter {
-                    id: rightChannelLevelMeter
+                anchors.bottom: parent.bottom
+                anchors.left: parent.left
+                anchors.right: parent.horizontalCenter
+                anchors.top: parent.top
+                value: track.trackViewModel.leftLevel
+                clipping: track.trackViewModel.leftClipping
+            }
+            LevelMeter {
+                id: rightChannelLevelMeter
 
-                    anchors.bottom: parent.bottom
-                    anchors.left: parent.horizontalCenter
-                    anchors.right: parent.right
-                    anchors.top: parent.top
-                    value: track.trackViewModel.rightLevel
-                }
-                MouseArea {
-                    anchors.fill: parent
-                    hoverEnabled: true
-                }
+                anchors.bottom: parent.bottom
+                anchors.left: parent.horizontalCenter
+                anchors.right: parent.right
+                anchors.top: parent.top
+                value: track.trackViewModel.rightLevel
+                clipping: track.trackViewModel.rightClipping
+            }
+            MouseArea {
+                anchors.fill: parent
+                hoverEnabled: true
             }
         }
     }

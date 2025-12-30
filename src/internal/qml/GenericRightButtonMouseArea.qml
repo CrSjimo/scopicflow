@@ -20,9 +20,7 @@ MouseArea {
 
     onClicked: (mouse) => {
         if (selectionController && (controller.itemInteraction & mouseArea.selectInteractionFlag)) {
-            controller.itemInteractionOperationStarted(paneItem, viewModel, mouseArea.selectInteractionFlag)
             selectionController.selectByMouse(viewModel, mouse.button, mouse.modifiers);
-            controller.itemInteractionOperationFinished(paneItem, viewModel, mouseArea.selectInteractionFlag)
         }
         controller.itemContextMenuRequested(paneItem, viewModel)
     }

@@ -31,11 +31,16 @@ namespace sflow {
     Q_SIGNALS:
         void interactionChanged();
 
-        void interactionOperationStarted(QQuickItem *timeline, InteractionFlag type);
-        void interactionOperationFinished(QQuickItem *timeline, InteractionFlag type);
+        void rubberBandDraggingStarted(QQuickItem *timeline);
+        void rubberBandDraggingFinished(QQuickItem *timeline, InteractionFlag type);
+
+        void positionIndicatorMovingStarted(QQuickItem *timeline);
+        void positionIndicatorMovingFinished(QQuickItem *timeline);
+
         void hoverEntered(QQuickItem *timeline, int position);
         void hoverMoved(QQuickItem *timeline, int position);
         void hoverExited(QQuickItem *timeline);
+
         void doubleClicked(QQuickItem *timeline, int position);
         void contextMenuRequested(QQuickItem *timeline, int position);
 

@@ -31,9 +31,7 @@ MouseArea {
             }
         }
         if (selectionController && controller && ((controller.itemInteraction ?? 0) & selectInteractionFlag)) {
-            controller.itemInteractionOperationStarted(target, null, selectInteractionFlag)
             selectionController.selectByMouse(null, mouse.button, mouse.modifiers);
-            controller.itemInteractionOperationFinished(target, null, selectInteractionFlag)
         }
     }
 

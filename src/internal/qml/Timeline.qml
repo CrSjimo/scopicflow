@@ -144,9 +144,9 @@ FocusScope {
             zoomRubberBand.x = zoomRubberBand.width = 0
             zoomRubberBand.visible = false
             if (isZoom) {
-                timeline.timelineInteractionController.interactionOperationFinished(timeline, TimelineInteractionController.ZoomByRubberBand)
+                timeline.timelineInteractionController.rubberBandDraggingFinished(timeline)
             } else if (isMove) {
-                timeline.timelineInteractionController.interactionOperationFinished(timeline, TimelineInteractionController.MovePositionIndicator)
+                timeline.timelineInteractionController.positionIndicatorMovingFinished(timeline)
             }
         }
         onClicked: mouse => {
@@ -168,10 +168,10 @@ FocusScope {
             isMove = ((timeline.timelineInteractionController?.interaction ?? 0) & TimelineInteractionController.MovePositionIndicator) && !(timeline.scrollBehaviorViewModel?.isZoom(mouse.modifiers) ?? false)
             isZoom = ((timeline.timelineInteractionController?.interaction ?? 0) & TimelineInteractionController.ZoomByRubberBand) && (timeline.scrollBehaviorViewModel?.isZoom(mouse.modifiers) ?? false)
             if (isZoom) {
-                timeline.timelineInteractionController.interactionOperationStarted(timeline, TimelineInteractionController.ZoomByRubberBand)
+                timeline.timelineInteractionController.rubberBandDraggingStarted(timeline)
                 zoomRubberBand.visible = true
             } else if (isMove) {
-                timeline.timelineInteractionController.interactionOperationStarted(timeline, TimelineInteractionController.MovePositionIndicator)
+                timeline.timelineInteractionController.positionIndicatorMovingStarted(timeline)
             }
         }
         onReleased: () => {

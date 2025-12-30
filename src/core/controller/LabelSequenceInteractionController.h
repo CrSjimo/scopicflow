@@ -1,8 +1,11 @@
 #ifndef SCOPIC_FLOW_LABELSEQUENCEINTERACTIONCONTROLLER_H
 #define SCOPIC_FLOW_LABELSEQUENCEINTERACTIONCONTROLLER_H
 
-#include <QObject>
+#include "LabelViewModel.h"
+
 #include <qqmlintegration.h>
+
+#include <QObject>
 
 #include <ScopicFlowCore/ScopicFlowCoreGlobal.h>
 
@@ -22,8 +25,7 @@ namespace sflow {
         ~LabelSequenceInteractionController() override;
 
         enum InteractionFlag {
-            Draw = 0x1,
-            SelectByRubberBand = 0x2,
+            SelectByRubberBand = 0x1,
         };
         Q_ENUM(InteractionFlag)
         Q_DECLARE_FLAGS(Interaction, InteractionFlag)
@@ -56,17 +58,22 @@ namespace sflow {
         void interactionChanged();
         void itemInteractionChanged();
 
-        void interactionOperationStarted(QQuickItem *labelSequence, InteractionFlag type);
-        void interactionOperationFinished(QQuickItem *labelSequence, InteractionFlag type);
-        void itemInteractionOperationStarted(QQuickItem *labelSequence, LabelViewModel *item, ItemInteractionFlag type);
-        void itemInteractionOperationFinished(QQuickItem *labelSequence, LabelViewModel *item, ItemInteractionFlag type);
+        void rubberBandDraggingStarted(QQuickItem *labelSequence);
+        void rubberBandDraggingFinished(QQuickItem *labelSequence);
+
+        void movingStarted(QQuickItem *labelSequence, LabelViewModel *item);
+        void movingFinished(QQuickItem *labelSequence, LabelViewModel *item);
+
         void hoverEntered(QQuickItem *labelSequence, int position);
         void hoverMoved(QQuickItem *labelSequence, int position);
         void hoverExited(QQuickItem *labelSequence);
+
         void itemHoverEntered(QQuickItem *labelSequence, LabelViewModel *item);
         void itemHoverExited(QQuickItem *labelSequence, LabelViewModel *item);
+
         void doubleClicked(QQuickItem *labelSequence, int position);
         void itemDoubleClicked(QQuickItem *labelSequence, LabelViewModel *item);
+
         void contextMenuRequested(QQuickItem *labelSequence, int position);
         void itemContextMenuRequested(QQuickItem *labelSequence, LabelViewModel *item);
 

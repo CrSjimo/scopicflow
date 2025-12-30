@@ -56,15 +56,13 @@ MouseArea {
         dragScroller.running = false;
         if (helper.dragged) {
             helper.dragged = false;
-            controller.itemInteractionOperationFinished(paneItem, viewModel, moveInteractionFlag)
+            controller.movingFinished(paneItem, viewModel)
         }
     }
     onClicked: mouse => {
         if (!helper.dragged) {
             if (selectionController && (controller.itemInteraction & mouseArea.selectInteractionFlag)) {
-                controller.itemInteractionOperationStarted(paneItem, viewModel, mouseArea.selectInteractionFlag)
                 selectionController.selectByMouse(viewModel, mouse.button, mouse.modifiers);
-                controller.itemInteractionOperationFinished(paneItem, viewModel, mouseArea.selectInteractionFlag)
             }
         }
     }
@@ -79,11 +77,9 @@ MouseArea {
         }
         if (!helper.dragged) {
             helper.dragged = true;
-            controller.itemInteractionOperationStarted(paneItem, viewModel, moveInteractionFlag)
+            controller.movingStarted(paneItem, viewModel)
             if (selectionController && (controller.itemInteraction & mouseArea.selectInteractionFlag)) {
-                controller.itemInteractionOperationStarted(paneItem, viewModel, mouseArea.selectInteractionFlag)
                 selectionController.selectByMouse(viewModel, Qt.RightButton, mouse.modifiers);
-                controller.itemInteractionOperationFinished(paneItem, viewModel, mouseArea.selectInteractionFlag)
             }
         }
         let parentPoint = mapToItem(paneItem, mouse.x, mouse.y);

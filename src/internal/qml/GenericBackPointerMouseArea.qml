@@ -30,18 +30,14 @@ MouseArea {
     onClicked: mouse => {
         if (!helper.dragged) {
             if (controller.itemInteraction & selectInteractionFlag) {
-                controller.itemInteractionOperationStarted(target, null, selectInteractionFlag)
                 selectionController.selectByMouse(null, mouse.button, mouse.modifiers);
-                controller.itemInteractionOperationFinished(target, null, selectInteractionFlag)
             }
         }
     }
     onDoubleClicked: mouse => {
         if (!helper.dragged) {
             if (controller.itemInteraction & selectInteractionFlag) {
-                controller.itemInteractionOperationStarted(target, null, selectInteractionFlag)
                 selectionController.selectByMouse(null, mouse.button, SelectionController.ClearPreviousSelection);
-                controller.itemInteractionOperationFinished(target, null, selectInteractionFlag)
             }
             if (timeManipulator && verticalManipulator) {
                 controller.doubleClicked(target, timeManipulator.mapToPosition(mouse.x), verticalManipulator.mapToPosition(mouse.y))
@@ -59,11 +55,8 @@ MouseArea {
         helper.dragged = true;
         if (!rubberBandLayer.started) {
             if (controller.itemInteraction & selectInteractionFlag) {
-                controller.itemInteractionOperationStarted(target, null, mouseArea.selectInteractionFlag)
                 selectionController.selectByMouse(null, mouse.button, SelectionController.ClearPreviousSelection);
-                controller.itemInteractionOperationFinished(target, null, mouseArea.selectInteractionFlag)
             }
-            controller.interactionOperationStarted(target, selectByRubberBandInteractionFlag)
             rubberBandLayer.startSelection(helper.pressedPoint);
         }
         rubberBandDragScroller.determine(mouse.x, width, mouse.y, height, (triggeredX, triggeredY) => {
@@ -81,7 +74,6 @@ MouseArea {
     }
     onReleased: () => {
         rubberBandLayer.endSelection();
-        controller.interactionOperationFinished(target, selectByRubberBandInteractionFlag)
         rubberBandDragScroller.running = false;
     }
 

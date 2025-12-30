@@ -32,7 +32,7 @@ namespace sflow {
         void interactionChanged();
 
         void rubberBandDraggingStarted(QQuickItem *timeline);
-        void rubberBandDraggingFinished(QQuickItem *timeline, InteractionFlag type);
+        void rubberBandDraggingFinished(QQuickItem *timeline);
 
         void positionIndicatorMovingStarted(QQuickItem *timeline);
         void positionIndicatorMovingFinished(QQuickItem *timeline);

@@ -26,6 +26,7 @@ MouseArea {
     onCanceled: () => {
         rubberBandLayer.endSelection();
         rubberBandDragScroller.running = false;
+        controller.rubberBandDraggingFinished(target)
     }
     onClicked: mouse => {
         if (!helper.dragged) {
@@ -54,6 +55,7 @@ MouseArea {
     onPositionChanged: mouse => {
         helper.dragged = true;
         if (!rubberBandLayer.started) {
+            controller.rubberBandDraggingStarted(target)
             if (controller.itemInteraction & selectInteractionFlag) {
                 selectionController.selectByMouse(null, mouse.button, SelectionController.ClearPreviousSelection);
             }
@@ -72,10 +74,7 @@ MouseArea {
         helper.dragged = false;
         helper.pressedPoint = mapPoint(Qt.point(mouse.x, mouse.y))
     }
-    onReleased: () => {
-        rubberBandLayer.endSelection();
-        rubberBandDragScroller.running = false;
-    }
+    onReleased: canceled()
 
     QtObject {
         id: helper

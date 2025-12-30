@@ -150,9 +150,7 @@ FocusScope {
             }
         }
         onClicked: mouse => {
-            if (isMove) {
-                setIndicatorPosition(mouse.x);
-            }
+
         }
         onPositionChanged: mouse => {
             if (!pressed)
@@ -172,6 +170,7 @@ FocusScope {
                 zoomRubberBand.visible = true
             } else if (isMove) {
                 timeline.timelineInteractionController.positionIndicatorMovingStarted(timeline)
+                setIndicatorPosition(mouse.x);
             }
         }
         onReleased: () => {

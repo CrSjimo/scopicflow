@@ -36,13 +36,13 @@ namespace sflow {
         connect(&d->startAnimation, &QVariantAnimation::valueChanged, this, [d](const QVariant& value) {
             if (!d->timeViewModel)
                 return;
-            d->timeViewModel->setProperty("start", value.toDouble());
+            d->timeViewModel->setStart(value.toDouble());
         });
         connect(&d->pixelDensityAnimation, &QVariantAnimation::valueChanged, this, [d](const QVariant& value) {
             if (!d->timeViewModel || !d->timeLayoutViewModel)
                 return;
-            d->timeViewModel->setProperty("start", qFuzzyIsNull(d->timeViewModel->start()) && d->currentAnimationFixStartToZero ? 0.0 : qMax(0.0, d->timeViewModel->start() + d->animationCenter / d->timeLayoutViewModel->pixelDensity() - d->animationCenter / value.toDouble()));
-            d->timeLayoutViewModel->setProperty("pixelDensity", value);
+            d->timeViewModel->setStart(qFuzzyIsNull(d->timeViewModel->start()) && d->currentAnimationFixStartToZero ? 0.0 : qMax(0.0, d->timeViewModel->start() + d->animationCenter / d->timeLayoutViewModel->pixelDensity() - d->animationCenter / value.toDouble()));
+            d->timeLayoutViewModel->setPixelDensity(value.toDouble());
         });
         d->updateParent();
     }
@@ -117,11 +117,11 @@ namespace sflow {
                 if (newStart < 0)
                     return;
             } else {
-                d->timeViewModel->setProperty("end", newEnd);
+                d->timeViewModel->setEnd(newEnd);
             }
         }
         if (!animated) {
-            d->timeViewModel->setProperty("start", newStart);
+            d->timeViewModel->setStart(newStart);
         } else {
             d->startAnimation.stop();
             d->pixelDensityAnimation.stop();
@@ -143,12 +143,12 @@ namespace sflow {
                 if (newStart < 0)
                     return;
             } else {
-                d->timeViewModel->setProperty("end", newEnd);
+                d->timeViewModel->setEnd(newEnd);
             }
         }
         if (!animated) {
-            d->timeViewModel->setProperty("start", newStart);
-            d->timeLayoutViewModel->setProperty("pixelDensity", newPixelDensity);
+            d->timeViewModel->setStart(newStart);
+            d->timeLayoutViewModel->setPixelDensity(newPixelDensity);
         } else {
             d->currentAnimationFixStartToZero = ratio < 1 && qFuzzyIsNull(d->timeViewModel->start());
             d->animationCenter = center;

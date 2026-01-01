@@ -1,12 +1,98 @@
 #include "TrackListManipulator.h"
 #include "TrackListManipulator_p.h"
 
+#include <algorithm>
+
 #include <QQuickItem>
 
 #include <ScopicFlowCore/TrackListLayoutViewModel.h>
-#include <ScopicFlowCore/document/ListViewModel.h>
+#include <ScopicFlowCore/ListViewModel.h>
+#include <ScopicFlowCore/TrackViewModel.h>
 
 namespace sflow {
+
+    void TrackListManipulatorPrivate::setViewportHeight(double height) {
+        Q_Q(TrackListManipulator);
+        if (qFuzzyCompare(viewportHeight, height))
+            return;
+        viewportHeight = height;
+        emit q->viewportHeightChanged();
+    }
+
+    double TrackListManipulatorPrivate::itemHeight(QObject *object) const {
+        if (auto track = qobject_cast<TrackViewModel *>(object))
+            return qMax(0.0, track->rowHeight());
+        return 0.0;
+    }
+
+    void TrackListManipulatorPrivate::clearItemConnections() {
+        for (const auto &connection : itemConnections) {
+            QObject::disconnect(connection);
+        }
+        itemConnections.clear();
+    }
+
+    void TrackListManipulatorPrivate::rebuildFromModel() {
+        clearItemConnections();
+        itemHeights.clear();
+        prefixDirty = true;
+
+        if (!trackListViewModel) {
+            setViewportHeight(0.0);
+            prefixSums = {0.0};
+            return;
+        }
+
+        const auto items = trackListViewModel->items();
+        double newHeight = 0.0;
+        itemHeights.reserve(items.size());
+        for (auto *item : items) {
+            const double height = itemHeight(item);
+            itemHeights.insert(item, height);
+            newHeight += height;
+
+            if (auto track = qobject_cast<TrackViewModel *>(item)) {
+                itemConnections << QObject::connect(track, &TrackViewModel::rowHeightChanged, q_ptr, [this, track] {
+                    handleRowHeightChanged(track);
+                });
+            }
+        }
+
+        setViewportHeight(newHeight);
+        prefixSums.clear();
+    }
+
+    void TrackListManipulatorPrivate::handleRowHeightChanged(QObject *object) {
+        const double oldHeight = itemHeights.value(object, 0.0);
+        const double newHeight = itemHeight(object);
+
+        if (qFuzzyCompare(oldHeight, newHeight))
+            return;
+
+        itemHeights.insert(object, newHeight);
+        setViewportHeight(viewportHeight + newHeight - oldHeight);
+        prefixDirty = true;
+    }
+
+    void TrackListManipulatorPrivate::ensurePrefixReady() const {
+        if (!prefixDirty)
+            return;
+
+        prefixSums.clear();
+        prefixSums.reserve(itemHeights.size() + 1);
+        prefixSums.push_back(0.0);
+
+        if (trackListViewModel) {
+            const auto items = trackListViewModel->items();
+            for (auto *item : items) {
+                const double height = itemHeights.value(item, itemHeight(item));
+                prefixSums.push_back(prefixSums.back() + height);
+                itemHeights.insert(item, height);
+            }
+        }
+
+        prefixDirty = false;
+    }
 
     void TrackListManipulatorPrivate::setViewSize(double size) {
         Q_Q(TrackListManipulator);
@@ -63,7 +149,18 @@ namespace sflow {
     void TrackListManipulator::setTrackListViewModel(ListViewModel *trackListViewModel) {
         Q_D(TrackListManipulator);
         if (d->trackListViewModel != trackListViewModel) {
+            if (d->itemsChangedConnection)
+                disconnect(d->itemsChangedConnection);
+            d->clearItemConnections();
             d->trackListViewModel = trackListViewModel;
+            if (d->trackListViewModel) {
+                d->itemsChangedConnection = connect(d->trackListViewModel, &ListViewModel::itemsChanged, this, [d] {
+                    d->rebuildFromModel();
+                });
+            } else {
+                d->itemsChangedConnection = {};
+            }
+            d->rebuildFromModel();
             emit trackListViewModelChanged();
         }
     }
@@ -109,14 +206,6 @@ namespace sflow {
         return d->viewportHeight;
     }
 
-    void TrackListManipulator::setViewportHeight(double viewportHeight) {
-        Q_D(TrackListManipulator);
-        if (qFuzzyCompare(d->viewportHeight, viewportHeight))
-            return;
-        d->viewportHeight = viewportHeight;
-        emit viewportHeightChanged();
-    }
-
     void TrackListManipulator::moveViewBy(double deltaY, bool animated) {
         Q_D(TrackListManipulator);
         if (!d->trackListLayoutViewModel)
@@ -137,13 +226,36 @@ namespace sflow {
     }
 
     int TrackListManipulator::mapToPosition(double y) const {
-        // TODO: Implementation to be added
-        return 0;
+        Q_D(const TrackListManipulator);
+        if (!d->trackListViewModel || d->trackListViewModel->count() == 0)
+            return 0;
+
+        d->ensurePrefixReady();
+        const auto &prefix = d->prefixSums;
+        const int count = d->trackListViewModel->count();
+        const double totalHeight = prefix.isEmpty() ? 0.0 : prefix.constLast();
+
+        if (y < 0.0)
+            return -1;
+        if (y >= totalHeight)
+            return count;
+
+        auto it = std::upper_bound(prefix.begin(), prefix.end(), y);
+        const auto index = static_cast<int>(std::max<std::ptrdiff_t>(0, std::distance(prefix.begin(), it) - 1));
+        return index;
     }
 
     double TrackListManipulator::mapToY(int position) const {
-        // TODO: Implementation to be added
-        return 0.0;
+        Q_D(const TrackListManipulator);
+        if (!d->trackListViewModel || d->trackListViewModel->count() == 0)
+            return 0.0;
+
+        d->ensurePrefixReady();
+        const int count = d->trackListViewModel->count();
+        const int clamped = qBound(0, position, count);
+        return d->prefixSums.value(clamped, 0.0);
     }
 
 }
+
+#include "moc_TrackListManipulator.cpp"

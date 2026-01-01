@@ -3,8 +3,14 @@
 #include <QSurfaceFormat>
 #include <QQmlApplicationEngine>
 
-#include <ScopicFlowCore/TrackViewModel.h>
 #include <SVSCraftFluentSystemIcons/FluentSystemIconsImageProvider.h>
+
+#include <ScopicFlowCore/TrackViewModel.h>
+#include <ScopicFlowCore/ListViewModel.h>
+#include <ScopicFlowCore/TrackListInteractionController.h>
+#include <ScopicFlowCore/StandardSelectionController.h>
+#include <ScopicFlowCore/ScrollBehaviorViewModel.h>
+#include <ScopicFlowCore/TrackListLayoutViewModel.h>
 
 using namespace sflow;
 
@@ -17,17 +23,33 @@ int main(int argc, char **argv) {
     QQuickStyle::setStyle("SVSCraft.UIComponents");
     QQuickStyle::setFallbackStyle("Basic");
 
-    TrackViewModel trackViewModel(&a);
-    trackViewModel.setName("Test");
-    trackViewModel.setColor(Qt::magenta);
-    trackViewModel.setLeftLevel(0);
-    trackViewModel.setRightClipping(true);
-    // trackViewModel.setSelected(true);
+    ScrollBehaviorViewModel scrollBehaviorViewModel(&a);
+
+    TrackListInteractionController trackListInteractionController(&a);
+
+    ListViewModel trackListViewModel(&a);
+
+    for (int i = 0; i < 4; i++) {
+        auto trackViewModel = new TrackViewModel(&a);
+        trackViewModel->setName("Track " + QString::number(i));
+        trackViewModel->setColor(QColor::fromHsl(i * 60, 100, 80));
+        trackViewModel->setLeftLevel(-i * 6);
+        trackViewModel->setRightClipping(true);
+        trackListViewModel.insertItem(i, trackViewModel);
+    }
+
+    StandardSelectionController selectionController(&trackListViewModel, &a);
+
+    TrackListLayoutViewModel trackListLayoutViewModel(&a);
 
     QQmlApplicationEngine engine;
     SVS::FluentSystemIconsImageProvider::addToEngine(&engine);
     engine.setInitialProperties({
-        {"trackViewModel", QVariant::fromValue(&trackViewModel)},
+        {"trackListViewModel", QVariant::fromValue(&trackListViewModel)},
+        {"selectionController", QVariant::fromValue(&selectionController)},
+        {"trackListLayoutViewModel", QVariant::fromValue(&trackListLayoutViewModel)},
+        {"trackListInteractionController", QVariant::fromValue(&trackListInteractionController)},
+        {"scrollBehaviorViewModel", QVariant::fromValue(&scrollBehaviorViewModel)},
     });
     engine.load(":/qt/qml/dev/sjimo/ScopicFlow/Test/TrackList/main.qml");
 

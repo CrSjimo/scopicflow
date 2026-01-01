@@ -14,15 +14,14 @@ import dev.sjimo.ScopicFlow.Internal
 Item {
     id: track
 
-    property bool current: {
-        current = selectionController?.currentItem === trackViewModel;
-    }
+    property bool current: selectionController?.currentItem === trackViewModel
     property bool editing: false
 
     required property SelectionController selectionController
     required property QtObject trackViewModel
     required property string trackNumber
     property bool rightAligned: false
+    property MouseArea mouseArea: null
 
     function fitHeight() {
         fitHeightAnimation.start();
@@ -45,6 +44,7 @@ Item {
     }
 
     Rectangle {
+        id: background
         anchors.fill: parent
         clip: true
         color: track.trackViewModel.selected ? SFPalette.trackListSelectedColorChange.apply(Theme.backgroundTertiaryColor) : Theme.backgroundTertiaryColor
@@ -55,6 +55,11 @@ Item {
                 easing.type: Easing.OutCubic
             }
         }
+    }
+
+    StackLayout {
+        anchors.fill: parent
+        data: [trackListDelegate.mouseArea]
     }
 
     RowLayout {
@@ -101,7 +106,7 @@ Item {
                 text: track.trackNumber
                 Layout.minimumWidth: 16
                 Layout.maximumWidth: 16
-                Layout.bottomMargin: 40
+                Layout.bottomMargin: track.height - 40
                 horizontalAlignment: track.rightAligned ? Qt.AlignRight : Qt.AlignLeft
 
                 Behavior on color {

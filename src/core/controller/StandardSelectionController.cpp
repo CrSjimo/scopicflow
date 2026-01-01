@@ -1,9 +1,12 @@
 #include "StandardSelectionController.h"
 #include "StandardSelectionController_p.h"
 
+#include <utility>
+
 #include <QVariant>
 
 #include <ScopicFlowCore/private/SliceableViewModelManipulatorInterface_p.h>
+#include <ScopicFlowCore/ListViewModel.h>
 
 namespace sflow {
 
@@ -41,6 +44,18 @@ namespace sflow {
         Q_D(const StandardSelectionController);
         if (auto iSliceable = d->viewModel->property("iSliceable").value<SliceableViewModelManipulatorInterface *>()) {
             return iSliceable->itemsBetween(startItem, endItem);
+        }
+        if (auto listViewModel = qobject_cast<ListViewModel *>(d->viewModel)) {
+            auto items = listViewModel->items();
+            auto startIndex = items.indexOf(startItem);
+            auto endIndex = items.indexOf(endItem);
+            if (startIndex == -1 || endIndex == -1) {
+                return {};
+            }
+            if (startIndex > endIndex) {
+                std::swap(startIndex, endIndex);
+            }
+            return items.mid(startIndex, endIndex - startIndex + 1);
         }
         return {};
     }

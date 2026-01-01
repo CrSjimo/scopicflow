@@ -3,6 +3,8 @@
 
 #include <QObject>
 
+#include <qqmlintegration.h>
+
 #include <ScopicFlowCore/ScopicFlowCoreGlobal.h>
 
 namespace sflow {
@@ -13,6 +15,7 @@ namespace sflow {
 
     class SCOPIC_FLOW_CORE_EXPORT ListViewModel : public QObject {
         Q_OBJECT
+        QML_ELEMENT
         Q_DECLARE_PRIVATE(ListViewModel)
         Q_PROPERTY(int count READ count NOTIFY countChanged)
         Q_PROPERTY(QObjectList items READ items NOTIFY itemsChanged)

@@ -14,17 +14,22 @@ ApplicationWindow {
     id: main
     visible: true
     width: 360
-    height: 80
+    height: 640
 
-    required property TrackViewModel trackViewModel
+    required property ListViewModel trackListViewModel
+    required property TrackListLayoutViewModel trackListLayoutViewModel
+    required property ScrollBehaviorViewModel scrollBehaviorViewModel
+    required property TrackListInteractionController trackListInteractionController
+    required property SelectionController selectionController
 
-    TrackListDelegate {
+    TrackList {
         width: parent.width
         height: parent.height
-        selectionController: null
-        trackViewModel: main.trackViewModel
-        trackNumber: "1"
-        current: true
+        trackListViewModel: main.trackListViewModel
+        trackListLayoutViewModel: main.trackListLayoutViewModel
+        scrollBehaviorViewModel: main.scrollBehaviorViewModel
+        trackListInteractionController: main.trackListInteractionController
+        selectionController: main.selectionController
     }
 
 }

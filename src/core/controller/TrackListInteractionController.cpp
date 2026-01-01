@@ -1,5 +1,7 @@
 #include "TrackListInteractionController.h"
 
+#include <QQuickItem>
+
 namespace sflow {
     TrackListInteractionController::TrackListInteractionController(QObject *parent)
         : QObject(parent),

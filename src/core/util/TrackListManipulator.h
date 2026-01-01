@@ -23,7 +23,7 @@ namespace sflow {
         Q_PROPERTY(ListViewModel *trackListViewModel READ trackListViewModel WRITE setTrackListViewModel NOTIFY trackListViewModelChanged)
         Q_PROPERTY(QQuickItem *target READ target WRITE setTarget NOTIFY targetChanged)
         Q_PROPERTY(double viewSize READ viewSize WRITE setViewSize RESET resetViewSize NOTIFY viewSizeChanged)
-        Q_PROPERTY(double viewportHeight READ viewportHeight WRITE setViewportHeight NOTIFY viewportHeightChanged)
+        Q_PROPERTY(double viewportHeight READ viewportHeight NOTIFY viewportHeightChanged)
     public:
         explicit TrackListManipulator(QObject *parent = nullptr);
         ~TrackListManipulator() override;
@@ -42,7 +42,6 @@ namespace sflow {
         void resetViewSize();
 
         double viewportHeight() const;
-        void setViewportHeight(double viewportHeight);
 
         Q_INVOKABLE void moveViewBy(double deltaY, bool animated = false);
         Q_INVOKABLE int mapToPosition(double y) const;

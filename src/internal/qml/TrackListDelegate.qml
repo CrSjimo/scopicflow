@@ -23,17 +23,16 @@ Item {
     property bool rightAligned: false
     property MouseArea mouseArea: null
 
-    function fitHeight() {
-        fitHeightAnimation.start();
-    }
+    readonly property TrackMSR trackMSR: controlsFirstRow
+    readonly property TrackEditLabel trackNameEditLabel: trackNameEditLabel
+    readonly property Slider gainSlider: gainSlider
+    readonly property TrackEditLabel gainEditLabel: gainEditLabel
+    readonly property Dial panDial: panDial
+    readonly property TrackEditLabel panEditLabel: panEditLabel
+    readonly property T.Button colorIndicator: colorIndicator
+    readonly property MouseArea levelMeterMouseArea: levelMeterMouseArea
 
-    NumberAnimation on height {
-        id: fitHeightAnimation
-
-        duration: Theme.visualEffectAnimationDuration
-        easing.type: Easing.OutCubic
-        to: 80
-    }
+    clip: true
 
     onHeightChanged: () => {
         if (height < 80) {
@@ -133,6 +132,7 @@ Item {
                     trackViewModel: track.trackViewModel
                 }
                 TrackEditLabel {
+                    id: trackNameEditLabel
                     anchors.bottom: controlsFirstRow.bottom
                     anchors.top: controlsFirstRow.top
                     text: track.trackViewModel.name
@@ -191,6 +191,7 @@ Item {
 
                     }
                     TrackEditLabel {
+                        id: gainEditLabel
                         Layout.fillHeight: true
                         editText: Qt.locale().toString(track.trackViewModel.gain, "f", 1)
                         text: (track.trackViewModel.gain + 96 < 0.05 ? "-∞" : Qt.locale().toString(track.trackViewModel.gain, "f", 1)) + " dB"
@@ -228,6 +229,7 @@ Item {
                         value: track.trackViewModel.pan
                     }
                     TrackEditLabel {
+                        id: panEditLabel
                         Layout.fillHeight: true
                         text: Qt.locale().toString(Math.round(track.trackViewModel.pan * 100))
                         implicitWidth: 32
@@ -266,6 +268,7 @@ Item {
                 clipping: track.trackViewModel.rightClipping
             }
             MouseArea {
+                id: levelMeterMouseArea
                 anchors.fill: parent
                 hoverEnabled: true
             }

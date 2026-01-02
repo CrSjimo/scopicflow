@@ -15,11 +15,15 @@ T.Control {
     property var horizontalAlignment: undefined
     property string text: ""
     property QtObject validator: null
+    property bool readOnly: false
 
     signal editingStarted()
-    signal editingFinished(text: string)
+    signal editingCommitted(text: string)
+    signal editingAborted()
 
     function open() {
+        if (editLabel.readOnly)
+            return;
         popup.open();
         editingStarted()
     }
@@ -51,8 +55,11 @@ T.Control {
         }
 
         onClosed: {
-            if (!labelEdit.escaped)
-                editLabel.editingFinished(labelEdit.text);
+            if (!labelEdit.escaped) {
+                editLabel.editingCommitted(labelEdit.text);
+            } else {
+                editLabel.editingAborted();
+            }
             labelEdit.escaped = false;
         }
         onOpened: {

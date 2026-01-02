@@ -46,6 +46,21 @@ namespace sflow {
         void setItemInteraction(ItemInteraction itemInteraction);
         ItemInteraction itemInteraction() const;
 
+        enum ItemHoverTarget {
+            ItemBackground,
+            ColorIndicator,
+            MuteButton,
+            SoloButton,
+            RecordButton,
+            NameLabel,
+            GainSlider,
+            GainLabel,
+            PanDial,
+            PanLabel,
+            LevelMeter,
+        };
+        Q_ENUM(ItemHoverTarget)
+
     Q_SIGNALS:
         void interactionChanged();
         void itemInteractionChanged();
@@ -85,14 +100,19 @@ namespace sflow {
 
         void hoverEntered(QQuickItem *trackList);
         void hoverExited(QQuickItem *trackList);
-        void itemHoverEntered(QQuickItem *trackList, int index);
-        void itemHoverExited(QQuickItem *trackList, int index);
+        void itemHoverEntered(QQuickItem *trackList, int index, ItemHoverTarget target);
+        void itemHoverExited(QQuickItem *trackList, int index, ItemHoverTarget target);
+
+        void itemColorIndicatorClicked(QQuickItem *trackList, int index);
+        void itemLevelMeterClicked(QQuickItem *trackList, int index);
 
         void doubleClicked(QQuickItem *trackList);
         void itemDoubleClicked(QQuickItem *trackList, int index);
 
         void contextMenuRequested(QQuickItem *trackList);
         void itemContextMenuRequested(QQuickItem *trackList, int index);
+
+        void copyItemsRequested(QQuickItem *trackList, int targetIndex);
 
     private:
         Interaction m_interaction;

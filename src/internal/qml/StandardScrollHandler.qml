@@ -3,6 +3,8 @@ import QtQuick
 import QtQuick.Templates as T
 import QtQuick.Shapes
 
+import SVSCraft.UIComponents
+
 import dev.sjimo.ScopicFlow
 
 FocusScope {
@@ -102,8 +104,12 @@ FocusScope {
         }
 
         function setCursorShape(s) {
-            cursorShape = s;
-            popupMouseArea.cursorShape = s
+            if (s === undefined) {
+                CursorBinding.enabled = false
+            } else {
+                CursorBinding.enabled = true
+                CursorBinding.cursorShape = s;
+            }
         }
 
         acceptedButtons:

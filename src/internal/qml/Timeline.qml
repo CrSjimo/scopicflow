@@ -212,6 +212,14 @@ FocusScope {
 
         onReleased: canceled()
 
+        onEntered: () => {
+            timeline.timelineInteractionController.loopHoverEntered(timeline, adjustmentOperation)
+        }
+
+        onExited: () => {
+            timeline.timelineInteractionController.loopHoverExited(timeline, adjustmentOperation)
+        }
+
         DragScroller {
             id: loopDragScroller
             onMoved: deltaX => {

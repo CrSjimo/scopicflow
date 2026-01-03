@@ -247,7 +247,7 @@ namespace sflow {
             auto textNode = scaleNode->createTextNodeForBarNumber(musicTime.measure());
             auto barNumberLayout = scaleNode->createTextLayoutForBarNumber(musicTime.measure());
             QMatrix4x4 transform;
-            transform.translate(x + 2, height() - 16);
+            transform.translate(x + 2, 6);
             textNode->setMatrix(transform);
             scaleNode->appendChildNode(textNode);
 
@@ -266,7 +266,7 @@ namespace sflow {
         for (int i = 0; i < xList.size(); i++) {
             const auto &[x, isEmphasized] = xList[i];
             lineGeometry->vertexDataAsPoint2D()[i * 2].set(x, height());
-            lineGeometry->vertexDataAsPoint2D()[i * 2 + 1].set(x, height() - 32 * (isEmphasized ? 0.5 : 0.25));
+            lineGeometry->vertexDataAsPoint2D()[i * 2 + 1].set(x, isEmphasized ? 8 : 16);
         }
 
         lineNode->setGeometry(lineGeometry);

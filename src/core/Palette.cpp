@@ -33,9 +33,8 @@ namespace sflow {
         return qobject_cast<Palette *>(qmlAttachedPropertiesObject<Palette>(object));
     }
 
-    IMPLEMENTATION(timelineBackgroundColor, timelineBackgroundColor, setTimelineBackgroundColor, resetTimelineBackgroundColor)
-    IMPLEMENTATION(trackListBackgroundColor, trackListBackgroundColor, setTrackListBackgroundColor, resetTrackListBackgroundColor)
-    IMPLEMENTATION(labelSequenceBackgroundColor, labelSequenceBackgroundColor, setLabelSequenceBackgroundColor, resetLabelSequenceBackgroundColor)
+    IMPLEMENTATION(loopColor, loopColor, setLoopColor, resetLoopColor)
+
     IMPLEMENTATION(levelMeterColor, levelMeterColor, setLevelMeterColor, resetLevelMeterColor)
 
     IMPLEMENTATION(foregroundAvailableColors, foregroundAvailableColors, setForegroundAvailableColors, resetForegroundAvailableColors)

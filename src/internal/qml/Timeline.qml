@@ -61,45 +61,6 @@ FocusScope {
         timeManipulator: timeManipulator
     }
 
-    TimeViewportContainer {
-        id: viewportContainer
-
-        timeViewModel: timeline.timeViewModel
-        timeLayoutViewModel: timeline.timeLayoutViewModel
-
-        Rectangle {
-            id: zoomRubberBand
-            x: 0
-            y: 0
-            width: 0
-            height: parent.height
-            color: Qt.rgba(timelineScale.color.r, timelineScale.color.g, timelineScale.color.b, 0.5 * timelineScale.color.a)
-        }
-    }
-
-    PositionIndicators {
-        id: positionIndicators
-
-        anchors.fill: parent
-        timeViewModel: timeline.timeViewModel
-        playbackViewModel: timeline.playbackViewModel
-        timeLayoutViewModel: timeline.timeLayoutViewModel
-        primaryIndicator.visible: false
-        secondaryIndicator.visible: false
-
-        PlayheadIndicator {
-            anchors.bottom: parent.bottom
-            x: positionIndicators.primaryIndicator.x
-            color: SFPalette.playheadPrimaryColor
-        }
-
-        PlayheadIndicator {
-            anchors.bottom: parent.bottom
-            x: positionIndicators.secondaryIndicator.x
-            color: SFPalette.playheadSecondaryColor
-        }
-    }
-
     MouseArea {
         id: leftButtonMouseArea
 
@@ -153,8 +114,6 @@ FocusScope {
 
         }
         onPositionChanged: mouse => {
-            if (!pressed)
-                return;
             dragScroller.determine(mouse.x, timeline.width, 0, 0, triggered => {
                 if (triggered)
                     return;
@@ -201,6 +160,225 @@ FocusScope {
         target: timeline
         timeManipulator: timeManipulator
 
+    }
+
+    component LoopMouseArea: MouseArea {
+        id: loopMouseArea
+        acceptedButtons: Qt.LeftButton
+        anchors.fill: parent
+        visible: Boolean(timeline.timelineInteractionController.interaction & TimelineInteractionController.AdjustLoopRange)
+        hoverEnabled: true
+        cursorShape: Qt.SizeHorCursor
+        CursorBinding.cursorShape: cursorShape
+
+        property bool dragged: false
+        property double pressedDeltaX: 0
+        property double pressedDeltaXBias: 0
+
+        signal positionUpdated(position: int)
+
+        function moveToX(x) {
+            let position = timeManipulator.alignPosition(timeManipulator.mapToPosition(x))
+            positionUpdated(position)
+        }
+
+        onPressed: (mouse) => {
+            CursorBinding.enabled = true
+            dragged = false
+            pressedDeltaX = mouse.x + pressedDeltaXBias;
+            timeline.timelineInteractionController.loopRangeAdjustingFinished(timeline)
+        }
+
+        onPositionChanged: (mouse) => {
+            if (!pressed)
+                return
+            if (!dragged) {
+                dragged = true
+                timeline.timelineInteractionController.loopRangeAdjustingStarted(timeline)
+            }
+            let parentX = mapToItem(timeline, mouse.x, 0).x;
+            loopDragScroller.determine(parentX, timeline.width, 0, 0, triggered => {
+                if (triggered)
+                    return;
+                moveToX(parentX - pressedDeltaX);
+            });
+        }
+
+        onCanceled: () => {
+            CursorBinding.enabled = false
+            loopDragScroller.running = false
+        }
+
+        onReleased: canceled()
+
+        DragScroller {
+            id: loopDragScroller
+            onMoved: deltaX => {
+                timeManipulator.moveViewBy(deltaX);
+                loopMouseArea.moveToX((deltaX < 0 ? 0 : timeline.width) - loopRangeMouseArea.pressedDeltaX);
+            }
+        }
+
+    }
+
+    TimeViewportContainer {
+        id: viewportContainer
+
+        timeViewModel: timeline.timeViewModel
+        timeLayoutViewModel: timeline.timeLayoutViewModel
+
+        Rectangle {
+            id: loopRangeRect
+            anchors.bottom: parent.bottom
+            visible: (timeline.playbackViewModel?.loopLength ?? -1) >= 0
+            x: (timeline.playbackViewModel?.loopStart ?? 0) * (timeline.timeLayoutViewModel?.pixelDensity ?? 0)
+            width: (timeline.playbackViewModel?.loopLength ?? 0) * (timeline.timeLayoutViewModel?.pixelDensity ?? 0)
+            height: 4
+            color: SFPalette.loopColor
+
+            LoopMouseArea {
+                onPositionUpdated: (position) => {
+                    timeline.playbackViewModel.loopStart = position;
+                }
+            }
+        }
+
+        Item {
+            id: loopStartIndicator
+            anchors.top: parent.top
+            anchors.bottom: parent.bottom
+            visible: (timeline.playbackViewModel?.loopLength ?? -1) >= 0
+            x: (timeline.playbackViewModel?.loopStart ?? 0) * (timeline.timeLayoutViewModel?.pixelDensity ?? 0) - 2
+            width: 4
+            Rectangle {
+                x: 1
+                width: 2
+                height: parent.height
+                color: SFPalette.loopColor
+            }
+            Shape {
+                anchors.left: parent.horizontalCenter
+                width: 12
+                height: 12
+                ShapePath {
+                    strokeWidth: 1
+                    strokeColor: SFPalette.loopColor
+                    fillColor: Qt.rgba(SFPalette.loopColor.r, SFPalette.loopColor.g, SFPalette.loopColor.b, 0.5 * SFPalette.loopColor.a)
+                    PathLine {
+                        x: 12
+                        y: 0
+                    }
+                    PathLine {
+                        x: 0
+                        y: 12
+                    }
+                }
+            }
+            LoopMouseArea {
+                anchors.bottomMargin: {
+                    if (!timeline.playbackViewModel)
+                        return 0
+                    let a = timeline.playbackViewModel.loopStart
+                    let b = timeline.playbackViewModel.primaryPosition
+                    let c = timeline.playbackViewModel.secondaryPosition
+                    return Math.min(Math.abs(a - b), Math.abs(a - c)) <= 8 / (timeline.timeLayoutViewModel?.pixelDensity ?? 1) ? 18.333333333333334 : 0
+                }
+                onPositionUpdated: (position) => {
+                    let delta = position - timeline.playbackViewModel.loopStart
+                    if (timeline.playbackViewModel.loopLength - delta <= 0) {
+                        return
+                    }
+                    timeline.playbackViewModel.loopStart += delta
+                    timeline.playbackViewModel.loopLength -= delta
+                }
+            }
+        }
+
+        Item {
+            id: loopEndIndicator
+            anchors.top: parent.top
+            anchors.bottom: parent.bottom
+            visible: (timeline.playbackViewModel?.loopLength ?? -1) >= 0
+            x: ((timeline.playbackViewModel?.loopStart ?? 0) + (timeline.playbackViewModel?.loopLength ?? 0)) * (timeline.timeLayoutViewModel?.pixelDensity ?? 0) - 2
+            width: 4
+            Rectangle {
+                x: 1
+                width: 2
+                height: parent.height
+                color: SFPalette.loopColor
+            }
+            Shape {
+                anchors.right: parent.horizontalCenter
+                width: 12
+                height: 12
+                ShapePath {
+                    strokeWidth: 1
+                    strokeColor: SFPalette.loopColor
+                    fillColor: Qt.rgba(SFPalette.loopColor.r, SFPalette.loopColor.g, SFPalette.loopColor.b, 0.5 * SFPalette.loopColor.a)
+                    startX: 12
+                    startY: 0
+                    PathLine {
+                        x: 0
+                        y: 0
+                    }
+                    PathLine {
+                        x: 12
+                        y: 12
+                    }
+                }
+            }
+            LoopMouseArea {
+                anchors.bottomMargin: {
+                    if (!timeline.playbackViewModel)
+                        return 0
+                    let a = timeline.playbackViewModel.loopStart + timeline.playbackViewModel.loopLength
+                    let b = timeline.playbackViewModel.primaryPosition
+                    let c = timeline.playbackViewModel.secondaryPosition
+                    return Math.min(Math.abs(a - b), Math.abs(a - c)) <= 8 / (timeline.timeLayoutViewModel?.pixelDensity ?? 1) ? 18.333333333333334 : 0
+                }
+                onPositionUpdated: (position) => {
+                    let delta = position - (timeline.playbackViewModel.loopStart + timeline.playbackViewModel.loopLength)
+                    if (timeline.playbackViewModel.loopLength + delta <= 0) {
+                        return
+                    }
+                    timeline.playbackViewModel.loopLength += delta
+                }
+            }
+        }
+
+        Rectangle {
+            id: zoomRubberBand
+            x: 0
+            y: 0
+            width: 0
+            height: parent.height
+            color: Qt.rgba(timelineScale.color.r, timelineScale.color.g, timelineScale.color.b, 0.5 * timelineScale.color.a)
+        }
+    }
+
+    PositionIndicators {
+        id: positionIndicators
+
+        anchors.fill: parent
+        timeViewModel: timeline.timeViewModel
+        playbackViewModel: timeline.playbackViewModel
+        timeLayoutViewModel: timeline.timeLayoutViewModel
+        primaryIndicator.anchors.topMargin: 20
+        secondaryIndicator.anchors.topMargin: 20
+
+        PlayheadIndicator {
+            anchors.bottom: parent.bottom
+            anchors.bottomMargin: 4
+            x: positionIndicators.primaryIndicator.x
+            color: SFPalette.playheadPrimaryColor
+        }
+
+        PlayheadIndicator {
+            anchors.bottom: parent.bottom
+            anchors.bottomMargin: 4
+            x: positionIndicators.secondaryIndicator.x
+            color: SFPalette.playheadSecondaryColor
+        }
     }
 
     StandardScrollHandler {

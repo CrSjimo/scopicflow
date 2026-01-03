@@ -21,6 +21,7 @@ namespace sflow {
         enum InteractionFlag {
             MovePositionIndicator = 0x1,
             ZoomByRubberBand = 0x2,
+            AdjustLoopRange = 0x4,
         };
         Q_ENUM(InteractionFlag)
         Q_DECLARE_FLAGS(Interaction, InteractionFlag)
@@ -36,6 +37,9 @@ namespace sflow {
 
         void positionIndicatorMovingStarted(QQuickItem *timeline);
         void positionIndicatorMovingFinished(QQuickItem *timeline);
+
+        void loopRangeAdjustingStarted(QQuickItem *timeline);
+        void loopRangeAdjustingFinished(QQuickItem *timeline);
 
         void hoverEntered(QQuickItem *timeline, int position);
         void hoverMoved(QQuickItem *timeline, int position);

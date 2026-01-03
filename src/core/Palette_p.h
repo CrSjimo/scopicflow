@@ -13,9 +13,8 @@ namespace sflow {
     public:
         static Palette defaultPalette;
         inline explicit PalettePrivate(Palette *palette) : SVS::AttachedPropertyPropagatorProperties(palette, defaultPalette.properties(), {
-            {"timelineBackgroundColor", QVariant::fromValue(QColor(0x212124))},
-            {"trackListBackgroundColor", QVariant::fromValue(QColor(0x232427))},
-            {"labelSequenceBackgroundColor", QVariant::fromValue(QColor(0x212124))},
+            {"loopColor", QVariant::fromValue(QColor(0xcc7f00))},
+
             {"levelMeterColor", QVariant::fromValue(QColor(0x111112))},
 
             {"foregroundAvailableColors", QVariant::fromValue(QList<QColor>{0xdadada, 0x252525})},

@@ -34,6 +34,8 @@ int main(int argc, char **argv) {
     timeViewModel.setTimeline(&musicTimeline);
 
     PlaybackViewModel playbackViewModel(&a);
+    playbackViewModel.setLoopStart(1920);
+    playbackViewModel.setLoopLength(4800);
 
     ScrollBehaviorViewModel scrollBehaviorViewModel(&a);
     scrollBehaviorViewModel.setAutoScroll(true);

@@ -23,12 +23,9 @@ namespace sflow {
         QML_ATTACHED(Palette)
         QML_UNCREATABLE("")
 
-        Q_PROPERTY(QColor timelineBackgroundColor READ timelineBackgroundColor WRITE setTimelineBackgroundColor RESET resetTimelineBackgroundColor NOTIFY timelineBackgroundColorChanged)
-        Q_PROPERTY(QColor trackListBackgroundColor READ trackListBackgroundColor WRITE setTrackListBackgroundColor RESET resetTrackListBackgroundColor NOTIFY trackListBackgroundColorChanged)
-        Q_PROPERTY(QColor labelSequenceBackgroundColor READ labelSequenceBackgroundColor WRITE setLabelSequenceBackgroundColor RESET resetLabelSequenceBackgroundColor NOTIFY labelSequenceBackgroundColorChanged)
-        Q_PROPERTY(QColor levelMeterColor READ levelMeterColor WRITE setLevelMeterColor RESET resetLevelMeterColor NOTIFY levelMeterColorChanged)
+        Q_PROPERTY(QColor loopColor READ loopColor WRITE setLoopColor RESET resetLoopColor NOTIFY loopColorChanged)
 
-        Q_PROPERTY(QList<QColor> foregroundAvailableColors READ foregroundAvailableColors WRITE setForegroundAvailableColors RESET resetForegroundAvailableColors NOTIFY foregroundAvailableColorsChanged)
+        Q_PROPERTY(QColor levelMeterColor READ levelMeterColor WRITE setLevelMeterColor RESET resetLevelMeterColor NOTIFY levelMeterColorChanged)
 
         Q_PROPERTY(QColor editAreaPrimaryColor READ editAreaPrimaryColor WRITE setEditAreaPrimaryColor RESET resetEditAreaPrimaryColor NOTIFY editAreaPrimaryColorChanged)
         Q_PROPERTY(QColor editAreaSecondaryColor READ editAreaSecondaryColor WRITE setEditAreaSecondaryColor RESET resetEditAreaSecondaryColor NOTIFY editAreaSecondaryColorChanged)
@@ -69,17 +66,9 @@ namespace sflow {
         static Palette *defaultPalette();
         static Palette *get(QObject *object);
 
-        QColor timelineBackgroundColor() const;
-        void setTimelineBackgroundColor(const QColor &timelineBackgroundColor);
-        void resetTimelineBackgroundColor();
-
-        QColor trackListBackgroundColor() const;
-        void setTrackListBackgroundColor(const QColor &trackListBackgroundColor);
-        void resetTrackListBackgroundColor();
-
-        QColor labelSequenceBackgroundColor() const;
-        void setLabelSequenceBackgroundColor(const QColor &labelSequenceBackgroundColor);
-        void resetLabelSequenceBackgroundColor();
+        QColor loopColor() const;
+        void setLoopColor(const QColor &loopColor);
+        void resetLoopColor();
 
         QColor levelMeterColor() const;
         void setLevelMeterColor(const QColor &levelMeterColor);
@@ -196,9 +185,7 @@ namespace sflow {
         Q_INVOKABLE QColor suitableForegroundColor(const QColor &backgroundColor) const;
 
     signals:
-        void timelineBackgroundColorChanged();
-        void trackListBackgroundColorChanged();
-        void labelSequenceBackgroundColorChanged();
+        void loopColorChanged();
         void levelMeterColorChanged();
         void foregroundAvailableColorsChanged();
         void editAreaPrimaryColorChanged();

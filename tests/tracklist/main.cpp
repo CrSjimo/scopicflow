@@ -111,23 +111,11 @@ int main(int argc, char **argv) {
     QObject::connect(&trackListInteractionController, &TrackListInteractionController::levelMeterClicked, &a, [](QQuickItem *trackList, int index) {
         qDebug() << "levelMeterClicked" << trackList << index;
     });
-    QObject::connect(&trackListInteractionController, &TrackListInteractionController::itemHoverEntered, &a, [](QQuickItem *trackList, int index) {
-        qDebug() << "itemHoverEntered" << trackList << index;
+    QObject::connect(&trackListInteractionController, &TrackListInteractionController::itemHoverEntered, &a, [](QQuickItem *trackList, int index, TrackListInteractionController::ItemHoverTarget target) {
+        qDebug() << "itemHoverEntered" << trackList << index << target;
     });
-    QObject::connect(&trackListInteractionController, &TrackListInteractionController::itemHoverExited, &a, [](QQuickItem *trackList, int index) {
-        qDebug() << "itemHoverExited" << trackList << index;
-    });
-    QObject::connect(&trackListInteractionController, &TrackListInteractionController::itemColorIndicatorHoverEntered, &a, [](QQuickItem *trackList, int index) {
-        qDebug() << "itemColorIndicatorHoverEntered" << trackList << index;
-    });
-    QObject::connect(&trackListInteractionController, &TrackListInteractionController::itemColorIndicatorHoverExited, &a, [](QQuickItem *trackList, int index) {
-        qDebug() << "itemColorIndicatorHoverExited" << trackList << index;
-    });
-    QObject::connect(&trackListInteractionController, &TrackListInteractionController::itemLevelMeterHoverEntered, &a, [](QQuickItem *trackList, int index) {
-        qDebug() << "itemLevelMeterHoverEntered" << trackList << index;
-    });
-    QObject::connect(&trackListInteractionController, &TrackListInteractionController::itemLevelMeterHoverExited, &a, [](QQuickItem *trackList, int index) {
-        qDebug() << "itemLevelMeterHoverExited" << trackList << index;
+    QObject::connect(&trackListInteractionController, &TrackListInteractionController::itemHoverExited, &a, [](QQuickItem *trackList, int index, TrackListInteractionController::ItemHoverTarget target) {
+        qDebug() << "itemHoverExited" << trackList << index << target;
     });
     QObject::connect(&trackListInteractionController, &TrackListInteractionController::itemColorIndicatorClicked, &a, [](QQuickItem *trackList, int index) {
         qDebug() << "itemColorIndicatorClicked" << trackList << index;

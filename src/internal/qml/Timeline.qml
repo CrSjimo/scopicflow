@@ -166,7 +166,7 @@ FocusScope {
         id: loopMouseArea
         acceptedButtons: Qt.LeftButton
         anchors.fill: parent
-        visible: Boolean(timeline.timelineInteractionController.interaction & TimelineInteractionController.AdjustLoopRange)
+        visible: Boolean(timeline.timelineInteractionController?.interaction & TimelineInteractionController.AdjustLoopRange)
         hoverEnabled: true
         cursorShape: Qt.SizeHorCursor
         CursorBinding.cursorShape: cursorShape

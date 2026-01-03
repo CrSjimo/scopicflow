@@ -174,6 +174,7 @@ FocusScope {
         property bool dragged: false
         property double pressedDeltaX: 0
         property double pressedDeltaXBias: 0
+        required property int adjustmentOperation
 
         signal positionUpdated(position: int)
 
@@ -186,7 +187,6 @@ FocusScope {
             CursorBinding.enabled = true
             dragged = false
             pressedDeltaX = mouse.x + pressedDeltaXBias;
-            timeline.timelineInteractionController.loopRangeAdjustingFinished(timeline)
         }
 
         onPositionChanged: (mouse) => {
@@ -194,7 +194,7 @@ FocusScope {
                 return
             if (!dragged) {
                 dragged = true
-                timeline.timelineInteractionController.loopRangeAdjustingStarted(timeline)
+                timeline.timelineInteractionController.loopRangeAdjustingStarted(timeline, adjustmentOperation)
             }
             let parentX = mapToItem(timeline, mouse.x, 0).x;
             loopDragScroller.determine(parentX, timeline.width, 0, 0, triggered => {
@@ -207,6 +207,7 @@ FocusScope {
         onCanceled: () => {
             CursorBinding.enabled = false
             loopDragScroller.running = false
+            timeline.timelineInteractionController.loopRangeAdjustingFinished(timeline, adjustmentOperation)
         }
 
         onReleased: canceled()
@@ -237,6 +238,7 @@ FocusScope {
             color: SFPalette.loopColor
 
             LoopMouseArea {
+                adjustmentOperation: TimelineInteractionController.AdjustRange
                 onPositionUpdated: (position) => {
                     timeline.playbackViewModel.loopStart = position;
                 }
@@ -275,6 +277,7 @@ FocusScope {
                 }
             }
             LoopMouseArea {
+                adjustmentOperation: TimelineInteractionController.AdjustStart
                 anchors.bottomMargin: {
                     if (!timeline.playbackViewModel)
                         return 0
@@ -328,6 +331,7 @@ FocusScope {
                 }
             }
             LoopMouseArea {
+                adjustmentOperation: TimelineInteractionController.AdjustEnd
                 anchors.bottomMargin: {
                     if (!timeline.playbackViewModel)
                         return 0

@@ -29,6 +29,13 @@ namespace sflow {
         void setInteraction(Interaction interaction);
         Interaction interaction() const;
 
+        enum LoopAdjustmentOperation {
+            AdjustRange,
+            AdjustStart,
+            AdjustEnd,
+        };
+        Q_ENUM(LoopAdjustmentOperation)
+
     Q_SIGNALS:
         void interactionChanged();
 
@@ -38,8 +45,8 @@ namespace sflow {
         void positionIndicatorMovingStarted(QQuickItem *timeline);
         void positionIndicatorMovingFinished(QQuickItem *timeline);
 
-        void loopRangeAdjustingStarted(QQuickItem *timeline);
-        void loopRangeAdjustingFinished(QQuickItem *timeline);
+        void loopRangeAdjustingStarted(QQuickItem *timeline, LoopAdjustmentOperation operation);
+        void loopRangeAdjustingFinished(QQuickItem *timeline, LoopAdjustmentOperation operation);
 
         void hoverEntered(QQuickItem *timeline, int position);
         void hoverMoved(QQuickItem *timeline, int position);

@@ -488,6 +488,11 @@ Item {
                         }
                     }
                     gainSlider.onMoved: trackViewModel.gain = SVS.linearValueToDecibel(gainSlider.value + SVS.decibelToLinearValue(0))
+                    gainSlider.ThemedItem.onDoubleClickReset: () => {
+                        trackList.trackListInteractionController.gainEditingStarted(trackList, index)
+                        trackViewModel.gain = SVS.linearValueToDecibel(SVS.decibelToLinearValue(0))
+                        trackList.trackListInteractionController.gainEditingCommitted(trackList, index)
+                    }
                     gainSlider.onHoveredChanged: () => {
                         if (gainSlider.hovered) {
                             trackList.trackListInteractionController.itemHoverEntered(trackList, trackListDelegate.trackViewModel, TrackListInteractionController.GainSlider)
@@ -520,6 +525,11 @@ Item {
                         }
                     }
                     panDial.onMoved: trackViewModel.pan = panDial.value
+                    panDial.ThemedItem.onDoubleClickReset: () => {
+                        trackList.trackListInteractionController.panEditingStarted(trackList, index)
+                        trackViewModel.pan = 0
+                        trackList.trackListInteractionController.panEditingCommitted(trackList, index)
+                    }
                     panDial.onHoveredChanged: () => {
                         if (panDial.hovered) {
                             trackList.trackListInteractionController.itemHoverEntered(trackList, trackListDelegate.trackViewModel, TrackListInteractionController.PanDial)

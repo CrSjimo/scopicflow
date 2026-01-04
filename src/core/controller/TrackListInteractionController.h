@@ -58,6 +58,7 @@ namespace sflow {
             PanDial,
             PanLabel,
             LevelMeter,
+            HeightAdjustmentHandle,
         };
         Q_ENUM(ItemHoverTarget)
 

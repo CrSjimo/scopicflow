@@ -21,7 +21,7 @@ Item {
     required property QtObject trackViewModel
     required property string trackNumber
     property bool rightAligned: false
-    property MouseArea mouseArea: null
+    property Item mouseArea: null
 
     readonly property TrackMSR trackMSR: controlsFirstRow
     readonly property TrackEditLabel trackNameEditLabel: trackNameEditLabel
@@ -70,6 +70,7 @@ Item {
 
             Layout.fillHeight: true
             implicitWidth: 8
+            hoverEnabled: true
 
             background: Rectangle {
                 color: track.trackViewModel.color

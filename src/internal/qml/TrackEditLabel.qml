@@ -39,7 +39,7 @@ T.Control {
         anchors.left: editLabel.center ? undefined : parent.left
         anchors.leftMargin: editLabel.center ? undefined : 4
         anchors.verticalCenter: parent.verticalCenter
-        color: SFPalette.suitableForegroundColor(SFPalette.trackListBackgroundColor)
+        color: Theme.foregroundPrimaryColor
         horizontalAlignment: editLabel.center ? Text.AlignHCenter : undefined
         text: editLabel.text
         visible: !labelEdit.visible

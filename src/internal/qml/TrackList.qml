@@ -15,6 +15,7 @@ Item {
     property ScrollBehaviorViewModel scrollBehaviorViewModel: null
     property TrackListInteractionController trackListInteractionController: null
     property SelectionController selectionController: null
+    property bool rightAligned: false
 
     function moveTrack(index, target) {
         if (!trackListViewModel) {
@@ -228,138 +229,171 @@ Item {
                     trackNumber: (index + 1).toLocaleString()
                     trackViewModel: trackList.trackListViewModel.items[index]
                     selectionController: trackList.selectionController
+                    rightAligned: trackList.rightAligned
 
-                    mouseArea: MouseArea {
-                        id: trackMouseArea
+                    mouseArea: Item {
+                        MouseArea {
+                            id: trackMouseArea
 
-                        property bool dragged: false
-                        property point pressedPoint: Qt.point(0, 0)
-                        property int lastIndicatorIndex: -1
-                        property bool shouldForwardToBack: false
-                        property bool shouldCopyTrack: false
+                            anchors.fill: parent
 
-                        function handlePositionChanged(x, y, modifiers) {
-                            let point = mapToItem(trackLayout, x, y);
-                            let index = trackLayout.indexAt(point);
-                            if (lastIndicatorIndex !== -1) {
-                                let handle = trackHandlesRepeater.itemAt(lastIndicatorIndex);
-                                handle.indicatesTarget = false;
-                            }
-                            if (index !== -1) {
-                                let handle = trackHandlesRepeater.itemAt(index);
-                                handle.indicatesTarget = true;
-                            }
-                            lastIndicatorIndex = index;
-                        }
+                            property bool dragged: false
+                            property point pressedPoint: Qt.point(0, 0)
+                            property int lastIndicatorIndex: -1
+                            property bool shouldForwardToBack: false
+                            property bool shouldCopyTrack: false
 
-                        acceptedButtons: Qt.LeftButton
-                        cursorShape: undefined
-                        focusPolicy: Qt.StrongFocus
-
-                        onCanceled: () => {
-                            if (shouldForwardToBack) {
-                                backMouseArea.forwardedPressed = false
-                                backMouseArea.canceled()
-                                return
-                            }
-                            cursorShape = undefined;
-                            dragScroller.running = false;
-                            if (dragged) {
-                                trackList.trackListInteractionController.dragMovingAborted(trackList, trackListDelegate.index)
+                            function handlePositionChanged(x, y, modifiers) {
+                                let point = mapToItem(trackLayout, x, y);
+                                let index = trackLayout.indexAt(point);
                                 if (lastIndicatorIndex !== -1) {
                                     let handle = trackHandlesRepeater.itemAt(lastIndicatorIndex);
                                     handle.indicatesTarget = false;
                                 }
+                                if (index !== -1) {
+                                    let handle = trackHandlesRepeater.itemAt(index);
+                                    handle.indicatesTarget = true;
+                                }
+                                lastIndicatorIndex = index;
                             }
-                            lastIndicatorIndex = -1;
-                        }
-                        onClicked: mouse => {
-                            if (!dragged) {
-                                if (trackList.trackListInteractionController.itemInteraction & TrackListInteractionController.Select) {
-                                    trackList.selectionController.selectByMouse(trackListDelegate.trackViewModel, Qt.LeftButton, mouse.modifiers);
+
+                            acceptedButtons: Qt.LeftButton
+                            cursorShape: undefined
+                            focusPolicy: Qt.StrongFocus
+
+                            onCanceled: () => {
+                                if (shouldForwardToBack) {
+                                    backMouseArea.forwardedPressed = false
+                                    backMouseArea.canceled()
+                                    return
                                 }
-                            }
-                        }
-                        onPositionChanged: mouse => {
-                            if (shouldForwardToBack) {
-                                if (!dragged) {
-                                    dragged = true;
-                                    backMouseArea.forwardedPressed = true;
-                                    backMouseArea.dragged = false;
-                                    backMouseArea.pressedPoint = backMouseArea.mapFromItem(this, pressedPoint)
-                                }
-                                let p = backMouseArea.mapFromItem(this, mouse.x, mouse.y);
-                                backMouseArea.forwardPositionChanged({
-                                    x: p.x,
-                                    y: p.y,
-                                    modifiers: mouse.modifiers
-                                })
-                            } else {
-                                if (!(trackList.trackListInteractionController.itemInteraction & TrackListInteractionController.DragMove)) {
-                                    return;
-                                }
-                                if (!dragged) {
-                                    dragged = true;
-                                    trackList.trackListInteractionController.dragMovingStarted(trackList, trackListDelegate.index)
-                                    if (trackList.trackListInteractionController.itemInteraction & TrackListInteractionController.Select) {
-                                        trackList.selectionController.selectByMouse(trackListDelegate.trackViewModel, Qt.RightButton, mouse.modifiers);
+                                cursorShape = undefined;
+                                dragScroller.running = false;
+                                if (dragged) {
+                                    trackList.trackListInteractionController.dragMovingAborted(trackList, trackListDelegate.index)
+                                    if (lastIndicatorIndex !== -1) {
+                                        let handle = trackHandlesRepeater.itemAt(lastIndicatorIndex);
+                                        handle.indicatesTarget = false;
                                     }
                                 }
-                                let viewportPoint = mapToItem(trackList, mouse.x, mouse.y);
-                                dragScroller.viewportPoint = viewportPoint;
-                                dragScroller.modifiers = mouse.modifiers;
-                                dragScroller.determine(0, 0, viewportPoint.y, trackList.height, (_, triggered) => {
-                                    if (!triggered)
-                                        handlePositionChanged(mouse.x, mouse.y, mouse.modifiers);
-                                });
+                                lastIndicatorIndex = -1;
                             }
-                        }
-                        onPressed: mouse => {
-                            dragged = false;
-                            pressedPoint = Qt.point(mouse.x, mouse.y)
-                            shouldForwardToBack = false;
-                            shouldCopyTrack = false;
-                            if (mouse.modifiers & Qt.AltModifier) {
-                                shouldForwardToBack = true;
-                            } else if (mouse.modifiers & Qt.ControlModifier) {
-                                shouldCopyTrack = true;
+                            onClicked: mouse => {
+                                if (!dragged) {
+                                    if (trackList.trackListInteractionController.itemInteraction & TrackListInteractionController.Select) {
+                                        trackList.selectionController.selectByMouse(trackListDelegate.trackViewModel, Qt.LeftButton, mouse.modifiers);
+                                    }
+                                }
                             }
-                        }
-                        onPressedChanged: trackLayout.dragging = pressed
-                        onReleased: mouse => {
-                            if (shouldForwardToBack) {
-                                canceled()
-                                return
+                            onDoubleClicked: mouse => {
+                                if (!dragged) {
+                                    trackList.trackListInteractionController.itemDoubleClicked(trackList, trackListDelegate.index)
+                                }
                             }
-                            cursorShape = undefined;
-                            dragScroller.running = false;
-                            if (dragged) {
-                                if (lastIndicatorIndex !== -1) {
-                                    if (shouldCopyTrack) {
-                                        trackList.trackListInteractionController.dragMovingAborted(trackList, trackListDelegate.index)
-                                        trackList.trackListInteractionController.copyItemsRequested(trackList, lastIndicatorIndex)
-                                    } else if (trackList.moveTrack(trackListDelegate.index, lastIndicatorIndex)) {
-                                        trackList.trackListInteractionController.dragMovingCommitted(trackList, trackListDelegate.index)
+                            onPositionChanged: mouse => {
+                                if (shouldForwardToBack) {
+                                    if (!dragged) {
+                                        dragged = true;
+                                        backMouseArea.forwardedPressed = true;
+                                        backMouseArea.dragged = false;
+                                        backMouseArea.pressedPoint = backMouseArea.mapFromItem(this, pressedPoint)
+                                    }
+                                    let p = backMouseArea.mapFromItem(this, mouse.x, mouse.y);
+                                    backMouseArea.forwardPositionChanged({
+                                        x: p.x,
+                                        y: p.y,
+                                        modifiers: mouse.modifiers
+                                    })
+                                } else {
+                                    if (!(trackList.trackListInteractionController.itemInteraction & TrackListInteractionController.DragMove)) {
+                                        return;
+                                    }
+                                    if (!dragged) {
+                                        dragged = true;
+                                        trackList.trackListInteractionController.dragMovingStarted(trackList, trackListDelegate.index)
+                                        if (trackList.trackListInteractionController.itemInteraction & TrackListInteractionController.Select) {
+                                            trackList.selectionController.selectByMouse(trackListDelegate.trackViewModel, Qt.RightButton, mouse.modifiers);
+                                        }
+                                    }
+                                    let viewportPoint = mapToItem(trackList, mouse.x, mouse.y);
+                                    dragScroller.viewportPoint = viewportPoint;
+                                    dragScroller.modifiers = mouse.modifiers;
+                                    dragScroller.determine(0, 0, viewportPoint.y, trackList.height, (_, triggered) => {
+                                        if (!triggered)
+                                            handlePositionChanged(mouse.x, mouse.y, mouse.modifiers);
+                                    });
+                                }
+                            }
+                            onPressed: mouse => {
+                                dragged = false;
+                                pressedPoint = Qt.point(mouse.x, mouse.y)
+                                shouldForwardToBack = false;
+                                shouldCopyTrack = false;
+                                if (mouse.modifiers & Qt.AltModifier) {
+                                    shouldForwardToBack = true;
+                                } else if (mouse.modifiers & Qt.ControlModifier) {
+                                    shouldCopyTrack = true;
+                                }
+                            }
+                            onPressedChanged: trackLayout.dragging = pressed
+                            onReleased: mouse => {
+                                if (shouldForwardToBack) {
+                                    canceled()
+                                    return
+                                }
+                                cursorShape = undefined;
+                                dragScroller.running = false;
+                                if (dragged) {
+                                    if (lastIndicatorIndex !== -1) {
+                                        if (shouldCopyTrack) {
+                                            trackList.trackListInteractionController.dragMovingAborted(trackList, trackListDelegate.index)
+                                            trackList.trackListInteractionController.copyItemsRequested(trackList, lastIndicatorIndex)
+                                        } else if (trackList.moveTrack(trackListDelegate.index, lastIndicatorIndex)) {
+                                            trackList.trackListInteractionController.dragMovingCommitted(trackList, trackListDelegate.index)
+                                        } else {
+                                            trackList.trackListInteractionController.dragMovingAborted(trackList, trackListDelegate.index)
+                                        }
+                                        let handle = trackHandlesRepeater.itemAt(lastIndicatorIndex);
+                                        handle.indicatesTarget = false;
                                     } else {
                                         trackList.trackListInteractionController.dragMovingAborted(trackList, trackListDelegate.index)
                                     }
-                                    let handle = trackHandlesRepeater.itemAt(lastIndicatorIndex);
-                                    handle.indicatesTarget = false;
-                                } else {
-                                    trackList.trackListInteractionController.dragMovingAborted(trackList, trackListDelegate.index)
                                 }
+                                lastIndicatorIndex = -1;
                             }
-                            lastIndicatorIndex = -1;
+
+                            Connections {
+                                function onPositionChanged(x, y, modifiers) {
+                                    let point = trackMouseArea.mapFromItem(trackList, x, y);
+                                    trackMouseArea.handlePositionChanged(point.x, point.y, modifiers);
+                                }
+
+                                enabled: trackMouseArea.pressed
+                                target: dragScroller
+                            }
                         }
+                        GenericRightButtonMouseArea {
+                            id: trackRightButtonMouseArea
+                            controller: trackList.trackListInteractionController
+                            selectInteractionFlag: TrackListInteractionController.Select
+                            paneItem: trackList
+                            viewModel: trackListDelegate.trackViewModel
+                            selectionController: trackList.selectionController
+                        }
+                        MouseArea {
+                            id: trackHoverMouseArea
+                            acceptedButtons: Qt.NoButton
 
-                        Connections {
-                            function onPositionChanged(x, y, modifiers) {
-                                let point = trackMouseArea.mapFromItem(trackList, x, y);
-                                trackMouseArea.handlePositionChanged(point.x, point.y, modifiers);
+                            anchors.fill: parent
+
+                            hoverEnabled: true
+                            onEntered: () => {
+                                trackList.trackListInteractionController.itemHoverEntered(trackList, trackListDelegate.trackViewModel, TrackListInteractionController.ItemBackground)
                             }
 
-                            enabled: trackMouseArea.pressed
-                            target: dragScroller
+                            onExited: () => {
+                                trackList.trackListInteractionController.itemHoverExited(trackList, trackListDelegate.trackViewModel, TrackListInteractionController.ItemBackground)
+                            }
                         }
                     }
 
@@ -373,6 +407,17 @@ Item {
                         rubberBandLayer.insertItem(trackViewModel, Qt.rect(0, y, 1 << 20, height));
                     }
 
+                    colorIndicator.onClicked: () => {
+                        trackList.trackListInteractionController.itemColorIndicatorClicked(trackList, index)
+                    }
+                    colorIndicator.onHoveredChanged: () => {
+                        if (colorIndicator.hovered) {
+                            trackList.trackListInteractionController.itemHoverEntered(trackList, trackListDelegate.trackViewModel, TrackListInteractionController.ColorIndicator)
+                        } else {
+                            trackList.trackListInteractionController.itemHoverExited(trackList, trackListDelegate.trackViewModel, TrackListInteractionController.ColorIndicator)
+                        }
+                    }
+
                     trackMSR.muteButton.visible: Boolean(trackList.trackListInteractionController.itemInteraction & TrackListInteractionController.EditMute)
                     trackMSR.soloButton.visible: Boolean(trackList.trackListInteractionController.itemInteraction & TrackListInteractionController.EditSolo)
                     trackMSR.recordButton.visible: Boolean(trackList.trackListInteractionController.itemInteraction & TrackListInteractionController.EditRecord)
@@ -383,16 +428,40 @@ Item {
                         trackList.trackListInteractionController.muteEditingFinished(trackList, index)
                     }
 
-                    trackMSR.soloButton.onClicked: {
+                    trackMSR.soloButton.onClicked: () => {
                         trackList.trackListInteractionController.soloEditingStarted(trackList, index)
                         trackViewModel.solo = trackMSR.soloButton.checked
                         trackList.trackListInteractionController.soloEditingFinished(trackList, index)
                     }
 
-                    trackMSR.recordButton.onClicked: {
+                    trackMSR.recordButton.onClicked: () => {
                         trackList.trackListInteractionController.recordEditingStarted(trackList, index)
                         trackViewModel.record = trackMSR.recordButton.checked
                         trackList.trackListInteractionController.recordEditingFinished(trackList, index)
+                    }
+
+                    trackMSR.muteButton.onHoveredChanged: () => {
+                        if (trackMSR.muteButton.hovered) {
+                            trackList.trackListInteractionController.itemHoverEntered(trackList, trackListDelegate.trackViewModel, TrackListInteractionController.MuteButton)
+                        } else {
+                            trackList.trackListInteractionController.itemHoverExited(trackList, trackListDelegate.trackViewModel, TrackListInteractionController.MuteButton)
+                        }
+                    }
+
+                    trackMSR.soloButton.onHoveredChanged: () => {
+                        if (trackMSR.soloButton.hovered) {
+                            trackList.trackListInteractionController.itemHoverEntered(trackList, trackListDelegate.trackViewModel, TrackListInteractionController.SoloButton)
+                        } else {
+                            trackList.trackListInteractionController.itemHoverExited(trackList, trackListDelegate.trackViewModel, TrackListInteractionController.SoloButton)
+                        }
+                    }
+
+                    trackMSR.recordButton.onHoveredChanged: () => {
+                        if (trackMSR.recordButton.hovered) {
+                            trackList.trackListInteractionController.itemHoverEntered(trackList, trackListDelegate.trackViewModel, TrackListInteractionController.RecordButton)
+                        } else {
+                            trackList.trackListInteractionController.itemHoverExited(trackList, trackListDelegate.trackViewModel, TrackListInteractionController.RecordButton)
+                        }
                     }
 
                     trackNameEditLabel.readOnly: !(trackList.trackListInteractionController.itemInteraction & TrackListInteractionController.EditName)
@@ -402,6 +471,13 @@ Item {
                         trackList.trackListInteractionController.nameEditingCommitted(trackList, index)
                     }
                     trackNameEditLabel.onEditingAborted: trackList.trackListInteractionController.nameEditingAborted(trackList, index)
+                    trackNameEditLabel.onHoveredChanged: () => {
+                        if (trackNameEditLabel.hovered) {
+                            trackList.trackListInteractionController.itemHoverEntered(trackList, trackListDelegate.trackViewModel, TrackListInteractionController.NameLabel)
+                        } else {
+                            trackList.trackListInteractionController.itemHoverExited(trackList, trackListDelegate.trackViewModel, TrackListInteractionController.NameLabel)
+                        }
+                    }
 
                     gainSlider.enabled: Boolean(trackList.trackListInteractionController.itemInteraction & TrackListInteractionController.EditGain)
                     gainSlider.onPressedChanged: () => {
@@ -412,6 +488,13 @@ Item {
                         }
                     }
                     gainSlider.onMoved: trackViewModel.gain = SVS.linearValueToDecibel(gainSlider.value + SVS.decibelToLinearValue(0))
+                    gainSlider.onHoveredChanged: () => {
+                        if (gainSlider.hovered) {
+                            trackList.trackListInteractionController.itemHoverEntered(trackList, trackListDelegate.trackViewModel, TrackListInteractionController.GainSlider)
+                        } else {
+                            trackList.trackListInteractionController.itemHoverExited(trackList, trackListDelegate.trackViewModel, TrackListInteractionController.GainSlider)
+                        }
+                    }
 
                     gainEditLabel.readOnly: !(trackList.trackListInteractionController.itemInteraction & TrackListInteractionController.EditGain)
                     gainEditLabel.onEditingStarted: trackList.trackListInteractionController.gainEditingStarted(trackList, index)
@@ -420,6 +503,13 @@ Item {
                         trackList.trackListInteractionController.gainEditingCommitted(trackList, index)
                     }
                     gainEditLabel.onEditingAborted: trackList.trackListInteractionController.gainEditingAborted(trackList, index)
+                    gainEditLabel.onHoveredChanged: () => {
+                        if (gainEditLabel.hovered) {
+                            trackList.trackListInteractionController.itemHoverEntered(trackList, trackListDelegate.trackViewModel, TrackListInteractionController.GainLabel)
+                        } else {
+                            trackList.trackListInteractionController.itemHoverExited(trackList, trackListDelegate.trackViewModel, TrackListInteractionController.GainLabel)
+                        }
+                    }
 
                     panDial.enabled: Boolean(trackList.trackListInteractionController.itemInteraction & TrackListInteractionController.EditPan)
                     panDial.onPressedChanged: () => {
@@ -430,6 +520,13 @@ Item {
                         }
                     }
                     panDial.onMoved: trackViewModel.pan = panDial.value
+                    panDial.onHoveredChanged: () => {
+                        if (panDial.hovered) {
+                            trackList.trackListInteractionController.itemHoverEntered(trackList, trackListDelegate.trackViewModel, TrackListInteractionController.PanDial)
+                        } else {
+                            trackList.trackListInteractionController.itemHoverExited(trackList, trackListDelegate.trackViewModel, TrackListInteractionController.PanDial)
+                        }
+                    }
 
                     panEditLabel.readOnly: !(trackList.trackListInteractionController.itemInteraction & TrackListInteractionController.EditPan)
                     panEditLabel.onEditingStarted: trackList.trackListInteractionController.panEditingStarted(trackList, index)
@@ -438,6 +535,23 @@ Item {
                         trackList.trackListInteractionController.panEditingCommitted(trackList, index)
                     }
                     panEditLabel.onEditingAborted: trackList.trackListInteractionController.panEditingAborted(trackList, index)
+                    panEditLabel.onHoveredChanged: () => {
+                        if (panEditLabel.hovered) {
+                            trackList.trackListInteractionController.itemHoverEntered(trackList, trackListDelegate.trackViewModel, TrackListInteractionController.PanLabel)
+                        } else {
+                            trackList.trackListInteractionController.itemHoverExited(trackList, trackListDelegate.trackViewModel, TrackListInteractionController.PanLabel)
+                        }
+                    }
+
+                    levelMeterMouseArea.onClicked: () => {
+                        trackList.trackListInteractionController.itemLevelMeterClicked(trackList, trackListDelegate.trackViewModel)
+                    }
+                    levelMeterMouseArea.onEntered: () => {
+                        trackList.trackListInteractionController.itemHoverEntered(trackList, trackListDelegate.trackViewModel, TrackListInteractionController.LevelMeter)
+                    }
+                    levelMeterMouseArea.onExited: () => {
+                        trackList.trackListInteractionController.itemHoverExited(trackList, trackListDelegate.trackViewModel, TrackListInteractionController.LevelMeter)
+                    }
 
                 }
             }
@@ -505,8 +619,10 @@ Item {
                         cursorShape: Qt.SplitVCursor
                         enabled: trackHandle.index !== 0
                         hoverEnabled: trackHandle.index !== 0
+                        CursorBinding.cursorShape: cursorShape
 
                         onCanceled: () => {
+                            CursorBinding.enabled = false
                             dragScroller.running = false;
                             originalY = -1;
                             if (dragged) {
@@ -551,8 +667,17 @@ Item {
                         onPressed: mouse => {
                             originalY = mouse.y;
                             dragged = false
+                            CursorBinding.enabled = true
                         }
                         onReleased: canceled()
+
+                        onEntered: () => {
+                            trackList.trackListInteractionController.itemHoverEntered(trackList, trackHandle.index - 1, TrackListInteractionController.HeightAdjustmentHandle)
+                        }
+
+                        onExited: () => {
+                            trackList.trackListInteractionController.itemHoverExited(trackList, trackHandle.index - 1, TrackListInteractionController.HeightAdjustmentHandle)
+                        }
 
                         Connections {
                             function onPositionChanged(x, y, modifiers) {

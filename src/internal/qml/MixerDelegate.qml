@@ -167,6 +167,7 @@ Item {
                             anchors.right: parent.horizontalCenter
                             anchors.top: parent.top
                             value: mixerDelegate.trackViewModel.leftLevel
+                            clipping: mixerDelegate.trackViewModel.leftClipping
                         }
                         LevelMeter {
                             id: rightChannelLevelMeter
@@ -177,6 +178,7 @@ Item {
                             anchors.right: parent.right
                             anchors.top: parent.top
                             value: mixerDelegate.trackViewModel.rightLevel
+                            clipping: mixerDelegate.trackViewModel.rightClipping
                         }
                         MouseArea {
                             id: levelMeterMouseArea

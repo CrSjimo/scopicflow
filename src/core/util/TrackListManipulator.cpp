@@ -20,8 +20,10 @@ namespace sflow {
     }
 
     double TrackListManipulatorPrivate::itemHeight(QObject *object) const {
-        if (auto track = qobject_cast<TrackViewModel *>(object))
-            return qMax(0.0, track->rowHeight());
+        if (auto track = qobject_cast<TrackViewModel *>(object)) {
+            const double height = qFuzzyIsNull(overriddenRowHeight) ? track->rowHeight() : overriddenRowHeight;
+            return qMax(0.0, height);
+        }
         return 0.0;
     }
 
@@ -100,6 +102,24 @@ namespace sflow {
             return;
         viewSize = size;
         emit q->viewSizeChanged();
+    }
+
+    double TrackListManipulator::overriddenRowHeight() const {
+        Q_D(const TrackListManipulator);
+        return d->overriddenRowHeight;
+    }
+
+    void TrackListManipulator::setOverriddenRowHeight(double overriddenRowHeight) {
+        Q_D(TrackListManipulator);
+        if (qFuzzyCompare(d->overriddenRowHeight, overriddenRowHeight))
+            return;
+        d->overriddenRowHeight = overriddenRowHeight;
+        d->rebuildFromModel();
+        emit overriddenRowHeightChanged();
+    }
+
+    void TrackListManipulator::resetOverriddenRowHeight() {
+        setOverriddenRowHeight(0.0);
     }
 
     void TrackListManipulatorPrivate::updateParent() {

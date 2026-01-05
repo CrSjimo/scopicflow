@@ -8,7 +8,7 @@ namespace sflow {
         : QObject(parent), m_mute(false), m_solo(false), m_record(false), m_gain(0.0), m_pan(0.0),
           m_leftLevel(std::numeric_limits<double>::lowest()), m_rightLevel(std::numeric_limits<double>::lowest()),
           m_leftClipping(false), m_rightClipping(false),
-          m_rowHeight(80.0), m_color(Qt::transparent), m_muteEnabled(true), m_soloEnabled(true),
+          m_rowHeight(80.0), m_color(Qt::transparent), m_multiChannelOutput(true),
           m_recordEnabled(true), m_selected(false) {
     }
 
@@ -146,25 +146,14 @@ namespace sflow {
         }
     }
 
-    bool TrackViewModel::isMuteEnabled() const {
-        return m_muteEnabled;
+    bool TrackViewModel::multiChannelOutput() const {
+        return m_multiChannelOutput;
     }
 
-    void TrackViewModel::setMuteEnabled(bool enabled) {
-        if (m_muteEnabled != enabled) {
-            m_muteEnabled = enabled;
-            Q_EMIT muteEnabledChanged();
-        }
-    }
-
-    bool TrackViewModel::isSoloEnabled() const {
-        return m_soloEnabled;
-    }
-
-    void TrackViewModel::setSoloEnabled(bool enabled) {
-        if (m_soloEnabled != enabled) {
-            m_soloEnabled = enabled;
-            Q_EMIT soloEnabledChanged();
+    void TrackViewModel::setMultiChannelOutput(bool enabled) {
+        if (m_multiChannelOutput != enabled) {
+            m_multiChannelOutput = enabled;
+            Q_EMIT multiChannelOutputChanged();
         }
     }
 

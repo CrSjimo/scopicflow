@@ -20,6 +20,7 @@ namespace sflow {
         double viewSize{};
         bool isViewSizeExplicitSet{};
         double viewportHeight{};
+        double overriddenRowHeight{};
 
         mutable QVector<double> prefixSums;
         mutable bool prefixDirty{true};

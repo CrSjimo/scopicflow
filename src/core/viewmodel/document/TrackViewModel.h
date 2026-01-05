@@ -24,9 +24,7 @@ namespace sflow {
         Q_PROPERTY(bool rightClipping READ isRightClipping WRITE setRightClipping NOTIFY rightClippingChanged)
         Q_PROPERTY(double rowHeight READ rowHeight WRITE setRowHeight NOTIFY rowHeightChanged)
         Q_PROPERTY(QColor color READ color WRITE setColor NOTIFY colorChanged)
-        Q_PROPERTY(bool muteEnabled READ isMuteEnabled WRITE setMuteEnabled NOTIFY muteEnabledChanged)
-        Q_PROPERTY(bool soloEnabled READ isSoloEnabled WRITE setSoloEnabled NOTIFY soloEnabledChanged)
-        Q_PROPERTY(bool recordEnabled READ isRecordEnabled WRITE setRecordEnabled NOTIFY recordEnabledChanged)
+        Q_PROPERTY(bool multiChannelOutput READ multiChannelOutput WRITE setMultiChannelOutput NOTIFY multiChannelOutputChanged)
         Q_PROPERTY(bool selected READ isSelected WRITE setSelected NOTIFY selectedChanged)
     public:
         explicit TrackViewModel(QObject *parent = nullptr);
@@ -68,11 +66,8 @@ namespace sflow {
         QColor color() const;
         void setColor(const QColor &color);
 
-        bool isMuteEnabled() const;
-        void setMuteEnabled(bool enabled);
-
-        bool isSoloEnabled() const;
-        void setSoloEnabled(bool enabled);
+        bool multiChannelOutput() const;
+        void setMultiChannelOutput(bool enabled);
 
         bool isRecordEnabled() const;
         void setRecordEnabled(bool enabled);
@@ -93,8 +88,7 @@ namespace sflow {
         void rightClippingChanged();
         void rowHeightChanged();
         void colorChanged();
-        void muteEnabledChanged();
-        void soloEnabledChanged();
+        void multiChannelOutputChanged();
         void recordEnabledChanged();
         void selectedChanged();
 
@@ -111,8 +105,7 @@ namespace sflow {
         bool m_rightClipping;
         double m_rowHeight;
         QColor m_color;
-        bool m_muteEnabled;
-        bool m_soloEnabled;
+        bool m_multiChannelOutput;
         bool m_recordEnabled;
         bool m_selected;
     };

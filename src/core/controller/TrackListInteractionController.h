@@ -39,6 +39,7 @@ namespace sflow {
             EditGain = 0x40,
             EditPan = 0x80,
             AdjustHeight = 0x100,
+            EditMultiChannelOutput = 0x200,
         };
         Q_ENUM(ItemInteractionFlag)
         Q_DECLARE_FLAGS(ItemInteraction, ItemInteractionFlag)
@@ -52,6 +53,7 @@ namespace sflow {
             MuteButton,
             SoloButton,
             RecordButton,
+            MultiChannelOutputButton,
             NameLabel,
             GainSlider,
             GainLabel,
@@ -96,6 +98,9 @@ namespace sflow {
 
         void heightAdjustingStarted(QQuickItem *trackList, int index);
         void heightAdjustingFinished(QQuickItem *trackList, int index);
+
+        void multiChannelOutputEditingStarted(QQuickItem *trackList, int index);
+        void multiChannelOutputEditingFinished(QQuickItem *trackList, int index);
 
         void levelMeterClicked(QQuickItem *trackList, int index);
 

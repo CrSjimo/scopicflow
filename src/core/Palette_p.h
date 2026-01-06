@@ -45,7 +45,7 @@ namespace sflow {
             {"whiteKeyPressedColor", QVariant::fromValue(QColor(0xdee2e6))},
             {"blackKeyPressedColor", QVariant::fromValue(QColor(0x343a40))},
 
-            {"trackListSelectedColorChange", QVariant::fromValue(SVS::ColorChange{SVS::TopBlendColorFilter{QColor::fromRgba(0x265566ff)}})},
+            {"trackListSelectedColorChange", QVariant::fromValue(SVS::ColorChange{SVS::TopBlendColorFilter{QColor::fromRgba(0x115566ff)}})},
             {"clipSelectedColorChange", QVariant::fromValue(SVS::ColorChange{SVS::LighterColorChange{125}})},
             {"clipThumbnailColorChange", QVariant::fromValue(SVS::ColorChange{SVS::LighterColorChange{120}})},
             {"noteSelectedColorChange", QVariant::fromValue(SVS::ColorChange{SVS::LighterColorChange{125}})},

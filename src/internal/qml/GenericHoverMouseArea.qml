@@ -9,7 +9,7 @@ MouseArea {
 
     property QtObject controller: null
     property Item paneItem: null
-    property QtObject viewModel: null
+    property var viewModel: null
 
     anchors.fill: parent
     acceptedButtons: Qt.NoButton

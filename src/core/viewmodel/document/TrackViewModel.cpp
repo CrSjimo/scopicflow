@@ -7,9 +7,9 @@ namespace sflow {
     TrackViewModel::TrackViewModel(QObject *parent)
         : QObject(parent), m_mute(false), m_solo(false), m_record(false), m_gain(0.0), m_pan(0.0),
           m_leftLevel(std::numeric_limits<double>::lowest()), m_rightLevel(std::numeric_limits<double>::lowest()),
-          m_leftClipping(false), m_rightClipping(false),
+          m_leftClipping(false), m_rightClipping(false), m_peakLevel(std::numeric_limits<double>::lowest()),
           m_rowHeight(80.0), m_color(Qt::transparent), m_multiChannelOutput(true),
-          m_recordEnabled(true), m_selected(false) {
+          m_selected(false) {
     }
 
     TrackViewModel::~TrackViewModel() = default;
@@ -124,6 +124,17 @@ namespace sflow {
         }
     }
 
+    double TrackViewModel::peakLevel() const {
+        return m_peakLevel;
+    }
+
+    void TrackViewModel::setPeakLevel(double peakLevel) {
+        if (m_peakLevel != peakLevel) {
+            m_peakLevel = peakLevel;
+            Q_EMIT peakLevelChanged();
+        }
+    }
+
     double TrackViewModel::rowHeight() const {
         return m_rowHeight;
     }
@@ -154,17 +165,6 @@ namespace sflow {
         if (m_multiChannelOutput != enabled) {
             m_multiChannelOutput = enabled;
             Q_EMIT multiChannelOutputChanged();
-        }
-    }
-
-    bool TrackViewModel::isRecordEnabled() const {
-        return m_recordEnabled;
-    }
-
-    void TrackViewModel::setRecordEnabled(bool enabled) {
-        if (m_recordEnabled != enabled) {
-            m_recordEnabled = enabled;
-            Q_EMIT recordEnabledChanged();
         }
     }
 

@@ -47,6 +47,40 @@ Item {
         width: Math.max(contentWidth, mixer.width)
         x: -(mixer.trackListLayoutViewModel?.viewportOffset ?? 0)
 
+        MouseArea {
+            id: backMouseArea
+
+            anchors.fill: parent
+
+            onClicked: mouse => {
+                if (mixer.trackListInteractionController.itemInteraction & TrackListInteractionController.Select) {
+                    mixer.selectionController.selectByMouse(null, mouse.button, mouse.modifiers);
+                }
+            }
+            onDoubleClicked: mouse => {
+                if (mixer.trackListInteractionController.itemInteraction & TrackListInteractionController.Select) {
+                    mixer.selectionController.selectByMouse(null, mouse.button, mouse.modifiers);
+                }
+                mixer.trackListInteractionController.doubleClicked(mixer)
+            }
+        }
+
+        GenericBackRightButtonMouseArea {
+            id: backRightButtonMouseArea
+
+            selectInteractionFlag: TrackListInteractionController.Select
+            selectionController: mixer.selectionController
+            controller: mixer.trackListInteractionController
+            target: mixer
+        }
+
+        GenericBackHoverMouseArea {
+            id: backHoverMouseArea
+
+            controller: mixer.trackListInteractionController
+            target: mixer
+        }
+
         Repeater {
             id: repeater
 

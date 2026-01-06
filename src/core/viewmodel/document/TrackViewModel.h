@@ -22,6 +22,7 @@ namespace sflow {
         Q_PROPERTY(double rightLevel READ rightLevel WRITE setRightLevel NOTIFY rightLevelChanged)
         Q_PROPERTY(bool leftClipping READ isLeftClipping WRITE setLeftClipping NOTIFY leftClippingChanged)
         Q_PROPERTY(bool rightClipping READ isRightClipping WRITE setRightClipping NOTIFY rightClippingChanged)
+        Q_PROPERTY(double peakLevel READ peakLevel WRITE setPeakLevel NOTIFY peakLevelChanged)
         Q_PROPERTY(double rowHeight READ rowHeight WRITE setRowHeight NOTIFY rowHeightChanged)
         Q_PROPERTY(QColor color READ color WRITE setColor NOTIFY colorChanged)
         Q_PROPERTY(bool multiChannelOutput READ multiChannelOutput WRITE setMultiChannelOutput NOTIFY multiChannelOutputChanged)
@@ -60,6 +61,9 @@ namespace sflow {
         bool isRightClipping() const;
         void setRightClipping(bool clipping);
 
+        double peakLevel() const;
+        void setPeakLevel(double peakLevel);
+
         double rowHeight() const;
         void setRowHeight(double rowHeight);
 
@@ -68,9 +72,6 @@ namespace sflow {
 
         bool multiChannelOutput() const;
         void setMultiChannelOutput(bool enabled);
-
-        bool isRecordEnabled() const;
-        void setRecordEnabled(bool enabled);
 
         bool isSelected() const;
         void setSelected(bool selected);
@@ -86,10 +87,10 @@ namespace sflow {
         void rightLevelChanged();
         void leftClippingChanged();
         void rightClippingChanged();
+        void peakLevelChanged();
         void rowHeightChanged();
         void colorChanged();
         void multiChannelOutputChanged();
-        void recordEnabledChanged();
         void selectedChanged();
 
     private:
@@ -103,10 +104,10 @@ namespace sflow {
         double m_rightLevel;
         bool m_leftClipping;
         bool m_rightClipping;
+        double m_peakLevel;
         double m_rowHeight;
         QColor m_color;
         bool m_multiChannelOutput;
-        bool m_recordEnabled;
         bool m_selected;
     };
 

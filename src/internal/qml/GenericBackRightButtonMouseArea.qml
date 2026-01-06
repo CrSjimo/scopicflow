@@ -28,6 +28,8 @@ MouseArea {
                 controller.contextMenuRequested(target, timeManipulator.mapToPosition(mouse.x), verticalManipulator.mapToPosition(mouse.y))
             } else if (timeManipulator) {
                 controller.contextMenuRequested(target, timeManipulator.mapToPosition(mouse.x))
+            } else {
+                controller.contextMenuRequested(target)
             }
         }
         if (selectionController && controller && ((controller.itemInteraction ?? 0) & selectInteractionFlag)) {

@@ -15,6 +15,7 @@ MouseArea {
     acceptedButtons: Qt.NoButton
     anchors.fill: parent
     hoverEnabled: true
+    cursorShape: undefined
 
     onEntered: () => {
         if (controller) {
@@ -39,8 +40,6 @@ MouseArea {
                 controller.hoverMoved(target, timeManipulator.mapToPosition(mouseX))
             } else if (verticalManipulator) {
                 controller.hoverMoved(target, verticalManipulator.mapToPosition(mouseY))
-            } else {
-                controller.hoverMoved(target)
             }
 
         }

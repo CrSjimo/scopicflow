@@ -147,6 +147,14 @@ Item {
                     }
                 }
             }
+            onDoubleClicked: mouse => {
+                if (!dragged) {
+                    if (trackList.trackListInteractionController.itemInteraction & TrackListInteractionController.Select) {
+                        trackList.selectionController.selectByMouse(null, mouse.button, mouse.modifiers);
+                    }
+                }
+                trackList.trackListInteractionController.doubleClicked(trackList)
+            }
             onPositionChanged: mouse => {
                 forwardPositionChanged(mouse)
             }
@@ -181,6 +189,20 @@ Item {
                 target: dragScroller
                 enabled: backMouseArea.pressed
             }
+        }
+        GenericBackRightButtonMouseArea {
+            id: backRightButtonMouseArea
+
+            selectInteractionFlag: TrackListInteractionController.Select
+            selectionController: trackList.selectionController
+            controller: trackList.trackListInteractionController
+            target: trackList
+        }
+        GenericBackHoverMouseArea {
+            id: backHoverMouseArea
+
+            controller: trackList.trackListInteractionController
+            target: trackList
         }
         Column {
             id: trackLayout
@@ -377,7 +399,7 @@ Item {
                             controller: trackList.trackListInteractionController
                             selectInteractionFlag: TrackListInteractionController.Select
                             paneItem: trackList
-                            viewModel: trackListDelegate.trackViewModel
+                            viewModel: trackListDelegate.index
                             selectionController: trackList.selectionController
                         }
                         MouseArea {
@@ -388,11 +410,11 @@ Item {
 
                             hoverEnabled: true
                             onEntered: () => {
-                                trackList.trackListInteractionController.itemHoverEntered(trackList, trackListDelegate.trackViewModel, TrackListInteractionController.ItemBackground)
+                                trackList.trackListInteractionController.itemHoverEntered(trackList, trackListDelegate.index, TrackListInteractionController.ItemBackground)
                             }
 
                             onExited: () => {
-                                trackList.trackListInteractionController.itemHoverExited(trackList, trackListDelegate.trackViewModel, TrackListInteractionController.ItemBackground)
+                                trackList.trackListInteractionController.itemHoverExited(trackList, trackListDelegate.index, TrackListInteractionController.ItemBackground)
                             }
                         }
                     }

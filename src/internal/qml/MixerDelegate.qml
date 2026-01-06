@@ -195,16 +195,13 @@ Item {
                         Text {
                             id: peakText
 
-                            property double maxValue: -96
-                            property double value: Math.max(mixerDelegate.trackViewModel.leftLevel, mixerDelegate.trackViewModel.rightLevel)
+                            readonly property double maxValue: mixerDelegate.trackViewModel.peakLevel
 
                             anchors.left: parent.left
                             color: Theme.foregroundPrimaryColor
                             horizontalAlignment: Text.AlignHCenter
                             opacity: 0.5
-                            text: (Math.abs(maxValue + 96) < 0.05 ? "" : Qt.locale().toString(maxValue, "f", 1))
-
-                            onValueChanged: maxValue = Math.max(maxValue, value)
+                            text: (maxValue + 96 < 0.05 ? "" : Qt.locale().toString(maxValue, "f", 1))
 
                             MouseArea {
                                 id: peakMouseArea

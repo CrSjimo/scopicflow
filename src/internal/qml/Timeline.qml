@@ -224,7 +224,7 @@ FocusScope {
             id: loopDragScroller
             onMoved: deltaX => {
                 timeManipulator.moveViewBy(deltaX);
-                loopMouseArea.moveToX((deltaX < 0 ? 0 : timeline.width) - loopRangeMouseArea.pressedDeltaX);
+                loopMouseArea.moveToX((deltaX < 0 ? 0 : timeline.width) - loopMouseArea.pressedDeltaX);
             }
         }
 

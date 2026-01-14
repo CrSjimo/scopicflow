@@ -55,7 +55,6 @@ MouseArea {
     onCanceled: () => {
         dragScroller.running = false;
         if (helper.dragged) {
-            helper.dragged = false;
             controller.movingFinished(paneItem, viewModel)
         }
     }

@@ -399,7 +399,7 @@ Item {
                             controller: trackList.trackListInteractionController
                             selectInteractionFlag: TrackListInteractionController.Select
                             paneItem: trackList
-                            viewModel: trackListDelegate.index
+                            viewModel: trackListDelegate.trackViewModel
                             selectionController: trackList.selectionController
                         }
                         MouseArea {

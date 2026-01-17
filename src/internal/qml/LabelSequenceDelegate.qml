@@ -10,10 +10,11 @@ import dev.sjimo.ScopicFlow.Internal
 FocusScope {
     id: label
 
-    property bool current: {
-        current = selectionController?.currentItem === labelViewModel;
-    }
+    property bool current: false
     property bool editing: false
+    property bool editScopeFocused: false
+    property bool selected: false
+    property string content: ""
     required property PointSequenceViewModel labelSequenceViewModel
     required property SelectionController selectionController
 
@@ -30,9 +31,9 @@ FocusScope {
 
     Rectangle {
         anchors.fill: parent
-        border.color: label.current && labelSequence.activeFocus ? Theme.controlCheckedColorChange.apply(Theme.accentColor) : Theme.borderColor
+        border.color: label.current ? label.editScopeFocused ? Theme.accentColor : Theme.foregroundSecondaryColor : Theme.borderColor
         border.width: 1
-        color: label.labelViewModel?.selected ? Theme.controlCheckedColorChange.apply(Theme.buttonColor) : Theme.buttonColor
+        color: label.selected ? SFPalette.itemSelectedColorChange.apply(Theme.backgroundTertiaryColor) : Theme.backgroundTertiaryColor
         radius: 2
 
         Behavior on border.color {
@@ -50,9 +51,14 @@ FocusScope {
     }
 
     Binding {
-        label.current: label.selectionController?.currentItem === label.labelViewModel
         label.z: label.current ? 2 : label.labelViewModel?.selected ? 1 : 0
+        label.selected: label.labelViewModel?.selected ?? false
+        label.content: label.labelViewModel?.content ?? ""
         when: label.SequenceSlicerLoader.inRange
+    }
+    Binding {
+        label.editScopeFocused: label.selectionController?.editScopeFocused ?? false
+        when: label.SequenceSlicerLoader.inRange && label.current
     }
     Text {
         id: labelText
@@ -61,13 +67,6 @@ FocusScope {
         anchors.leftMargin: 4
         anchors.verticalCenter: parent.verticalCenter
         color: Theme.foregroundPrimaryColor
-        text: label.labelViewModel?.content ?? ""
-
-        Behavior on color {
-            ColorAnimation {
-                duration: Theme.colorAnimationDuration
-                easing.type: Easing.OutCubic
-            }
-        }
+        text: label.content
     }
 }

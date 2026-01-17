@@ -13,6 +13,7 @@ namespace sflow {
         QML_ELEMENT
         QML_UNCREATABLE("")
         Q_PROPERTY(QObject *currentItem READ currentItem NOTIFY currentItemChanged)
+        Q_PROPERTY(bool editScopeFocused READ editScopeFocused NOTIFY editScopeFocusedChanged)
     public:
         explicit SelectionController(QObject *parent = nullptr);
         ~SelectionController() override;
@@ -30,12 +31,14 @@ namespace sflow {
         Q_INVOKABLE virtual QObjectList getSelectedItems() const = 0;
         Q_INVOKABLE virtual QObjectList getItemsBetween(QObject *startItem, QObject *endItem) const = 0;
         Q_INVOKABLE virtual void select(QObject *item, SelectionCommand command) = 0;
-        Q_INVOKABLE virtual QObject *currentItem() const = 0;
+        virtual QObject *currentItem() const = 0;
+        virtual bool editScopeFocused() const = 0;
 
         Q_INVOKABLE void selectByMouse(QObject *item, Qt::MouseButton button, Qt::KeyboardModifiers modifiers, const QString &selectedProperty = "selected");
 
     Q_SIGNALS:
         void currentItemChanged();
+        void editScopeFocusedChanged();
 
     };
 

@@ -100,4 +100,8 @@ namespace sflow {
         return d->currentItem;
     }
 
+    bool StandardSelectionController::editScopeFocused() const {
+        return true;
+    }
+
 }

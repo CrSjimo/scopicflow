@@ -53,7 +53,7 @@ namespace sflow {
         Q_PROPERTY(QColor whiteKeyPressedColor READ whiteKeyPressedColor WRITE setWhiteKeyPressedColor RESET resetWhiteKeyPressedColor NOTIFY whiteKeyPressedColorChanged)
         Q_PROPERTY(QColor blackKeyPressedColor READ blackKeyPressedColor WRITE setBlackKeyPressedColor RESET resetBlackKeyPressedColor NOTIFY blackKeyPressedColorChanged)
 
-        Q_PROPERTY(SVS::ColorChange trackListSelectedColorChange READ trackListSelectedColorChange WRITE setTrackListSelectedColorChange RESET resetTrackListSelectedColorChange NOTIFY trackListSelectedColorChangeChanged)
+        Q_PROPERTY(SVS::ColorChange itemSelectedColorChange READ itemSelectedColorChange WRITE setItemSelectedColorChange RESET resetItemSelectedColorChange NOTIFY itemSelectedColorChangeChanged)
         Q_PROPERTY(SVS::ColorChange clipSelectedColorChange READ clipSelectedColorChange WRITE setClipSelectedColorChange RESET resetClipSelectedColorChange NOTIFY clipSelectedColorChangeChanged)
         Q_PROPERTY(SVS::ColorChange clipThumbnailColorChange READ clipThumbnailColorChange WRITE setClipThumbnailColorChange RESET resetClipThumbnailColorChange NOTIFY clipThumbnailColorChangeChanged)
         Q_PROPERTY(SVS::ColorChange noteSelectedColorChange READ noteSelectedColorChange WRITE setNoteSelectedColorChange RESET resetNoteSelectedColorChange NOTIFY noteSelectedColorChangeChanged)
@@ -162,9 +162,9 @@ namespace sflow {
         void setBlackKeyPressedColor(const QColor &blackKeyPressedColor);
         void resetBlackKeyPressedColor();
 
-        SVS::ColorChange trackListSelectedColorChange() const;
-        void setTrackListSelectedColorChange(const SVS::ColorChange &trackListSelectedColorChange);
-        void resetTrackListSelectedColorChange();
+        SVS::ColorChange itemSelectedColorChange() const;
+        void setItemSelectedColorChange(const SVS::ColorChange &itemSelectedColorChange);
+        void resetItemSelectedColorChange();
 
         SVS::ColorChange clipSelectedColorChange() const;
         void setClipSelectedColorChange(const SVS::ColorChange &clipSelectedColorChange);
@@ -209,7 +209,7 @@ namespace sflow {
         void blackKeyHoveredColorChanged();
         void whiteKeyPressedColorChanged();
         void blackKeyPressedColorChanged();
-        void trackListSelectedColorChangeChanged();
+        void itemSelectedColorChangeChanged();
         void clipSelectedColorChangeChanged();
         void clipThumbnailColorChangeChanged();
         void noteSelectedColorChangeChanged();

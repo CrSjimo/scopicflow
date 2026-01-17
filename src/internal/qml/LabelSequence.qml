@@ -46,6 +46,21 @@ FocusScope {
         }
     }
 
+    Connections {
+        target: labelSequence.selectionController
+        function onCurrentItemChanged() {
+            let oldItem = slicer.itemForModel(helper.lastCurrentItem)
+            if (oldItem) {
+                oldItem.current = false
+            }
+            let newItem = slicer.itemForModel(labelSequence.selectionController.currentItem)
+            if (newItem) {
+                newItem.current = true
+            }
+            helper.lastCurrentItem = labelSequence.selectionController.currentItem
+        }
+    }
+
     QtObject {
         id: helper
 
@@ -53,6 +68,11 @@ FocusScope {
             id: labelLengthReference
 
             visible: false
+        }
+
+        property LabelViewModel lastCurrentItem: null
+        Component.onCompleted: {
+            lastCurrentItem = labelSequence.selectionController?.currentItem ?? null
         }
     }
     Component {
@@ -134,6 +154,9 @@ FocusScope {
                     labelSequenceViewModel: labelSequence.labelSequenceViewModel
                     selectionController: labelSequence.selectionController
 
+                    onLabelViewModelChanged: () => {
+                        current = (labelSequence.selectionController?.currentItem === labelViewModel)
+                    }
                     Component.onDestruction: rubberBandLayer.removeItem(labelViewModel)
                     onVisibleChanged: handleRubberBand()
                     onWidthChanged: handleRubberBand()

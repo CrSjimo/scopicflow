@@ -38,7 +38,7 @@ Item {
 
     Rectangle {
         anchors.fill: parent
-        color: mixerDelegate.trackViewModel.selected ? SFPalette.trackListSelectedColorChange.apply(Theme.backgroundTertiaryColor) : Theme.backgroundTertiaryColor
+        color: mixerDelegate.trackViewModel.selected ? SFPalette.itemSelectedColorChange.apply(Theme.backgroundTertiaryColor) : Theme.backgroundTertiaryColor
 
         Behavior on color {
             ColorAnimation {
@@ -236,35 +236,41 @@ Item {
                 text: mixerDelegate.trackViewModel.name
             }
             RowLayout {
-                property double _opacity: mixerDelegate.current ? 1 : 0
-
                 Layout.fillWidth: true
                 Layout.leftMargin: 8
                 Layout.rightMargin: 8
                 spacing: 8
 
-                Behavior on _opacity {
-                    NumberAnimation {
-                        duration: Theme.colorAnimationDuration
-                        easing.type: Easing.OutCubic
-                    }
-                }
-
-                Rectangle {
+                component FocusIndicator: Rectangle {
                     Layout.alignment: Qt.AlignVCenter
                     Layout.fillWidth: true
                     Layout.horizontalStretchFactor: 1
-                    color: Theme.accentColor
+                    color: mixerDelegate.selectionController?.editScopeFocused ? Theme.accentColor : Theme.foregroundSecondaryColor
                     height: 2
-                    opacity: parent._opacity
+                    opacity: mixerDelegate.current ? 1 : 0
                     radius: 1
+                    Behavior on color {
+                        ColorAnimation {
+                            duration: Theme.colorAnimationDuration
+                            easing.type: Easing.OutCubic
+                        }
+                    }
+                    Behavior on opacity {
+                        NumberAnimation {
+                            duration: Theme.colorAnimationDuration
+                            easing.type: Easing.OutCubic
+                        }
+                    }
+                }
+
+                FocusIndicator{
+
                 }
                 Text {
                     id: trackNumberLabel
 
                     Layout.alignment: Qt.AlignVCenter
-                    color: mixerDelegate.current ? Theme.accentColor : Theme.foregroundPrimaryColor
-                    opacity: mixerDelegate.current ? 1 : 0.5
+                    color: mixerDelegate.current && mixerDelegate.selectionController?.editScopeFocused ? Theme.accentColor : Theme.foregroundPrimaryColor
                     text: mixerDelegate.trackNumber
 
                     Behavior on color {
@@ -274,14 +280,8 @@ Item {
                         }
                     }
                 }
-                Rectangle {
-                    Layout.alignment: Qt.AlignVCenter
-                    Layout.fillWidth: true
-                    Layout.horizontalStretchFactor: 1
-                    color: Theme.accentColor
-                    height: 2
-                    opacity: parent._opacity
-                    radius: 1
+                FocusIndicator{
+
                 }
             }
         }

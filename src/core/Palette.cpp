@@ -65,7 +65,7 @@ namespace sflow {
     IMPLEMENTATION(whiteKeyPressedColor, whiteKeyPressedColor, setWhiteKeyPressedColor, resetWhiteKeyPressedColor)
     IMPLEMENTATION(blackKeyPressedColor, blackKeyPressedColor, setBlackKeyPressedColor, resetBlackKeyPressedColor)
 
-    IMPLEMENTATION(trackListSelectedColorChange, trackListSelectedColorChange, setTrackListSelectedColorChange, resetTrackListSelectedColorChange)
+    IMPLEMENTATION(itemSelectedColorChange, itemSelectedColorChange, setItemSelectedColorChange, resetItemSelectedColorChange)
     IMPLEMENTATION(clipSelectedColorChange, clipSelectedColorChange, setClipSelectedColorChange, resetClipSelectedColorChange)
     IMPLEMENTATION(clipThumbnailColorChange, clipThumbnailColorChange, setClipThumbnailColorChange, resetClipThumbnailColorChange)
     IMPLEMENTATION(noteSelectedColorChange, noteSelectedColorChange, setNoteSelectedColorChange, resetNoteSelectedColorChange)

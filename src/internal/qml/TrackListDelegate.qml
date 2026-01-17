@@ -46,7 +46,7 @@ Item {
         id: background
         anchors.fill: parent
         clip: true
-        color: track.trackViewModel.selected ? SFPalette.trackListSelectedColorChange.apply(Theme.backgroundTertiaryColor) : Theme.backgroundTertiaryColor
+        color: track.trackViewModel.selected ? SFPalette.itemSelectedColorChange.apply(Theme.backgroundTertiaryColor) : Theme.backgroundTertiaryColor
 
         Behavior on color {
             ColorAnimation {
@@ -88,10 +88,17 @@ Item {
                 Layout.fillHeight: true
                 Layout.topMargin: 8
                 Layout.bottomMargin: 7
-                color: Theme.accentColor
+                color: track.selectionController?.editScopeFocused ? Theme.accentColor : Theme.foregroundSecondaryColor
                 opacity: track.current ? 1 : 0
                 radius: 1
                 implicitWidth: 2
+
+                Behavior on color {
+                    ColorAnimation {
+                        duration: Theme.colorAnimationDuration
+                        easing.type: Easing.OutCubic
+                    }
+                }
 
                 Behavior on opacity {
                     NumberAnimation {
@@ -102,7 +109,7 @@ Item {
             }
             Text {
                 id: trackNumberLabel
-                color: track.current ? Theme.accentColor : Theme.foregroundPrimaryColor
+                color: track.current && track.selectionController?.editScopeFocused ? Theme.accentColor : Theme.foregroundPrimaryColor
                 text: track.trackNumber
                 Layout.minimumWidth: 16
                 Layout.maximumWidth: 16

@@ -16,30 +16,45 @@ namespace sflow {
     class SCOPIC_FLOW_CORE_EXPORT LabelSequenceInteractionController : public QObject {
         Q_OBJECT
         QML_ELEMENT
-        Q_PROPERTY(Interaction interaction READ interaction NOTIFY interactionChanged)
-        Q_PROPERTY(ItemInteraction itemInteraction READ itemInteraction NOTIFY itemInteractionChanged)
+        Q_PROPERTY(bool clickSelectable READ isClickSelectable WRITE setClickSelectable NOTIFY clickSelectableChanged)
+        Q_PROPERTY(Interaction primaryItemInteraction READ primaryItemInteraction WRITE setPrimaryItemInteraction NOTIFY primaryItemInteractionChanged)
+        Q_PROPERTY(Interaction secondaryItemInteraction READ secondaryItemInteraction WRITE setSecondaryItemInteraction NOTIFY secondaryItemInteractionChanged)
+        Q_PROPERTY(Interaction primarySceneInteraction READ primarySceneInteraction WRITE setPrimarySceneInteraction NOTIFY primarySceneInteractionChanged)
+        Q_PROPERTY(Interaction secondarySceneInteraction READ secondarySceneInteraction WRITE setSecondarySceneInteraction NOTIFY secondarySceneInteractionChanged)
+        Q_PROPERTY(Interaction primarySelectInteraction READ primarySelectInteraction WRITE setPrimarySelectInteraction NOTIFY primarySelectInteractionChanged)
+        Q_PROPERTY(Interaction secondarySelectInteraction READ secondarySelectInteraction WRITE setSecondarySelectInteraction NOTIFY secondarySelectInteractionChanged)
     public:
         explicit LabelSequenceInteractionController(QObject *parent = nullptr);
         ~LabelSequenceInteractionController() override;
 
-        enum InteractionFlag {
-            SelectByRubberBand = 0x1,
+        bool isClickSelectable() const;
+        void setClickSelectable(bool clickSelectable);
+
+        enum Interaction {
+            None,
+            Move,
+            CopyAndMove,
+            RubberBandSelect = 0x10000,
         };
-        Q_ENUM(InteractionFlag)
-        Q_DECLARE_FLAGS(Interaction, InteractionFlag)
+        Q_ENUM(Interaction)
+        Interaction primaryItemInteraction() const;
+        void setPrimaryItemInteraction(Interaction itemInteraction);
+        Interaction secondaryItemInteraction() const;
+        void setSecondaryItemInteraction(Interaction itemInteraction);
+        Interaction primarySceneInteraction() const;
+        void setPrimarySceneInteraction(Interaction sceneInteraction);
+        Interaction secondarySceneInteraction() const;
+        void setSecondarySceneInteraction(Interaction sceneInteraction);
+        Interaction primarySelectInteraction() const;
+        void setPrimarySelectInteraction(Interaction sceneInteraction);
+        Interaction secondarySelectInteraction() const;
+        void setSecondarySelectInteraction(Interaction sceneInteraction);
 
-        void setInteraction(Interaction interaction);
-        Interaction interaction() const;
-
-        enum ItemInteractionFlag {
-            Move = 0x1,
-            Select = 0x2,
+        enum MoveFlag {
+            MF_Move,
+            MF_CopyAndMove,
         };
-        Q_ENUM(ItemInteractionFlag)
-        Q_DECLARE_FLAGS(ItemInteraction, ItemInteractionFlag)
-
-        void setItemInteraction(ItemInteraction itemInteraction);
-        ItemInteraction itemInteraction() const;
+        Q_ENUM(MoveFlag)
 
         enum InPlaceEditOperation {
             StartEditing,
@@ -53,14 +68,21 @@ namespace sflow {
         Q_ENUM(InPlaceEditOperation)
 
     Q_SIGNALS:
-        void interactionChanged();
-        void itemInteractionChanged();
+        void clickSelectableChanged();
+        void primaryItemInteractionChanged();
+        void secondaryItemInteractionChanged();
+        void primarySceneInteractionChanged();
+        void secondarySceneInteractionChanged();
+        void primarySelectInteractionChanged();
+        void secondarySelectInteractionChanged();
 
         void rubberBandDraggingStarted(QQuickItem *labelSequence);
-        void rubberBandDraggingFinished(QQuickItem *labelSequence);
+        void rubberBandDraggingCommitted(QQuickItem *labelSequence);
+        void rubberBandDraggingAborted(QQuickItem *labelSequence);
 
-        void movingStarted(QQuickItem *labelSequence, LabelViewModel *item);
-        void movingFinished(QQuickItem *labelSequence, LabelViewModel *item);
+        void movingStarted(QQuickItem *labelSequence, LabelViewModel *item, MoveFlag flag);
+        void movingCommitted(QQuickItem *labelSequence, LabelViewModel *item);
+        void movingAborted(QQuickItem *labelSequence, LabelViewModel *item);
 
         void hoverEntered(QQuickItem *labelSequence, int position);
         void hoverMoved(QQuickItem *labelSequence, int position);
@@ -78,12 +100,14 @@ namespace sflow {
         void inPlaceEditOperationTriggered(QQuickItem *labelSequence, LabelViewModel *item, InPlaceEditOperation operation);
 
     private:
-        Interaction m_interaction;
-        ItemInteraction m_itemInteraction;
+        bool m_clickSelectable;
+        Interaction m_primaryItemInteraction;
+        Interaction m_secondaryItemInteraction;
+        Interaction m_primarySceneInteraction;
+        Interaction m_secondarySceneInteraction;
+        Interaction m_primarySelectInteraction;
+        Interaction m_secondarySelectInteraction;
     };
-
-    Q_DECLARE_OPERATORS_FOR_FLAGS(LabelSequenceInteractionController::Interaction)
-    Q_DECLARE_OPERATORS_FOR_FLAGS(LabelSequenceInteractionController::ItemInteraction)
 
 }
 

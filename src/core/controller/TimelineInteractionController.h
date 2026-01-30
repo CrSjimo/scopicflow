@@ -19,7 +19,7 @@ namespace sflow {
         ~TimelineInteractionController() override;
 
         enum InteractionFlag {
-            MovePositionIndicator = 0x1,
+            MovePlayhead = 0x1,
             ZoomByRubberBand = 0x2,
             AdjustLoopRange = 0x4,
         };
@@ -40,7 +40,8 @@ namespace sflow {
         void interactionChanged();
 
         void rubberBandDraggingStarted(QQuickItem *timeline);
-        void rubberBandDraggingFinished(QQuickItem *timeline);
+        void rubberBandDraggingCommitted(QQuickItem *timeline);
+        void rubberBandDraggingAborted(QQuickItem *timeline);
 
         void positionIndicatorMovingStarted(QQuickItem *timeline);
         void positionIndicatorMovingFinished(QQuickItem *timeline);

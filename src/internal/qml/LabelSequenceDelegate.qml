@@ -15,7 +15,6 @@ FocusScope {
     property bool editScopeFocused: false
     property bool selected: false
     property string content: ""
-    required property PointSequenceViewModel labelSequenceViewModel
     required property SelectionController selectionController
 
     readonly property QtObject labelViewModel: SequenceSlicerLoader.viewModel

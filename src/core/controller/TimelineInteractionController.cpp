@@ -5,7 +5,7 @@
 namespace sflow {
     TimelineInteractionController::TimelineInteractionController(QObject *parent)
         : QObject(parent),
-          m_interaction(MovePositionIndicator | ZoomByRubberBand | AdjustLoopRange) {
+          m_interaction(MovePlayhead | ZoomByRubberBand | AdjustLoopRange) {
     }
 
     TimelineInteractionController::~TimelineInteractionController() = default;

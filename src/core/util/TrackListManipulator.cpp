@@ -37,11 +37,11 @@ namespace sflow {
     void TrackListManipulatorPrivate::rebuildFromModel() {
         clearItemConnections();
         itemHeights.clear();
-        prefixDirty = true;
 
         if (!trackListViewModel) {
             setViewportHeight(0.0);
             prefixSums = {0.0};
+            updatePrefixSums();
             return;
         }
 
@@ -61,7 +61,7 @@ namespace sflow {
         }
 
         setViewportHeight(newHeight);
-        prefixSums.clear();
+        updatePrefixSums();
     }
 
     void TrackListManipulatorPrivate::handleRowHeightChanged(QObject *object) {
@@ -73,13 +73,11 @@ namespace sflow {
 
         itemHeights.insert(object, newHeight);
         setViewportHeight(viewportHeight + newHeight - oldHeight);
-        prefixDirty = true;
+        updatePrefixSums();
     }
 
-    void TrackListManipulatorPrivate::ensurePrefixReady() const {
-        if (!prefixDirty)
-            return;
-
+    void TrackListManipulatorPrivate::updatePrefixSums() {
+        Q_Q(TrackListManipulator);
         prefixSums.clear();
         prefixSums.reserve(itemHeights.size() + 1);
         prefixSums.push_back(0.0);
@@ -89,11 +87,10 @@ namespace sflow {
             for (auto *item : items) {
                 const double height = itemHeights.value(item, itemHeight(item));
                 prefixSums.push_back(prefixSums.back() + height);
-                itemHeights.insert(item, height);
             }
         }
 
-        prefixDirty = false;
+        emit q->mapChanged();
     }
 
     void TrackListManipulatorPrivate::setViewSize(double size) {
@@ -226,6 +223,11 @@ namespace sflow {
         return d->viewportHeight;
     }
 
+    QList<double> TrackListManipulator::map() const {
+        Q_D(const TrackListManipulator);
+        return d->prefixSums;
+    }
+
     void TrackListManipulator::moveViewBy(double deltaY, bool animated) {
         Q_D(TrackListManipulator);
         if (!d->trackListLayoutViewModel)
@@ -250,7 +252,6 @@ namespace sflow {
         if (!d->trackListViewModel || d->trackListViewModel->count() == 0)
             return 0;
 
-        d->ensurePrefixReady();
         const auto &prefix = d->prefixSums;
         const int count = d->trackListViewModel->count();
         const double totalHeight = prefix.isEmpty() ? 0.0 : prefix.constLast();
@@ -270,7 +271,6 @@ namespace sflow {
         if (!d->trackListViewModel || d->trackListViewModel->count() == 0)
             return 0.0;
 
-        d->ensurePrefixReady();
         const int count = d->trackListViewModel->count();
         const int clamped = qBound(0, position, count);
         return d->prefixSums.value(clamped, 0.0);

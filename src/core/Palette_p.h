@@ -47,7 +47,7 @@ namespace sflow {
 
             {"itemSelectedColorChange", QVariant::fromValue(SVS::ColorChange{SVS::TopBlendColorFilter{QColor::fromRgba(0x11ffffff)}})},
             {"clipSelectedColorChange", QVariant::fromValue(SVS::ColorChange{SVS::LighterColorChange{125}})},
-            {"clipThumbnailColorChange", QVariant::fromValue(SVS::ColorChange{SVS::LighterColorChange{120}})},
+            {"clipThumbnailColorChange", QVariant::fromValue(SVS::ColorChange{SVS::AlphaColorFilter{0.8}})},
             {"noteSelectedColorChange", QVariant::fromValue(SVS::ColorChange{SVS::LighterColorChange{125}})},
             {"noteBorderColorChange", QVariant::fromValue(SVS::ColorChange{SVS::LighterColorChange{90}})},
         }) {}

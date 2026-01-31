@@ -25,6 +25,7 @@ namespace sflow {
         Q_PROPERTY(double viewSize READ viewSize WRITE setViewSize RESET resetViewSize NOTIFY viewSizeChanged)
         Q_PROPERTY(double viewportHeight READ viewportHeight NOTIFY viewportHeightChanged)
         Q_PROPERTY(double overriddenRowHeight READ overriddenRowHeight WRITE setOverriddenRowHeight RESET resetOverriddenRowHeight NOTIFY overriddenRowHeightChanged)
+        Q_PROPERTY(QList<double> map READ map NOTIFY mapChanged)
     public:
         explicit TrackListManipulator(QObject *parent = nullptr);
         ~TrackListManipulator() override;
@@ -48,6 +49,8 @@ namespace sflow {
 
         double viewportHeight() const;
 
+        QList<double> map() const;
+
         Q_INVOKABLE void moveViewBy(double deltaY, bool animated = false);
         Q_INVOKABLE int mapToPosition(double y) const;
         Q_INVOKABLE double mapToY(int position) const;
@@ -59,6 +62,7 @@ namespace sflow {
         void viewSizeChanged();
         void overriddenRowHeightChanged();
         void viewportHeightChanged();
+        void mapChanged();
 
     private:
         QScopedPointer<TrackListManipulatorPrivate> d_ptr;

@@ -22,9 +22,8 @@ namespace sflow {
         double viewportHeight{};
         double overriddenRowHeight{};
 
-        mutable QVector<double> prefixSums;
-        mutable bool prefixDirty{true};
-        mutable QHash<QObject *, double> itemHeights;
+        QVector<double> prefixSums;
+        QHash<QObject *, double> itemHeights;
         QVector<QMetaObject::Connection> itemConnections;
         QMetaObject::Connection itemsChangedConnection;
 
@@ -37,7 +36,7 @@ namespace sflow {
         void clearItemConnections();
         void rebuildFromModel();
         void handleRowHeightChanged(QObject *object);
-        void ensurePrefixReady() const;
+        void updatePrefixSums();
     };
 }
 

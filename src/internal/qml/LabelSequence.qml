@@ -1,3 +1,5 @@
+pragma ComponentBehavior: Bound
+
 import QtQml
 import QtQuick
 import QtQuick.Controls
@@ -88,24 +90,6 @@ FocusScope {
         anchors.fill: parent
         color: Theme.backgroundColor(labelSequence.ThemedItem.backgroundLevel)
     }
-
-    GenericBackRightButtonMouseArea {
-        id: rightButtonMouseArea
-
-        controller: labelSequence.labelSequenceInteractionController
-        selectionController: labelSequence.selectionController
-        timeManipulator: timeManipulator
-    }
-
-    GenericBackHoverMouseArea {
-        id: hoverMouseArea
-
-        controller: labelSequence.labelSequenceInteractionController
-        target: labelSequence
-        timeManipulator: timeManipulator
-
-    }
-
     RubberBandDragHandler {
         id: rubberBandDragHandler
         controller: labelSequence.labelSequenceInteractionController
@@ -115,33 +99,15 @@ FocusScope {
         timeManipulator: timeManipulator
         mode: RubberBandDragHandler.TimeRange
     }
-
-    DispatcherMouseArea {
-        determineDragHandler: (mouse) => {
-            let m = {
-                [LabelSequenceInteractionController.RubberBandSelect]: rubberBandDragHandler,
-            }
-            if (mouse.modifiers & Qt.ControlModifier) {
-                return ((mouse.modifiers & Qt.AltModifier) ?
-                    m[labelSequence.labelSequenceInteractionController.secondarySelectInteraction] :
-                    m[labelSequence.labelSequenceInteractionController.primarySelectInteraction]) ?? null
-            } else {
-                return ((mouse.modifiers & Qt.AltModifier) ?
-                    m[labelSequence.labelSequenceInteractionController.secondarySceneInteraction] :
-                    m[labelSequence.labelSequenceInteractionController.primarySceneInteraction]) ?? null
-            }
-
-        }
-        onClicked: (mouse) => {
-            if (labelSequence.labelSequenceInteractionController.clickSelectable) {
-                labelSequence.selectionController.selectByMouse(null, Qt.LeftButton, mouse.modifiers);
-            }
-        }
-        onDoubleClicked: (mouse) => {
-            labelSequence.labelSequenceInteractionController.doubleClicked(labelSequence, timeManipulator.mapToPosition(mouse.x))
-        }
+    GenericComboSceneMouseArea {
+        controller: labelSequence.labelSequenceInteractionController
+        selectionController: labelSequence.selectionController
+        target: labelSequence
+        timeManipulator: timeManipulator
+        dispatchMap: ({
+            [LabelSequenceInteractionController.RubberBandSelect]: rubberBandDragHandler,
+        })
     }
-
     TimeViewportContainer {
         id: viewportContainer
 
@@ -160,12 +126,6 @@ FocusScope {
 
                 delegate: LabelSequenceDelegate {
                     id: labelRect
-                    function handleRubberBand() {
-                        if (visible)
-                            rubberBandLayer.insertItem(labelViewModel, Qt.rect(x, 0, width, 1 << 20));
-                        else
-                            rubberBandLayer.removeItem(labelViewModel);
-                    }
 
                     height: parent.height
                     selectionController: labelSequence.selectionController
@@ -173,86 +133,41 @@ FocusScope {
                     onLabelViewModelChanged: () => {
                         current = (labelSequence.selectionController?.currentItem === labelViewModel)
                     }
-                    Component.onDestruction: rubberBandLayer.removeItem(labelViewModel)
-                    onVisibleChanged: handleRubberBand()
-                    onWidthChanged: handleRubberBand()
-                    onXChanged: handleRubberBand()
 
+                    RubberBandItemConnections {
+                        target: labelRect
+                        viewModel: labelRect.labelViewModel
+                        rubberBandLayer: rubberBandLayer
+                    }
                     Binding {
                         labelRect.x: labelRect.labelViewModel.position * (labelSequence.timeLayoutViewModel?.pixelDensity ?? 0)
                         when: labelRect.SequenceSlicerLoader.inRange
                     }
-
-                    readonly property TimeManipulator timeManipulator_: timeManipulator
-                    GenericRightButtonMouseArea {
-                        id: rightButtonMouseArea
-
+                    component LabelMoveDragHandler: MoveDragHandler {
                         controller: labelSequence.labelSequenceInteractionController
                         selectionController: labelSequence.selectionController
                         paneItem: labelSequence
                         viewModel: labelRect.labelViewModel
+                        timeManipulator: timeManipulator
                     }
-                    GenericHoverMouseArea {
-                        id: hoverMouseArea
-
-                        controller: labelSequence.labelSequenceInteractionController
-                        paneItem: labelSequence
-                        viewModel: labelRect.labelViewModel
-                    }
-                    MoveDragHandler {
+                    LabelMoveDragHandler {
                         id: moveDragHandler
-                        controller: labelSequence.labelSequenceInteractionController
-                        paneItem: labelSequence
-                        viewModel: labelRect.labelViewModel
-                        timeManipulator: labelRect.timeManipulator_
-                        selectionController: labelSequence.selectionController
                         moveFlag: LabelSequenceInteractionController.MF_Move
                     }
-                    MoveDragHandler {
+                    LabelMoveDragHandler {
                         id: copyAndMoveDragHandler
-                        controller: labelSequence.labelSequenceInteractionController
-                        paneItem: labelSequence
-                        viewModel: labelRect.labelViewModel
-                        timeManipulator: labelRect.timeManipulator_
-                        selectionController: labelSequence.selectionController
                         moveFlag: LabelSequenceInteractionController.MF_CopyAndMove
                     }
-                    DispatcherMouseArea {
-                        determineDragHandler: (mouse) => {
-                            let m = {
-                                [LabelSequenceInteractionController.Move]: moveDragHandler,
-                                [LabelSequenceInteractionController.CopyAndMove]: copyAndMoveDragHandler,
-                                [LabelSequenceInteractionController.RubberBandSelect]: rubberBandDragHandler,
-                            }
-                            if (mouse.modifiers & Qt.ControlModifier) {
-                                return ((mouse.modifiers & Qt.AltModifier) ?
-                                    m[labelSequence.labelSequenceInteractionController.secondarySelectInteraction] :
-                                    m[labelSequence.labelSequenceInteractionController.primarySelectInteraction]) ?? null
-                            } else {
-                                return ((mouse.modifiers & Qt.AltModifier) ?
-                                    m[labelSequence.labelSequenceInteractionController.secondaryItemInteraction] :
-                                    m[labelSequence.labelSequenceInteractionController.primaryItemInteraction]) ?? null
-                            }
-
-                        }
-                        onClicked: (mouse) => {
-                            if (labelSequence.labelSequenceInteractionController.clickSelectable) {
-                                labelSequence.selectionController.selectByMouse(labelRect.labelViewModel, Qt.LeftButton, mouse.modifiers);
-                            }
-                        }
-                        onDoubleClicked: () => {
-                            labelSequence.labelSequenceInteractionController.itemDoubleClicked(labelSequence, labelRect.labelViewModel)
-                        }
-                    }
-                    Connections {
-                        id: cursorIndicatorBinding
-
-                        function onPositionChanged() {
-                            labelSequence.timeLayoutViewModel.cursorPosition = labelRect.labelViewModel.position;
-                        }
-
-                        enabled: false
-                        target: labelRect.labelViewModel
+                    GenericComboItemMouseArea {
+                        controller: labelSequence.labelSequenceInteractionController
+                        selectionController: labelSequence.selectionController
+                        paneItem: labelSequence
+                        viewModel: labelRect.labelViewModel
+                        dispatchMap: ({
+                            [LabelSequenceInteractionController.Move]: moveDragHandler,
+                            [LabelSequenceInteractionController.CopyAndMove]: copyAndMoveDragHandler,
+                            [LabelSequenceInteractionController.RubberBandSelect]: rubberBandDragHandler,
+                        })
                     }
                 }
             }

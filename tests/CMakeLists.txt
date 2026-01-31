@@ -2,3 +2,4 @@
 add_subdirectory(timeline)
 add_subdirectory(labelsequence)
 add_subdirectory(tracklist)
+add_subdirectory(clippane)

@@ -144,10 +144,8 @@ Item {
             controller: trackList.trackListInteractionController
             target: trackList
         }
-        Column {
+        Item {
             id: trackLayout
-
-            spacing: 0
 
             property bool dragging: false
 
@@ -188,6 +186,7 @@ Item {
 
                     width: parent.width
                     height: fitHeightAnimation.running ? animatedHeight : trackViewModel.rowHeight
+                    y: trackListManipulator.map[index]
                     trackNumber: (index + 1).toLocaleString()
                     trackViewModel: trackList.trackListViewModel.items[index]
                     selectionController: trackList.selectionController

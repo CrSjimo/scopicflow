@@ -21,11 +21,11 @@ DispatchedDragHandler {
     property RubberBandLayer rubberBandLayer: null
     property SelectionController selectionController: null
     property Item target: parent
-    property int mode: RubberBandeDragHandler.Normal
+    property int mode: RubberBandDragHandler.Normal
 
     onDragStarted: () => {
         controller.rubberBandDraggingStarted(target)
-        selectionController.selectByMouse(null, Qt.LeftButton, SelectionController.ClearPreviousSelection)
+        selectionController.selectByMouse(null, Qt.LeftButton, modifiers)
         let p = mapToItem(rubberBandLayer, startPoint)
         if (mode === RubberBandDragHandler.Normal) {
             rubberBandLayer.startSelection(p)

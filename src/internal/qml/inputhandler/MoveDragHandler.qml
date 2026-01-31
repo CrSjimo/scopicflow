@@ -11,7 +11,6 @@ DispatchedDragHandler {
     id: handler
 
     property QtObject controller: null
-    property int selectInteractionFlag: 0
     property Item paneItem: null
     property QtObject viewModel: null
     property TimeManipulator timeManipulator: null

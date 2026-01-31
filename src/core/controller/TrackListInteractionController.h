@@ -14,38 +14,57 @@ namespace sflow {
     class SCOPIC_FLOW_CORE_EXPORT TrackListInteractionController : public QObject {
         Q_OBJECT
         QML_ELEMENT
-        Q_PROPERTY(Interaction interaction READ interaction NOTIFY interactionChanged)
-        Q_PROPERTY(ItemInteraction itemInteraction READ itemInteraction NOTIFY itemInteractionChanged)
+        Q_PROPERTY(bool clickSelectable READ isClickSelectable WRITE setClickSelectable NOTIFY clickSelectableChanged)
+        Q_PROPERTY(Interaction primaryItemInteraction READ primaryItemInteraction WRITE setPrimaryItemInteraction NOTIFY primaryItemInteractionChanged)
+        Q_PROPERTY(Interaction secondaryItemInteraction READ secondaryItemInteraction WRITE setSecondaryItemInteraction NOTIFY secondaryItemInteractionChanged)
+        Q_PROPERTY(Interaction primarySceneInteraction READ primarySceneInteraction WRITE setPrimarySceneInteraction NOTIFY primarySceneInteractionChanged)
+        Q_PROPERTY(Interaction secondarySceneInteraction READ secondarySceneInteraction WRITE setSecondarySceneInteraction NOTIFY secondarySceneInteractionChanged)
+        Q_PROPERTY(Interaction primarySelectInteraction READ primarySelectInteraction WRITE setPrimarySelectInteraction NOTIFY primarySelectInteractionChanged)
+        Q_PROPERTY(Interaction secondarySelectInteraction READ secondarySelectInteraction WRITE setSecondarySelectInteraction NOTIFY secondarySelectInteractionChanged)
+        Q_PROPERTY(ItemAction itemAction READ itemAction WRITE setItemAction NOTIFY itemActionChanged)
+
     public:
         explicit TrackListInteractionController(QObject *parent = nullptr);
         ~TrackListInteractionController() override;
 
-        enum InteractionFlag {
-            SelectByRubberBand = 0x1,
+        bool isClickSelectable() const;
+        void setClickSelectable(bool clickSelectable);
+
+        enum Interaction {
+            None,
+            DragMove,
+            DragCopy,
+            RubberBandSelect = 0x10000,
         };
-        Q_ENUM(InteractionFlag)
-        Q_DECLARE_FLAGS(Interaction, InteractionFlag)
+        Q_ENUM(Interaction)
+        Interaction primaryItemInteraction() const;
+        void setPrimaryItemInteraction(Interaction itemInteraction);
+        Interaction secondaryItemInteraction() const;
+        void setSecondaryItemInteraction(Interaction itemInteraction);
+        Interaction primarySceneInteraction() const;
+        void setPrimarySceneInteraction(Interaction sceneInteraction);
+        Interaction secondarySceneInteraction() const;
+        void setSecondarySceneInteraction(Interaction sceneInteraction);
+        Interaction primarySelectInteraction() const;
+        void setPrimarySelectInteraction(Interaction sceneInteraction);
+        Interaction secondarySelectInteraction() const;
+        void setSecondarySelectInteraction(Interaction sceneInteraction);
 
-        void setInteraction(Interaction interaction);
-        Interaction interaction() const;
-
-        enum ItemInteractionFlag {
-            DragMove = 0x1,
-            Select = 0x2,
-            EditMute = 0x4,
-            EditSolo = 0x8,
-            EditRecord = 0x10,
-            EditName = 0x20,
-            EditGain = 0x40,
-            EditPan = 0x80,
-            AdjustHeight = 0x100,
-            EditMultiChannelOutput = 0x200,
+        enum ItemActionFlag {
+            EditMute = 0x1,
+            EditSolo = 0x2,
+            EditRecord = 0x4,
+            EditName = 0x8,
+            EditGain = 0x10,
+            EditPan = 0x20,
+            AdjustHeight = 0x40,
+            EditMultiChannelOutput = 0x80,
         };
-        Q_ENUM(ItemInteractionFlag)
-        Q_DECLARE_FLAGS(ItemInteraction, ItemInteractionFlag)
+        Q_ENUM(ItemActionFlag)
+        Q_DECLARE_FLAGS(ItemAction, ItemActionFlag)
 
-        void setItemInteraction(ItemInteraction itemInteraction);
-        ItemInteraction itemInteraction() const;
+        void setItemAction(ItemAction itemInteraction);
+        ItemAction itemAction() const;
 
         enum ItemHoverTarget {
             ItemBackground,
@@ -65,11 +84,18 @@ namespace sflow {
         Q_ENUM(ItemHoverTarget)
 
     Q_SIGNALS:
-        void interactionChanged();
-        void itemInteractionChanged();
+        void clickSelectableChanged();
+        void primaryItemInteractionChanged();
+        void secondaryItemInteractionChanged();
+        void primarySceneInteractionChanged();
+        void secondarySceneInteractionChanged();
+        void primarySelectInteractionChanged();
+        void secondarySelectInteractionChanged();
+        void itemActionChanged();
 
         void rubberBandDraggingStarted(QQuickItem *trackList);
-        void rubberBandDraggingFinished(QQuickItem *trackList);
+        void rubberBandDraggingCommitted(QQuickItem *trackList);
+        void rubberBandDraggingAborted(QQuickItem *trackList);
 
         void dragMovingStarted(QQuickItem *trackList, int index);
         void dragMovingCommitted(QQuickItem *trackList, int index);
@@ -121,12 +147,16 @@ namespace sflow {
         void copyItemsRequested(QQuickItem *trackList, int targetIndex);
 
     private:
-        Interaction m_interaction;
-        ItemInteraction m_itemInteraction;
+        bool m_clickSelectable;
+        Interaction m_primaryItemInteraction;
+        Interaction m_secondaryItemInteraction;
+        Interaction m_primarySceneInteraction;
+        Interaction m_secondarySceneInteraction;
+        Interaction m_primarySelectInteraction;
+        Interaction m_secondarySelectInteraction;
+        ItemAction m_itemAction;
     };
-
-    Q_DECLARE_OPERATORS_FOR_FLAGS(TrackListInteractionController::Interaction)
-    Q_DECLARE_OPERATORS_FOR_FLAGS(TrackListInteractionController::ItemInteraction)
+    Q_DECLARE_OPERATORS_FOR_FLAGS(TrackListInteractionController::ItemAction)
 
 }
 

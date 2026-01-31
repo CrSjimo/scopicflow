@@ -93,7 +93,6 @@ FocusScope {
         id: rightButtonMouseArea
 
         controller: labelSequence.labelSequenceInteractionController
-        selectInteractionFlag: LabelSequenceInteractionController.Select
         selectionController: labelSequence.selectionController
         timeManipulator: timeManipulator
     }
@@ -122,7 +121,16 @@ FocusScope {
             let m = {
                 [LabelSequenceInteractionController.RubberBandSelect]: rubberBandDragHandler,
             }
-            return ((mouse.modifiers & Qt.AltModifier) ? m[labelSequence.labelSequenceInteractionController.secondarySceneInteraction] : m[labelSequence.labelSequenceInteractionController.primarySceneInteraction]) ?? null
+            if (mouse.modifiers & Qt.ControlModifier) {
+                return ((mouse.modifiers & Qt.AltModifier) ?
+                    m[labelSequence.labelSequenceInteractionController.secondarySelectInteraction] :
+                    m[labelSequence.labelSequenceInteractionController.primarySelectInteraction]) ?? null
+            } else {
+                return ((mouse.modifiers & Qt.AltModifier) ?
+                    m[labelSequence.labelSequenceInteractionController.secondarySceneInteraction] :
+                    m[labelSequence.labelSequenceInteractionController.primarySceneInteraction]) ?? null
+            }
+
         }
         onClicked: (mouse) => {
             if (labelSequence.labelSequenceInteractionController.clickSelectable) {
@@ -180,7 +188,6 @@ FocusScope {
                         id: rightButtonMouseArea
 
                         controller: labelSequence.labelSequenceInteractionController
-                        selectInteractionFlag: LabelSequenceInteractionController.Select
                         selectionController: labelSequence.selectionController
                         paneItem: labelSequence
                         viewModel: labelRect.labelViewModel
@@ -195,7 +202,6 @@ FocusScope {
                     MoveDragHandler {
                         id: moveDragHandler
                         controller: labelSequence.labelSequenceInteractionController
-                        selectInteractionFlag: LabelSequenceInteractionController.Select
                         paneItem: labelSequence
                         viewModel: labelRect.labelViewModel
                         timeManipulator: labelRect.timeManipulator_
@@ -205,7 +211,6 @@ FocusScope {
                     MoveDragHandler {
                         id: copyAndMoveDragHandler
                         controller: labelSequence.labelSequenceInteractionController
-                        selectInteractionFlag: LabelSequenceInteractionController.Select
                         paneItem: labelSequence
                         viewModel: labelRect.labelViewModel
                         timeManipulator: labelRect.timeManipulator_
@@ -219,7 +224,15 @@ FocusScope {
                                 [LabelSequenceInteractionController.CopyAndMove]: copyAndMoveDragHandler,
                                 [LabelSequenceInteractionController.RubberBandSelect]: rubberBandDragHandler,
                             }
-                            return ((mouse.modifiers & Qt.AltModifier) ? m[labelSequence.labelSequenceInteractionController.secondaryItemInteraction] : m[labelSequence.labelSequenceInteractionController.primaryItemInteraction]) ?? null
+                            if (mouse.modifiers & Qt.ControlModifier) {
+                                return ((mouse.modifiers & Qt.AltModifier) ?
+                                    m[labelSequence.labelSequenceInteractionController.secondarySelectInteraction] :
+                                    m[labelSequence.labelSequenceInteractionController.primarySelectInteraction]) ?? null
+                            } else {
+                                return ((mouse.modifiers & Qt.AltModifier) ?
+                                    m[labelSequence.labelSequenceInteractionController.secondaryItemInteraction] :
+                                    m[labelSequence.labelSequenceInteractionController.primaryItemInteraction]) ?? null
+                            }
 
                         }
                         onClicked: (mouse) => {

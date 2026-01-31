@@ -53,12 +53,12 @@ Item {
             anchors.fill: parent
 
             onClicked: mouse => {
-                if (mixer.trackListInteractionController.itemInteraction & TrackListInteractionController.Select) {
+                if (mixer.trackListInteractionController.clickSelectable) {
                     mixer.selectionController.selectByMouse(null, mouse.button, mouse.modifiers);
                 }
             }
             onDoubleClicked: mouse => {
-                if (mixer.trackListInteractionController.itemInteraction & TrackListInteractionController.Select) {
+                if (mixer.trackListInteractionController.clickSelectable) {
                     mixer.selectionController.selectByMouse(null, mouse.button, mouse.modifiers);
                 }
                 mixer.trackListInteractionController.doubleClicked(mixer)
@@ -68,7 +68,6 @@ Item {
         GenericBackRightButtonMouseArea {
             id: backRightButtonMouseArea
 
-            selectInteractionFlag: TrackListInteractionController.Select
             selectionController: mixer.selectionController
             controller: mixer.trackListInteractionController
             target: mixer
@@ -108,7 +107,7 @@ Item {
                         hoverEnabled: true
 
                         onClicked: mouse => {
-                            if (mixer.trackListInteractionController.itemInteraction & TrackListInteractionController.Select) {
+                            if (mixer.trackListInteractionController.clickSelectable) {
                                 mixer.selectionController.selectByMouse(trackViewModel, mouse.button, mouse.modifiers);
                             }
                         }
@@ -119,7 +118,6 @@ Item {
 
                     GenericRightButtonMouseArea {
                         controller: mixer.trackListInteractionController
-                        selectInteractionFlag: TrackListInteractionController.Select
                         paneItem: mixer
                         viewModel: trackViewModel
                         selectionController: mixer.selectionController
@@ -142,9 +140,9 @@ Item {
                     color: Theme.borderColor
                 }
 
-                trackMSR.muteButton.visible: Boolean(mixer.trackListInteractionController.itemInteraction & TrackListInteractionController.EditMute)
-                trackMSR.soloButton.visible: Boolean(mixer.trackListInteractionController.itemInteraction & TrackListInteractionController.EditSolo)
-                trackMSR.recordButton.visible: Boolean(mixer.trackListInteractionController.itemInteraction & TrackListInteractionController.EditRecord)
+                trackMSR.muteButton.visible: Boolean(mixer.trackListInteractionController.itemAction & TrackListInteractionController.EditMute)
+                trackMSR.soloButton.visible: Boolean(mixer.trackListInteractionController.itemAction & TrackListInteractionController.EditSolo)
+                trackMSR.recordButton.visible: Boolean(mixer.trackListInteractionController.itemAction & TrackListInteractionController.EditRecord)
 
                 trackMSR.muteButton.onClicked: () => {
                     mixer.trackListInteractionController.muteEditingStarted(mixer, index)
@@ -184,7 +182,7 @@ Item {
                     }
                 }
 
-                trackNameEditLabel.readOnly: !(mixer.trackListInteractionController.itemInteraction & TrackListInteractionController.EditName)
+                trackNameEditLabel.readOnly: !(mixer.trackListInteractionController.itemAction & TrackListInteractionController.EditName)
                 trackNameEditLabel.onEditingStarted: mixer.trackListInteractionController.nameEditingStarted(mixer, index)
                 trackNameEditLabel.onEditingCommitted: text => {
                     trackViewModel.name = text
@@ -199,7 +197,7 @@ Item {
                     }
                 }
 
-                gainSlider.enabled: Boolean(mixer.trackListInteractionController.itemInteraction & TrackListInteractionController.EditGain)
+                gainSlider.enabled: Boolean(mixer.trackListInteractionController.itemAction & TrackListInteractionController.EditGain)
                 gainSlider.onPressedChanged: () => {
                     if (gainSlider.pressed) {
                         mixer.trackListInteractionController.gainEditingStarted(mixer, index)
@@ -221,7 +219,7 @@ Item {
                     }
                 }
 
-                gainEditLabel.readOnly: !(mixer.trackListInteractionController.itemInteraction & TrackListInteractionController.EditGain)
+                gainEditLabel.readOnly: !(mixer.trackListInteractionController.itemAction & TrackListInteractionController.EditGain)
                 gainEditLabel.onEditingStarted: mixer.trackListInteractionController.gainEditingStarted(mixer, index)
                 gainEditLabel.onEditingCommitted: text => {
                     trackViewModel.gain = Number.fromLocaleString(Qt.locale(), text)
@@ -236,7 +234,7 @@ Item {
                     }
                 }
 
-                panDial.enabled: Boolean(mixer.trackListInteractionController.itemInteraction & TrackListInteractionController.EditPan)
+                panDial.enabled: Boolean(mixer.trackListInteractionController.itemAction & TrackListInteractionController.EditPan)
                 panDial.onPressedChanged: () => {
                     if (panDial.pressed) {
                         mixer.trackListInteractionController.panEditingStarted(mixer, index)
@@ -258,7 +256,7 @@ Item {
                     }
                 }
 
-                panEditLabel.readOnly: !(mixer.trackListInteractionController.itemInteraction & TrackListInteractionController.EditPan)
+                panEditLabel.readOnly: !(mixer.trackListInteractionController.itemAction & TrackListInteractionController.EditPan)
                 panEditLabel.onEditingStarted: mixer.trackListInteractionController.panEditingStarted(mixer, index)
                 panEditLabel.onEditingCommitted: text => {
                     trackViewModel.pan = Number.fromLocaleString(Qt.locale(), text) * 0.01
@@ -285,7 +283,7 @@ Item {
                 peakMouseArea.onEntered: () => mixer.trackListInteractionController.itemHoverEntered(mixer, trackViewModel, TrackListInteractionController.LevelMeter)
                 peakMouseArea.onExited: () => mixer.trackListInteractionController.itemHoverExited(mixer, trackViewModel, TrackListInteractionController.LevelMeter)
 
-                multiChannelOutputButton.visible: Boolean(mixer.trackListInteractionController.itemInteraction & TrackListInteractionController.EditMultiChannelOutput)
+                multiChannelOutputButton.visible: Boolean(mixer.trackListInteractionController.itemAction & TrackListInteractionController.EditMultiChannelOutput)
                 multiChannelOutputButton.onClicked: () => {
                     mixer.trackListInteractionController.multiChannelOutputEditingStarted(mixer, index)
                     trackViewModel.multiChannelOutput = multiChannelOutputButton.checked

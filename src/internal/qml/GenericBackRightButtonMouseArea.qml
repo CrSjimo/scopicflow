@@ -11,7 +11,6 @@ MouseArea {
     id: mouseArea
 
     property TimeManipulator timeManipulator: null
-    property int selectInteractionFlag: 0
     property var verticalManipulator: null
     property SelectionController selectionController: null
     property var controller: null
@@ -32,7 +31,7 @@ MouseArea {
                 controller.contextMenuRequested(target)
             }
         }
-        if (selectionController && controller && ((controller.itemInteraction ?? 0) & selectInteractionFlag)) {
+        if (selectionController && controller && controller.clickSelectable) {
             selectionController.selectByMouse(null, mouse.button, mouse.modifiers);
         }
     }

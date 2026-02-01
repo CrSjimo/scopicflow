@@ -13,11 +13,13 @@ namespace sflow {
         explicit SliceableViewModelManipulatorInterface(QObject *parent = nullptr);
         ~SliceableViewModelManipulatorInterface() override;
 
-        virtual QObjectList items() const = 0;
-        virtual QObjectList slice(int position, int length) const = 0;
-        virtual int itemPosition(QObject *item) const = 0;
-        virtual int itemLength(QObject *item) const;
-        virtual QObjectList itemsBetween(QObject *item1, QObject *item2) const = 0;
+        Q_INVOKABLE virtual QObjectList items() const = 0;
+        Q_INVOKABLE virtual QObjectList slice(int position, int length) const = 0;
+        Q_INVOKABLE virtual int itemPosition(QObject *item) const = 0;
+        Q_INVOKABLE virtual int itemLength(QObject *item) const;
+        Q_INVOKABLE virtual QObjectList itemsBetween(QObject *item1, QObject *item2) const = 0;
+        Q_INVOKABLE virtual QObject *previousItem(QObject *item) const = 0;
+        Q_INVOKABLE virtual QObject *nextItem(QObject *item) const = 0;
 
     signals:
         void itemAboutToInsert(QObject *item);

@@ -74,6 +74,10 @@ namespace sflow {
         void movingCommitted(QQuickItem *clipPane, ClipViewModel *item);
         void movingAborted(QQuickItem *clipPane, ClipViewModel *item);
 
+        void adjustLengthStarted(QQuickItem *clipPane, ClipViewModel *item);
+        void adjustLengthCommitted(QQuickItem *clipPane, ClipViewModel *item);
+        void adjustLengthAborted(QQuickItem *clipPane, ClipViewModel *item);
+
         void hoverEntered(QQuickItem *clipPane, int position, int trackIndex);
         void hoverMoved(QQuickItem *clipPane, int position, int trackIndex);
         void hoverExited(QQuickItem *clipPane);

@@ -21,6 +21,7 @@ FocusScope {
     property TrackListLayoutViewModel trackListLayoutViewModel: null
     property ClipPaneInteractionController clipPaneInteractionController: null
     property SelectionController selectionController: null
+    property Component thumbnailComponent: null
 
     clip: true
 
@@ -106,6 +107,20 @@ FocusScope {
             [ClipPaneInteractionController.TimeRangeSelect]: timeRangeDragHandler
         })
     }
+    Connections {
+        target: clipPane.selectionController
+        function onCurrentItemChanged() {
+            let oldItem = slicer.itemForModel(slicer.lastCurrentItem)
+            if (oldItem) {
+                oldItem.current = false
+            }
+            let newItem = slicer.itemForModel(clipPane.selectionController.currentItem)
+            if (newItem) {
+                newItem.current = true
+            }
+            slicer.lastCurrentItem = clipPane.selectionController.currentItem
+        }
+    }
     TimeViewportContainer {
         id: viewportContainer
 
@@ -121,15 +136,22 @@ FocusScope {
                 sliceWidth: clipPane.width
                 timeLayoutViewModel: clipPane.timeLayoutViewModel
                 timeViewModel: clipPane.timeViewModel
+                property ClipViewModel lastCurrentItem: null
 
                 delegate: ClipPaneDelegate {
                     id: clipPaneDelegate
                     selectionController: clipPane.selectionController
+                    thumbnailComponent: clipPane.thumbnailComponent
+                    onClipViewModelChanged: () => {
+                        current = (clipPane.selectionController?.currentItem === clipViewModel)
+                    }
                     Binding {
                         clipPaneDelegate.x: clipPaneDelegate.clipViewModel.position * (clipPane.timeLayoutViewModel?.pixelDensity ?? 0)
                         clipPaneDelegate.y: trackListManipulator.map[clipPaneDelegate.clipViewModel?.trackIndex ?? 0] ?? 0
                         clipPaneDelegate.width: clipPaneDelegate.clipViewModel.length * (clipPane.timeLayoutViewModel?.pixelDensity ?? 0)
                         clipPaneDelegate.height: clipPane.trackListViewModel?.items[clipPaneDelegate.clipViewModel?.trackIndex ?? 0]?.rowHeight ?? 0
+                        clipPaneDelegate.headerMargin: ((clipPane.timeViewModel?.start ?? 0) - (clipPaneDelegate.clipViewModel?.position ?? 0)) * (clipPane.timeLayoutViewModel?.pixelDensity ?? 0)
+                        clipPaneDelegate.color: clipPane.trackListViewModel?.items[clipPaneDelegate.clipViewModel?.trackIndex ?? 0]?.color ?? Qt.rgba(0, 0, 0, 0)
                         when: clipPaneDelegate.SequenceSlicerLoader.inRange
                     }
                     RubberBandItemConnections {
@@ -137,19 +159,35 @@ FocusScope {
                         viewModel: clipPaneDelegate.clipViewModel
                         rubberBandLayer: rubberBandLayer
                     }
-                    component LabelMoveDragHandler: MoveDragHandler {
+                    component ClipMoveDragHandler: MoveDragHandler {
                         controller: clipPane.clipPaneInteractionController
                         selectionController: clipPane.selectionController
                         paneItem: clipPane
                         viewModel: clipPaneDelegate.clipViewModel
                         timeManipulator: timeManipulator
                         verticalManipulator: trackListManipulator
+                        onMoveSelectionToYRequested: y => {
+                            let trackCount = clipPane.trackListViewModel.items.length;
+                            let mappingOffset = 0.5 * clipPane.trackListViewModel.items[viewModel.trackIndex].rowHeight;
+                            let targetIndex = trackListManipulator.mapToPosition(y + clipPane.trackListLayoutViewModel.viewportOffset + mappingOffset);
+                            if (targetIndex !== viewModel.trackIndex) {
+                                let deltaIndex = targetIndex - viewModel.trackIndex;
+                                let selection = selectionController.getSelectedItems()
+                                for (let clip of selection) {
+                                    if (clip.trackIndex + deltaIndex < 0 || clip.trackIndex + deltaIndex >= trackCount)
+                                        return;
+                                }
+                                for (let clip of selection) {
+                                    clip.trackIndex += deltaIndex;
+                                }
+                            }
+                        }
                     }
-                    LabelMoveDragHandler {
+                    ClipMoveDragHandler {
                         id: moveDragHandler
                         moveFlag: ClipPaneInteractionController.MF_Move
                     }
-                    LabelMoveDragHandler {
+                    ClipMoveDragHandler {
                         id: copyAndMoveDragHandler
                         moveFlag: ClipPaneInteractionController.MF_CopyAndMove
                     }
@@ -165,6 +203,84 @@ FocusScope {
                             [ClipPaneInteractionController.TimeRangeSelect]: timeRangeDragHandler
                         })
                     }
+                    component ClipEdgeDragHandler: EdgeDragHandler {
+                        controller: clipPane.clipPaneInteractionController
+                        selectionController: clipPane.selectionController
+                        paneItem: clipPane
+                        viewModel: clipPaneDelegate.clipViewModel
+                        timeManipulator: timeManipulator
+                        onUpdateUnitedExtendRequested: () => {
+                            let selection = clipPane.selectionController.getSelectedItems()
+                            if (selection.length !== 1) {
+                                return
+                            }
+                            let clip = selection[0];
+                            if (edge === EdgeDragHandler.LeftEdge) {
+                                for (let previousClip = clip;;) {
+                                    previousClip = clipPane.clipSequenceViewModel.iSliceable.previousItem(previousClip);
+                                    if (!previousClip || previousClip.position + previousClip.length < clip.position) {
+                                        break
+                                    }
+                                    if (previousClip.position + previousClip.length > clip.position) {
+                                        continue
+                                    }
+                                    if (previousClip.trackIndex !== clip.trackIndex) {
+                                        continue
+                                    }
+                                    unitedExtendItem = previousClip
+                                    unitedExtendRestrict = previousClip.length
+                                }
+                            } else if (edge === EdgeDragHandler.RightEdge) {
+                                for (let nextClip = clip;;) {
+                                    nextClip = clipPane.clipSequenceViewModel.iSliceable.nextItem(nextClip);
+                                    if (!nextClip || nextClip.position > clip.position + clip.length) {
+                                        break
+                                    }
+                                    if (nextClip.position < clip.position + clip.length) {
+                                        continue
+                                    }
+                                    if (nextClip.trackIndex !== clip.trackIndex) {
+                                        continue
+                                    }
+                                    unitedExtendItem = nextClip
+                                    unitedExtendRestrict = nextClip.length
+                                }
+                            }
+                        }
+                    }
+                    Item {
+                        id: leftDragHandle
+                        anchors.left: parent.left
+                        height: parent.height
+                        width: Math.min(4, parent.width / 2)
+                        ClipEdgeDragHandler {
+                            id: leftEdgeDragHandler
+                            edge: EdgeDragHandler.LeftEdge
+                        }
+                        DispatcherMouseArea {
+                            determineDragHandler: () => leftEdgeDragHandler
+                        }
+                        HoverHandler {
+                            cursorShape: Qt.SizeHorCursor
+                        }
+                    }
+                    Item {
+                        id: rightDragHandle
+                        anchors.right: parent.right
+                        height: parent.height
+                        width: Math.min(4, parent.width / 2)
+                        ClipEdgeDragHandler {
+                            id: rightEdgeDragHandler
+                            edge: EdgeDragHandler.RightEdge
+                        }
+                        DispatcherMouseArea {
+                            determineDragHandler: () => rightEdgeDragHandler
+                        }
+                        HoverHandler {
+                            cursorShape: Qt.SizeHorCursor
+                        }
+                    }
+
                 }
             }
         }

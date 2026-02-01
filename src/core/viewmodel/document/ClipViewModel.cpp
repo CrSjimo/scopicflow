@@ -86,17 +86,6 @@ namespace sflow {
         }
     }
 
-    QColor ClipViewModel::color() const {
-        return m_color;
-    }
-
-    void ClipViewModel::setColor(const QColor &color) {
-        if (m_color != color) {
-            m_color = color;
-            Q_EMIT colorChanged();
-        }
-    }
-
     bool ClipViewModel::isMute() const {
         return m_mute;
     }

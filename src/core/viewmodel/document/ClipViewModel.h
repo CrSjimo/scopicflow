@@ -4,7 +4,6 @@
 #include <QObject>
 #include <QString>
 #include <QUrl>
-#include <QColor>
 #include <qqmlintegration.h>
 
 #include <ScopicFlowCore/ScopicFlowCoreGlobal.h>
@@ -21,7 +20,6 @@ namespace sflow {
         Q_PROPERTY(int clipStart READ clipStart WRITE setClipStart NOTIFY clipStartChanged)
         Q_PROPERTY(int maxLength READ maxLength WRITE setMaxLength NOTIFY maxLengthChanged)
         Q_PROPERTY(int trackIndex READ trackIndex WRITE setTrackIndex NOTIFY trackIndexChanged)
-        Q_PROPERTY(QColor color READ color WRITE setColor NOTIFY colorChanged)
         Q_PROPERTY(bool mute READ isMute WRITE setMute NOTIFY muteChanged)
         Q_PROPERTY(bool selected READ isSelected WRITE setSelected NOTIFY selectedChanged)
         Q_PROPERTY(bool overlapped READ isOverlapped WRITE setOverlapped NOTIFY overlappedChanged)
@@ -50,9 +48,6 @@ namespace sflow {
         int trackIndex() const;
         void setTrackIndex(int trackIndex);
 
-        QColor color() const;
-        void setColor(const QColor &color);
-
         bool isMute() const;
         void setMute(bool mute);
 
@@ -70,7 +65,6 @@ namespace sflow {
         void clipStartChanged();
         void maxLengthChanged();
         void trackIndexChanged();
-        void colorChanged();
         void muteChanged();
         void selectedChanged();
         void overlappedChanged();
@@ -83,7 +77,6 @@ namespace sflow {
         int m_clipStart;
         int m_maxLength;
         int m_trackIndex;
-        QColor m_color;
         bool m_mute;
         bool m_selected;
         bool m_overlapped;

@@ -58,11 +58,12 @@ int main(int argc, char **argv) {
     for (int i = 0; i < 8; i++) {
         auto clipViewModel = new ClipViewModel(&a);
         clipViewModel->setName("Clip " + QString::number(i));
-        clipViewModel->setColor(QColor::fromHsl((i % 4) * 60, 100, 80));
         clipViewModel->setTrackIndex(i % 4);
         clipViewModel->setPosition(i * 480);
         clipViewModel->setLength(1440);
         clipViewModel->setMaxLength(1920);
+        clipViewModel->setIconSource(i % 2 ? QUrl("image://fluent-system-icons/mic") : QUrl("image://fluent-system-icons/sound_wave_circle"));
+        clipViewModel->setOverlapped(i == 6);
         clipSequenceViewModel.insertItem(clipViewModel);
     }
 

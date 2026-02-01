@@ -36,6 +36,16 @@ ApplicationWindow {
         timeLayoutViewModel: main.timeLayoutViewModel
         clipSequenceViewModel: main.clipSequenceViewModel
         clipPaneInteractionController: main.clipPaneInteractionController
+        thumbnailComponent: Item {
+            id: thumbnail
+            required property ClipViewModel clipViewModel
+            required property bool visualVisible
+            Label {
+                text: "This is a custom thumbnail item"
+                anchors.verticalCenter: parent.verticalCenter
+                x: -(thumbnail.clipViewModel?.clipStart ?? 0) * (main.timeLayoutViewModel?.pixelDensity ?? 0)
+            }
+        }
     }
 
 }

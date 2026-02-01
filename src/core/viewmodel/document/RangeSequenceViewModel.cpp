@@ -51,6 +51,14 @@ namespace sflow {
         }
         return ret;
     }
+    QObject *RangeSequenceViewModelSliceableManipulatorInterface::previousItem(QObject *item) const {
+        Q_D(const RangeSequenceViewModel);
+        return d->pointContainer.previousItem(item);
+    }
+    QObject *RangeSequenceViewModelSliceableManipulatorInterface::nextItem(QObject *item) const {
+        Q_D(const RangeSequenceViewModel);
+        return d->pointContainer.nextItem(item);
+    }
 
     static QMetaMethod handleItemPositionChangedMetaMethod;
     static QMetaMethod handleItemLengthChangedMetaMethod;

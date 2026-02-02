@@ -1,9 +1,11 @@
 #include "ClipViewModel.h"
 
+#include <limits>
+
 namespace sflow {
 
     ClipViewModel::ClipViewModel(QObject *parent) : QObject(parent),
-        m_position(0), m_length(0), m_clipStart(0), m_maxLength(0),
+        m_position(0), m_length(0), m_clipStart(0), m_maxLength(std::numeric_limits<int>::max()),
         m_trackIndex(0), m_mute(false), m_selected(false), m_overlapped(false) {
     }
 

@@ -71,7 +71,7 @@ FocusScope {
 
                 width: parent.width
                 height: trackViewModel?.rowHeight ?? 0
-                y: trackListManipulator.map[index]
+                y: trackListManipulator.map[index] ?? 0
                 Rectangle {
                     width: parent.width
                     height: 2
@@ -96,6 +96,23 @@ FocusScope {
         id: timeRangeDragHandler
         mode: RubberBandDragHandler.TimeRange
     }
+    DrawDragHandler {
+        id: drawDragHandler
+        controller: clipPane.clipPaneInteractionController
+        selectionController: clipPane.selectionController
+        target: clipPane
+        timeManipulator: timeManipulator
+        verticalManipulator: trackListManipulator
+        onCreateViewModelRequested: (position, trackIndex) => {
+            if (trackIndex >= clipPane.trackListViewModel.count)
+                return
+            viewModel = clipPane.clipPaneInteractionController.createAndInsertClipOnDrawing(clipPane.clipSequenceViewModel, position, trackIndex)
+            viewModel.length = clipPane.timeLayoutViewModel.positionAlignment
+        }
+        onUpdateViewModelRequested: (length) => {
+            viewModel.length = length
+        }
+    }
     GenericComboSceneMouseArea {
         controller: clipPane.clipPaneInteractionController
         selectionController: clipPane.selectionController
@@ -104,7 +121,8 @@ FocusScope {
         verticalManipulator: trackListManipulator
         dispatchMap: ({
             [ClipPaneInteractionController.RubberBandSelect]: rubberBandDragHandler,
-            [ClipPaneInteractionController.TimeRangeSelect]: timeRangeDragHandler
+            [ClipPaneInteractionController.TimeRangeSelect]: timeRangeDragHandler,
+            [ClipPaneInteractionController.Draw]: drawDragHandler
         })
     }
     Connections {
@@ -146,9 +164,9 @@ FocusScope {
                         current = (clipPane.selectionController?.currentItem === clipViewModel)
                     }
                     Binding {
-                        clipPaneDelegate.x: clipPaneDelegate.clipViewModel.position * (clipPane.timeLayoutViewModel?.pixelDensity ?? 0)
+                        clipPaneDelegate.x: (clipPaneDelegate.clipViewModel?.position ?? 0) * (clipPane.timeLayoutViewModel?.pixelDensity ?? 0)
                         clipPaneDelegate.y: trackListManipulator.map[clipPaneDelegate.clipViewModel?.trackIndex ?? 0] ?? 0
-                        clipPaneDelegate.width: clipPaneDelegate.clipViewModel.length * (clipPane.timeLayoutViewModel?.pixelDensity ?? 0)
+                        clipPaneDelegate.width: (clipPaneDelegate.clipViewModel?.length ?? 0) * (clipPane.timeLayoutViewModel?.pixelDensity ?? 0)
                         clipPaneDelegate.height: clipPane.trackListViewModel?.items[clipPaneDelegate.clipViewModel?.trackIndex ?? 0]?.rowHeight ?? 0
                         clipPaneDelegate.headerMargin: ((clipPane.timeViewModel?.start ?? 0) - (clipPaneDelegate.clipViewModel?.position ?? 0)) * (clipPane.timeLayoutViewModel?.pixelDensity ?? 0)
                         clipPaneDelegate.color: clipPane.trackListViewModel?.items[clipPaneDelegate.clipViewModel?.trackIndex ?? 0]?.color ?? Qt.rgba(0, 0, 0, 0)
@@ -200,7 +218,8 @@ FocusScope {
                             [ClipPaneInteractionController.Move]: moveDragHandler,
                             [ClipPaneInteractionController.CopyAndMove]: copyAndMoveDragHandler,
                             [ClipPaneInteractionController.RubberBandSelect]: rubberBandDragHandler,
-                            [ClipPaneInteractionController.TimeRangeSelect]: timeRangeDragHandler
+                            [ClipPaneInteractionController.TimeRangeSelect]: timeRangeDragHandler,
+                            [ClipPaneInteractionController.Draw]: drawDragHandler
                         })
                     }
                     component ClipEdgeDragHandler: EdgeDragHandler {

@@ -2,6 +2,7 @@
 
 #include <QQuickItem>
 #include <ScopicFlowCore/ClipViewModel.h>
+#include <ScopicFlowCore/RangeSequenceViewModel.h>
 
 namespace sflow {
     ClipPaneInteractionController::ClipPaneInteractionController(QObject *parent)
@@ -75,6 +76,13 @@ namespace sflow {
             m_secondarySelectInteraction = sceneInteraction;
             emit secondarySelectInteractionChanged();
         }
+    }
+    ClipViewModel *ClipPaneInteractionController::createAndInsertClipOnDrawing(RangeSequenceViewModel *clipSequenceViewModel, int position, int trackIndex) {
+        auto clipViewModel = new ClipViewModel(clipSequenceViewModel);
+        clipViewModel->setPosition(position);
+        clipViewModel->setTrackIndex(trackIndex);
+        clipSequenceViewModel->insertItem(clipViewModel);
+        return clipViewModel;
     }
 
 }

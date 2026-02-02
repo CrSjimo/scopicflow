@@ -69,6 +69,7 @@ int main(int argc, char **argv) {
 
     StandardSelectionController selectionController(&clipSequenceViewModel, &a);
     ClipPaneInteractionController clipPaneInteractionController(&a);
+    clipPaneInteractionController.setPrimarySceneInteraction(ClipPaneInteractionController::Draw);
 
     QQmlApplicationEngine engine;
     SVS::FluentSystemIconsImageProvider::addToEngine(&engine);

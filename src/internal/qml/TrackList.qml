@@ -225,6 +225,7 @@ Item {
                                     trackList.trackListInteractionController.dragMovingAborted(trackList, trackListDelegate.index)
                                 }
                                 trackDragScroller.lastIndicatorIndex = -1;
+                                trackDragScroller.running = trackDragScroller.draggingStarted = false;
                             }
                             onDragCanceled: () => {
                                 trackList.trackListInteractionController.dragMovingAborted(trackList, trackListDelegate.index)
@@ -233,13 +234,21 @@ Item {
                                     handle.indicatesTarget = false;
                                 }
                                 trackDragScroller.lastIndicatorIndex = -1;
+                                trackDragScroller.running = trackDragScroller.draggingStarted = false;
                             }
                             DragScroller {
                                 id: trackDragScroller
 
                                 property int lastIndicatorIndex: -1
+                                property bool draggingStarted: false
 
                                 function handlePositionChanged(y) {
+                                    if (!draggingStarted) {
+                                        if (Math.abs(y - trackDragHandler.startPoint.y) < 4) {
+                                            return
+                                        }
+                                    }
+                                    draggingStarted = true
                                     let point = mapToItem(trackLayout, 0, y);
                                     let index = trackLayout.indexAt(point);
                                     if (lastIndicatorIndex !== -1) {

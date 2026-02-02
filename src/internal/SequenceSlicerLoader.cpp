@@ -117,6 +117,7 @@ namespace sflow {
         auto ctx = qobject_cast<SequenceSlicerLoaderContext *>(qmlAttachedPropertiesObject<SequenceSlicerLoader>(item));
         ctx->setViewModel(itemModel);
         ctx->setInRange(visible);
+        Q_ASSERT(!visibleItems.contains(itemModel) && !invisibleItems.contains(itemModel));
         if (visible) {
             visibleItems.insert(itemModel, item);
         } else {

@@ -26,6 +26,7 @@ DispatchedDragHandler {
     onDragStarted: () => {
         controller.rubberBandDraggingStarted(target)
         selectionController.selectByMouse(null, Qt.LeftButton, modifiers)
+        dragScroller.lastTargetPoint = startPoint
         let p = mapToItem(rubberBandLayer, startPoint)
         if (mode === RubberBandDragHandler.Normal) {
             rubberBandLayer.startSelection(p)

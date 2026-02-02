@@ -107,6 +107,8 @@ FocusScope {
             if (thumbnailItem) {
                 thumbnailItem.destroy()
             }
+            if (!thumbnailComponent)
+                return
             thumbnailItem = thumbnailComponent.createObject(thumbnailBoundingItem, {
                 "clipViewModel": clip.clipViewModel,
                 "visualVisible": clip.SequenceSlicerLoader.inRange

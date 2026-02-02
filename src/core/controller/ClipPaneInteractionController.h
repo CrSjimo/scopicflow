@@ -12,6 +12,7 @@ class QQuickItem;
 namespace sflow {
 
     class ClipViewModel;
+    class RangeSequenceViewModel;
 
     class SCOPIC_FLOW_CORE_EXPORT ClipPaneInteractionController : public QObject {
         Q_OBJECT
@@ -36,6 +37,7 @@ namespace sflow {
             CopyAndMove,
             RubberBandSelect = 0x10000,
             TimeRangeSelect,
+            Draw,
         };
         Q_ENUM(Interaction)
         Interaction primaryItemInteraction() const;
@@ -57,6 +59,8 @@ namespace sflow {
         };
         Q_ENUM(MoveFlag)
 
+        Q_INVOKABLE virtual ClipViewModel *createAndInsertClipOnDrawing(RangeSequenceViewModel *clipSequenceViewModel, int position, int trackIndex);
+
     Q_SIGNALS:
         void clickSelectableChanged();
         void primaryItemInteractionChanged();
@@ -77,6 +81,10 @@ namespace sflow {
         void adjustLengthStarted(QQuickItem *clipPane, ClipViewModel *item);
         void adjustLengthCommitted(QQuickItem *clipPane, ClipViewModel *item);
         void adjustLengthAborted(QQuickItem *clipPane, ClipViewModel *item);
+
+        void drawingStarted(QQuickItem *clipPane);
+        void drawingCommitted(QQuickItem *clipPane);
+        void drawingAborted(QQuickItem *clipPane);
 
         void hoverEntered(QQuickItem *clipPane, int position, int trackIndex);
         void hoverMoved(QQuickItem *clipPane, int position, int trackIndex);

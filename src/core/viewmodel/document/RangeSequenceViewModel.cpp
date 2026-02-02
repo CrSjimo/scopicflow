@@ -69,21 +69,15 @@ namespace sflow {
         auto position = item->property(positionProperty).toInt();
         auto length = item->property(lengthProperty).toInt();
         pointContainer.insertItem(item, position);
-        auto affectedItems = rangeContainer.insertItem(item, position, length);
+        rangeContainer.insertItem(item, position, length);
         ViewModelHelper::connectPropertyNotify(item, positionProperty, q, handleItemPositionChangedMetaMethod);
         ViewModelHelper::connectPropertyNotify(item, lengthProperty, q, handleItemLengthChangedMetaMethod);
-        for (auto affectedItem : affectedItems) {
-            Q_EMIT q->itemUpdated(affectedItem);
-        }
     }
     void RangeSequenceViewModelPrivate::removeItem(QObject *item) {
         Q_Q(RangeSequenceViewModel);
         pointContainer.removeItem(item);
-        auto affectedItems = rangeContainer.removeItem(item);
+        rangeContainer.removeItem(item);
         QObject::disconnect(item, nullptr, q, nullptr);
-        for (auto affectedItem : affectedItems) {
-            Q_EMIT q->itemUpdated(affectedItem);
-        }
     }
     void RangeSequenceViewModelPrivate::handleItemPositionChanged() {
         Q_Q(RangeSequenceViewModel);
@@ -91,10 +85,8 @@ namespace sflow {
         auto position = item->property(positionProperty).toInt();
         auto length = item->property(lengthProperty).toInt();
         pointContainer.insertItem(item, position);
-        auto affectedItems = rangeContainer.insertItem(item, position, length);
-        for (auto affectedItem : affectedItems) {
-            Q_EMIT q->itemUpdated(affectedItem);
-        }
+        rangeContainer.insertItem(item, position, length);
+        Q_EMIT q->itemUpdated(item);
         Q_EMIT q->itemsChanged();
     }
     void RangeSequenceViewModelPrivate::handleItemLengthChanged() {
@@ -102,10 +94,8 @@ namespace sflow {
         auto item = q->sender();
         auto position = item->property(positionProperty).toInt();
         auto length = item->property(lengthProperty).toInt();
-        auto affectedItems = rangeContainer.insertItem(item, position, length);
-        for (auto affectedItem : affectedItems) {
-            Q_EMIT q->itemUpdated(affectedItem);
-        }
+        rangeContainer.insertItem(item, position, length);
+        Q_EMIT q->itemUpdated(item);
         Q_EMIT q->itemsChanged();
     }
 

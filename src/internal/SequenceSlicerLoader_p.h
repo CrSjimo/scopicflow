@@ -33,6 +33,7 @@ namespace sflow {
         void setRange(const QList<int> &range);
 
         Q_INVOKABLE QQuickItem *itemForModel(QObject *model);
+        Q_INVOKABLE void temporarilyLoad(const QList<int> &range);
 
     signals:
         void delegateChanged();

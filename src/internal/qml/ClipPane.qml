@@ -271,7 +271,7 @@ FocusScope {
                         id: leftDragHandle
                         anchors.left: parent.left
                         height: parent.height
-                        width: Math.min(4, parent.width / 2)
+                        width: Math.min(8, parent.width / 2)
                         ClipEdgeDragHandler {
                             id: leftEdgeDragHandler
                             edge: EdgeDragHandler.LeftEdge
@@ -287,7 +287,7 @@ FocusScope {
                         id: rightDragHandle
                         anchors.right: parent.right
                         height: parent.height
-                        width: Math.min(4, parent.width / 2)
+                        width: Math.min(8, parent.width / 2)
                         ClipEdgeDragHandler {
                             id: rightEdgeDragHandler
                             edge: EdgeDragHandler.RightEdge
@@ -311,6 +311,10 @@ FocusScope {
             z: 2
 
             rubberBand: RubberBandRectangle {
+            }
+
+            onSelectionAboutToEnd: (rect) => {
+                slicer.temporarilyLoadForRubberBand(rect.x, rect.width)
             }
         }
     }

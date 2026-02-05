@@ -40,6 +40,7 @@ namespace sflow {
         void selectionControllerChanged();
         void rubberBandChanged();
         void startedChanged(bool started);
+        void selectionAboutToEnd(const QRectF &rect);
         void transactionControllerNotifierChanged();
 
     private:

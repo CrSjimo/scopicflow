@@ -88,42 +88,46 @@ namespace sflow {
             d->rubberBandItem->setWidth(rubberBandRect.width());
             d->rubberBandItem->setHeight(rubberBandRect.height());
         }
-        if (!d->selectionController)
-            return;
-        // TODO: Current implementation is high in time complexity. Optimize it in future
-        // Step 1: toggle-select ALL(not covered by rubber band && tagged)
-        QList<QObject *> disjointItems;
-        for (auto item : d->taggedItems) {
-            auto itemRect = d->itemRects.value(item);
-            if (!rubberBandRect.intersects(itemRect)) {
-                d->selectionController->select(item, SelectionController::Toggle);
-                disjointItems.append(item);
-            }
-        }
-        // Step 2: remove tag from ALL(not covered by rubber band && tagged)
-        for (auto itemId : disjointItems) {
-            d->taggedItems.remove(itemId);
-        }
-        // Step 3: toggle-select ALL(covered by rubber band && not tagged)
-        for (const auto &[item, itemRect] : d->itemRects.asKeyValueRange()) {
-            if (!d->taggedItems.contains(item) && rubberBandRect.intersects(itemRect)) {
-                d->selectionController->select(item, SelectionController::Toggle);
-                // Step 4: tag ALL(covered by rubber band && not tagged)
-                d->taggedItems.insert(item);
-            }
-        }
     }
     QRectF RubberBandLayerQuickItem::endSelection(bool canceled) {
         Q_D(RubberBandLayerQuickItem);
         if (!d->started)
             return {};
+        QRectF rubberBandRect = {d->rubberBandItem->x(), d->rubberBandItem->y(), d->rubberBandItem->width(), d->rubberBandItem->height()};
+        do {
+            if (!d->selectionController || canceled)
+                break;
+            Q_EMIT selectionAboutToEnd(rubberBandRect);
+            // TODO: Current implementation is high in time complexity. Optimize it in future
+            // Step 1: toggle-select ALL(not covered by rubber band && tagged)
+            QList<QObject *> disjointItems;
+            for (auto item : d->taggedItems) {
+                auto itemRect = d->itemRects.value(item);
+                if (!rubberBandRect.intersects(itemRect)) {
+                    d->selectionController->select(item, SelectionController::Toggle);
+                    disjointItems.append(item);
+                }
+            }
+            // Step 2: remove tag from ALL(not covered by rubber band && tagged)
+            for (auto itemId : disjointItems) {
+                d->taggedItems.remove(itemId);
+            }
+            // Step 3: toggle-select ALL(covered by rubber band && not tagged)
+            for (const auto &[item, itemRect] : d->itemRects.asKeyValueRange()) {
+                if (!d->taggedItems.contains(item) && rubberBandRect.intersects(itemRect)) {
+                    d->selectionController->select(item, SelectionController::Toggle);
+                    // Step 4: tag ALL(covered by rubber band && not tagged)
+                    d->taggedItems.insert(item);
+                }
+            }
+        } while (false);
         d->started = false;
         if (d->rubberBandItem) {
             d->rubberBandItem->setVisible(false);
         }
         d->taggedItems.clear();
         emit startedChanged(false);
-        return {d->rubberBandItem->x(), d->rubberBandItem->y(), d->rubberBandItem->width(), d->rubberBandItem->height()};
+        return rubberBandRect;
     }
 }
 

@@ -15,4 +15,8 @@ SequenceSlicerLoader {
     required property QtObject timeViewModel
 
     range: [timeViewModel ? Math.floor((timeViewModel.start - leftOutBound / timeLayoutViewModel.pixelDensity) / sectionLength) * sectionLength : 0, timeViewModel ? Math.ceil((timeViewModel.start + sliceWidth / timeLayoutViewModel.pixelDensity + rightOutBound / timeLayoutViewModel.pixelDensity) / sectionLength) * sectionLength : 0]
+
+    function temporarilyLoadForRubberBand(x, width) {
+        temporarilyLoad([(x - leftOutBound) / timeLayoutViewModel.pixelDensity, width / timeLayoutViewModel.pixelDensity])
+    }
 }

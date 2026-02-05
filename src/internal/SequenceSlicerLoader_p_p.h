@@ -47,12 +47,14 @@ namespace sflow {
 
         void setHandle(SliceableViewModelManipulatorInterface *handle_);
 
-        void handleRangeChanged();
-        void handleDelegateChanged();
-        void handleHandleChanged();
-        void handleItemInserted(QObject *item);
-        void handleItemRemoved(QObject *item);
-        void handleItemUpdated(QObject *item);
+        void onRangeChanged();
+        void onDelegateChanged();
+        void onHandleChanged();
+        void onItemInserted(QObject *item);
+        void onItemRemoved(QObject *item);
+        void onItemUpdated(QObject *item);
+
+        void temporarilyLoad(int first, int second);
 
         QQuickItem *createView(QObject *itemModel);
         void showViewIfExistsOrElseCreate(QObject *itemModel);

@@ -23,6 +23,8 @@ DispatchedDragHandler {
     required property int edge
     property QtObject unitedExtendItem: null
     property int unitedExtendRestrict: 0
+    CursorBinding.cursorShape: Qt.SizeHorCursor
+    CursorBinding.enabled: dragged
 
     signal updateUnitedExtendRequested()
 

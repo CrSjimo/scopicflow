@@ -181,6 +181,10 @@ FocusScope {
 
             rubberBand: RubberBandRectangle {
             }
+
+            onSelectionAboutToEnd: (rect) => {
+                slicer.temporarilyLoadForRubberBand(rect.x, rect.width)
+            }
         }
         ItemPopupEdit {
             id: inPlaceEditPopup

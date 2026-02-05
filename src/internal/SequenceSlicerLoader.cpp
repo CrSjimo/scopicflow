@@ -42,19 +42,19 @@ namespace sflow {
         handle = handle_;
         if (handle) {
             QObject::connect(handle, &SliceableViewModelManipulatorInterface::itemInserted, q, [=](QObject *item) {
-                handleItemInserted(item);
+                onItemInserted(item);
             });
             QObject::connect(handle, &SliceableViewModelManipulatorInterface::itemRemoved, q, [=](QObject *item) {
-                handleItemRemoved(item);
+                onItemRemoved(item);
             });
             QObject::connect(handle, &SliceableViewModelManipulatorInterface::itemUpdated, q, [=](QObject *item) {
-                handleItemUpdated(item);
+                onItemUpdated(item);
             });
         }
-        handleHandleChanged();
+        onHandleChanged();
     }
 
-    void SequenceSlicerLoaderPrivate::handleRangeChanged() {
+    void SequenceSlicerLoaderPrivate::onRangeChanged() {
         if (!handle)
             return;
         auto slicedItemModels = handle->slice(range.first, range.second - range.first + 1);
@@ -68,7 +68,7 @@ namespace sflow {
             showViewIfExistsOrElseCreate(itemModel);
         }
     }
-    void SequenceSlicerLoaderPrivate::handleDelegateChanged() {
+    void SequenceSlicerLoaderPrivate::onDelegateChanged() {
         auto itemModels = visibleItems.keys();
         itemModels << invisibleItems.keys();
         for (auto itemModel : itemModels) {
@@ -76,30 +76,38 @@ namespace sflow {
             createView(itemModel);
         }
     }
-    void SequenceSlicerLoaderPrivate::handleHandleChanged() {
+    void SequenceSlicerLoaderPrivate::onHandleChanged() {
         auto itemModels = visibleItems.keys();
         itemModels << invisibleItems.keys();
         for (auto itemModel : itemModels) {
             destroyView(itemModel);
         }
-        handleRangeChanged();
+        onRangeChanged();
     }
     constexpr static bool rangeIntersects(QPair<int, int> range1, QPair<int, int> range2) {
         return std::max(range1.first, range2.first) <= std::min(range1.second, range2.second);
     }
-    void SequenceSlicerLoaderPrivate::handleItemInserted(QObject *itemModel) {
+    void SequenceSlicerLoaderPrivate::onItemInserted(QObject *itemModel) {
         if (inRange(itemModel)) {
             createView(itemModel);
         }
     }
-    void SequenceSlicerLoaderPrivate::handleItemRemoved(QObject *itemModel) {
+    void SequenceSlicerLoaderPrivate::onItemRemoved(QObject *itemModel) {
         destroyView(itemModel);
     }
-    void SequenceSlicerLoaderPrivate::handleItemUpdated(QObject *itemModel) {
+    void SequenceSlicerLoaderPrivate::onItemUpdated(QObject *itemModel) {
         if (inRange(itemModel)) {
             showViewIfExistsOrElseCreate(itemModel);
         } else {
             hideView(itemModel);
+        }
+    }
+    void SequenceSlicerLoaderPrivate::temporarilyLoad(int first, int second) {
+        if (!handle)
+            return;
+        auto slicedItemModels = handle->slice(first, second - first + 1);
+        for (auto itemModel : slicedItemModels) {
+            showViewIfExistsOrElseCreate(itemModel);
         }
     }
     QQuickItem *SequenceSlicerLoaderPrivate::createView(QObject *itemModel) {
@@ -179,7 +187,7 @@ namespace sflow {
         if (d->delegate == delegate)
             return;
         d->delegate = delegate;
-        d->handleDelegateChanged();
+        d->onDelegateChanged();
         Q_EMIT delegateChanged();
     }
 
@@ -207,11 +215,11 @@ namespace sflow {
         if (d->range == p)
             return;
         d->range = p;
-        d->handleRangeChanged();
+        d->onRangeChanged();
         Q_EMIT rangeChanged();
     }
 
-    QQuickItem * SequenceSlicerLoader::itemForModel(QObject *model) {
+    QQuickItem *SequenceSlicerLoader::itemForModel(QObject *model) {
         Q_D(SequenceSlicerLoader);
         if (!model)
             return nullptr;
@@ -220,6 +228,12 @@ namespace sflow {
         if (auto item = d->invisibleItems.value(model))
             return item;
         return d->createView(model);
+    }
+
+    void SequenceSlicerLoader::temporarilyLoad(const QList<int> &range) {
+        Q_D(SequenceSlicerLoader);
+        auto p = range.isEmpty() ? qMakePair(0, 0) : qMakePair(range.first(), range.last());
+        d->temporarilyLoad(p.first, p.second);
     }
 }
 

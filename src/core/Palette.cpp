@@ -37,8 +37,6 @@ namespace sflow {
 
     IMPLEMENTATION(levelMeterColor, levelMeterColor, setLevelMeterColor, resetLevelMeterColor)
 
-    IMPLEMENTATION(foregroundAvailableColors, foregroundAvailableColors, setForegroundAvailableColors, resetForegroundAvailableColors)
-
     IMPLEMENTATION(editAreaPrimaryColor, editAreaPrimaryColor, setEditAreaPrimaryColor, resetEditAreaPrimaryColor)
     IMPLEMENTATION(editAreaSecondaryColor, editAreaSecondaryColor, setEditAreaSecondaryColor, resetEditAreaSecondaryColor)
     IMPLEMENTATION(playheadPrimaryColor, playheadPrimaryColor, setPlayheadPrimaryColor, resetPlayheadPrimaryColor)
@@ -60,6 +58,8 @@ namespace sflow {
 
     IMPLEMENTATION(whiteKeyColor, whiteKeyColor, setWhiteKeyColor, resetWhiteKeyColor)
     IMPLEMENTATION(blackKeyColor, blackKeyColor, setBlackKeyColor, resetBlackKeyColor)
+    IMPLEMENTATION(whiteKeyTextColor, whiteKeyTextColor, setWhiteKeyTextColor, resetWhiteKeyTextColor)
+    IMPLEMENTATION(blackKeyTextColor, blackKeyTextColor, setBlackKeyTextColor, resetBlackKeyTextColor)
     IMPLEMENTATION(whiteKeyHoveredColor, whiteKeyHoveredColor, setWhiteKeyHoveredColor, resetWhiteKeyHoveredColor)
     IMPLEMENTATION(blackKeyHoveredColor, blackKeyHoveredColor, setBlackKeyHoveredColor, resetBlackKeyHoveredColor)
     IMPLEMENTATION(whiteKeyPressedColor, whiteKeyPressedColor, setWhiteKeyPressedColor, resetWhiteKeyPressedColor)
@@ -81,16 +81,6 @@ namespace sflow {
 
     static inline double contrast(double luminance1, double luminance2) {
         return (std::max(luminance1, luminance2) + 0.05) / (std::min(luminance1, luminance2) + 0.05);
-    }
-
-    QColor Palette::suitableForegroundColor(const QColor &backgroundColor) const {
-        auto backgroundLuminance = toLuminance(backgroundColor);
-        const auto a = foregroundAvailableColors();
-        return *std::ranges::max_element(a, [backgroundLuminance](const auto &c1, const auto &c2) {
-            auto l1 = toLuminance(c1);
-            auto l2 = toLuminance(c2);
-            return contrast(l1, backgroundLuminance) < contrast(l2, backgroundLuminance);
-        });
     }
 
 }

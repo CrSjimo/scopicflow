@@ -17,8 +17,6 @@ namespace sflow {
 
             {"levelMeterColor", QVariant::fromValue(QColor(0x111112))},
 
-            {"foregroundAvailableColors", QVariant::fromValue(QList<QColor>{0xdadada, 0x252525})},
-
             {"editAreaPrimaryColor", QVariant::fromValue(QColor(0x353942))},
             {"editAreaSecondaryColor", QVariant::fromValue(QColor(0x495058))},
             {"playheadPrimaryColor", QVariant::fromValue(QColor(0xcc4455))},
@@ -40,6 +38,8 @@ namespace sflow {
 
             {"whiteKeyColor", QVariant::fromValue(QColor(0xf8f9fa))},
             {"blackKeyColor", QVariant::fromValue(QColor(0x212529))},
+            {"whiteKeyTextColor", QVariant::fromValue(QColor(0x252525))},
+            {"blackKeyTextColor", QVariant::fromValue(QColor(0xdadada))},
             {"whiteKeyHoveredColor", QVariant::fromValue(QColor(0x868e96))},
             {"blackKeyHoveredColor", QVariant::fromValue(QColor(0x485057))},
             {"whiteKeyPressedColor", QVariant::fromValue(QColor(0xdee2e6))},

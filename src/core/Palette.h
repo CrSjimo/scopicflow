@@ -48,6 +48,8 @@ namespace sflow {
 
         Q_PROPERTY(QColor whiteKeyColor READ whiteKeyColor WRITE setWhiteKeyColor RESET resetWhiteKeyColor NOTIFY whiteKeyColorChanged)
         Q_PROPERTY(QColor blackKeyColor READ blackKeyColor WRITE setBlackKeyColor RESET resetBlackKeyColor NOTIFY blackKeyColorChanged)
+        Q_PROPERTY(QColor whiteKeyTextColor READ whiteKeyTextColor WRITE setWhiteKeyTextColor RESET resetWhiteKeyTextColor NOTIFY whiteKeyTextColorChanged)
+        Q_PROPERTY(QColor blackKeyTextColor READ blackKeyTextColor WRITE setBlackKeyTextColor RESET resetBlackKeyTextColor NOTIFY blackKeyTextColorChanged)
         Q_PROPERTY(QColor whiteKeyHoveredColor READ whiteKeyHoveredColor WRITE setWhiteKeyHoveredColor RESET resetWhiteKeyHoveredColor NOTIFY whiteKeyHoveredColorChanged)
         Q_PROPERTY(QColor blackKeyHoveredColor READ blackKeyHoveredColor WRITE setBlackKeyHoveredColor RESET resetBlackKeyHoveredColor NOTIFY blackKeyHoveredColorChanged)
         Q_PROPERTY(QColor whiteKeyPressedColor READ whiteKeyPressedColor WRITE setWhiteKeyPressedColor RESET resetWhiteKeyPressedColor NOTIFY whiteKeyPressedColorChanged)
@@ -73,10 +75,6 @@ namespace sflow {
         QColor levelMeterColor() const;
         void setLevelMeterColor(const QColor &levelMeterColor);
         void resetLevelMeterColor();
-
-        QList<QColor> foregroundAvailableColors() const;
-        void setForegroundAvailableColors(const QList<QColor> &foregroundAvailableColors);
-        void resetForegroundAvailableColors();
 
         QColor editAreaPrimaryColor() const;
         void setEditAreaPrimaryColor(const QColor &editAreaPrimaryColor);
@@ -146,6 +144,14 @@ namespace sflow {
         void setBlackKeyColor(const QColor &blackKeyColor);
         void resetBlackKeyColor();
 
+        QColor whiteKeyTextColor() const;
+        void setWhiteKeyTextColor(const QColor &whiteKeyTextColor);
+        void resetWhiteKeyTextColor();
+
+        QColor blackKeyTextColor() const;
+        void setBlackKeyTextColor(const QColor &blackKeyTextColor);
+        void resetBlackKeyTextColor();
+
         QColor whiteKeyHoveredColor() const;
         void setWhiteKeyHoveredColor(const QColor &whiteKeyHoveredColor);
         void resetWhiteKeyHoveredColor();
@@ -182,12 +188,9 @@ namespace sflow {
         void setNoteBorderColorChange(const SVS::ColorChange &noteBorderColorChange);
         void resetNoteBorderColorChange();
 
-        Q_INVOKABLE QColor suitableForegroundColor(const QColor &backgroundColor) const;
-
     signals:
         void loopColorChanged();
         void levelMeterColorChanged();
-        void foregroundAvailableColorsChanged();
         void editAreaPrimaryColorChanged();
         void editAreaSecondaryColorChanged();
         void playheadPrimaryColorChanged();
@@ -205,6 +208,8 @@ namespace sflow {
         void routeColorChanged();
         void whiteKeyColorChanged();
         void blackKeyColorChanged();
+        void whiteKeyTextColorChanged();
+        void blackKeyTextColorChanged();
         void whiteKeyHoveredColorChanged();
         void blackKeyHoveredColorChanged();
         void whiteKeyPressedColorChanged();

@@ -169,23 +169,8 @@ Item {
 
                     required property int index
 
-                    property double animatedHeight: 0
-                    readonly property NumberAnimation fitHeightAnimation: fitHeightAnimation
-                    NumberAnimation on animatedHeight {
-                        id: fitHeightAnimation
-                        running: false
-                        duration: Theme.visualEffectAnimationDuration
-                        easing.type: Easing.OutCubic
-                        to: 80
-                    }
-
-                    function fitHeight() {
-                        fitHeightAnimation.from = trackListDelegate.trackViewModel.rowHeight
-                        fitHeightAnimation.start()
-                    }
-
                     width: parent.width
-                    height: fitHeightAnimation.running ? animatedHeight : trackViewModel.rowHeight
+                    height: trackViewModel.rowHeight
                     y: trackListManipulator.map[index]
                     trackNumber: (index + 1).toLocaleString()
                     trackViewModel: trackList.trackListViewModel.items[index]
@@ -511,11 +496,9 @@ Item {
                     required property int index
                     property bool indicatesTarget: false
                     property QtObject trackViewModel: index !== 0 ? trackList.trackListViewModel.items[index - 1] : null
-                    property NumberAnimation currentFitHeightAnimation: null
-                    property double animatedHeight: 0
 
                     width: parent.width
-                    height: index === 0 ? 2 : currentFitHeightAnimation?.running ? animatedHeight : trackViewModel.rowHeight
+                    height: index === 0 ? 2 : trackViewModel.rowHeight
 
                     Rectangle {
                         color: Theme.borderColor
@@ -572,10 +555,6 @@ Item {
                             if (trackHandle.trackViewModel.rowHeight === 80) {
                                 return
                             }
-                            let delegate = trackLayoutRepeater.itemAt(trackHandle.index - 1);
-                            trackHandle.currentFitHeightAnimation = delegate.fitHeightAnimation
-                            trackHandle.animatedHeight = Qt.binding(() => delegate.animatedHeight)
-                            delegate.fitHeight();
                             trackList.trackListInteractionController.heightAdjustingStarted(trackList, trackHandle.index - 1)
                             trackHandle.trackViewModel.rowHeight = 80
                             trackList.trackListInteractionController.heightAdjustingFinished(trackList, trackHandle.index - 1)
@@ -589,10 +568,6 @@ Item {
                             }
                             if (!dragged) {
                                 dragged = true;
-                                if (trackHandle.currentFitHeightAnimation) {
-                                    trackHandle.currentFitHeightAnimation.stop();
-                                    trackHandle.currentFitHeightAnimation = null;
-                                }
                                 trackList.trackListInteractionController.heightAdjustingStarted(trackList, trackHandle.index - 1)
                             }
                             let viewportPoint = mapToItem(trackList, mouse.x, mouse.y);
@@ -631,7 +606,7 @@ Item {
 
                             onMoved: (_, deltaY) => {
                                 trackListManipulator.moveViewBy(deltaY);
-                                positionChanged(viewportPoint.x, deltaY > 0 ? trackList.height : 0, modifiers);
+                                handlePositionChanged(viewportPoint.x, deltaY > 0 ? trackList.height : 0, modifiers);
                             }
                         }
                     }

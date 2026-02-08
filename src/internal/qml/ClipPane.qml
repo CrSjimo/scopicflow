@@ -103,6 +103,7 @@ FocusScope {
         target: clipPane
         timeManipulator: timeManipulator
         verticalManipulator: trackListManipulator
+        viewportContainer: viewportContainer
         onCreateViewModelRequested: (position, trackIndex) => {
             if (trackIndex >= clipPane.trackListViewModel.count)
                 return
@@ -142,6 +143,8 @@ FocusScope {
     TimeViewportContainer {
         id: viewportContainer
 
+        y: -(clipPane.trackListLayoutViewModel?.viewportOffset ?? 0)
+        height: trackListManipulator.viewportHeight
         timeViewModel: clipPane.timeViewModel
         timeLayoutViewModel: clipPane.timeLayoutViewModel
 
@@ -186,8 +189,9 @@ FocusScope {
                         verticalManipulator: trackListManipulator
                         onMoveSelectionToYRequested: y => {
                             let trackCount = clipPane.trackListViewModel.items.length;
-                            let mappingOffset = 0.5 * clipPane.trackListViewModel.items[viewModel.trackIndex].rowHeight;
-                            let targetIndex = trackListManipulator.mapToPosition(y + clipPane.trackListLayoutViewModel.viewportOffset + mappingOffset);
+                            let i = Math.max(0, Math.min(trackListManipulator.mapToPosition(y), trackCount - 1))
+                            let d = (y - trackListManipulator.mapToY(i)) / clipPane.trackListViewModel.items[i].rowHeight
+                            let targetIndex = Math.round(i + d);
                             if (targetIndex !== viewModel.trackIndex) {
                                 let deltaIndex = targetIndex - viewModel.trackIndex;
                                 let selection = selectionController.getSelectedItems()

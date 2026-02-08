@@ -18,6 +18,7 @@ DispatchedDragHandler {
     property int initialPosition: 0
     property int initialYIndex: 0
     property var viewModel: null
+    property Item viewportContainer: null
 
     signal createViewModelRequested(position: int, yIndex: int)
     signal updateViewModelRequested(length: int, yIndex: int)

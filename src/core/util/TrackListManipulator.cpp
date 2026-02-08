@@ -39,7 +39,7 @@ namespace sflow {
         itemHeights.clear();
 
         if (!trackListViewModel) {
-            setViewportHeight(0.0);
+            setViewportHeight(80);
             prefixSums = {0.0};
             updatePrefixSums();
             return;
@@ -60,7 +60,7 @@ namespace sflow {
             }
         }
 
-        setViewportHeight(newHeight);
+        setViewportHeight(newHeight + 80);
         updatePrefixSums();
     }
 
@@ -250,18 +250,11 @@ namespace sflow {
     int TrackListManipulator::mapToPosition(double y) const {
         Q_D(const TrackListManipulator);
         if (!d->trackListViewModel || d->trackListViewModel->count() == 0)
-            return 0;
+            return -1;
 
         const auto &prefix = d->prefixSums;
-        const int count = d->trackListViewModel->count();
-        const double totalHeight = prefix.isEmpty() ? 0.0 : prefix.constLast();
 
-        if (y < 0.0)
-            return -1;
-        if (y >= totalHeight)
-            return count;
-
-        auto it = std::upper_bound(prefix.begin(), prefix.end(), y);
+        auto it = std::upper_bound(prefix.begin(), prefix.end(), y + d->trackListLayoutViewModel->viewportOffset());
         const auto index = static_cast<int>(std::max<std::ptrdiff_t>(0, std::distance(prefix.begin(), it) - 1));
         return index;
     }
@@ -273,7 +266,7 @@ namespace sflow {
 
         const int count = d->trackListViewModel->count();
         const int clamped = qBound(0, position, count);
-        return d->prefixSums.value(clamped, 0.0);
+        return d->prefixSums.value(clamped, 0.0) - d->trackListLayoutViewModel->viewportOffset();
     }
 
 }

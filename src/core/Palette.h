@@ -45,6 +45,7 @@ namespace sflow {
         Q_PROPERTY(QColor soloColor READ soloColor WRITE setSoloColor RESET resetSoloColor NOTIFY soloColorChanged)
         Q_PROPERTY(QColor recordColor READ recordColor WRITE setRecordColor RESET resetRecordColor NOTIFY recordColorChanged)
         Q_PROPERTY(QColor routeColor READ routeColor WRITE setRouteColor RESET resetRouteColor NOTIFY routeColorChanged)
+        Q_PROPERTY(QColor clipMuteColor READ clipMuteColor WRITE setClipMuteColor RESET resetClipMuteColor NOTIFY clipMuteColorChanged)
 
         Q_PROPERTY(QColor whiteKeyColor READ whiteKeyColor WRITE setWhiteKeyColor RESET resetWhiteKeyColor NOTIFY whiteKeyColorChanged)
         Q_PROPERTY(QColor blackKeyColor READ blackKeyColor WRITE setBlackKeyColor RESET resetBlackKeyColor NOTIFY blackKeyColorChanged)
@@ -136,6 +137,10 @@ namespace sflow {
         void setRouteColor(const QColor &routeColor);
         void resetRouteColor();
 
+        QColor clipMuteColor() const;
+        void setClipMuteColor(const QColor &clipMuteColor);
+        void resetClipMuteColor();
+
         QColor whiteKeyColor() const;
         void setWhiteKeyColor(const QColor &whiteKeyColor);
         void resetWhiteKeyColor();
@@ -206,6 +211,7 @@ namespace sflow {
         void soloColorChanged();
         void recordColorChanged();
         void routeColorChanged();
+        void clipMuteColorChanged();
         void whiteKeyColorChanged();
         void blackKeyColorChanged();
         void whiteKeyTextColorChanged();

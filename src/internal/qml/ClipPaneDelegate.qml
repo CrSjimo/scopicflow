@@ -17,6 +17,7 @@ FocusScope {
     property bool selected: false
     property url iconSource: ""
     property string name: ""
+    property bool mute: false
     property bool overlapped: false
     property double headerMargin: 0
     property Component thumbnailComponent: null
@@ -33,6 +34,7 @@ FocusScope {
         clip.name: clip.clipViewModel?.name ?? ""
         clip.iconSource: clip.clipViewModel?.iconSource ?? ""
         clip.overlapped: clip.clipViewModel?.overlapped ?? false
+        clip.mute: clip.clipViewModel?.mute ?? false
         when: clip.SequenceSlicerLoader.inRange
     }
 
@@ -44,7 +46,7 @@ FocusScope {
     Rectangle {
         anchors.fill: parent
         anchors.margins: 0.5
-        readonly property color thumbnailColor: SFPalette.clipThumbnailColorChange.apply(clip.color)
+        readonly property color thumbnailColor: SFPalette.clipThumbnailColorChange.apply(clip.mute ? SFPalette.clipMuteColor : clip.color)
         color: clip.selected ? SFPalette.clipSelectedColorChange.apply(thumbnailColor) : thumbnailColor
         border.width: 2
         border.color: clip.selected ? Theme.foregroundPrimaryColor : clip.overlapped ? Theme.warningColor : clip.color ?? Qt.rgba(0, 0, 0, 0)
@@ -60,7 +62,7 @@ FocusScope {
         height: 18
         topLeftRadius: 2
         topRightRadius: 2
-        readonly property color baseColor: clip.color
+        readonly property color baseColor: clip.mute ? SFPalette.clipMuteColor : clip.color
         color: clip.selected ? SFPalette.clipSelectedColorChange.apply(baseColor) : baseColor
         clip: true
         Row {

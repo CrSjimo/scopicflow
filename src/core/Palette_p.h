@@ -35,6 +35,7 @@ namespace sflow {
             {"soloColor", QVariant::fromValue(QColor(0x2b8a3e))},
             {"recordColor", QVariant::fromValue(QColor(0xc92a2a))},
             {"routeColor", QVariant::fromValue(QColor(0x5f3dc4))},
+            {"clipMuteColor", QVariant::fromValue(QColor(0x7c7c7c))},
 
             {"whiteKeyColor", QVariant::fromValue(QColor(0xf8f9fa))},
             {"blackKeyColor", QVariant::fromValue(QColor(0x212529))},

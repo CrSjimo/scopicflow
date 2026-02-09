@@ -18,10 +18,6 @@ Item {
     property int trackWidth: 128
     readonly property double contentWidth: trackListManipulator.viewportHeight
 
-    function moveViewBy(deltaX, animated = false) {
-        trackListManipulator.moveViewBy(deltaX, animated)
-    }
-
     clip: true
     implicitWidth: trackWidth
 
@@ -309,36 +305,12 @@ Item {
         }
     }
 
-    StyledScrollBar {
-        allowDragAdjustment: false
-        anchors.bottom: parent.bottom
-        anchors.left: parent.left
-        anchors.right: parent.right
-        orientation: Qt.Horizontal
-        position: {
-            const maxOffset = Math.max(0, contentWidth - trackListManipulator.viewSize)
-            return maxOffset > 0 ? (mixer.trackListLayoutViewModel?.viewportOffset ?? 0) / maxOffset : 0
-        }
-        size: contentWidth > 0 ? Math.min(1, trackListManipulator.viewSize / contentWidth) : 1
-
-        onPositionChanged: {
-            if (!mixer.trackListLayoutViewModel)
-                return;
-
-            const maxOffset = Math.max(0, contentWidth - trackListManipulator.viewSize)
-            const targetOffset = position * maxOffset
-            if (Math.abs((mixer.trackListLayoutViewModel.viewportOffset ?? 0) - targetOffset) > Number.EPSILON * 1000) {
-                mixer.trackListLayoutViewModel.viewportOffset = targetOffset
-            }
-        }
-    }
-
     StandardScrollHandler {
         anchors.fill: parent
         movableOrientation: Qt.Horizontal
         viewModel: mixer.scrollBehaviorViewModel
         zoomableOrientation: 0
 
-        onMoved: (deltaX, isPhysicalWheel) => mixer.moveViewBy(deltaX, isPhysicalWheel)
+        onMoved: (deltaX, _, isPhysicalWheel) => trackListManipulator.moveViewBy(deltaX, isPhysicalWheel)
     }
 }

@@ -68,7 +68,7 @@ DispatchedDragHandler {
             if (handler.mode === RubberBandDragHandler.Normal) {
                 handler.rubberBandLayer.updateSelection(p)
             } else if (handler.mode === RubberBandDragHandler.TimeRange) {
-                handler.rubberBandLayer.updateSelection(Qt.point(p.x, handler.height))
+                handler.rubberBandLayer.updateSelection(Qt.point(p.x, handler.rubberBandLayer.height))
             }
             lastTargetPoint = targetPoint
         }

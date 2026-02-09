@@ -86,6 +86,7 @@ FocusScope {
         selectionController: clipPane.selectionController
         target: clipPane
         timeManipulator: timeManipulator
+        verticalManipulator: trackListManipulator
         rubberBandLayer: rubberBandLayer
     }
     ClipPaneRubberBandDragHandler {

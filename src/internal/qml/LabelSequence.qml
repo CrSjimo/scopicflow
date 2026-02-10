@@ -210,7 +210,6 @@ FocusScope {
         }
     }
     StandardScrollHandler {
-        anchors.fill: parent
         movableOrientation: Qt.Horizontal
         viewModel: labelSequence.scrollBehaviorViewModel
 

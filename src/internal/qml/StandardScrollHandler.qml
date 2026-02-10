@@ -10,10 +10,21 @@ import dev.sjimo.ScopicFlow
 FocusScope {
     id: handler
 
+    anchors.fill: parent
+
     property ScrollBehaviorViewModel viewModel: null
     property int movableOrientation: Qt.Horizontal | Qt.Vertical
     property int zoomableOrientation: movableOrientation
     property int pinchOrientationHint: Qt.Horizontal
+    property bool horizontalScrollBarEnabled: false
+    property double horizontalScrollX: 0
+    property double horizontalScrollWidth: 0
+    property bool verticalScrollBarEnabled: false
+    property double verticalScrollY: 0
+    property double verticalScrollHeight: 0
+
+    readonly property T.ScrollBar horizontalScrollBar: horizontalScrollBar
+    readonly property T.ScrollBar verticalScrollBar: verticalScrollBar
 
     signal moved(x: double, y: double, isPhysicalWheel: bool)
     signal zoomed(ratioX: double, ratioY: double, x: double, y: double, isPhysicalWheel: bool)
@@ -339,6 +350,64 @@ FocusScope {
                 anchors.fill: parent
                 cursorShape: m.cursorShape
             }
+        }
+    }
+
+    StyledScrollBar {
+        id: horizontalScrollBar
+
+        anchors.bottom: parent.bottom
+        anchors.left: parent.left
+        anchors.right: parent.right
+        anchors.rightMargin: 6
+        orientation: Qt.Horizontal
+        position: handler.horizontalScrollX / handler.horizontalScrollWidth
+        size: handler.width / handler.horizontalScrollWidth
+        visible: handler.horizontalScrollBarEnabled && (handler.movableOrientation & Qt.Horizontal)
+        allowDragAdjustment: handler.zoomableOrientation & Qt.Horizontal
+
+        onEndDragged: pos => {
+            let ratioX = size / (pos - position)
+            handler.zoomed(ratioX, 1, 0, 0, false)
+        }
+        onPositionChanged: () => {
+            if (!pressed)
+                return
+            let deltaX = position * handler.horizontalScrollWidth - handler.horizontalScrollX
+            handler.moved(deltaX, 0, false)
+        }
+        onStartDragged: pos => {
+            let ratioX = size / (position - pos + size)
+            handler.zoomed(ratioX, 1, handler.width, 0, false)
+        }
+    }
+
+    StyledScrollBar {
+        id: verticalScrollBar
+
+        anchors.right: parent.right
+        anchors.top: parent.top
+        anchors.bottom: parent.bottom
+        anchors.bottomMargin: 6
+        orientation: Qt.Vertical
+        position: handler.verticalScrollY / handler.verticalScrollHeight
+        size: handler.height / handler.verticalScrollHeight
+        visible: handler.verticalScrollBarEnabled && (handler.movableOrientation & Qt.Vertical)
+        allowDragAdjustment: handler.zoomableOrientation & Qt.Vertical
+
+        onEndDragged: pos => {
+            let ratioY = size / (pos - position)
+            handler.zoomed(1, ratioY, 0, handler.height, false)
+        }
+        onPositionChanged: () => {
+            if (!pressed)
+                return
+            let deltaY = position * handler.verticalScrollHeight - handler.verticalScrollY
+            handler.moved(0, deltaY, false)
+        }
+        onStartDragged: pos => {
+            let ratioY = size / (position - pos + size)
+            handler.zoomed(1, ratioY, 0, handler.height, false)
         }
     }
 }

@@ -324,10 +324,15 @@ FocusScope {
         }
     }
     StandardScrollHandler {
-        anchors.fill: parent
         movableOrientation: Qt.Horizontal | Qt.Vertical
         zoomableOrientation: Qt.Horizontal
         viewModel: clipPane.scrollBehaviorViewModel
+        horizontalScrollBarEnabled: true
+        horizontalScrollX: -viewportContainer.x
+        horizontalScrollWidth: viewportContainer.width
+        verticalScrollBarEnabled: true
+        verticalScrollY: -viewportContainer.y
+        verticalScrollHeight: viewportContainer.height
 
         onMoved: (x, y, isPhysicalWheel) => {
             timeManipulator.moveViewBy(x, isPhysicalWheel);

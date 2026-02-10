@@ -624,7 +624,6 @@ Item {
         }
     }
     StandardScrollHandler {
-        anchors.fill: parent
         movableOrientation: Qt.Vertical
         zoomableOrientation: 0
         pinchOrientationHint: Qt.Vertical

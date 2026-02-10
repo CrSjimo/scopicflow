@@ -261,7 +261,6 @@ FocusScope {
     }
 
     StandardScrollHandler {
-        anchors.fill: parent
         movableOrientation: Qt.Vertical
         viewModel: clavier.scrollBehaviorViewModel
 

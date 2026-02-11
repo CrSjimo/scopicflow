@@ -131,6 +131,8 @@ FocusScope {
         focus: true
         focusPolicy: Qt.ClickFocus
 
+        property bool altPressed: false
+
         onCanceled: {
             tickingTimer.stop();
             setCursorShape(undefined)
@@ -141,6 +143,7 @@ FocusScope {
             indicator.close();
         }
         onPositionChanged: function (mouse) {
+            let autoScroll = Boolean(handler.viewModel?.autoScroll) !== altPressed;
             if (isZoom) {
                 let deltaX = (mouse.x - originalX) / 32;
                 let deltaY = (mouse.y - originalY) / 32;
@@ -155,7 +158,7 @@ FocusScope {
                 )
                 previousScaleX = scaleX;
                 previousScaleY = scaleY;
-            } else if (handler.viewModel?.autoScroll) {
+            } else if (autoScroll) {
                 deltaTickingX = calculateScrollingSpeed(mouse.x - originalX) * tickingTimer.interval;
                 deltaTickingY = calculateScrollingSpeed(mouse.y - originalY) * tickingTimer.interval;
                 tickingTimer.start();
@@ -166,8 +169,10 @@ FocusScope {
             }
         }
         onPressed: function (mouse) {
+            altPressed = mouse.modifiers & Qt.AltModifier;
+            let autoScroll = Boolean(handler.viewModel?.autoScroll) !== altPressed;
             isZoom = handler.viewModel?.isZoom(mouse.modifiers) ?? false;
-            if (handler.viewModel?.autoScroll || isZoom) {
+            if (autoScroll || isZoom) {
                 indicator.x = mouse.x - indicator.width / 2;
                 indicator.y = mouse.y - indicator.height / 2;
                 indicator.open();

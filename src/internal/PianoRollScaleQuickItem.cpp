@@ -94,6 +94,7 @@ namespace sflow {
         if (d->beatScaleColor != color) {
             d->beatScaleColor = color;
             emit beatScaleColorChanged();
+            update();
         }
     }
     QColor PianoRollScaleQuickItem::barScaleColor() const {
@@ -105,6 +106,7 @@ namespace sflow {
         if (d->barScaleColor != color) {
             d->barScaleColor = color;
             emit barScaleColorChanged();
+            update();
         }
     }
     QColor PianoRollScaleQuickItem::segmentScaleColor() const {
@@ -116,6 +118,7 @@ namespace sflow {
         if (d->segmentScaleColor != color) {
             d->segmentScaleColor = color;
             emit segmentScaleColorChanged();
+            update();
         }
     }
     QSGNode *PianoRollScaleQuickItem::updatePaintNode(QSGNode *node, UpdatePaintNodeData *update_paint_node_data) {

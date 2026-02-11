@@ -23,7 +23,7 @@ FocusScope {
     focus: true
     focusPolicy: Qt.StrongFocus
     clip: true
-    implicitHeight: 24
+    implicitHeight: 32
     LayoutMirroring.enabled: false
     LayoutMirroring.childrenInherit: true
 
@@ -251,7 +251,7 @@ FocusScope {
 
         Rectangle {
             id: loopRangeRect
-            anchors.bottom: parent.bottom
+            anchors.top: parent.top
             visible: (timeline.playbackViewModel?.loopLength ?? -1) >= 0
             x: (timeline.playbackViewModel?.loopStart ?? 0) * (timeline.timeLayoutViewModel?.pixelDensity ?? 0)
             width: (timeline.playbackViewModel?.loopLength ?? 0) * (timeline.timeLayoutViewModel?.pixelDensity ?? 0)
@@ -275,12 +275,13 @@ FocusScope {
             width: 4
             Rectangle {
                 x: 1
-                width: 2
-                height: parent.height
+                width: 1
+                height: 12
                 color: SFPalette.loopColor
             }
             Shape {
                 anchors.left: parent.horizontalCenter
+                anchors.leftMargin: -0.5
                 width: 12
                 height: 12
                 ShapePath {
@@ -327,12 +328,13 @@ FocusScope {
             width: 4
             Rectangle {
                 x: 1
-                width: 2
-                height: parent.height
+                width: 1
+                height: 12
                 color: SFPalette.loopColor
             }
             Shape {
                 anchors.right: parent.horizontalCenter
+                anchors.rightMargin: 0.5
                 width: 12
                 height: 12
                 ShapePath {
@@ -388,19 +390,17 @@ FocusScope {
         timeViewModel: timeline.timeViewModel
         playbackViewModel: timeline.playbackViewModel
         timeLayoutViewModel: timeline.timeLayoutViewModel
-        primaryIndicator.anchors.topMargin: 20
-        secondaryIndicator.anchors.topMargin: 20
+        primaryIndicator.visible: false
+        secondaryIndicator.visible: false
 
         PlayheadIndicator {
             anchors.bottom: parent.bottom
-            anchors.bottomMargin: 4
             x: positionIndicators.primaryIndicator.x
             color: SFPalette.playheadPrimaryColor
         }
 
         PlayheadIndicator {
             anchors.bottom: parent.bottom
-            anchors.bottomMargin: 4
             x: positionIndicators.secondaryIndicator.x
             color: SFPalette.playheadSecondaryColor
         }

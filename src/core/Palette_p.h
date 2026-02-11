@@ -41,10 +41,6 @@ namespace sflow {
             {"blackKeyColor", QVariant::fromValue(QColor(0x212529))},
             {"whiteKeyTextColor", QVariant::fromValue(QColor(0x252525))},
             {"blackKeyTextColor", QVariant::fromValue(QColor(0xdadada))},
-            {"whiteKeyHoveredColor", QVariant::fromValue(QColor(0x868e96))},
-            {"blackKeyHoveredColor", QVariant::fromValue(QColor(0x485057))},
-            {"whiteKeyPressedColor", QVariant::fromValue(QColor(0xdee2e6))},
-            {"blackKeyPressedColor", QVariant::fromValue(QColor(0x343a40))},
 
             {"itemSelectedColorChange", QVariant::fromValue(SVS::ColorChange{SVS::TopBlendColorFilter{QColor::fromRgba(0x11ffffff)}})},
             {"clipSelectedColorChange", QVariant::fromValue(SVS::ColorChange{SVS::OkLabLighterColorChange{1.2}})},

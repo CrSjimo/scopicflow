@@ -61,10 +61,6 @@ namespace sflow {
     IMPLEMENTATION(blackKeyColor, blackKeyColor, setBlackKeyColor, resetBlackKeyColor)
     IMPLEMENTATION(whiteKeyTextColor, whiteKeyTextColor, setWhiteKeyTextColor, resetWhiteKeyTextColor)
     IMPLEMENTATION(blackKeyTextColor, blackKeyTextColor, setBlackKeyTextColor, resetBlackKeyTextColor)
-    IMPLEMENTATION(whiteKeyHoveredColor, whiteKeyHoveredColor, setWhiteKeyHoveredColor, resetWhiteKeyHoveredColor)
-    IMPLEMENTATION(blackKeyHoveredColor, blackKeyHoveredColor, setBlackKeyHoveredColor, resetBlackKeyHoveredColor)
-    IMPLEMENTATION(whiteKeyPressedColor, whiteKeyPressedColor, setWhiteKeyPressedColor, resetWhiteKeyPressedColor)
-    IMPLEMENTATION(blackKeyPressedColor, blackKeyPressedColor, setBlackKeyPressedColor, resetBlackKeyPressedColor)
 
     IMPLEMENTATION(itemSelectedColorChange, itemSelectedColorChange, setItemSelectedColorChange, resetItemSelectedColorChange)
     IMPLEMENTATION(clipSelectedColorChange, clipSelectedColorChange, setClipSelectedColorChange, resetClipSelectedColorChange)

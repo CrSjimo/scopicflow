@@ -51,10 +51,6 @@ namespace sflow {
         Q_PROPERTY(QColor blackKeyColor READ blackKeyColor WRITE setBlackKeyColor RESET resetBlackKeyColor NOTIFY blackKeyColorChanged)
         Q_PROPERTY(QColor whiteKeyTextColor READ whiteKeyTextColor WRITE setWhiteKeyTextColor RESET resetWhiteKeyTextColor NOTIFY whiteKeyTextColorChanged)
         Q_PROPERTY(QColor blackKeyTextColor READ blackKeyTextColor WRITE setBlackKeyTextColor RESET resetBlackKeyTextColor NOTIFY blackKeyTextColorChanged)
-        Q_PROPERTY(QColor whiteKeyHoveredColor READ whiteKeyHoveredColor WRITE setWhiteKeyHoveredColor RESET resetWhiteKeyHoveredColor NOTIFY whiteKeyHoveredColorChanged)
-        Q_PROPERTY(QColor blackKeyHoveredColor READ blackKeyHoveredColor WRITE setBlackKeyHoveredColor RESET resetBlackKeyHoveredColor NOTIFY blackKeyHoveredColorChanged)
-        Q_PROPERTY(QColor whiteKeyPressedColor READ whiteKeyPressedColor WRITE setWhiteKeyPressedColor RESET resetWhiteKeyPressedColor NOTIFY whiteKeyPressedColorChanged)
-        Q_PROPERTY(QColor blackKeyPressedColor READ blackKeyPressedColor WRITE setBlackKeyPressedColor RESET resetBlackKeyPressedColor NOTIFY blackKeyPressedColorChanged)
 
         Q_PROPERTY(SVS::ColorChange itemSelectedColorChange READ itemSelectedColorChange WRITE setItemSelectedColorChange RESET resetItemSelectedColorChange NOTIFY itemSelectedColorChangeChanged)
         Q_PROPERTY(SVS::ColorChange clipSelectedColorChange READ clipSelectedColorChange WRITE setClipSelectedColorChange RESET resetClipSelectedColorChange NOTIFY clipSelectedColorChangeChanged)
@@ -157,22 +153,6 @@ namespace sflow {
         void setBlackKeyTextColor(const QColor &blackKeyTextColor);
         void resetBlackKeyTextColor();
 
-        QColor whiteKeyHoveredColor() const;
-        void setWhiteKeyHoveredColor(const QColor &whiteKeyHoveredColor);
-        void resetWhiteKeyHoveredColor();
-
-        QColor blackKeyHoveredColor() const;
-        void setBlackKeyHoveredColor(const QColor &blackKeyHoveredColor);
-        void resetBlackKeyHoveredColor();
-
-        QColor whiteKeyPressedColor() const;
-        void setWhiteKeyPressedColor(const QColor &whiteKeyPressedColor);
-        void resetWhiteKeyPressedColor();
-
-        QColor blackKeyPressedColor() const;
-        void setBlackKeyPressedColor(const QColor &blackKeyPressedColor);
-        void resetBlackKeyPressedColor();
-
         SVS::ColorChange itemSelectedColorChange() const;
         void setItemSelectedColorChange(const SVS::ColorChange &itemSelectedColorChange);
         void resetItemSelectedColorChange();
@@ -216,10 +196,6 @@ namespace sflow {
         void blackKeyColorChanged();
         void whiteKeyTextColorChanged();
         void blackKeyTextColorChanged();
-        void whiteKeyHoveredColorChanged();
-        void blackKeyHoveredColorChanged();
-        void whiteKeyPressedColorChanged();
-        void blackKeyPressedColorChanged();
         void itemSelectedColorChangeChanged();
         void clipSelectedColorChangeChanged();
         void clipThumbnailColorChangeChanged();

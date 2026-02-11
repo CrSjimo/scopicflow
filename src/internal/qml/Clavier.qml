@@ -267,5 +267,9 @@ FocusScope {
         onMoved: (_, deltaY, isPhysicalWheel) => {
             clavierManipulator.moveViewBy(deltaY, isPhysicalWheel);
         }
+
+        onZoomed: (_, ratioY, _, y, isPhysicalWheel) => {
+            clavierManipulator.zoomViewBy(ratioY, y, isPhysicalWheel);
+        }
     }
 }

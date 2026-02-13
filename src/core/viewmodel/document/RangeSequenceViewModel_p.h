@@ -20,6 +20,7 @@ namespace sflow {
         QObjectList items() const override;
         QObjectList slice(int position, int length) const override;
         int itemPosition(QObject *item) const override;
+        int itemLength(QObject *item) const override;
         QObjectList itemsBetween(QObject *item1, QObject *item2) const override;
         QObject *previousItem(QObject *item) const override;
         QObject *nextItem(QObject *item) const override;

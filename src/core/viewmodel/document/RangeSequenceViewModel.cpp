@@ -28,6 +28,10 @@ namespace sflow {
         Q_D(const RangeSequenceViewModel);
         return item->property(d->positionProperty).toInt();
     }
+    int RangeSequenceViewModelSliceableManipulatorInterface::itemLength(QObject *item) const {
+        Q_D(const RangeSequenceViewModel);
+        return item->property(d->lengthProperty).toInt();
+    }
     QObjectList RangeSequenceViewModelSliceableManipulatorInterface::itemsBetween(QObject *item1, QObject *item2) const {
         Q_D(const RangeSequenceViewModel);
         auto position1 = item1->property(d->positionProperty).toInt();

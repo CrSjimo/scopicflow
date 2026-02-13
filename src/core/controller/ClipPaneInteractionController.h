@@ -35,6 +35,7 @@ namespace sflow {
             None,
             Move,
             CopyAndMove,
+            Split,
             RubberBandSelect = 0x10000,
             TimeRangeSelect,
             Draw,
@@ -61,6 +62,12 @@ namespace sflow {
 
         Q_INVOKABLE virtual ClipViewModel *createAndInsertClipOnDrawing(RangeSequenceViewModel *clipSequenceViewModel, int position, int trackIndex);
 
+        enum AdjustLengthEdge {
+            LeftEdge,
+            RightEdge,
+        };
+        Q_ENUM(AdjustLengthEdge)
+
     Q_SIGNALS:
         void clickSelectableChanged();
         void primaryItemInteractionChanged();
@@ -78,9 +85,9 @@ namespace sflow {
         void movingCommitted(QQuickItem *clipPane, ClipViewModel *item);
         void movingAborted(QQuickItem *clipPane, ClipViewModel *item);
 
-        void adjustLengthStarted(QQuickItem *clipPane, ClipViewModel *item);
-        void adjustLengthCommitted(QQuickItem *clipPane, ClipViewModel *item);
-        void adjustLengthAborted(QQuickItem *clipPane, ClipViewModel *item);
+        void adjustLengthStarted(QQuickItem *clipPane, ClipViewModel *item, AdjustLengthEdge edge);
+        void adjustLengthCommitted(QQuickItem *clipPane, ClipViewModel *item, AdjustLengthEdge edge);
+        void adjustLengthAborted(QQuickItem *clipPane, ClipViewModel *item, AdjustLengthEdge edge);
 
         void drawingStarted(QQuickItem *clipPane);
         void drawingCommitted(QQuickItem *clipPane);
@@ -98,6 +105,11 @@ namespace sflow {
 
         void contextMenuRequested(QQuickItem *clipPane, int position, int trackIndex);
         void itemContextMenuRequested(QQuickItem *clipPane, ClipViewModel *item);
+
+        void splitAboutToStart(QQuickItem *clipPane);
+        void splitStarted(QQuickItem *clipPane, int position);
+        void splitCommitted(QQuickItem *clipPane, int position);
+        void splitAborted(QQuickItem *clipPane);
 
     private:
         bool m_clickSelectable;

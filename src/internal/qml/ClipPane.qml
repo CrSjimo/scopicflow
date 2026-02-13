@@ -214,6 +214,14 @@ FocusScope {
                         id: copyAndMoveDragHandler
                         moveFlag: ClipPaneInteractionController.MF_CopyAndMove
                     }
+                    SplitDragHandler {
+                        id: splitDragHandler
+                        controller: clipPane.clipPaneInteractionController
+                        selectionController: clipPane.selectionController
+                        paneItem: clipPane
+                        viewModel: clipPaneDelegate.clipViewModel
+                        timeManipulator: timeManipulator
+                    }
                     GenericComboItemMouseArea {
                         controller: clipPane.clipPaneInteractionController
                         selectionController: clipPane.selectionController
@@ -222,6 +230,7 @@ FocusScope {
                         dispatchMap: ({
                             [ClipPaneInteractionController.Move]: moveDragHandler,
                             [ClipPaneInteractionController.CopyAndMove]: copyAndMoveDragHandler,
+                            [ClipPaneInteractionController.Split]: splitDragHandler,
                             [ClipPaneInteractionController.RubberBandSelect]: rubberBandDragHandler,
                             [ClipPaneInteractionController.TimeRangeSelect]: timeRangeDragHandler,
                             [ClipPaneInteractionController.Draw]: drawDragHandler

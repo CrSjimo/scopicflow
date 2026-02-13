@@ -29,7 +29,7 @@ DispatchedDragHandler {
     signal updateUnitedExtendRequested()
 
     onDragStarted: () => {
-        controller.adjustLengthStarted(paneItem, viewModel)
+        controller.adjustLengthStarted(paneItem, viewModel, edge)
         if (selectionController && controller.clickSelectable) {
             selectionController.selectByMouse(viewModel, Qt.RightButton, modifiers)
         }
@@ -43,6 +43,11 @@ DispatchedDragHandler {
 
     onDragMoved: (x) => {
         let parentX = mapToItem(paneItem, x, 0).x;
+        if (edge === EdgeDragHandler.LeftEdge) {
+            parentX -= startPoint.x
+        } else {
+            parentX += width - startPoint.x
+        }
         edgeDragScroller.determine(parentX, paneItem.width, 0, 0, triggered => {
             if (!triggered) {
                 let alignedTick = Math.max(timeManipulator.alignPosition(timeManipulator.mapToPosition(0), ScopicFlow.AO_Ceil), Math.min(timeManipulator.alignPosition(timeManipulator.mapToPosition(parentX)), timeManipulator.alignPosition(timeManipulator.mapToPosition(paneItem.width), ScopicFlow.AO_Floor)));
@@ -53,12 +58,12 @@ DispatchedDragHandler {
 
     onDragFinished: () => {
         edgeDragScroller.running = false
-        controller.adjustLengthCommitted(paneItem, viewModel)
+        controller.adjustLengthCommitted(paneItem, viewModel, edge)
     }
 
     onDragCanceled: () => {
         edgeDragScroller.running = false
-        controller.adjustLengthCanceled(paneItem, viewModel)
+        controller.adjustLengthCanceled(paneItem, viewModel, edge)
     }
 
     DragScroller {

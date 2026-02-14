@@ -13,6 +13,16 @@ Item {
     readonly property Rectangle cursorIndicator: cursorIndicator
 
     Rectangle {
+        id: cursorIndicator
+
+        anchors.bottom: parent.bottom
+        anchors.top: parent.top
+        color: SFPalette.cursorIndicatorColor
+        visible: parent.timeLayoutViewModel && parent.timeLayoutViewModel.cursorPosition >= 0
+        width: 1
+        x: parent.timeViewModel && parent.timeLayoutViewModel ? (parent.timeLayoutViewModel.cursorPosition - parent.timeViewModel.start) * parent.timeLayoutViewModel.pixelDensity - 0.5 : 0
+    }
+    Rectangle {
         id: secondaryIndicator
 
         anchors.bottom: parent.bottom
@@ -29,15 +39,5 @@ Item {
         color: SFPalette.playheadPrimaryColor
         width: 1
         x: parent.timeViewModel && parent.timeLayoutViewModel && parent.playbackViewModel ? (parent.playbackViewModel.primaryPosition - parent.timeViewModel.start) * parent.timeLayoutViewModel.pixelDensity - 0.5 : 0
-    }
-    Rectangle {
-        id: cursorIndicator
-
-        anchors.bottom: parent.bottom
-        anchors.top: parent.top
-        color: SFPalette.cursorIndicatorColor
-        visible: parent.timeLayoutViewModel && parent.timeLayoutViewModel.cursorPosition >= 0
-        width: 1
-        x: parent.timeViewModel && parent.timeLayoutViewModel ? (parent.timeLayoutViewModel.cursorPosition - parent.timeViewModel.start) * parent.timeLayoutViewModel.pixelDensity - 0.5 : 0
     }
 }

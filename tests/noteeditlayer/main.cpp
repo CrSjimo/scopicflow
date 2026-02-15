@@ -60,6 +60,7 @@ int main(int argc, char **argv) {
     clipViewModel.setPosition(19200);
     clipViewModel.setClipStart(1920);
     clipViewModel.setLength(19200);
+    clipViewModel.setAssociatedNoteSequence(&noteSequenceViewModel);
 
     RangeSequenceViewModel noteSequenceViewModel2(&a);
 
@@ -78,6 +79,11 @@ int main(int argc, char **argv) {
     clipViewModel2.setPosition(42240);
     clipViewModel2.setLength(19200);
     clipViewModel2.setTrackIndex(1);
+    clipViewModel2.setAssociatedNoteSequence(&noteSequenceViewModel2);
+
+    RangeSequenceViewModel clipSequenceViewModel;
+    clipSequenceViewModel.insertItem(&clipViewModel);
+    clipSequenceViewModel.insertItem(&clipViewModel2);
 
     ListViewModel trackListViewModel(&a);
     TrackViewModel trackViewModel(&a);
@@ -101,8 +107,8 @@ int main(int argc, char **argv) {
         {"noteSequenceViewModel", QVariant::fromValue(&noteSequenceViewModel)},
         {"noteSequenceViewModel2", QVariant::fromValue(&noteSequenceViewModel2)},
         {"noteEditLayerInteractionController", QVariant::fromValue(&noteEditLayerInteractionController)},
+        {"clipSequenceViewModel", QVariant::fromValue(&clipSequenceViewModel)},
         {"clipViewModel", QVariant::fromValue(&clipViewModel)},
-        {"clipViewModel2", QVariant::fromValue(&clipViewModel2)},
         {"trackListViewModel", QVariant::fromValue(&trackListViewModel)},
     });
     engine.load(":/qt/qml/dev/sjimo/ScopicFlow/Test/NoteEditLayer/main.qml");

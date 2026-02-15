@@ -24,6 +24,8 @@ FocusScope {
     property ListViewModel trackListViewModel: null
 
     property bool thumbnailDisplay: false
+    property bool active: true
+    property bool clipBoundaryVisible: false
 
     clip: true
     enabled: !thumbnailDisplay
@@ -141,6 +143,7 @@ FocusScope {
         timeViewModel: noteEditLayer.timeViewModel
         timeLayoutViewModel: noteEditLayer.timeLayoutViewModel
         Rectangle {
+            visible: noteEditLayer.clipBoundaryVisible
             height: parent.height
             x: (noteEditLayer.clipViewModel?.position ?? 0) * (noteEditLayer.timeLayoutViewModel?.pixelDensity ?? 0)
             width: (noteEditLayer.clipViewModel?.length ?? 0) * (noteEditLayer.timeLayoutViewModel?.pixelDensity ?? 0)
@@ -168,6 +171,7 @@ FocusScope {
                     sliceWidth: noteEditLayer.width
                     timeLayoutViewModel: noteEditLayer.timeLayoutViewModel
                     timeViewModel: proxyTimeViewModel
+                    active: noteEditLayer.active
                     delegate: NoteEditLayerAdditionalTextDelegate {
                         id: noteDelegate
                         Binding {
@@ -189,6 +193,7 @@ FocusScope {
                     sliceWidth: noteEditLayer.width
                     timeLayoutViewModel: noteEditLayer.timeLayoutViewModel
                     timeViewModel: proxyTimeViewModel
+                    active: noteEditLayer.active
                     property NoteViewModel lastCurrentItem: null
 
                     delegate: NoteEditLayerDelegate {

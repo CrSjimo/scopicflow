@@ -57,6 +57,10 @@ namespace sflow {
     void SequenceSlicerLoaderPrivate::onRangeChanged() {
         if (!handle)
             return;
+        if (!active) {
+            hideAllVisible();
+            return;
+        }
         auto slicedItemModels = handle->slice(range.first, range.second - range.first + 1);
         QSet slicedItemModelSet(slicedItemModels.begin(), slicedItemModels.end());
         for (auto itemModel : visibleItems.keys()) {
@@ -88,6 +92,8 @@ namespace sflow {
         return std::max(range1.first, range2.first) <= std::min(range1.second, range2.second);
     }
     void SequenceSlicerLoaderPrivate::onItemInserted(QObject *itemModel) {
+        if (!active)
+            return;
         if (inRange(itemModel)) {
             createView(itemModel);
         }
@@ -96,6 +102,10 @@ namespace sflow {
         destroyView(itemModel);
     }
     void SequenceSlicerLoaderPrivate::onItemUpdated(QObject *itemModel) {
+        if (!active) {
+            hideView(itemModel);
+            return;
+        }
         if (inRange(itemModel)) {
             showViewIfExistsOrElseCreate(itemModel);
         } else {
@@ -103,7 +113,7 @@ namespace sflow {
         }
     }
     void SequenceSlicerLoaderPrivate::temporarilyLoad(int first, int second) {
-        if (!handle)
+        if (!handle || !active)
             return;
         auto slicedItemModels = handle->slice(first, second - first + 1);
         for (auto itemModel : slicedItemModels) {
@@ -114,7 +124,7 @@ namespace sflow {
         Q_Q(SequenceSlicerLoader);
         if (!delegate)
             return nullptr;
-        bool visible = inRange(itemModel);
+        bool visible = active && inRange(itemModel);
         auto item = qobject_cast<QQuickItem *>(delegate->createWithInitialProperties({
             {"parent", QVariant::fromValue(q->parentItem())},
         }, qmlContext(q)));
@@ -134,6 +144,10 @@ namespace sflow {
         return item;
     }
     void SequenceSlicerLoaderPrivate::showViewIfExistsOrElseCreate(QObject *itemModel) {
+        if (!active) {
+            hideView(itemModel);
+            return;
+        }
         if (invisibleItems.contains(itemModel)) {
             auto item = invisibleItems.value(itemModel);
             auto ctx = qobject_cast<SequenceSlicerLoaderContext *>(qmlAttachedPropertiesObject<SequenceSlicerLoader>(item));
@@ -160,6 +174,12 @@ namespace sflow {
             ctx->setInRange(false);
             visibleItems.remove(itemModel);
             invisibleItems.insert(itemModel, item);
+        }
+    }
+    void SequenceSlicerLoaderPrivate::hideAllVisible() {
+        const auto itemModels = visibleItems.keys();
+        for (auto itemModel : itemModels) {
+            hideView(itemModel);
         }
     }
     bool SequenceSlicerLoaderPrivate::inRange(QObject *itemModel) const {
@@ -234,6 +254,24 @@ namespace sflow {
         Q_D(SequenceSlicerLoader);
         auto p = range.isEmpty() ? qMakePair(0, 0) : qMakePair(range.first(), range.last());
         d->temporarilyLoad(p.first, p.second);
+    }
+
+    bool SequenceSlicerLoader::isActive() const {
+        Q_D(const SequenceSlicerLoader);
+        return d->active;
+    }
+
+    void SequenceSlicerLoader::setActive(bool active) {
+        Q_D(SequenceSlicerLoader);
+        if (d->active == active)
+            return;
+        d->active = active;
+        if (d->active) {
+            d->onRangeChanged();
+        } else {
+            d->hideAllVisible();
+        }
+        Q_EMIT activeChanged();
     }
 }
 

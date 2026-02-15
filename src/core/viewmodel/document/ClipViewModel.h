@@ -10,11 +10,14 @@
 
 namespace sflow {
 
+    class RangeSequenceViewModel;
+
     class SCOPIC_FLOW_CORE_EXPORT ClipViewModel : public QObject {
         Q_OBJECT
         QML_ELEMENT
         Q_PROPERTY(QString name READ name WRITE setName NOTIFY nameChanged)
         Q_PROPERTY(QUrl iconSource READ iconSource WRITE setIconSource NOTIFY iconSourceChanged)
+        Q_PROPERTY(RangeSequenceViewModel *associatedNoteSequence READ associatedNoteSequence WRITE setAssociatedNoteSequence NOTIFY associatedNoteSequenceChanged)
         Q_PROPERTY(int position READ position WRITE setPosition NOTIFY positionChanged)
         Q_PROPERTY(int length READ length WRITE setLength NOTIFY lengthChanged)
         Q_PROPERTY(int clipStart READ clipStart WRITE setClipStart NOTIFY clipStartChanged)
@@ -32,6 +35,9 @@ namespace sflow {
 
         QUrl iconSource() const;
         void setIconSource(const QUrl &iconSource);
+
+        RangeSequenceViewModel *associatedNoteSequence() const;
+        void setAssociatedNoteSequence(RangeSequenceViewModel *associatedNoteSequence);
 
         int position() const;
         void setPosition(int position);
@@ -68,10 +74,12 @@ namespace sflow {
         void muteChanged();
         void selectedChanged();
         void overlappedChanged();
+        void associatedNoteSequenceChanged();
 
     private:
         QString m_name;
         QUrl m_iconSource;
+        RangeSequenceViewModel *m_associatedNoteSequence;
         int m_position;
         int m_length;
         int m_clipStart;

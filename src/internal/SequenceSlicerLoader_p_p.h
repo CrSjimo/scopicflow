@@ -41,6 +41,7 @@ namespace sflow {
         QPointer<QObject> viewModel;
         QPointer<SliceableViewModelManipulatorInterface> handle;
         QPair<int, int> range;
+        bool active{true};
 
         QHash<QObject *, QQuickItem *> visibleItems;
         QHash<QObject *, QQuickItem *> invisibleItems;
@@ -60,6 +61,7 @@ namespace sflow {
         void showViewIfExistsOrElseCreate(QObject *itemModel);
         void destroyView(QObject *itemModel);
         void hideView(QObject *itemModel);
+        void hideAllVisible();
 
         bool inRange(QObject *itemModel) const;
 

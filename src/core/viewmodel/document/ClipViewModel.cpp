@@ -2,9 +2,12 @@
 
 #include <limits>
 
+#include <ScopicFlowCore/RangeSequenceViewModel.h>
+
 namespace sflow {
 
     ClipViewModel::ClipViewModel(QObject *parent) : QObject(parent),
+        m_associatedNoteSequence(nullptr),
         m_position(0), m_length(0), m_clipStart(0), m_maxLength(std::numeric_limits<int>::max()),
         m_trackIndex(0), m_mute(false), m_selected(false), m_overlapped(false) {
     }
@@ -30,6 +33,17 @@ namespace sflow {
         if (m_iconSource != iconSource) {
             m_iconSource = iconSource;
             Q_EMIT iconSourceChanged();
+        }
+    }
+
+    RangeSequenceViewModel *ClipViewModel::associatedNoteSequence() const {
+        return m_associatedNoteSequence;
+    }
+
+    void ClipViewModel::setAssociatedNoteSequence(RangeSequenceViewModel *associatedNoteSequence) {
+        if (m_associatedNoteSequence != associatedNoteSequence) {
+            m_associatedNoteSequence = associatedNoteSequence;
+            Q_EMIT associatedNoteSequenceChanged();
         }
     }
 
@@ -122,3 +136,5 @@ namespace sflow {
     }
 
 }
+
+#include "moc_ClipViewModel.cpp"

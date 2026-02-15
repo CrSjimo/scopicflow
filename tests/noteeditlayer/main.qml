@@ -24,8 +24,8 @@ ApplicationWindow {
     required property RangeSequenceViewModel noteSequenceViewModel
     required property RangeSequenceViewModel noteSequenceViewModel2
     required property NoteEditLayerInteractionController noteEditLayerInteractionController
+    required property RangeSequenceViewModel clipSequenceViewModel
     required property ClipViewModel clipViewModel
-    required property ClipViewModel clipViewModel2
     required property ListViewModel trackListViewModel
 
     PianoRollBackground {
@@ -35,7 +35,7 @@ ApplicationWindow {
         timeLayoutViewModel: main.timeLayoutViewModel
         clavierViewModel: main.clavierViewModel
     }
-    NoteEditLayer {
+    NoteEditLayerSequence {
         width: parent.width
         height: parent.height
         scrollBehaviorViewModel: main.scrollBehaviorViewModel
@@ -43,25 +43,10 @@ ApplicationWindow {
         timeViewModel: main.timeViewModel
         timeLayoutViewModel: main.timeLayoutViewModel
         clavierViewModel: main.clavierViewModel
-        noteSequenceViewModel: main.noteSequenceViewModel
         noteEditLayerInteractionController: main.noteEditLayerInteractionController
-        clipViewModel: main.clipViewModel
+        clipSequenceViewModel: main.clipSequenceViewModel
         trackListViewModel: main.trackListViewModel
-        thumbnailDisplay: false
-    }
-    NoteEditLayer {
-        width: parent.width
-        height: parent.height
-        scrollBehaviorViewModel: main.scrollBehaviorViewModel
-        selectionController: main.selectionController
-        timeViewModel: main.timeViewModel
-        timeLayoutViewModel: main.timeLayoutViewModel
-        clavierViewModel: main.clavierViewModel
-        noteSequenceViewModel: main.noteSequenceViewModel2
-        noteEditLayerInteractionController: main.noteEditLayerInteractionController
-        clipViewModel: main.clipViewModel2
-        trackListViewModel: main.trackListViewModel
-        thumbnailDisplay: true
+        editingItem: main.clipViewModel
     }
     PianoRollScrollLayer {
         width: parent.width

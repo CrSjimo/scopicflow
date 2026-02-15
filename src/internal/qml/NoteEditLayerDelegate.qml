@@ -59,7 +59,7 @@ FocusScope {
             return Qt.rgba(color.r, color.g, color.b, color.a * a)
         }
         border.width: note.thumbnailDisplay ? 0 : 2
-        border.color: note.selected ? Theme.foregroundPrimaryColor : note.overlapped ? Theme.warningColor : SFPalette.noteBorderColorChange.apply(baseColor)
+        border.color: note.selected ? Theme.foregroundPrimaryColor : note.overlapped ? Theme.warningColor : baseColor
         radius: 4
 
         Text {

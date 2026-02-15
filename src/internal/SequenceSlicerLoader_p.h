@@ -16,6 +16,7 @@ namespace sflow {
         Q_PROPERTY(QQmlComponent *delegate READ delegate WRITE setDelegate NOTIFY delegateChanged)
         Q_PROPERTY(QObject *viewModel READ viewModel WRITE setViewModel NOTIFY viewModelChanged)
         Q_PROPERTY(QList<int> range READ range WRITE setRange NOTIFY rangeChanged)
+        Q_PROPERTY(bool active READ isActive WRITE setActive NOTIFY activeChanged)
 
     public:
         explicit SequenceSlicerLoader(QQuickItem *parent = nullptr);
@@ -32,6 +33,9 @@ namespace sflow {
         QList<int> range() const;
         void setRange(const QList<int> &range);
 
+        bool isActive() const;
+        void setActive(bool active);
+
         Q_INVOKABLE QQuickItem *itemForModel(QObject *model);
         Q_INVOKABLE void temporarilyLoad(const QList<int> &range);
 
@@ -39,6 +43,7 @@ namespace sflow {
         void delegateChanged();
         void viewModelChanged();
         void rangeChanged();
+        void activeChanged();
 
     private:
         QScopedPointer<SequenceSlicerLoaderPrivate> d_ptr;

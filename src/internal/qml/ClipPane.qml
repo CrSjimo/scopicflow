@@ -285,7 +285,7 @@ FocusScope {
                         id: leftDragHandle
                         anchors.left: parent.left
                         height: parent.height
-                        width: Math.min(8, parent.width / 2)
+                        width: Math.min(8, parent.width / 3)
                         ClipEdgeDragHandler {
                             id: leftEdgeDragHandler
                             edge: EdgeDragHandler.LeftEdge
@@ -301,7 +301,7 @@ FocusScope {
                         id: rightDragHandle
                         anchors.right: parent.right
                         height: parent.height
-                        width: Math.min(8, parent.width / 2)
+                        width: Math.min(8, parent.width / 3)
                         ClipEdgeDragHandler {
                             id: rightEdgeDragHandler
                             edge: EdgeDragHandler.RightEdge

@@ -56,8 +56,7 @@ namespace sflow {
         Q_PROPERTY(SVS::ColorChange clipSelectedColorChange READ clipSelectedColorChange WRITE setClipSelectedColorChange RESET resetClipSelectedColorChange NOTIFY clipSelectedColorChangeChanged)
         Q_PROPERTY(SVS::ColorChange clipThumbnailColorChange READ clipThumbnailColorChange WRITE setClipThumbnailColorChange RESET resetClipThumbnailColorChange NOTIFY clipThumbnailColorChangeChanged)
         Q_PROPERTY(SVS::ColorChange noteSelectedColorChange READ noteSelectedColorChange WRITE setNoteSelectedColorChange RESET resetNoteSelectedColorChange NOTIFY noteSelectedColorChangeChanged)
-        Q_PROPERTY(SVS::ColorChange noteBorderColorChange READ noteBorderColorChange WRITE setNoteBorderColorChange RESET resetNoteBorderColorChange NOTIFY noteBorderColorChangeChanged)
-        
+
     public:
         ~Palette() override;
 
@@ -169,10 +168,6 @@ namespace sflow {
         void setNoteSelectedColorChange(const SVS::ColorChange &noteSelectedColorChange);
         void resetNoteSelectedColorChange();
 
-        SVS::ColorChange noteBorderColorChange() const;
-        void setNoteBorderColorChange(const SVS::ColorChange &noteBorderColorChange);
-        void resetNoteBorderColorChange();
-
     signals:
         void loopColorChanged();
         void levelMeterColorChanged();
@@ -200,7 +195,6 @@ namespace sflow {
         void clipSelectedColorChangeChanged();
         void clipThumbnailColorChangeChanged();
         void noteSelectedColorChangeChanged();
-        void noteBorderColorChangeChanged();
 
     protected:
         SVS::AttachedPropertyPropagatorProperties *properties() const override;

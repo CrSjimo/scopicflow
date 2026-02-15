@@ -66,19 +66,6 @@ namespace sflow {
     IMPLEMENTATION(clipSelectedColorChange, clipSelectedColorChange, setClipSelectedColorChange, resetClipSelectedColorChange)
     IMPLEMENTATION(clipThumbnailColorChange, clipThumbnailColorChange, setClipThumbnailColorChange, resetClipThumbnailColorChange)
     IMPLEMENTATION(noteSelectedColorChange, noteSelectedColorChange, setNoteSelectedColorChange, resetNoteSelectedColorChange)
-    IMPLEMENTATION(noteBorderColorChange, noteBorderColorChange, setNoteBorderColorChange, resetNoteBorderColorChange)
-
-    static inline double toLinear(double c) {
-        return c <= 0.04045 ? c / 12.92 : std::pow((c + 0.055) / 1.055, 2.4);
-    }
-
-    static inline double toLuminance(const QColor &color) {
-        return 0.2126 * toLinear(color.redF()) + 0.7152 * toLinear(color.greenF()) + 0.0722 * toLinear(color.blueF());
-    }
-
-    static inline double contrast(double luminance1, double luminance2) {
-        return (std::max(luminance1, luminance2) + 0.05) / (std::min(luminance1, luminance2) + 0.05);
-    }
 
 }
 

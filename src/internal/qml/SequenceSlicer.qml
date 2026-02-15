@@ -9,7 +9,7 @@ SequenceSlicerLoader {
 
     property double leftOutBound: 0
     property double rightOutBound: 0
-    property int sectionLength: 32768
+    property int sectionLength: 12000
     required property double sliceWidth
     required property QtObject timeLayoutViewModel
     required property QtObject timeViewModel

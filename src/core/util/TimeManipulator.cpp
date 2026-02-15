@@ -41,7 +41,7 @@ namespace sflow {
         connect(&d->pixelDensityAnimation, &QVariantAnimation::valueChanged, this, [d](const QVariant& value) {
             if (!d->timeViewModel || !d->timeLayoutViewModel)
                 return;
-            d->timeViewModel->setStart(qFuzzyIsNull(d->timeViewModel->start()) && d->currentAnimationFixStartToZero ? 0.0 : qMax(0.0, d->timeViewModel->start() + d->animationCenter / d->timeLayoutViewModel->pixelDensity() - d->animationCenter / value.toDouble()));
+            d->timeViewModel->setStart(qFuzzyIsNull(d->timeViewModel->start() - d->startOffset) && d->currentAnimationFixStartToZero ? d->startOffset : qMax(d->startOffset, d->timeViewModel->start() + d->animationCenter / d->timeLayoutViewModel->pixelDensity() - d->animationCenter / value.toDouble()));
             d->timeLayoutViewModel->setPixelDensity(value.toDouble());
         });
         d->updateParent();
@@ -89,6 +89,17 @@ namespace sflow {
             emit targetChanged();
         }
     }
+    double TimeManipulator::startOffset() const {
+        Q_D(const TimeManipulator);
+        return d->startOffset;
+    }
+    void TimeManipulator::setStartOffset(double startOffset) {
+        Q_D(TimeManipulator);
+        if (d->startOffset != startOffset) {
+            d->startOffset = startOffset;
+            emit startOffsetChanged();
+        }
+    }
     double TimeManipulator::viewSize() const {
         Q_D(const TimeManipulator);
         return d->viewSize;
@@ -109,12 +120,12 @@ namespace sflow {
         Q_D(TimeManipulator);
         if (!d->timeViewModel || !d->timeLayoutViewModel)
             return;
-        auto newStart = qMax(0.0, d->timeViewModel->start() + delta / d->timeLayoutViewModel->pixelDensity());
+        auto newStart = qMax(d->startOffset, d->timeViewModel->start() + delta / d->timeLayoutViewModel->pixelDensity());
         auto newEnd = newStart + d->viewSize / d->timeLayoutViewModel->pixelDensity();
         if (newEnd > d->timeViewModel->end()) {
             if (restrictEnd) {
                 newStart += d->timeViewModel->end() - newEnd;
-                if (newStart < 0)
+                if (newStart < d->startOffset)
                     return;
             } else {
                 d->timeViewModel->setEnd(newEnd);
@@ -135,12 +146,12 @@ namespace sflow {
         if (!d->timeViewModel || !d->timeLayoutViewModel)
             return;
         auto newPixelDensity = qMin(qMax(d->timeLayoutViewModel->minimumPixelDensity(), d->timeLayoutViewModel->pixelDensity() * ratio), d->timeLayoutViewModel->maximumPixelDensity());
-        auto newStart = qMax(0.0, d->timeViewModel->start() + center / d->timeLayoutViewModel->pixelDensity() - center / newPixelDensity);
+        auto newStart = qMax(d->startOffset, d->timeViewModel->start() + center / d->timeLayoutViewModel->pixelDensity() - center / newPixelDensity);
         auto newEnd = newStart + d->viewSize / newPixelDensity;
         if (newEnd > d->timeViewModel->end()) {
             if (restrictEnd) {
                 newStart += d->timeViewModel->end() - newEnd;
-                if (newStart < 0)
+                if (newStart < d->startOffset)
                     return;
             } else {
                 d->timeViewModel->setEnd(newEnd);

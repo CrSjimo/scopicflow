@@ -22,14 +22,18 @@ FocusScope {
         focus: true
         focusPolicy: Qt.ClickFocus
         property bool dragged: false
+        property bool isDoubleClick: false
         property DispatchedDragHandler currentHandler: null
         property point pressedPoint: Qt.point(0, 0)
         onPressed: (mouse) => {
             dragged = false
+            isDoubleClick = false
             currentHandler = dispatcherMouseArea.determineDragHandler(mouse)
             pressedPoint = Qt.point(mouse.x, mouse.y)
         }
         onPositionChanged: (mouse) => {
+            if (isDoubleClick)
+                return
             if (!dragged) {
                 if (currentHandler) {
                     dragged = true
@@ -67,6 +71,7 @@ FocusScope {
             }
         }
         onDoubleClicked: (mouse) => {
+            isDoubleClick = true
             if (!dragged) {
                 dispatcherMouseArea.doubleClicked(mouse)
             }

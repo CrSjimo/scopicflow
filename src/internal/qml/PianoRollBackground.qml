@@ -19,7 +19,7 @@ Item {
 
     QtObject {
         id: helper
-        readonly property double keyHeight: clavier.clavierViewModel?.pixelDensity ?? 24
+        readonly property double keyHeight: pianoRollBackground.clavierViewModel?.pixelDensity ?? 24
         function isBlackKey(key) {
             let indexInGroup = key % 12;
             return indexInGroup === 1 || indexInGroup === 3 || indexInGroup === 6 || indexInGroup === 8 || indexInGroup === 10;

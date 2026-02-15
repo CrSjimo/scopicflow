@@ -14,6 +14,7 @@ namespace sflow {
         TimeViewModel *timeViewModel{};
         TimeLayoutViewModel *timeLayoutViewModel{};
         QQuickItem *target{};
+        double startOffset{};
         double viewSize{};
         bool isViewSizeExplicitSet{};
 

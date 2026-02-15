@@ -23,6 +23,7 @@ namespace sflow {
         Q_PROPERTY(TimeViewModel *timeViewModel READ timeViewModel WRITE setTimeViewModel NOTIFY timeViewModelChanged)
         Q_PROPERTY(TimeLayoutViewModel *timeLayoutViewModel READ timeLayoutViewModel WRITE setTimeLayoutViewModel NOTIFY timeLayoutViewModelChanged)
         Q_PROPERTY(QQuickItem *target READ target WRITE setTarget NOTIFY targetChanged)
+        Q_PROPERTY(double startOffset READ startOffset WRITE setStartOffset NOTIFY startOffsetChanged)
         Q_PROPERTY(double viewSize READ viewSize WRITE setViewSize RESET resetViewSize NOTIFY viewSizeChanged)
     public:
         explicit TimeManipulator(QObject *parent = nullptr);
@@ -36,6 +37,9 @@ namespace sflow {
 
         QQuickItem *target() const;
         void setTarget(QQuickItem *target);
+
+        double startOffset() const;
+        void setStartOffset(double startOffset);
 
         double viewSize() const;
         void setViewSize(double viewSize);
@@ -53,6 +57,7 @@ namespace sflow {
         void timeViewModelChanged();
         void timeLayoutViewModelChanged();
         void targetChanged();
+        void startOffsetChanged();
         void viewSizeChanged();
 
     private:

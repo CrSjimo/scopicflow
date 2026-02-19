@@ -3,7 +3,7 @@
 namespace sflow {
 
     ClavierViewModel::ClavierViewModel(QObject *parent) : QObject(parent),
-        m_start(64), m_pixelDensity(24), m_maximumPixelDensity(64), m_minimumPixelDensity(16), m_cursorPosition(-1) {
+        m_start(75), m_pixelDensity(24), m_maximumPixelDensity(64), m_minimumPixelDensity(16), m_cursorPosition(-1) {
     }
 
     ClavierViewModel::~ClavierViewModel() = default;

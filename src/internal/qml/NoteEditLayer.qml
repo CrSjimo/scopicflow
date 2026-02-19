@@ -30,7 +30,7 @@ FocusScope {
     clip: true
     enabled: !thumbnailDisplay
 
-    function editLyricInPlace(noteViewModel) {
+    function editLyricInPlace(noteViewModel: NoteViewModel) {
         lyricEditPopup.close()
         if (noteViewModel) {
             timeManipulator.ensureVisible(noteViewModel.position, noteViewModel.length, 0, 0)
@@ -41,7 +41,7 @@ FocusScope {
         }
     }
 
-    function editAdditionalTextInPlace(noteViewModel) {
+    function editAdditionalTextInPlace(noteViewModel: NoteViewModel) {
         additionalTextEditPopup.close()
         if (noteViewModel) {
             timeManipulator.ensureVisible(noteViewModel.position, noteViewModel.length, 0, 0)

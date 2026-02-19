@@ -123,6 +123,7 @@ namespace sflow {
 
         void doubleClicked(QQuickItem *noteArea, int position, int trackIndex);
         void itemDoubleClicked(QQuickItem *noteArea, NoteViewModel *item);
+        void itemAdditionalTextDoubleClicked(QQuickItem *noteArea, NoteViewModel *item);
 
         void contextMenuRequested(QQuickItem *noteArea, int position, int trackIndex);
         void itemContextMenuRequested(QQuickItem *noteArea, NoteViewModel *item);

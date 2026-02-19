@@ -247,7 +247,7 @@ namespace sflow {
             return item;
         if (auto item = d->invisibleItems.value(model))
             return item;
-        return d->createView(model);
+        return nullptr;
     }
 
     void SequenceSlicerLoader::temporarilyLoad(const QList<int> &range) {

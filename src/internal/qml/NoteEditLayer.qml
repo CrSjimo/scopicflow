@@ -148,7 +148,7 @@ FocusScope {
             x: (noteEditLayer.clipViewModel?.position ?? 0) * (noteEditLayer.timeLayoutViewModel?.pixelDensity ?? 0)
             width: (noteEditLayer.clipViewModel?.length ?? 0) * (noteEditLayer.timeLayoutViewModel?.pixelDensity ?? 0)
             color: "transparent"
-            border.color: noteEditLayer.trackListViewModel?.items[noteEditLayer.clipViewModel?.trackIndex ?? 0].color ?? Theme.accentColor
+            border.color: noteEditLayer.trackListViewModel?.items[noteEditLayer.clipViewModel?.trackIndex ?? 0]?.color ?? Theme.accentColor
             border.width: 2
         }
     }
@@ -178,7 +178,7 @@ FocusScope {
                             noteDelegate.x: (noteDelegate.noteViewModel?.position ?? 0) * (noteEditLayer.timeLayoutViewModel?.pixelDensity ?? 0)
                             noteDelegate.y: (127 - (noteDelegate.noteViewModel?.key ?? 0)) * (noteEditLayer.clavierViewModel?.pixelDensity ?? 0) + (noteEditLayer.noteEditLayerInteractionController?.additionalTextPosition === NoteEditLayerInteractionController.AdditionalTextPosition_Up ? -noteDelegate.height : (noteEditLayer.clavierViewModel?.pixelDensity ?? 0))
                             noteDelegate.width: (noteDelegate.noteViewModel?.length ?? 0) * (noteEditLayer.timeLayoutViewModel?.pixelDensity ?? 0)
-                            noteDelegate.color: noteEditLayer.trackListViewModel?.items[noteEditLayer.clipViewModel?.trackIndex ?? 0].color ?? Theme.accentColor
+                            noteDelegate.color: noteEditLayer.trackListViewModel?.items[noteEditLayer.clipViewModel?.trackIndex ?? 0]?.color ?? Theme.accentColor
                             noteDelegate.visible: !noteEditLayer.thumbnailDisplay
                             when: noteDelegate.SequenceSlicerLoader.inRange
                         }
@@ -210,7 +210,7 @@ FocusScope {
                             noteDelegate.y: (127 - (noteDelegate.noteViewModel?.key ?? 0)) * (noteEditLayer.clavierViewModel?.pixelDensity ?? 0)
                             noteDelegate.width: (noteDelegate.noteViewModel?.length ?? 0) * (noteEditLayer.timeLayoutViewModel?.pixelDensity ?? 0)
                             noteDelegate.height: noteEditLayer.clavierViewModel?.pixelDensity ?? 0
-                            noteDelegate.color: noteEditLayer.trackListViewModel?.items[noteEditLayer.clipViewModel?.trackIndex ?? 0].color ?? Theme.accentColor
+                            noteDelegate.color: noteEditLayer.trackListViewModel?.items[noteEditLayer.clipViewModel?.trackIndex ?? 0]?.color ?? Theme.accentColor
                             noteDelegate.outOfClipRange: {
                                 if (!noteDelegate.noteViewModel || !noteEditLayer.clipViewModel) {
                                     return false

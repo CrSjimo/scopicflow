@@ -48,12 +48,16 @@ namespace sflow {
         Q_D(RubberBandLayerQuickItem);
         if (!d->selectionController)
             return;
+        if (!item)
+            return;
         d->itemRects.insert(item, rect);
-        connect(item, &QObject::destroyed, [this, item] { removeItem(item); });
+        connect(item, &QObject::destroyed, this, [this, item] { removeItem(item); });
     }
     void RubberBandLayerQuickItem::removeItem(QObject *item) {
         Q_D(RubberBandLayerQuickItem);
         if (!d->selectionController)
+            return;
+        if (!item)
             return;
         d->itemRects.remove(item);
         d->taggedItems.remove(item);

@@ -109,7 +109,7 @@ FocusScope {
         property double previousScaleY: 1
 
         function calculateScrollingSpeed(x) {
-            if (Math.abs(x) < 8)
+            if (Math.abs(x) < 16)
                 return 0;
             return Math.sign(x) * Math.abs(x / 256);
         }
@@ -145,8 +145,8 @@ FocusScope {
         onPositionChanged: function (mouse) {
             let autoScroll = Boolean(handler.viewModel?.autoScroll) !== altPressed;
             if (isZoom) {
-                let deltaX = (mouse.x - originalX) / 32;
-                let deltaY = (mouse.y - originalY) / 32;
+                let deltaX = Math.sign(mouse.x - originalX) * Math.max(0, Math.abs(mouse.x - originalX) - 16) / 32;
+                let deltaY = Math.sign(mouse.y - originalY) * Math.max(0, Math.abs(mouse.y - originalY) - 16) / 32;
                 let scaleX = Math.pow(1 + 0.25 * Math.abs(deltaX), Math.sign(deltaX))
                 let scaleY = Math.pow(1 + 0.3 * Math.abs(deltaY), Math.sign(deltaY))
                 handler.zoomed(
@@ -402,7 +402,7 @@ FocusScope {
 
         onEndDragged: pos => {
             let ratioY = size / (pos - position)
-            handler.zoomed(1, ratioY, 0, handler.height, false)
+            handler.zoomed(1, ratioY, 0, 0, false)
         }
         onPositionChanged: () => {
             if (!pressed)

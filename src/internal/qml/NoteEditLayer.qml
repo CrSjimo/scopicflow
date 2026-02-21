@@ -276,6 +276,38 @@ FocusScope {
                             paneItem: noteEditLayer
                             viewModel: noteDelegate.noteViewModel
                             timeManipulator: timeManipulator
+                            onUpdateUnitedExtendRequested: () => {
+                                let selection = noteEditLayer.selectionController.getSelectedItems()
+                                if (selection.length !== 1) {
+                                    return
+                                }
+                                let note = selection[0];
+                                if (edge === EdgeDragHandler.LeftEdge) {
+                                    for (let previousNote = note;;) {
+                                        previousNote = noteEditLayer.noteSequenceViewModel.iSliceable.previousItem(previousNote);
+                                        if (!previousNote || previousNote.position + previousNote.length < note.position) {
+                                            break
+                                        }
+                                        if (previousNote.position + previousNote.length > note.position) {
+                                            continue
+                                        }
+                                        unitedExtendItem = previousNote
+                                        unitedExtendRestrict = previousNote.length
+                                    }
+                                } else if (edge === EdgeDragHandler.RightEdge) {
+                                    for (let nextNote = note;;) {
+                                        nextNote = noteEditLayer.noteSequenceViewModel.iSliceable.nextItem(nextNote);
+                                        if (!nextNote || nextNote.position > note.position + note.length) {
+                                            break
+                                        }
+                                        if (nextNote.position < note.position + note.length) {
+                                            continue
+                                        }
+                                        unitedExtendItem = nextNote
+                                        unitedExtendRestrict = nextNote.length
+                                    }
+                                }
+                            }
                         }
                         GenericComboItemMouseArea {
                             controller: noteEditLayer.noteEditLayerInteractionController

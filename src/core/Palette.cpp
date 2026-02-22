@@ -42,6 +42,7 @@ namespace sflow {
     IMPLEMENTATION(playheadPrimaryColor, playheadPrimaryColor, setPlayheadPrimaryColor, resetPlayheadPrimaryColor)
     IMPLEMENTATION(playheadSecondaryColor, playheadSecondaryColor, setPlayheadSecondaryColor, resetPlayheadSecondaryColor)
     IMPLEMENTATION(cursorIndicatorColor, cursorIndicatorColor, setCursorIndicatorColor, resetCursorIndicatorColor)
+    IMPLEMENTATION(scissorIndicatorColor, scissorIndicatorColor, setScissorIndicatorColor, resetScissorIndicatorColor)
 
     IMPLEMENTATION(scalePrimaryColor, scalePrimaryColor, setScalePrimaryColor, resetScalePrimaryColor)
     IMPLEMENTATION(scaleSecondaryColor, scaleSecondaryColor, setScaleSecondaryColor, resetScaleSecondaryColor)

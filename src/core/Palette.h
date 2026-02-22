@@ -32,6 +32,7 @@ namespace sflow {
         Q_PROPERTY(QColor playheadPrimaryColor READ playheadPrimaryColor WRITE setPlayheadPrimaryColor RESET resetPlayheadPrimaryColor NOTIFY playheadPrimaryColorChanged)
         Q_PROPERTY(QColor playheadSecondaryColor READ playheadSecondaryColor WRITE setPlayheadSecondaryColor RESET resetPlayheadSecondaryColor NOTIFY playheadSecondaryColorChanged)
         Q_PROPERTY(QColor cursorIndicatorColor READ cursorIndicatorColor WRITE setCursorIndicatorColor RESET resetCursorIndicatorColor NOTIFY cursorIndicatorColorChanged)
+        Q_PROPERTY(QColor scissorIndicatorColor READ scissorIndicatorColor WRITE setScissorIndicatorColor RESET resetScissorIndicatorColor NOTIFY scissorIndicatorColorChanged)
 
         Q_PROPERTY(QColor scalePrimaryColor READ scalePrimaryColor WRITE setScalePrimaryColor RESET resetScalePrimaryColor NOTIFY scalePrimaryColorChanged)
         Q_PROPERTY(QColor scaleSecondaryColor READ scaleSecondaryColor WRITE setScaleSecondaryColor RESET resetScaleSecondaryColor NOTIFY scaleSecondaryColorChanged)
@@ -91,6 +92,10 @@ namespace sflow {
         QColor cursorIndicatorColor() const;
         void setCursorIndicatorColor(const QColor &cursorIndicatorColor);
         void resetCursorIndicatorColor();
+
+        QColor scissorIndicatorColor() const;
+        void setScissorIndicatorColor(const QColor &scissorIndicatorColor);
+        void resetScissorIndicatorColor();
 
         QColor scalePrimaryColor() const;
         void setScalePrimaryColor(const QColor &scalePrimaryColor);
@@ -176,6 +181,7 @@ namespace sflow {
         void playheadPrimaryColorChanged();
         void playheadSecondaryColorChanged();
         void cursorIndicatorColorChanged();
+        void scissorIndicatorColorChanged();
         void scalePrimaryColorChanged();
         void scaleSecondaryColorChanged();
         void scaleTertiaryColorChanged();

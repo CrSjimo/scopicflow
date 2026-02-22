@@ -16,6 +16,7 @@ Item {
     property bool _dragged: false
     property point _startPoint: Qt.point(0, 0)
     property int _modifiers: 0
+    property bool startDraggingImmediately: false
 
     signal dragStarted(x: double, y: double, modifiers: int)
     signal dragMoved(x: double, y: double)

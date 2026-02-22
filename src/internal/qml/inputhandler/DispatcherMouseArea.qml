@@ -30,6 +30,14 @@ FocusScope {
             isDoubleClick = false
             currentHandler = dispatcherMouseArea.determineDragHandler(mouse)
             pressedPoint = Qt.point(mouse.x, mouse.y)
+            if (currentHandler?.startDraggingImmediately) {
+                dragged = true
+                let handlerPoint = mapToItem(currentHandler, pressedPoint)
+                currentHandler._startPoint = handlerPoint
+                currentHandler._dragged = true
+                currentHandler._modifiers = mouse.modifiers
+                currentHandler.dragStarted(handlerPoint.x, handlerPoint.y, mouse.modifiers)
+            }
         }
         onPositionChanged: (mouse) => {
             if (isDoubleClick)

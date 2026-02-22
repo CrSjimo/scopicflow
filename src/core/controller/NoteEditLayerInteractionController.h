@@ -128,7 +128,6 @@ namespace sflow {
         void contextMenuRequested(QQuickItem *noteArea, int position, int trackIndex);
         void itemContextMenuRequested(QQuickItem *noteArea, NoteViewModel *item);
 
-        void splitAboutToStart(QQuickItem *noteArea);
         void splitStarted(QQuickItem *noteArea, int position);
         void splitCommitted(QQuickItem *noteArea, int position);
         void splitAborted(QQuickItem *noteArea);

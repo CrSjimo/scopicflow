@@ -106,7 +106,6 @@ namespace sflow {
         void contextMenuRequested(QQuickItem *clipPane, int position, int trackIndex);
         void itemContextMenuRequested(QQuickItem *clipPane, ClipViewModel *item);
 
-        void splitAboutToStart(QQuickItem *clipPane);
         void splitStarted(QQuickItem *clipPane, int position);
         void splitCommitted(QQuickItem *clipPane, int position);
         void splitAborted(QQuickItem *clipPane);

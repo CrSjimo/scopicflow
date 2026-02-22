@@ -33,10 +33,10 @@ DispatchedDragHandler {
         if (selectionController && controller.clickSelectable) {
             selectionController.selectByMouse(viewModel, Qt.RightButton, modifiers)
         }
+        unitedExtendItem = null
+        unitedExtendRestrict = 0
         let united = modifiers & Qt.AltModifier
         if (united) {
-            unitedExtendItem = null
-            unitedExtendRestrict = 0
             updateUnitedExtendRequested()
         }
     }

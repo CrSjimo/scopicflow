@@ -80,7 +80,7 @@ namespace sflow {
         d->timeLayoutViewModel = viewModel;
         if (viewModel) {
             connect(viewModel, SIGNAL(pixelDensityChanged()), this, SLOT(update()));
-            connect(viewModel, SIGNAL(positionAlignmentChanged()), this, SLOT(update()));
+            connect(viewModel, SIGNAL(displayPositionAlignmentChanged()), this, SLOT(update()));
         }
         emit timeLayoutViewModelChanged();
         update();
@@ -136,7 +136,7 @@ namespace sflow {
 
         d->xList.clear();
 
-        int startTick = static_cast<int>(d->timeViewModel->start()) / d->timeLayoutViewModel->positionAlignment() * d->timeLayoutViewModel->positionAlignment();
+        int startTick = static_cast<int>(d->timeViewModel->start()) / d->timeLayoutViewModel->displayPositionAlignment() * d->timeLayoutViewModel->displayPositionAlignment();
         int endTick = d->timeViewModel->start() + width() / d->timeLayoutViewModel->pixelDensity();
 
         int startBar = d->timeline->create(0, 0, startTick).measure();
@@ -144,13 +144,13 @@ namespace sflow {
         for (int bar = startBar; bar <= endBar; bar++) {
             auto currentTimeSignature = d->timeline->timeSignatureAt(bar);
             int calculatedSegmentRatio = 0;
-            static const double minimumScaleDistance = 4;
+            static const double minimumScaleDistance = 8;
             int ticksPerBeat = currentTimeSignature.ticksPerBeat(d->timeline->ticksPerQuarterNote());
             int ticksPerBar = currentTimeSignature.ticksPerBar(d->timeline->ticksPerQuarterNote());
-            if (d->timeLayoutViewModel->positionAlignment() == 1 || ticksPerBeat % d->timeLayoutViewModel->positionAlignment() != 0) {
+            if (d->timeLayoutViewModel->displayPositionAlignment() == 1 || ticksPerBeat % d->timeLayoutViewModel->displayPositionAlignment() != 0) {
                 calculatedSegmentRatio = 1;
             } else {
-                calculatedSegmentRatio = ticksPerBeat / d->timeLayoutViewModel->positionAlignment();
+                calculatedSegmentRatio = ticksPerBeat / d->timeLayoutViewModel->displayPositionAlignment();
             }
             while (calculatedSegmentRatio && ticksPerBeat / calculatedSegmentRatio * d->timeLayoutViewModel->pixelDensity() < minimumScaleDistance) {
                 int nextRatio = calculatedSegmentRatio & -calculatedSegmentRatio;

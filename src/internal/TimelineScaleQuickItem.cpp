@@ -136,7 +136,6 @@ namespace sflow {
         d->timeLayoutViewModel = viewModel;
         if (viewModel) {
             connect(viewModel, SIGNAL(pixelDensityChanged()), this, SLOT(update()));
-            connect(viewModel, SIGNAL(positionAlignmentChanged()), this, SLOT(update()));
         }
         emit timeLayoutViewModelChanged();
         update();

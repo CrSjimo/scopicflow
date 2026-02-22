@@ -16,6 +16,7 @@ namespace sflow {
         Q_PROPERTY(double minimumPixelDensity READ minimumPixelDensity WRITE setMinimumPixelDensity NOTIFY minimumPixelDensityChanged)
         Q_PROPERTY(int cursorPosition READ cursorPosition WRITE setCursorPosition NOTIFY cursorPositionChanged)
         Q_PROPERTY(int positionAlignment READ positionAlignment WRITE setPositionAlignment NOTIFY positionAlignmentChanged)
+        Q_PROPERTY(int displayPositionAlignment READ displayPositionAlignment WRITE setDisplayPositionAlignment RESET resetDisplayPositionAlignment NOTIFY displayPositionAlignmentChanged)
     public:
         explicit TimeLayoutViewModel(QObject *parent = nullptr);
         ~TimeLayoutViewModel() override;
@@ -35,12 +36,17 @@ namespace sflow {
         int positionAlignment() const;
         void setPositionAlignment(int positionAlignment);
 
+        int displayPositionAlignment() const;
+        void setDisplayPositionAlignment(int displayPositionAlignment);
+        void resetDisplayPositionAlignment();
+
     Q_SIGNALS:
         void pixelDensityChanged();
         void maximumPixelDensityChanged();
         void minimumPixelDensityChanged();
         void cursorPositionChanged();
         void positionAlignmentChanged();
+        void displayPositionAlignmentChanged();
 
     private:
         double m_pixelDensity;
@@ -48,6 +54,8 @@ namespace sflow {
         double m_minimumPixelDensity;
         int m_cursorPosition;
         int m_positionAlignment;
+        int m_displayPositionAlignment;
+        bool m_isDisplayPositionExplicitlySet;
     };
 
 }

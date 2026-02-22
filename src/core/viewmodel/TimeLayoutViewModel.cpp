@@ -4,7 +4,7 @@ namespace sflow {
 
     TimeLayoutViewModel::TimeLayoutViewModel(QObject *parent) : QObject(parent),
         m_pixelDensity(0.2), m_maximumPixelDensity(1.0), m_minimumPixelDensity(0.00390625),
-        m_cursorPosition(-1), m_positionAlignment(480) {
+        m_cursorPosition(-1), m_positionAlignment(480), m_displayPositionAlignment(480), m_isDisplayPositionExplicitlySet(false) {
     }
 
     TimeLayoutViewModel::~TimeLayoutViewModel() = default;
@@ -61,6 +61,30 @@ namespace sflow {
         if (m_positionAlignment != positionAlignment) {
             m_positionAlignment = positionAlignment;
             Q_EMIT positionAlignmentChanged();
+            if (!m_isDisplayPositionExplicitlySet) {
+                m_displayPositionAlignment = positionAlignment;
+                Q_EMIT displayPositionAlignmentChanged();
+            }
+        }
+    }
+
+    int TimeLayoutViewModel::displayPositionAlignment() const {
+        return m_displayPositionAlignment;
+    }
+
+    void TimeLayoutViewModel::setDisplayPositionAlignment(int displayPositionAlignment) {
+        if (m_displayPositionAlignment != displayPositionAlignment) {
+            m_displayPositionAlignment = displayPositionAlignment;
+            m_isDisplayPositionExplicitlySet = true;
+            Q_EMIT displayPositionAlignmentChanged();
+        }
+    }
+
+    void TimeLayoutViewModel::resetDisplayPositionAlignment() {
+        m_isDisplayPositionExplicitlySet = false;
+        if (m_displayPositionAlignment != m_positionAlignment) {
+            m_displayPositionAlignment = m_positionAlignment;
+            Q_EMIT displayPositionAlignmentChanged();
         }
     }
 

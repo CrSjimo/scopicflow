@@ -122,6 +122,38 @@ namespace sflow {
             d->startAnimation.start();
         }
     }
+    void ClavierManipulator::moveToStart(bool animated) {
+        Q_D(ClavierManipulator);
+        if (!d->clavierViewModel)
+            return;
+        // Note: For ClavierManipulator, "start" means position 128 (inverted)
+        auto newStart = 128.0;
+        if (!animated) {
+            d->clavierViewModel->setStart(newStart);
+        } else {
+            d->startAnimation.stop();
+            d->pixelDensityAnimation.stop();
+            d->startAnimation.setStartValue(d->clavierViewModel->start());
+            d->startAnimation.setEndValue(newStart);
+            d->startAnimation.start();
+        }
+    }
+    void ClavierManipulator::moveToEnd(bool animated) {
+        Q_D(ClavierManipulator);
+        if (!d->clavierViewModel)
+            return;
+        // Note: For ClavierManipulator, "end" means position 0 + viewSize height (inverted)
+        auto newStart = d->viewSize / d->clavierViewModel->pixelDensity();
+        if (!animated) {
+            d->clavierViewModel->setStart(newStart);
+        } else {
+            d->startAnimation.stop();
+            d->pixelDensityAnimation.stop();
+            d->startAnimation.setStartValue(d->clavierViewModel->start());
+            d->startAnimation.setEndValue(newStart);
+            d->startAnimation.start();
+        }
+    }
     void ClavierManipulator::zoomViewBy(double ratio, double center, bool animated) {
         Q_D(ClavierManipulator);
         if (!d->clavierViewModel)

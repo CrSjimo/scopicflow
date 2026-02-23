@@ -52,6 +52,8 @@ namespace sflow {
         QList<double> map() const;
 
         Q_INVOKABLE void moveViewBy(double deltaY, bool animated = false);
+        Q_INVOKABLE void moveToStart(bool animated = false);
+        Q_INVOKABLE void moveToEnd(bool animated = false);
         Q_INVOKABLE int mapToPosition(double y) const;
         Q_INVOKABLE double mapToY(int position) const;
 

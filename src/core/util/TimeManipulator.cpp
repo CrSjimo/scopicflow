@@ -141,6 +141,37 @@ namespace sflow {
             d->startAnimation.start();
         }
     }
+    void TimeManipulator::moveToStart(bool animated) {
+        Q_D(TimeManipulator);
+        if (!d->timeViewModel || !d->timeLayoutViewModel)
+            return;
+        auto newStart = d->startOffset;
+        if (!animated) {
+            d->timeViewModel->setStart(newStart);
+        } else {
+            d->startAnimation.stop();
+            d->pixelDensityAnimation.stop();
+            d->startAnimation.setStartValue(d->timeViewModel->start());
+            d->startAnimation.setEndValue(newStart);
+            d->startAnimation.start();
+        }
+    }
+    void TimeManipulator::moveToEnd(bool animated) {
+        Q_D(TimeManipulator);
+        if (!d->timeViewModel || !d->timeLayoutViewModel)
+            return;
+        auto newStart = d->timeViewModel->end() - d->viewSize / d->timeLayoutViewModel->pixelDensity();
+        newStart = qMax(d->startOffset, newStart);
+        if (!animated) {
+            d->timeViewModel->setStart(newStart);
+        } else {
+            d->startAnimation.stop();
+            d->pixelDensityAnimation.stop();
+            d->startAnimation.setStartValue(d->timeViewModel->start());
+            d->startAnimation.setEndValue(newStart);
+            d->startAnimation.start();
+        }
+    }
     void TimeManipulator::zoomViewBy(double ratio, double center, bool animated, bool restrictEnd) {
         Q_D(TimeManipulator);
         if (!d->timeViewModel || !d->timeLayoutViewModel)
@@ -170,24 +201,18 @@ namespace sflow {
             d->pixelDensityAnimation.start();
         }
     }
-    void TimeManipulator::ensureVisible(int position, int length, double leftPadding,
-                                        double rightPadding, bool animated, bool restrictEnd) {
+    void TimeManipulator::ensureVisible(int position, int length, double leftPadding, double rightPadding, bool animated, bool restrictEnd) {
         Q_D(TimeManipulator);
         if (!d->timeViewModel || !d->timeLayoutViewModel)
             return;
         auto itemRangeStart = position - leftPadding / d->timeLayoutViewModel->pixelDensity();
-        auto itemRangeEnd =
-            position + length + rightPadding / d->timeLayoutViewModel->pixelDensity();
+        auto itemRangeEnd = position + length + rightPadding / d->timeLayoutViewModel->pixelDensity();
         auto currentRangeStart = d->timeViewModel->start();
-        auto currentRangeEnd =
-            d->timeViewModel->start() + d->viewSize / d->timeLayoutViewModel->pixelDensity();
+        auto currentRangeEnd = d->timeViewModel->start() + d->viewSize / d->timeLayoutViewModel->pixelDensity();
         if (itemRangeStart < currentRangeStart) {
-            moveViewBy((itemRangeStart - currentRangeStart) *
-                           d->timeLayoutViewModel->pixelDensity(),
-                       animated, restrictEnd);
+            moveViewBy((itemRangeStart - currentRangeStart) * d->timeLayoutViewModel->pixelDensity(), animated, restrictEnd);
         } else if (itemRangeEnd > currentRangeEnd) {
-            moveViewBy((itemRangeEnd - currentRangeEnd) * d->timeLayoutViewModel->pixelDensity(),
-                       animated, restrictEnd);
+            moveViewBy((itemRangeEnd - currentRangeEnd) * d->timeLayoutViewModel->pixelDensity(), animated, restrictEnd);
         }
     }
     int TimeManipulator::alignPosition(int tick, ScopicFlow::AlignOption alignOption) const {

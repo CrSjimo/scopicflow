@@ -246,6 +246,35 @@ namespace sflow {
             d->viewportOffsetAnimation.start();
         }
     }
+    void TrackListManipulator::moveToStart(bool animated) {
+        Q_D(TrackListManipulator);
+        if (!d->trackListLayoutViewModel)
+            return;
+        auto newOffset = 0.0;
+        if (!animated) {
+            d->trackListLayoutViewModel->setViewportOffset(newOffset);
+        } else {
+            d->viewportOffsetAnimation.stop();
+            d->viewportOffsetAnimation.setStartValue(d->trackListLayoutViewModel->viewportOffset());
+            d->viewportOffsetAnimation.setEndValue(newOffset);
+            d->viewportOffsetAnimation.start();
+        }
+    }
+    void TrackListManipulator::moveToEnd(bool animated) {
+        Q_D(TrackListManipulator);
+        if (!d->trackListLayoutViewModel)
+            return;
+        auto maxOffset = qMax(0.0, d->viewportHeight - d->viewSize);
+        auto newOffset = maxOffset;
+        if (!animated) {
+            d->trackListLayoutViewModel->setViewportOffset(newOffset);
+        } else {
+            d->viewportOffsetAnimation.stop();
+            d->viewportOffsetAnimation.setStartValue(d->trackListLayoutViewModel->viewportOffset());
+            d->viewportOffsetAnimation.setEndValue(newOffset);
+            d->viewportOffsetAnimation.start();
+        }
+    }
 
     int TrackListManipulator::mapToPosition(double y) const {
         Q_D(const TrackListManipulator);

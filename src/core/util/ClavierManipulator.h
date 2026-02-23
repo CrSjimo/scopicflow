@@ -36,6 +36,8 @@ namespace sflow {
         void resetViewSize();
 
         Q_INVOKABLE void moveViewBy(double delta, bool animated = false);
+        Q_INVOKABLE void moveToStart(bool animated = false);
+        Q_INVOKABLE void moveToEnd(bool animated = false);
         Q_INVOKABLE void zoomViewBy(double ratio, double center, bool animated = false);
         Q_INVOKABLE void ensureVisible(int position, int length, double topPadding = 0, double bottomPadding = 0, bool animated = false);
 

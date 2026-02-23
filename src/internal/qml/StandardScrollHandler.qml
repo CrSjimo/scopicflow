@@ -29,6 +29,27 @@ FocusScope {
     signal moved(x: double, y: double, isPhysicalWheel: bool)
     signal zoomed(ratioX: double, ratioY: double, x: double, y: double, isPhysicalWheel: bool)
 
+    WheelManipulator {
+        id: wheelManipulator
+
+        onMoved: (x, y, isPhysicalWheel) => {
+            handler.moved(
+                (handler.movableOrientation & Qt.Horizontal) ? x : 0,
+                (handler.movableOrientation & Qt.Vertical) ? y : 0,
+                isPhysicalWheel
+            )
+        }
+        onZoomed: (ratioX, ratioY, x, y, isPhysicalWheel) => {
+            handler.zoomed(
+                (handler.zoomableOrientation & Qt.Horizontal) ? ratioX : 1,
+                (handler.zoomableOrientation & Qt.Vertical) ? ratioY : 1,
+                x,
+                y,
+                isPhysicalWheel
+            )
+        }
+    }
+
     // Wheel
     MouseArea {
         acceptedButtons: Qt.NoButton
@@ -41,33 +62,15 @@ FocusScope {
             let isZoom = handler.viewModel?.isZoom(wheel.modifiers) ?? false
             let isPage = handler.viewModel?.isPage(wheel.modifiers) ?? false
 
-            let deltaPixelX = isAlternateAxis ? wheel.pixelDelta.y : wheel.pixelDelta.x
-            let deltaPixelY = isAlternateAxis ? wheel.pixelDelta.x : wheel.pixelDelta.y
-
-            let deltaX = (isAlternateAxis ? wheel.angleDelta.y : wheel.angleDelta.x) / 120
-            let deltaY = (isAlternateAxis ? wheel.angleDelta.x : wheel.angleDelta.y) / 120
-
-            let wheelHint = (!deltaPixelX && Math.abs(deltaX - Math.floor(deltaX)) < Number.EPSILON) && (!deltaPixelY && Math.abs(deltaY - Math.floor(deltaY)) < Number.EPSILON);
-
-            if (isZoom) {
-                handler.zoomed(
-                    (handler.zoomableOrientation & Qt.Horizontal) ? Math.pow(1 + (isPage ? 2.5 : 0.25) * Math.abs(deltaX), Math.sign(deltaX)) : 1,
-                    (handler.zoomableOrientation & Qt.Vertical) ? Math.pow(1 + (isPage ? 3 : 0.3) * Math.abs(deltaY), Math.sign(deltaY)) : 1,
-                    wheel.x,
-                    wheel.y,
-                    wheelHint
-                );
-            } else {
-                if (!deltaPixelX)
-                    deltaPixelX = isPage ? Math.sign(deltaX) * handler.width : 0.125 * deltaX * handler.width;
-                if (!deltaPixelY)
-                    deltaPixelY = isPage ? Math.sign(deltaY) * handler.height : 0.2 * deltaY * handler.height;
-                handler.moved(
-                    (handler.movableOrientation & Qt.Horizontal) ? -deltaPixelX : 0,
-                    (handler.movableOrientation & Qt.Vertical) ? -deltaPixelY : 0,
-                    wheelHint
-                );
-            }
+            wheelManipulator.handleWheel(
+                wheel.angleDelta,
+                wheel.pixelDelta,
+                Qt.point(wheel.x, wheel.y),
+                Qt.size(handler.width, handler.height),
+                isAlternateAxis,
+                isZoom,
+                isPage
+            )
         }
     }
 

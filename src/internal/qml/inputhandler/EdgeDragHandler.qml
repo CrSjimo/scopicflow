@@ -63,7 +63,7 @@ DispatchedDragHandler {
 
     onDragCanceled: () => {
         edgeDragScroller.running = false
-        controller.adjustLengthCanceled(paneItem, viewModel, edge)
+        controller.adjustLengthAborted(paneItem, viewModel, edge)
     }
 
     DragScroller {

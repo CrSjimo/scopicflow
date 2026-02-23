@@ -81,7 +81,7 @@ DispatchedDragHandler {
                             return;
                         if (hasClipStart && note.clipStart + deltaPosition < 0)
                             return;
-                        if (deltaPosition > note.length - handler.timeManipulator.timeLayoutViewModel.positionAlignment)
+                        if (deltaPosition > note.length - 1)
                             return;
                     }
                     if (unitedExtendRestrict) {
@@ -102,7 +102,7 @@ DispatchedDragHandler {
                     for (let note of selection) {
                         if (note.position + note.length + deltaPosition < 0)
                             return;
-                        if (note.position + note.length + deltaPosition < note.position + handler.timeManipulator.timeLayoutViewModel.positionAlignment)
+                        if (note.position + note.length + deltaPosition < note.position + 1)
                             return;
                         if (hasMaxLength && note.length + deltaPosition + (note.clipStart ?? 0) > note.maxLength)
                             return;

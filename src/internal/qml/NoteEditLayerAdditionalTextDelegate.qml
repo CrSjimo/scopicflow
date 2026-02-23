@@ -27,8 +27,8 @@ FocusScope {
 
     Text {
         id: additionalTextItem
-        leftPadding: 4.5
-        rightPadding: 4.5
+        leftPadding: 6.5
+        rightPadding: 6.5
         topPadding: 4
         bottomPadding: 4
         anchors.fill: parent

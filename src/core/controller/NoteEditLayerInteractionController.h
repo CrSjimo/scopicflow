@@ -121,7 +121,7 @@ namespace sflow {
         void itemHoverEntered(QQuickItem *noteArea, NoteViewModel *item);
         void itemHoverExited(QQuickItem *noteArea, NoteViewModel *item);
 
-        void doubleClicked(QQuickItem *noteArea, int position, int trackIndex);
+        void doubleClicked(QQuickItem *noteArea, int position, int key);
         void itemDoubleClicked(QQuickItem *noteArea, NoteViewModel *item);
         void itemAdditionalTextDoubleClicked(QQuickItem *noteArea, NoteViewModel *item);
 

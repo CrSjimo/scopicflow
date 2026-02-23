@@ -64,9 +64,9 @@ FocusScope {
 
         Text {
             anchors.left: parent.left
-            anchors.leftMargin: 4
+            anchors.leftMargin: 6
             anchors.right: parent.right
-            anchors.rightMargin: 4
+            anchors.rightMargin: 6
             anchors.verticalCenter: parent.verticalCenter
             clip: true
             color: Theme.foregroundPrimaryColor

@@ -43,6 +43,7 @@ T.Control {
         horizontalAlignment: editLabel.center ? Text.AlignHCenter : undefined
         text: editLabel.text
         visible: !labelEdit.visible
+        font: Theme.font
     }
     Popup {
         id: popup

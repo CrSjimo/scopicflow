@@ -115,6 +115,7 @@ Item {
                 Layout.maximumWidth: 16
                 Layout.bottomMargin: track.height - 40
                 horizontalAlignment: track.rightAligned ? Qt.AlignRight : Qt.AlignLeft
+                font: Theme.font
 
                 Behavior on color {
                     ColorAnimation {

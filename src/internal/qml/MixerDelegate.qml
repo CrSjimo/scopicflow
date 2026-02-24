@@ -202,6 +202,7 @@ Item {
                             horizontalAlignment: Text.AlignHCenter
                             opacity: 0.5
                             text: (maxValue + 96 < 0.05 ? "" : Qt.locale().toString(maxValue, "f", 1))
+                            font: Theme.font
 
                             MouseArea {
                                 id: peakMouseArea
@@ -272,6 +273,7 @@ Item {
                     Layout.alignment: Qt.AlignVCenter
                     color: mixerDelegate.current && mixerDelegate.selectionController?.editScopeFocused ? Theme.accentColor : Theme.foregroundPrimaryColor
                     text: mixerDelegate.trackNumber
+                    font: Theme.font
 
                     Behavior on color {
                         ColorAnimation {
@@ -345,6 +347,7 @@ Item {
                             anchors.rightMargin: 2
                             anchors.verticalCenter: parent.verticalCenter
                             color: parent.color
+                            font.family: Theme.font.family
                             font.pixelSize: 8
                             text: parent.modelData === -96 ? "-∞" : parent.modelData
                             visible: parent.major

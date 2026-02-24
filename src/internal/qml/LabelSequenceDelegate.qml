@@ -67,5 +67,6 @@ FocusScope {
         anchors.verticalCenter: parent.verticalCenter
         color: Theme.foregroundPrimaryColor
         text: label.content
+        font: Theme.font
     }
 }

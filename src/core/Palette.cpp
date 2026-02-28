@@ -39,6 +39,8 @@ namespace sflow {
 
     IMPLEMENTATION(editAreaPrimaryColor, editAreaPrimaryColor, setEditAreaPrimaryColor, resetEditAreaPrimaryColor)
     IMPLEMENTATION(editAreaSecondaryColor, editAreaSecondaryColor, setEditAreaSecondaryColor, resetEditAreaSecondaryColor)
+    IMPLEMENTATION(editAreaPrimaryHighlightColor, editAreaPrimaryHighlightColor, setEditAreaPrimaryHighlightColor, resetEditAreaPrimaryHighlightColor)
+    IMPLEMENTATION(editAreaSecondaryHighlightColor, editAreaSecondaryHighlightColor, setEditAreaSecondaryHighlightColor, resetEditAreaSecondaryHighlightColor)
     IMPLEMENTATION(playheadPrimaryColor, playheadPrimaryColor, setPlayheadPrimaryColor, resetPlayheadPrimaryColor)
     IMPLEMENTATION(playheadSecondaryColor, playheadSecondaryColor, setPlayheadSecondaryColor, resetPlayheadSecondaryColor)
     IMPLEMENTATION(cursorIndicatorColor, cursorIndicatorColor, setCursorIndicatorColor, resetCursorIndicatorColor)

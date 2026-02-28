@@ -176,14 +176,17 @@ namespace sflow {
         auto segmentScaleColor = d->segmentScaleColor.isValid() ? d->segmentScaleColor : Qt::black;
 
 
-        auto barScaleGeometry = new QSGGeometry(QSGGeometry::defaultAttributes_ColoredPoint2D(), d->xList.size() * 2);
-        barScaleGeometry->setDrawingMode(QSGGeometry::DrawLines);
-        barScaleGeometry->setLineWidth(1);
+        auto barScaleGeometry = new QSGGeometry(QSGGeometry::defaultAttributes_ColoredPoint2D(), d->xList.size() * 4);
+        barScaleGeometry->setDrawingMode(QSGGeometry::DrawTriangleStrip);
         for (int i = 0; i < d->xList.size(); i++) {
             const auto &[x, type] = d->xList.at(i);
             auto color = type == PianoRollScaleQuickItemPrivate::Bar ? barScaleColor : type == PianoRollScaleQuickItemPrivate::Beat ? beatScaleColor : segmentScaleColor;
-            barScaleGeometry->vertexDataAsColoredPoint2D()[i * 2].set(x, 0, color.red(), color.green(), color.blue(), color.alpha());
-            barScaleGeometry->vertexDataAsColoredPoint2D()[i * 2 + 1].set(x, height(), color.red(), color.green(), color.blue(), color.alpha());
+            auto y1 = i % 2 ? 0 : height();
+            auto y2 = i % 2 ? height() : 0;
+            barScaleGeometry->vertexDataAsColoredPoint2D()[i * 4].set(x - 0.5f, y1, color.red(), color.green(), color.blue(), color.alpha());
+            barScaleGeometry->vertexDataAsColoredPoint2D()[i * 4 + 1].set(x + 0.5f, y1, color.red(), color.green(), color.blue(), color.alpha());
+            barScaleGeometry->vertexDataAsColoredPoint2D()[i * 4 + 2].set(x - 0.5f, y2, color.red(), color.green(), color.blue(), color.alpha());
+            barScaleGeometry->vertexDataAsColoredPoint2D()[i * 4 + 3].set(x + 0.5f, y2, color.red(), color.green(), color.blue(), color.alpha());
         }
         barScaleNode->setGeometry(barScaleGeometry);
         barScaleNode->setFlag(QSGNode::OwnsGeometry);

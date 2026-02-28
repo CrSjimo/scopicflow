@@ -124,6 +124,7 @@ FocusScope {
                             }
                         }
                         border.color: Theme.borderColor
+                        border.width: 0.5
                         topRightRadius: helper.isRealistic && helper.isBlackKey(keyItem.index) ? 4 : 0
                         bottomRightRadius: helper.isRealistic && helper.isBlackKey(keyItem.index) ? 4 : 0
                     }

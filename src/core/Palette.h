@@ -29,6 +29,8 @@ namespace sflow {
 
         Q_PROPERTY(QColor editAreaPrimaryColor READ editAreaPrimaryColor WRITE setEditAreaPrimaryColor RESET resetEditAreaPrimaryColor NOTIFY editAreaPrimaryColorChanged)
         Q_PROPERTY(QColor editAreaSecondaryColor READ editAreaSecondaryColor WRITE setEditAreaSecondaryColor RESET resetEditAreaSecondaryColor NOTIFY editAreaSecondaryColorChanged)
+        Q_PROPERTY(QColor editAreaPrimaryHighlightColor READ editAreaPrimaryHighlightColor WRITE setEditAreaPrimaryHighlightColor RESET resetEditAreaPrimaryHighlightColor NOTIFY editAreaPrimaryHighlightColorChanged)
+        Q_PROPERTY(QColor editAreaSecondaryHighlightColor READ editAreaSecondaryHighlightColor WRITE setEditAreaSecondaryHighlightColor RESET resetEditAreaSecondaryHighlightColor NOTIFY editAreaSecondaryHighlightColorChanged)
         Q_PROPERTY(QColor playheadPrimaryColor READ playheadPrimaryColor WRITE setPlayheadPrimaryColor RESET resetPlayheadPrimaryColor NOTIFY playheadPrimaryColorChanged)
         Q_PROPERTY(QColor playheadSecondaryColor READ playheadSecondaryColor WRITE setPlayheadSecondaryColor RESET resetPlayheadSecondaryColor NOTIFY playheadSecondaryColorChanged)
         Q_PROPERTY(QColor cursorIndicatorColor READ cursorIndicatorColor WRITE setCursorIndicatorColor RESET resetCursorIndicatorColor NOTIFY cursorIndicatorColorChanged)
@@ -80,6 +82,14 @@ namespace sflow {
         QColor editAreaSecondaryColor() const;
         void setEditAreaSecondaryColor(const QColor &editAreaSecondaryColor);
         void resetEditAreaSecondaryColor();
+
+        QColor editAreaPrimaryHighlightColor() const;
+        void setEditAreaPrimaryHighlightColor(const QColor &editAreaPrimaryHighlightColor);
+        void resetEditAreaPrimaryHighlightColor();
+
+        QColor editAreaSecondaryHighlightColor() const;
+        void setEditAreaSecondaryHighlightColor(const QColor &editAreaSecondaryHighlightColor);
+        void resetEditAreaSecondaryHighlightColor();
 
         QColor playheadPrimaryColor() const;
         void setPlayheadPrimaryColor(const QColor &playheadPrimaryColor);
@@ -178,6 +188,8 @@ namespace sflow {
         void levelMeterColorChanged();
         void editAreaPrimaryColorChanged();
         void editAreaSecondaryColorChanged();
+        void editAreaPrimaryHighlightColorChanged();
+        void editAreaSecondaryHighlightColorChanged();
         void playheadPrimaryColorChanged();
         void playheadSecondaryColorChanged();
         void cursorIndicatorColorChanged();

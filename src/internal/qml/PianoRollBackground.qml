@@ -14,6 +14,7 @@ Item {
     property ClavierViewModel clavierViewModel: null
     property TimeViewModel timeViewModel: null
     property TimeLayoutViewModel timeLayoutViewModel: null
+    property RangeSequenceViewModel scaleHighlightSequenceViewModel: null
 
     clip: true
 
@@ -27,20 +28,78 @@ Item {
     }
 
     ClavierViewportContainer {
-        id: viewportContainer
+        id: clavierViewportContainer
         clavierViewModel: pianoRollBackground.clavierViewModel
+        Item {
+            id: backgroundPattern
+            Repeater {
+                id: backgroundPatternRepeater
+                model: 128
+                delegate: Rectangle {
+                    required property int index
+                    x: 0
+                    y: 127 - index
+                    width: 1
+                    height: 1
+                    color: helper.isBlackKey(index) ? SFPalette.editAreaPrimaryColor : SFPalette.editAreaSecondaryColor
+                }
+            }
+            transform: Scale {
+                origin.x: 0
+                origin.y: 0
+                xScale: pianoRollBackground.width
+                yScale: helper.keyHeight
+            }
+        }
+        TimeViewportContainer {
+            id: timeViewportContainer
+            timeViewModel: pianoRollBackground.timeViewModel
+            timeLayoutViewModel: pianoRollBackground.timeLayoutViewModel
+            SequenceSlicer {
+                id: slicer
+                viewModel: pianoRollBackground.scaleHighlightSequenceViewModel
+                sliceWidth: pianoRollBackground.width
+                timeLayoutViewModel: pianoRollBackground.timeLayoutViewModel
+                timeViewModel: pianoRollBackground.timeViewModel
+                delegate: Item {
+                    id: highlightPattern
+                    Binding {
+                        highlightPattern.x: (highlightPattern.SequenceSlicerLoader.viewModel?.position ?? 0) * (pianoRollBackground.timeLayoutViewModel?.pixelDensity ?? 0)
+                        highlightPattern.displayWidth: (highlightPattern.SequenceSlicerLoader.viewModel?.length ?? 0) * (pianoRollBackground.timeLayoutViewModel?.pixelDensity ?? 0)
+                        when: highlightPattern.SequenceSlicerLoader.inRange
+                    }
+                    property double displayWidth: 0
+                    Repeater {
+                        model: 128
+                        delegate: Rectangle {
+                            required property int index
+                            x: 0
+                            y: 127 - index
+                            width: 1
+                            height: 1
+                            color: helper.isBlackKey(index) ? SFPalette.editAreaPrimaryHighlightColor : SFPalette.editAreaSecondaryHighlightColor
+                            visible: Boolean((1 << index % 12) & (highlightPattern.SequenceSlicerLoader.viewModel?.cMask ?? 0))
+                        }
+                    }
+                    transform: Scale {
+                        origin.x: 0
+                        origin.y: 0
+                        xScale: highlightPattern.displayWidth
+                        yScale: helper.keyHeight
+                    }
+                }
+            }
+        }
         Repeater {
-            id: repeater
-            model: 128
+            id: separatorRepeater
+            model: 24
             delegate: Rectangle {
                 required property int index
-                x: -1
-                y: (127 - index) * helper.keyHeight
-                width: parent.width + 2
-                height: helper.keyHeight
-                color: helper.isBlackKey(index) ? SFPalette.editAreaPrimaryColor : SFPalette.editAreaSecondaryColor
-                border.color: SFPalette.editAreaPrimaryColor
-                border.width: 1
+                x: 0
+                y: (3 - index % 2 + index * 6) * helper.keyHeight - 0.5
+                width: pianoRollBackground.width
+                height: 1
+                color: SFPalette.scaleSecondaryColor
             }
         }
     }

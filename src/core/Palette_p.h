@@ -19,6 +19,8 @@ namespace sflow {
 
             {"editAreaPrimaryColor", QVariant::fromValue(QColor(0x333740))},
             {"editAreaSecondaryColor", QVariant::fromValue(QColor(0x444954))},
+            {"editAreaPrimaryHighlightColor", QVariant::fromValue(QColor(0x333740))},
+            {"editAreaSecondaryHighlightColor", QVariant::fromValue(QColor(0x444954))},
             {"playheadPrimaryColor", QVariant::fromValue(QColor(0xcc4455))},
             {"playheadSecondaryColor", QVariant::fromValue(QColor::fromRgba(0x7fcc4455))},
             {"cursorIndicatorColor", QVariant::fromValue(QColor::fromRgba(0x7f5566ff))},

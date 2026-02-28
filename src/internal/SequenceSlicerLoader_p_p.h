@@ -30,7 +30,7 @@ namespace sflow {
 
     private:
         bool m_inRange{};
-        QObject *m_viewModel{};
+        QPointer<QObject> m_viewModel{};
     };
 
     class SequenceSlicerLoaderPrivate {

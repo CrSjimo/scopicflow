@@ -9,7 +9,7 @@ namespace sflow {
     ClipViewModel::ClipViewModel(QObject *parent) : QObject(parent),
         m_associatedNoteSequence(nullptr),
         m_position(0), m_length(0), m_clipStart(0), m_maxLength(std::numeric_limits<int>::max()),
-        m_trackIndex(0), m_mute(false), m_selected(false), m_overlapped(false) {
+        m_trackIndex(0), m_mute(false), m_selected(false), m_overlapped(false), m_editing(false) {
     }
 
     ClipViewModel::~ClipViewModel() = default;
@@ -132,6 +132,17 @@ namespace sflow {
         if (m_overlapped != overlapped) {
             m_overlapped = overlapped;
             Q_EMIT overlappedChanged();
+        }
+    }
+
+    bool ClipViewModel::isEditing() const {
+        return m_editing;
+    }
+
+    void ClipViewModel::setEditing(bool editing) {
+        if (m_editing != editing) {
+            m_editing = editing;
+            Q_EMIT editingChanged();
         }
     }
 

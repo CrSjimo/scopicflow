@@ -26,6 +26,7 @@ namespace sflow {
         Q_PROPERTY(bool mute READ isMute WRITE setMute NOTIFY muteChanged)
         Q_PROPERTY(bool selected READ isSelected WRITE setSelected NOTIFY selectedChanged)
         Q_PROPERTY(bool overlapped READ isOverlapped WRITE setOverlapped NOTIFY overlappedChanged)
+        Q_PROPERTY(bool editing READ isEditing WRITE setEditing NOTIFY editingChanged)
     public:
         explicit ClipViewModel(QObject *parent = nullptr);
         ~ClipViewModel() override;
@@ -63,6 +64,9 @@ namespace sflow {
         bool isOverlapped() const;
         void setOverlapped(bool overlapped);
 
+        bool isEditing() const;
+        void setEditing(bool editing);
+
     Q_SIGNALS:
         void nameChanged();
         void iconSourceChanged();
@@ -74,6 +78,7 @@ namespace sflow {
         void muteChanged();
         void selectedChanged();
         void overlappedChanged();
+        void editingChanged();
         void associatedNoteSequenceChanged();
 
     private:
@@ -88,6 +93,7 @@ namespace sflow {
         bool m_mute;
         bool m_selected;
         bool m_overlapped;
+        bool m_editing;
     };
 
 }

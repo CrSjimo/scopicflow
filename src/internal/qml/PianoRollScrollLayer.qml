@@ -52,6 +52,8 @@ FocusScope {
         verticalScrollY: -clavierViewportContainer.y
         verticalScrollHeight: clavierViewportContainer.height
 
+        horizontalScrollBar.anchors.bottomMargin: pianoRollScrollLayer.bottomExpansion
+
         onMoved: (deltaX, deltaY, isPhysicalWheel) => {
             timeManipulator.moveViewBy(deltaX, isPhysicalWheel);
             clavierManipulator.moveViewBy(deltaY, isPhysicalWheel);

@@ -23,6 +23,7 @@ FocusScope {
 
     property bool active: true
     property ClipViewModel editingItem: null
+    property int bottomExpansion: 0
 
     SequenceSlicerLoader {
         range: [0, 1073741824] // TODO infinity range
@@ -42,6 +43,7 @@ FocusScope {
             readonly property bool current: noteEditLayerSequence.editingItem === clipViewModel
             thumbnailDisplay: !current
             clipBoundaryVisible: current
+            bottomExpansion: noteEditLayerSequence.bottomExpansion
             z: thumbnailDisplay ? 0 : 1
         }
     }

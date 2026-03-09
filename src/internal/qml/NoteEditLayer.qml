@@ -26,6 +26,7 @@ FocusScope {
     property bool thumbnailDisplay: false
     property bool active: true
     property bool clipBoundaryVisible: false
+    property int bottomExpansion: 0
 
     clip: true
     enabled: !thumbnailDisplay
@@ -144,7 +145,7 @@ FocusScope {
         timeLayoutViewModel: noteEditLayer.timeLayoutViewModel
         Rectangle {
             visible: noteEditLayer.clipBoundaryVisible
-            height: parent.height
+            height: parent.height - noteEditLayer.bottomExpansion
             x: (noteEditLayer.clipViewModel?.position ?? 0) * (noteEditLayer.timeLayoutViewModel?.pixelDensity ?? 0)
             width: (noteEditLayer.clipViewModel?.length ?? 0) * (noteEditLayer.timeLayoutViewModel?.pixelDensity ?? 0)
             color: "transparent"

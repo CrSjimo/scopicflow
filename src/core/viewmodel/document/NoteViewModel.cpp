@@ -3,7 +3,7 @@
 namespace sflow {
 
     NoteViewModel::NoteViewModel(QObject *parent) : QObject(parent),
-        m_position(0), m_length(0), m_key(0), m_additionalTextHighlighted(false), m_selected(false), m_overlapped(false) {
+        m_position(0), m_length(0), m_key(0), m_additionalTextHighlighted(false), m_selected(false), m_overlapped(false), m_nextNotePosition(0), m_nextNoteKey(0) {
     }
 
     NoteViewModel::~NoteViewModel() = default;
@@ -93,6 +93,28 @@ namespace sflow {
         if (m_overlapped != overlapped) {
             m_overlapped = overlapped;
             Q_EMIT overlappedChanged();
+        }
+    }
+
+    int NoteViewModel::nextNotePosition() const {
+        return m_nextNotePosition;
+    }
+
+    void NoteViewModel::setNextNotePosition(int nextNotePosition) {
+        if (m_nextNotePosition != nextNotePosition) {
+            m_nextNotePosition = nextNotePosition;
+            Q_EMIT nextNotePositionChanged();
+        }
+    }
+
+    int NoteViewModel::nextNoteKey() const {
+        return m_nextNoteKey;
+    }
+
+    void NoteViewModel::setNextNoteKey(int nextNoteKey) {
+        if (m_nextNoteKey != nextNoteKey) {
+            m_nextNoteKey = nextNoteKey;
+            Q_EMIT nextNoteKeyChanged();
         }
     }
 

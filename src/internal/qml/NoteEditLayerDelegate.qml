@@ -26,7 +26,7 @@ FocusScope {
     opacity: lyricEditing ? 0 : 1
 
     Binding {
-        note.z: note.current ? 2 : note.noteViewModel?.selected ? 1 : 0
+        note.z: note.current && note.noteViewModel?.selected ? 3 : note.noteViewModel?.current ? 2 : note.noteViewModel?.selected ? 1 : 0
         note.selected: note.noteViewModel?.selected ?? false
         note.overlapped: note.noteViewModel?.overlapped ?? false
         note.lyric: note.noteViewModel?.lyric ?? ""

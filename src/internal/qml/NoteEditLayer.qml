@@ -3,9 +3,12 @@ pragma ComponentBehavior: Bound
 import QtQml
 import QtQuick
 import QtQuick.Controls
+import QtQuick.Templates as T
+import QtQuick.Controls.impl
 
 import SVSCraft
 import SVSCraft.UIComponents
+import SVSCraft.UIComponents.impl
 
 import dev.sjimo.ScopicFlow
 import dev.sjimo.ScopicFlow.Internal
@@ -187,6 +190,7 @@ FocusScope {
                 }
             }
             Item {
+                id: slicerContainer
                 anchors.fill: parent
                 SequenceSlicer {
                     id: slicer
@@ -206,6 +210,11 @@ FocusScope {
                             current = (noteEditLayer.selectionController?.currentItem === noteViewModel)
                         }
 
+                        property int nextNotePos: 0
+                        property int restLength: 0
+                        property double restWidth: 0
+                        property double restLabelAnchorY: 0
+
                         Binding {
                             noteDelegate.x: (noteDelegate.noteViewModel?.position ?? 0) * (noteEditLayer.timeLayoutViewModel?.pixelDensity ?? 0)
                             noteDelegate.y: (127 - (noteDelegate.noteViewModel?.key ?? 0)) * (noteEditLayer.clavierViewModel?.pixelDensity ?? 0)
@@ -223,8 +232,99 @@ FocusScope {
                                 return p + l <= cs || p >= cs + cl
                             }
                             noteDelegate.thumbnailDisplay: noteEditLayer.thumbnailDisplay
+                            noteDelegate.nextNotePos: noteDelegate.noteViewModel?.nextNotePosition ?? 0
+                            noteDelegate.restLength: (noteDelegate.noteViewModel?.nextNotePosition ?? 0) - (noteDelegate.noteViewModel?.position ?? 0) - (noteDelegate.noteViewModel?.length ?? 0)
+                            noteDelegate.restWidth: noteDelegate.restLength * (noteEditLayer.timeLayoutViewModel?.pixelDensity ?? 0)
+                            noteDelegate.restLabelAnchorY: {
+                                let nextNoteY = (127 - (noteDelegate.noteViewModel?.nextNoteKey ?? 0)) * (noteEditLayer.clavierViewModel?.pixelDensity ?? 0)
+                                return noteEditLayer.noteEditLayerInteractionController?.additionalTextPosition === NoteEditLayerInteractionController.AdditionalTextPosition_Up ? Math.min(nextNoteY, noteDelegate.y) : Math.max(nextNoteY, noteDelegate.y)
+                            }
+                            shortNoteLabel.visible: noteDelegate.noteViewModel?.length <= noteEditLayer.noteEditLayerInteractionController?.shortNoteThreshold
+                            shortNoteLabel.anchors.verticalCenterOffset: noteEditLayer.noteEditLayerInteractionController?.additionalTextPosition === NoteEditLayerInteractionController.AdditionalTextPosition_Up ? 0.5 * noteDelegate.height + 16 : -0.5 * noteDelegate.height - 16
+                            shortRestLabel.visible: noteDelegate.restLength > 0 && noteDelegate.restLength <= noteEditLayer.noteEditLayerInteractionController?.shortNoteThreshold
+                            shortRestLabel.anchors.verticalCenterOffset: noteEditLayer.noteEditLayerInteractionController?.additionalTextPosition === NoteEditLayerInteractionController.AdditionalTextPosition_Up ? -0.5 * noteDelegate.height - 16 : 0.5 * noteDelegate.height + 16
                             when: noteDelegate.SequenceSlicerLoader.inRange
                         }
+
+                        Item {
+                            parent: slicerContainer
+                            x: noteDelegate.x + 0.5 * noteDelegate.width
+                            y: noteDelegate.y + 0.5 * noteDelegate.height
+                            z: 2.5
+                            opacity: 0.75
+                            T.Button {
+                                id: shortNoteLabel
+                                width: 20
+                                height: 20
+                                anchors.centerIn: parent
+                                background: ButtonRectangle {
+                                    control: shortNoteLabel
+                                }
+                                contentItem: IconImage {
+                                    source: "qrc:/qt/qml/dev/sjimo/ScopicFlow/Internal/assets/music_note.svg"
+                                    sourceSize.width: 16
+                                    sourceSize.height: 16
+                                    color: noteDelegate.selected ? Theme.accentColor : Theme.foregroundPrimaryColor
+                                }
+                                display: T.AbstractButton.IconOnly
+                                text: qsTr("Short note")
+                                ActionToolTipHelper {
+                                    text: shortNoteLabel.text
+                                    delay: Theme.toolTipDelay
+                                    timeout: Theme.toolTipTimeout
+                                    visible: shortNoteLabel.hovered
+                                }
+                                onClicked: () => {
+                                    noteEditLayer.selectionController.select(noteDelegate.noteViewModel, SelectionController.ClearPreviousSelection | SelectionController.SetCurrentItem | SelectionController.Select)
+                                }
+                            }
+                        }
+
+                        Item {
+                            parent: slicerContainer
+                            x: noteDelegate.x + noteDelegate.width + 0.5 * (noteDelegate.restWidth)
+                            y: noteDelegate.restLabelAnchorY + 0.5 * noteDelegate.height
+                            z: 2.5
+                            opacity: 0.75
+                            T.Button {
+                                id: shortRestLabel
+                                width: 20
+                                height: 20
+                                anchors.centerIn: parent
+                                background: ButtonRectangle {
+                                    control: shortRestLabel
+                                }
+                                contentItem: IconImage {
+                                    source: "qrc:/qt/qml/dev/sjimo/ScopicFlow/Internal/assets/music_rest.svg"
+                                    sourceSize.width: 16
+                                    sourceSize.height: 16
+                                    color: Theme.foregroundPrimaryColor
+                                }
+                                display: T.AbstractButton.IconOnly
+                                text: qsTr("Short rest")
+                                ActionToolTipHelper {
+                                    text: shortRestLabel.text
+                                    delay: Theme.toolTipDelay
+                                    timeout: Theme.toolTipTimeout
+                                    visible: shortRestLabel.hovered
+                                }
+                                Menu {
+                                    id: shortRestMenu
+                                    Action {
+                                        text: qsTr("Extend previous note forward")
+                                        onTriggered: noteEditLayer.noteEditLayerInteractionController.rippleDeleteRequested(noteEditLayer, noteDelegate.noteViewModel, NoteEditLayerInteractionController.RippleDelete_Previous)
+                                    }
+                                    Action {
+                                        text: qsTr("Extend next note backward")
+                                        onTriggered: noteEditLayer.noteEditLayerInteractionController.rippleDeleteRequested(noteEditLayer, noteDelegate.noteViewModel, NoteEditLayerInteractionController.RippleDelete_Next)
+                                    }
+                                }
+                                onClicked: () => {
+                                    shortRestMenu.popup()
+                                }
+                            }
+                        }
+
                         RubberBandItemConnections {
                             target: noteDelegate
                             viewModel: noteDelegate.noteViewModel

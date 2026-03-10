@@ -23,7 +23,7 @@ DispatchedDragHandler {
     onDragStarted: () => {
         controller.movingStarted(paneItem, viewModel, moveFlag)
         if (selectionController && controller.clickSelectable) {
-            selectionController.selectByMouse(viewModel, Qt.RightButton, modifiers)
+            selectionController.selectByMouse(viewModel, Qt.RightButton, 0)
         }
     }
 

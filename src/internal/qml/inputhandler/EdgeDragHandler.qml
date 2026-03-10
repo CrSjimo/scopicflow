@@ -31,7 +31,7 @@ DispatchedDragHandler {
     onDragStarted: () => {
         controller.adjustLengthStarted(paneItem, viewModel, edge)
         if (selectionController && controller.clickSelectable) {
-            selectionController.selectByMouse(viewModel, Qt.RightButton, modifiers)
+            selectionController.selectByMouse(viewModel, Qt.RightButton, 0)
         }
         unitedExtendItem = null
         unitedExtendRestrict = 0

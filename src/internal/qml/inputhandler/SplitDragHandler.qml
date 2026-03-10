@@ -52,7 +52,7 @@ DispatchedDragHandler {
         )
         indicator.x = mapFromItem(paneItem, timeManipulator.mapToX(splitPosition), 0).x
         if (controller.clickSelectable) {
-            selectionController.selectByMouse(viewModel, Qt.RightButton, modifiers)
+            selectionController.selectByMouse(viewModel, Qt.RightButton, 0)
         }
         controller.splitStarted(paneItem, splitPosition)
     }

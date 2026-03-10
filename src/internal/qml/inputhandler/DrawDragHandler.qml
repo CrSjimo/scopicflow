@@ -25,7 +25,7 @@ DispatchedDragHandler {
 
     onDragStarted: () => {
         controller.drawingStarted(target)
-        selectionController.selectByMouse(null, Qt.LeftButton, modifiers)
+        selectionController.selectByMouse(null, Qt.LeftButton, 0)
         dragScroller.lastTargetPoint = startPoint
         initialPosition = handler.timeManipulator.alignPosition(handler.timeManipulator.mapToPosition(startPoint.x), ScopicFlow.AO_Visible)
         initialYIndex = handler.verticalManipulator?.mapToPosition(startPoint.y) ?? 0

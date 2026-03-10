@@ -184,7 +184,7 @@ Item {
                             onDragStarted: () => {
                                 trackList.trackListInteractionController.dragMovingStarted(trackList, trackListDelegate.index)
                                 if (trackList.trackListInteractionController.clickSelectable) {
-                                    trackList.selectionController.selectByMouse(trackListDelegate.trackViewModel, Qt.RightButton, modifiers);
+                                    trackList.selectionController.selectByMouse(trackListDelegate.trackViewModel, Qt.RightButton, 0);
                                 }
                             }
                             onDragMoved: (_, y) => {

@@ -15,7 +15,7 @@ namespace sflow {
         QML_ELEMENT
         Q_PROPERTY(AccidentalType accidentalType READ accidentalType WRITE setAccidentalType NOTIFY accidentalTypeChanged)
         Q_PROPERTY(LabelStrategy labelStrategy READ labelStrategy WRITE setLabelStrategy NOTIFY labelStrategyChanged)
-        Q_PROPERTY(DisplayStyle displayStyle READ displayStyle WRITE setDisplayStyle NOTIFY displayStyleChanged)
+        Q_PROPERTY(double blackKeyLengthRatio READ blackKeyLengthRatio WRITE setBlackKeyLengthRatio NOTIFY blackKeyLengthRatioChanged)
     public:
         explicit ClavierInteractionController(QObject *parent = nullptr);
         ~ClavierInteractionController() override;
@@ -33,25 +33,19 @@ namespace sflow {
         };
         Q_ENUM(LabelStrategy)
 
-        enum DisplayStyle {
-            Realistic,
-            Simple,
-        };
-        Q_ENUM(DisplayStyle)
-
         void setAccidentalType(AccidentalType type);
         AccidentalType accidentalType() const;
 
         void setLabelStrategy(LabelStrategy strategy);
         LabelStrategy labelStrategy() const;
 
-        void setDisplayStyle(DisplayStyle style);
-        DisplayStyle displayStyle() const;
+        void setBlackKeyLengthRatio(double ratio);
+        double blackKeyLengthRatio() const;
 
     Q_SIGNALS:
         void accidentalTypeChanged();
         void labelStrategyChanged();
-        void displayStyleChanged();
+        void blackKeyLengthRatioChanged();
 
         void hoverEntered(QQuickItem *clavier, int key);
         void hoverExited(QQuickItem *clavier, int key);
@@ -62,7 +56,7 @@ namespace sflow {
     private:
         AccidentalType m_accidentalType;
         LabelStrategy m_labelStrategy;
-        DisplayStyle m_displayStyle;
+        double m_blackKeyLengthRatio;
     };
 
 }

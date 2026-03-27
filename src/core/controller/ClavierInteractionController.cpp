@@ -1,10 +1,12 @@
 #include "ClavierInteractionController.h"
 
+#include <QtGlobal>
+
 #include <QQuickItem>
 
 namespace sflow {
     ClavierInteractionController::ClavierInteractionController(QObject *parent)
-        : QObject(parent), m_accidentalType(Flat), m_labelStrategy(LabelC), m_displayStyle(Realistic) {
+        : QObject(parent), m_accidentalType(Flat), m_labelStrategy(LabelC), m_blackKeyLengthRatio(0.6) {
     }
 
     ClavierInteractionController::~ClavierInteractionController() = default;
@@ -31,15 +33,15 @@ namespace sflow {
         return m_labelStrategy;
     }
 
-    void ClavierInteractionController::setDisplayStyle(DisplayStyle style) {
-        if (m_displayStyle != style) {
-            m_displayStyle = style;
-            emit displayStyleChanged();
+    void ClavierInteractionController::setBlackKeyLengthRatio(double ratio) {
+        if (!qFuzzyCompare(m_blackKeyLengthRatio, ratio)) {
+            m_blackKeyLengthRatio = ratio;
+            emit blackKeyLengthRatioChanged();
         }
     }
 
-    ClavierInteractionController::DisplayStyle ClavierInteractionController::displayStyle() const {
-        return m_displayStyle;
+    double ClavierInteractionController::blackKeyLengthRatio() const {
+        return m_blackKeyLengthRatio;
     }
 }
 

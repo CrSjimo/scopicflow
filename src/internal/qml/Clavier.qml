@@ -28,10 +28,10 @@ FocusScope {
     QtObject {
         id: helper
         readonly property double keyHeight: clavier.clavierViewModel?.pixelDensity ?? 24
-        readonly property bool isRealistic: clavier.clavierInteractionController?.displayStyle === ClavierInteractionController.Realistic
+        readonly property double blackKeyLengthRatio: Math.max(0, Math.min(1, clavier.clavierInteractionController?.blackKeyLengthRatio ?? 0.6))
         readonly property list<double> realisticTopMarginFactorList: [-2/3, 0, -1/3, 0, 0, -4/7, 0, -3/7, 0, -2/7, 0, 0]
         readonly property list<double> realisticBottomMarginFactorList: [0, 0, -1/3, 0, -2/3, 0, 0, -3/7, 0, -4/7, 0, -5/7]
-        readonly property double realisticRightMarginFactor: 0.25
+        readonly property double realisticRightMarginFactor: 1 - blackKeyLengthRatio
         readonly property int cursorPosition: clavier.clavierViewModel?.cursorPosition ?? -1
         property Item currentCursorItem: null
         onCursorPositionChanged: () => {
@@ -64,7 +64,7 @@ FocusScope {
             if (index < 0 || index >= 128) {
                 return -1
             }
-            if (!isRealistic || p.x < clavier.width * (1 - realisticRightMarginFactor) || !isBlackKey(index)) {
+            if (realisticRightMarginFactor <= 0 || p.x < clavier.width * (1 - realisticRightMarginFactor) || !isBlackKey(index)) {
                 return Math.floor(index)
             }
             if (index - position >= realisticTopMarginFactor(index - 1)) {
@@ -104,9 +104,9 @@ FocusScope {
                     Rectangle {
                         id: keyRect
                         anchors.fill: parent
-                        anchors.topMargin: helper.isRealistic ? helper.realisticTopMarginFactor(keyItem.index) * helper.keyHeight : 0
-                        anchors.bottomMargin: helper.isRealistic ? helper.realisticBottomMarginFactor(keyItem.index) * helper.keyHeight : 0
-                        anchors.rightMargin: helper.isRealistic && helper.isBlackKey(keyItem.index) ? helper.realisticRightMarginFactor * clavier.width : 0
+                        anchors.topMargin: helper.realisticRightMarginFactor > 0 ? helper.realisticTopMarginFactor(keyItem.index) * helper.keyHeight : 0
+                        anchors.bottomMargin: helper.realisticRightMarginFactor > 0 ? helper.realisticBottomMarginFactor(keyItem.index) * helper.keyHeight : 0
+                        anchors.rightMargin: helper.realisticRightMarginFactor > 0 && helper.isBlackKey(keyItem.index) ? helper.realisticRightMarginFactor * clavier.width : 0
                         readonly property color inactiveColor: helper.isBlackKey(keyItem.index) ? SFPalette.blackKeyColor : SFPalette.whiteKeyColor
                         color: {
                             if (keyItem.pressed) {
@@ -125,8 +125,8 @@ FocusScope {
                         }
                         border.color: Theme.borderColor
                         border.width: 0.5
-                        topRightRadius: helper.isRealistic && helper.isBlackKey(keyItem.index) ? 4 : 0
-                        bottomRightRadius: helper.isRealistic && helper.isBlackKey(keyItem.index) ? 4 : 0
+                        topRightRadius: helper.realisticRightMarginFactor > 0 && helper.isBlackKey(keyItem.index) ? 4 : 0
+                        bottomRightRadius: helper.realisticRightMarginFactor > 0 && helper.isBlackKey(keyItem.index) ? 4 : 0
                     }
                     component KeyLabel: Text {
                         readonly property color inactiveColor: helper.isBlackKey(keyItem.index) ? SFPalette.blackKeyTextColor : SFPalette.whiteKeyTextColor

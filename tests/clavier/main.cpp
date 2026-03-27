@@ -27,7 +27,7 @@ int main(int argc, char **argv) {
     ScrollBehaviorViewModel scrollBehaviorViewModel(&a);
     ClavierInteractionController clavierInteractionController(&a);
 
-    clavierInteractionController.setDisplayStyle(ClavierInteractionController::Realistic);
+    clavierInteractionController.setBlackKeyLengthRatio(0.6);
 
     QQmlApplicationEngine engine;
     SVS::FluentSystemIconsImageProvider::addToEngine(&engine);

@@ -107,14 +107,14 @@ FocusScope {
             viewModel = noteEditLayer.noteEditLayerInteractionController?.createAndInsertNoteOnDrawing(noteEditLayer.noteSequenceViewModel, position, keyIndex)
             if (viewModel) {
                 viewModel.length = noteEditLayer.timeLayoutViewModel?.positionAlignment ?? viewModel.length
-                viewModel.key = keyIndex
+                viewModel.key = Math.max(0, Math.min(keyIndex, 127))
             }
         }
         onUpdateViewModelRequested: (length, keyIndex) => {
             if (!viewModel)
                 return
             viewModel.length = length
-            viewModel.key = keyIndex
+            viewModel.key = Math.max(0, Math.min(keyIndex, 127))
         }
     }
     GenericComboSceneMouseArea {

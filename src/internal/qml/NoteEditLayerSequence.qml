@@ -13,7 +13,6 @@ import dev.sjimo.ScopicFlow.Internal
 FocusScope {
     id: noteEditLayerSequence
     property RangeSequenceViewModel clipSequenceViewModel: null
-    property ScrollBehaviorViewModel scrollBehaviorViewModel: null
     property TimeLayoutViewModel timeLayoutViewModel: null
     property TimeViewModel timeViewModel: null
     property ClavierViewModel clavierViewModel: null
@@ -32,7 +31,6 @@ FocusScope {
             anchors.fill: parent
             clipViewModel: SequenceSlicerLoader.viewModel
             noteSequenceViewModel: clipViewModel?.associatedNoteSequence ?? null
-            scrollBehaviorViewModel: noteEditLayerSequence.scrollBehaviorViewModel
             timeLayoutViewModel: noteEditLayerSequence.timeLayoutViewModel
             timeViewModel: noteEditLayerSequence.timeViewModel
             clavierViewModel: noteEditLayerSequence.clavierViewModel

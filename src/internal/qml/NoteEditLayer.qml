@@ -17,7 +17,6 @@ FocusScope {
     id: noteEditLayer
 
     property RangeSequenceViewModel noteSequenceViewModel: null
-    property ScrollBehaviorViewModel scrollBehaviorViewModel: null
     property TimeLayoutViewModel timeLayoutViewModel: null
     property TimeViewModel timeViewModel: null
     property ClavierViewModel clavierViewModel: null

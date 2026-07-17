@@ -16,6 +16,7 @@ FocusScope {
     property int movableOrientation: Qt.Horizontal | Qt.Vertical
     property int zoomableOrientation: movableOrientation
     property int pinchOrientationHint: Qt.Horizontal
+    property bool wheelAlternateAxis: false
     property bool horizontalScrollBarEnabled: false
     property double horizontalScrollX: 0
     property double horizontalScrollWidth: 0
@@ -58,7 +59,8 @@ FocusScope {
         enabled: (handler.viewModel?.scrollTypes ?? 0) & ScrollBehaviorViewModel.Wheel
 
         onWheel: function (wheel) {
-            let isAlternateAxis = handler.viewModel?.isAlternateAxis(wheel.modifiers) ?? false
+            let isAlternateAxis = handler.wheelAlternateAxis
+                                  || (handler.viewModel?.isAlternateAxis(wheel.modifiers) ?? false)
             let isZoom = handler.viewModel?.isZoom(wheel.modifiers) ?? false
             let isPage = handler.viewModel?.isPage(wheel.modifiers) ?? false
 

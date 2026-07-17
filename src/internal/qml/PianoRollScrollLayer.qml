@@ -17,6 +17,9 @@ FocusScope {
     property TimeLayoutViewModel timeLayoutViewModel: null
 
     property double bottomExpansion: 0
+    property int movableOrientation: Qt.Horizontal | Qt.Vertical
+    property int zoomableOrientation: movableOrientation
+    property bool wheelAlternateAxis: false
 
     ClavierManipulator {
         id: clavierManipulator
@@ -45,10 +48,13 @@ FocusScope {
 
     StandardScrollHandler {
         viewModel: pianoRollScrollLayer.scrollBehaviorViewModel
-        horizontalScrollBarEnabled: true
+        movableOrientation: pianoRollScrollLayer.movableOrientation
+        zoomableOrientation: pianoRollScrollLayer.zoomableOrientation
+        wheelAlternateAxis: pianoRollScrollLayer.wheelAlternateAxis
+        horizontalScrollBarEnabled: !!(pianoRollScrollLayer.movableOrientation & Qt.Horizontal)
         horizontalScrollX: -timeViewportContainer.x
         horizontalScrollWidth: timeViewportContainer.width
-        verticalScrollBarEnabled: true
+        verticalScrollBarEnabled: !!(pianoRollScrollLayer.movableOrientation & Qt.Vertical)
         verticalScrollY: -clavierViewportContainer.y
         verticalScrollHeight: clavierViewportContainer.height
 

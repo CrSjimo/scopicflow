@@ -92,7 +92,7 @@ Item {
         }
         Repeater {
             id: separatorRepeater
-            model: 24
+            model: 22
             delegate: Rectangle {
                 required property int index
                 x: 0

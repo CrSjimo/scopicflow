@@ -27,7 +27,7 @@ FocusScope {
     Accessible.name: qsTr("Parameter editor")
     Accessible.role: Accessible.Pane
     focus: true
-    focusPolicy: Qt.StrongFocus
+    focusPolicy: Qt.TabFocus
     clip: true
     LayoutMirroring.enabled: false
     LayoutMirroring.childrenInherit: true
@@ -37,11 +37,6 @@ FocusScope {
         target: parameterEditor
         timeViewModel: parameterEditor.timeViewModel
         timeLayoutViewModel: parameterEditor.timeLayoutViewModel
-    }
-
-    Rectangle {
-        anchors.fill: parent
-        color: Theme.backgroundColor(parameterEditor.ThemedItem.backgroundLevel)
     }
 
     ParameterEditorContent {

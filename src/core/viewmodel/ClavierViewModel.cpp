@@ -52,11 +52,11 @@ namespace sflow {
         }
     }
 
-    int ClavierViewModel::cursorPosition() const {
+    double ClavierViewModel::cursorPosition() const {
         return m_cursorPosition;
     }
 
-    void ClavierViewModel::setCursorPosition(int cursorPosition) {
+    void ClavierViewModel::setCursorPosition(double cursorPosition) {
         if (m_cursorPosition != cursorPosition) {
             m_cursorPosition = cursorPosition;
             Q_EMIT cursorPositionChanged();

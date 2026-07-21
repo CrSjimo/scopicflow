@@ -218,14 +218,26 @@ FocusScope {
             : ParameterEditorInteractionController.DrawFree
         startDraggingImmediately: true
 
+        function editPositionAt(point): int {
+            return Math.max(0, timeManipulator.mapToPosition(point.x))
+        }
+
+        function editValueAt(point): double {
+            const value = content.transformedValueFromPoint(point)
+            return value === undefined || value === null ? 0.0 : value
+        }
+
         function drawTo(point) {
             content.drawFreeSegment(lastPoint, point, erase)
             lastPoint = point
+            parameterEditor.interactionController?.freeEditingUpdated(
+                parameterEditor, operation, editPositionAt(point), editValueAt(point))
         }
 
         onDragStarted: (x, y) => {
             lastPoint = Qt.point(x, y)
-            parameterEditor.interactionController?.freeEditingStarted(parameterEditor, operation)
+            parameterEditor.interactionController?.freeEditingStarted(
+                parameterEditor, operation, editPositionAt(lastPoint), editValueAt(lastPoint))
             content.drawFreeSegment(lastPoint, lastPoint, erase)
         }
         onDragMoved: (x, y) => {
@@ -542,6 +554,7 @@ FocusScope {
 
     HoverHandler {
         id: hoverHandler
+        enabled: parameterEditor.enabled
         onHoveredChanged: {
             if (!hovered) {
                 if (helper.hoveredAnchor)

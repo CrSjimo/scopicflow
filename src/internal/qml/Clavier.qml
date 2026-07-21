@@ -18,6 +18,7 @@ FocusScope {
     property ClavierInteractionController clavierInteractionController: null
 
     property double bottomExpansion: 0
+    property bool showCentText: true
 
     Accessible.name: qsTr("Piano keyboard")
     clip: true
@@ -32,14 +33,15 @@ FocusScope {
         readonly property list<double> realisticTopMarginFactorList: [-2/3, 0, -1/3, 0, 0, -4/7, 0, -3/7, 0, -2/7, 0, 0]
         readonly property list<double> realisticBottomMarginFactorList: [0, 0, -1/3, 0, -2/3, 0, 0, -3/7, 0, -4/7, 0, -5/7]
         readonly property double realisticRightMarginFactor: 1 - blackKeyLengthRatio
-        readonly property int cursorPosition: clavier.clavierViewModel?.cursorPosition ?? -1
+        readonly property double cursorPosition: clavier.clavierViewModel?.cursorPosition ?? -1
         property Item currentCursorItem: null
         onCursorPositionChanged: () => {
             if (currentCursorItem) {
                 currentCursorItem.cursorActive = false
             }
             if (cursorPosition >= 0 && cursorPosition < 128) {
-                currentCursorItem = repeater.itemAt(cursorPosition)
+                const cursorIndex = Math.max(0, Math.min(127, Math.round(cursorPosition)))
+                currentCursorItem = repeater.itemAt(cursorIndex)
                 currentCursorItem.cursorActive = true
             } else {
                 currentCursorItem = null
@@ -130,6 +132,7 @@ FocusScope {
                     }
                     component KeyLabel: Text {
                         readonly property color inactiveColor: helper.isBlackKey(keyItem.index) ? SFPalette.blackKeyTextColor : SFPalette.whiteKeyTextColor
+                        property bool showCentText: false
                         color: {
                             if (keyItem.pressed) {
                                 return Theme.foregroundPressedColorChange.apply(Theme.foregroundPrimaryColor)
@@ -137,7 +140,7 @@ FocusScope {
                             if (keyItem.hovered) {
                                 return Theme.foregroundHoveredColorChange.apply(Theme.foregroundPrimaryColor)
                             }
-                            return rightLabel.inactiveColor
+                            return inactiveColor
                         }
                         Behavior on color {
                             ColorAnimation {
@@ -147,19 +150,29 @@ FocusScope {
                         }
                         font: Theme.font
                         anchors.verticalCenter: parent.verticalCenter
-                        text: SVS.musicPitch(keyItem.index).toString(clavier.clavierInteractionController?.accidentalType ?? 0)
+                        text: {
+                            const baseText = SVS.musicPitch(keyItem.index).toString(clavier.clavierInteractionController?.accidentalType ?? 0)
+                            if (!showCentText)
+                                return baseText
+                            const d = Math.round((helper.cursorPosition - keyItem.index) * 100)
+                            if (d === 0)
+                                return baseText
+                            return baseText + (d > 0 ? "+" : "") + d.toLocaleString()
+                        }
                     }
                     KeyLabel {
                         id: leftLabel
                         anchors.left: keyRect.left
                         anchors.leftMargin: 4
                         visible: keyItem.cursorActive
+                        showCentText: clavier.showCentText
                     }
                     KeyLabel {
                         id: rightLabel
                         anchors.right: keyRect.right
                         anchors.rightMargin: 4
                         visible: clavier.clavierInteractionController?.labelStrategy === ClavierInteractionController.LabelAll || clavier.clavierInteractionController?.labelStrategy === ClavierInteractionController.LabelC && keyItem.index % 12 === 0
+                        showCentText: false
                     }
                 }
             }

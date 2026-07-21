@@ -130,7 +130,10 @@ namespace sflow {
         void defaultValueChanged();
         void originalAndDefaultCurveDisplayModeChanged();
 
-        void freeEditingStarted(QQuickItem *editor, FreeEditOperation operation);
+        void freeEditingStarted(QQuickItem *editor, FreeEditOperation operation,
+                                int position, double value);
+        void freeEditingUpdated(QQuickItem *editor, FreeEditOperation operation,
+                                int position, double value);
         void freeEditingCommitted(QQuickItem *editor, FreeEditOperation operation);
         void freeEditingAborted(QQuickItem *editor, FreeEditOperation operation);
 

@@ -15,7 +15,7 @@ namespace sflow {
         Q_PROPERTY(double pixelDensity READ pixelDensity WRITE setPixelDensity NOTIFY pixelDensityChanged)
         Q_PROPERTY(double maximumPixelDensity READ maximumPixelDensity WRITE setMaximumPixelDensity NOTIFY maximumPixelDensityChanged)
         Q_PROPERTY(double minimumPixelDensity READ minimumPixelDensity WRITE setMinimumPixelDensity NOTIFY minimumPixelDensityChanged)
-        Q_PROPERTY(int cursorPosition READ cursorPosition WRITE setCursorPosition NOTIFY cursorPositionChanged)
+        Q_PROPERTY(double cursorPosition READ cursorPosition WRITE setCursorPosition NOTIFY cursorPositionChanged)
     public:
         explicit ClavierViewModel(QObject *parent = nullptr);
         ~ClavierViewModel() override;
@@ -32,8 +32,8 @@ namespace sflow {
         double minimumPixelDensity() const;
         void setMinimumPixelDensity(double minimumPixelDensity);
 
-        int cursorPosition() const;
-        void setCursorPosition(int cursorPosition);
+        double cursorPosition() const;
+        void setCursorPosition(double cursorPosition);
 
     Q_SIGNALS:
         void startChanged();
@@ -47,7 +47,7 @@ namespace sflow {
         double m_pixelDensity;
         double m_maximumPixelDensity;
         double m_minimumPixelDensity;
-        int m_cursorPosition;
+        double m_cursorPosition;
     };
 
 }

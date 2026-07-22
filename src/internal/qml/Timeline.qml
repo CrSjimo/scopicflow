@@ -5,6 +5,7 @@ import QtQuick.Shapes
 
 import SVSCraft
 import SVSCraft.UIComponents
+import SVSCraft.UIComponents.impl
 
 import dev.sjimo.ScopicFlow
 import dev.sjimo.ScopicFlow.Internal
@@ -392,6 +393,7 @@ FocusScope {
         timeLayoutViewModel: timeline.timeLayoutViewModel
         primaryIndicator.visible: false
         secondaryIndicator.visible: false
+        cursorIndicator.anchors.topMargin: 16
 
         PlayheadIndicator {
             anchors.bottom: parent.bottom
@@ -403,6 +405,20 @@ FocusScope {
             anchors.bottom: parent.bottom
             x: positionIndicators.secondaryIndicator.x
             color: SFPalette.playheadSecondaryColor
+        }
+
+        Text {
+            anchors.top: parent.top
+            anchors.topMargin: 2
+            x: positionIndicators.cursorIndicator.x - implicitWidth / 2
+            text: {
+                if (!timeline.timeViewModel?.timeline || (timeline.timeLayoutViewModel?.cursorPosition ?? -1) < 0)
+                    return ""
+                return GlobalHelper.musicTimelineTextFromValue(timeline.timeViewModel.timeline, timeline.timeLayoutViewModel.cursorPosition, 1, 1, 3)
+            }
+            font.family: Theme.font.family
+            font.pixelSize: 12
+            color: SFPalette.cursorIndicatorColor
         }
     }
 

@@ -468,7 +468,7 @@ Item {
                     }
 
                     levelMeterMouseArea.onClicked: () => {
-                        trackList.trackListInteractionController.itemLevelMeterClicked(trackList, trackListDelegate.trackViewModel)
+                        trackList.trackListInteractionController.itemLevelMeterClicked(trackList, index)
                     }
                     levelMeterMouseArea.onEntered: () => {
                         trackList.trackListInteractionController.itemHoverEntered(trackList, trackListDelegate.trackViewModel, TrackListInteractionController.LevelMeter)

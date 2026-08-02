@@ -11,8 +11,8 @@ Item {
     readonly property color highColor: SFPalette.levelHighColor
     readonly property color lowColor: SFPalette.levelLowColor
     readonly property color middleColor: SFPalette.levelMediumColor
-    property double minimum: -60
-    property double safeThreshold: -36
+    property double minimum: -48
+    property double safeThreshold: -24
     property double value: minimum
     property double warningThreshold: -12
 
@@ -36,6 +36,7 @@ Item {
         anchors.left: parent.left
         anchors.right: parent.right
         anchors.top: clippingIndicator.bottom
+        anchors.topMargin: 1
         color: levelMeter.backgroundColor
 
         Rectangle {

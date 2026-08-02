@@ -263,6 +263,7 @@ Item {
                 anchors.left: parent.left
                 anchors.right: parent.horizontalCenter
                 anchors.top: parent.top
+                anchors.rightMargin: 0.5
                 value: track.trackViewModel.leftLevel
                 clipping: track.trackViewModel.leftClipping
             }
@@ -273,6 +274,7 @@ Item {
                 anchors.left: parent.horizontalCenter
                 anchors.right: parent.right
                 anchors.top: parent.top
+                anchors.leftMargin: 0.5
                 value: track.trackViewModel.rightLevel
                 clipping: track.trackViewModel.rightClipping
             }

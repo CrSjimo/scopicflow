@@ -110,6 +110,8 @@ FocusScope {
 
         function isFreeInteraction(interaction: int): bool {
             return interaction === ParameterEditorInteractionController.Pencil
+                || interaction === ParameterEditorInteractionController.Line
+                || interaction === ParameterEditorInteractionController.Brush
                 || interaction === ParameterEditorInteractionController.Eraser
                 || interaction === ParameterEditorInteractionController.FreeRangeSelect
         }
@@ -211,11 +213,8 @@ FocusScope {
 
     component FreeEditDragHandler: DispatchedDragHandler {
         id: freeEditHandler
-        property bool erase: false
+        property int operation: ParameterEditorInteractionController.DrawFree
         property point lastPoint: Qt.point(0, 0)
-        readonly property int operation: erase
-            ? ParameterEditorInteractionController.EraseFree
-            : ParameterEditorInteractionController.DrawFree
         startDraggingImmediately: true
 
         function editPositionAt(point): int {
@@ -228,7 +227,11 @@ FocusScope {
         }
 
         function drawTo(point) {
-            content.drawFreeSegment(lastPoint, point, erase)
+            if (operation === ParameterEditorInteractionController.BrushFree)
+                content.brushFreeSegment(lastPoint, point)
+            else
+                content.drawFreeSegment(lastPoint, point,
+                    operation === ParameterEditorInteractionController.EraseFree)
             lastPoint = point
             parameterEditor.interactionController?.freeEditingUpdated(
                 parameterEditor, operation, editPositionAt(point), editValueAt(point))
@@ -238,7 +241,11 @@ FocusScope {
             lastPoint = Qt.point(x, y)
             parameterEditor.interactionController?.freeEditingStarted(
                 parameterEditor, operation, editPositionAt(lastPoint), editValueAt(lastPoint))
-            content.drawFreeSegment(lastPoint, lastPoint, erase)
+            if (operation === ParameterEditorInteractionController.BrushFree)
+                content.brushFreeSegment(lastPoint, lastPoint)
+            else
+                content.drawFreeSegment(lastPoint, lastPoint,
+                    operation === ParameterEditorInteractionController.EraseFree)
         }
         onDragMoved: (x, y) => {
             freeEditDragScroller.determine(x, width, 0, 0, triggeredX => {
@@ -271,8 +278,69 @@ FocusScope {
     }
 
     FreeEditDragHandler {
+        id: brushDragHandler
+        operation: ParameterEditorInteractionController.BrushFree
+    }
+
+    FreeEditDragHandler {
         id: eraserDragHandler
-        erase: true
+        operation: ParameterEditorInteractionController.EraseFree
+    }
+
+    DispatchedDragHandler {
+        id: lineDrawDragHandler
+        property point startPoint: Qt.point(0, 0)
+        property point lastPoint: Qt.point(0, 0)
+        readonly property int operation: ParameterEditorInteractionController.DrawLineFree
+        startDraggingImmediately: true
+
+        function editPositionAt(point): int {
+            return Math.max(0, timeManipulator.mapToPosition(point.x))
+        }
+
+        function editValueAt(point): double {
+            const value = content.transformedValueFromPoint(point)
+            return value === undefined || value === null ? 0.0 : value
+        }
+
+        function drawTo(point) {
+            content.updateFreeLine(point)
+            lastPoint = point
+            parameterEditor.interactionController?.freeEditingUpdated(
+                parameterEditor, operation, editPositionAt(point), editValueAt(point))
+        }
+
+        onDragStarted: (x, y) => {
+            startPoint = lastPoint = Qt.point(x, y)
+            content.beginFreeLine(startPoint)
+            parameterEditor.interactionController?.freeEditingStarted(
+                parameterEditor, operation, editPositionAt(startPoint), editValueAt(startPoint))
+        }
+        onDragMoved: (x, y) => {
+            lineDrawDragScroller.determine(x, width, 0, 0, triggeredX => {
+                if (!triggeredX)
+                    drawTo(Qt.point(x, y))
+            })
+        }
+        onDragFinished: () => {
+            lineDrawDragScroller.running = false
+            content.commitFreeLine()
+            parameterEditor.interactionController?.freeEditingCommitted(parameterEditor, operation)
+        }
+        onDragCanceled: () => {
+            lineDrawDragScroller.running = false
+            content.abortFreeLine()
+            parameterEditor.interactionController?.freeEditingAborted(parameterEditor, operation)
+        }
+
+        DragScroller {
+            id: lineDrawDragScroller
+            onMoved: deltaX => {
+                timeManipulator.moveViewBy(deltaX)
+                lineDrawDragHandler.drawTo(Qt.point(deltaX > 0 ? lineDrawDragHandler.width : 0,
+                                                    lineDrawDragHandler.lastPoint.y))
+            }
+        }
     }
 
     DispatchedDragHandler {
@@ -482,6 +550,10 @@ FocusScope {
             switch (helper.pressedInteraction) {
             case ParameterEditorInteractionController.Pencil:
                 return pencilDragHandler
+            case ParameterEditorInteractionController.Line:
+                return lineDrawDragHandler
+            case ParameterEditorInteractionController.Brush:
+                return brushDragHandler
             case ParameterEditorInteractionController.Eraser:
                 return eraserDragHandler
             case ParameterEditorInteractionController.Pointer:

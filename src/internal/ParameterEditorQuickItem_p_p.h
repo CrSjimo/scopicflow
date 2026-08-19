@@ -3,6 +3,7 @@
 
 #include <QList>
 #include <QPointer>
+#include <QPointF>
 #include <QVector>
 
 #include <ScopicFlowInternal/private/ParameterEditorQuickItem_p.h>
@@ -69,6 +70,11 @@ namespace sflow {
         int anchorMoveStartPosition = 0;
         double anchorMoveStartY = 0.0;
 
+        QPointF lineStartPoint;
+        int lineSnapshotFirst = 0;
+        int lineSnapshotLast = -1;
+        QList<QVariant> lineSnapshot;
+
         ParameterEditorGeometrySnapshot snapshot;
 
         void invalidate();
@@ -81,6 +87,7 @@ namespace sflow {
         double yForValue(double value) const;
         double transformedAnchorValue(const ParameterAnchorViewModel *item) const;
         void rebuildGeometry();
+        bool writeFreeLineSegment(const QPointF &from, const QPointF &to);
     };
 
 }

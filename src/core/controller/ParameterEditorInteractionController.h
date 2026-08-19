@@ -36,6 +36,8 @@ namespace sflow {
         enum Interaction {
             None,
             Pencil,
+            Line,
+            Brush,
             Eraser,
             Pointer,
             Pen,
@@ -48,6 +50,8 @@ namespace sflow {
 
         enum FreeEditOperation {
             DrawFree,
+            DrawLineFree,
+            BrushFree,
             EraseFree,
         };
         Q_ENUM(FreeEditOperation)

@@ -74,6 +74,8 @@ ApplicationWindow {
 
             switch (tool) {
             case ParameterEditorInteractionController.Pencil:
+            case ParameterEditorInteractionController.Line:
+            case ParameterEditorInteractionController.Brush:
             case ParameterEditorInteractionController.Eraser:
             case ParameterEditorInteractionController.FreeRangeSelect:
                 controller.primaryItemInteraction = tool
@@ -120,6 +122,18 @@ ApplicationWindow {
                 checkable: true
                 checked: toolSelector.currentTool === ParameterEditorInteractionController.Pencil
                 onClicked: toolSelector.selectTool(ParameterEditorInteractionController.Pencil)
+            }
+            ToolButton {
+                text: qsTr("Line")
+                checkable: true
+                checked: toolSelector.currentTool === ParameterEditorInteractionController.Line
+                onClicked: toolSelector.selectTool(ParameterEditorInteractionController.Line)
+            }
+            ToolButton {
+                text: qsTr("Brush")
+                checkable: true
+                checked: toolSelector.currentTool === ParameterEditorInteractionController.Brush
+                onClicked: toolSelector.selectTool(ParameterEditorInteractionController.Brush)
             }
             ToolButton {
                 text: qsTr("Eraser")

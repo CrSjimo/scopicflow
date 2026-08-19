@@ -900,9 +900,113 @@ namespace sflow {
         return d->untransformedValue(position, 1.0 - point.y() / height());
     }
 
+    bool ParameterEditorQuickItemPrivate::writeFreeLineSegment(const QPointF &from, const QPointF &to) {
+        Q_Q(ParameterEditorQuickItem);
+        if (!freeParameterViewModel || q->height() <= 0.0 || !timeViewModel || !timeLayoutViewModel) {
+            return false;
+        }
+        const double fromPosition = std::max(0.0, positionForX(from.x()));
+        const double toPosition = std::max(0.0, positionForX(to.x()));
+        const double fromScaledPosition = fromPosition / FreeParameterViewModel::step();
+        const double toScaledPosition = toPosition / FreeParameterViewModel::step();
+        if (fromScaledPosition > std::numeric_limits<int>::max()
+            || toScaledPosition > std::numeric_limits<int>::max()) {
+            return false;
+        }
+        int fromIndex = boundedRoundPosition(fromScaledPosition);
+        int toIndex = boundedRoundPosition(toScaledPosition);
+        int firstIndex = std::min(fromIndex, toIndex);
+        int lastIndex = std::max(fromIndex, toIndex);
+        const qint64 sampleCount64 = static_cast<qint64>(lastIndex) - firstIndex + 1;
+        if (sampleCount64 > std::numeric_limits<int>::max()) {
+            return false;
+        }
+        const int sampleCount = static_cast<int>(sampleCount64);
+
+        QList<double> samplePositions;
+        samplePositions.reserve(sampleCount);
+        for (int index = firstIndex;; ++index) {
+            samplePositions.append(static_cast<double>(index) * FreeParameterViewModel::step());
+            if (index == lastIndex) {
+                break;
+            }
+        }
+        const QList<double> transformFactors = transformFactorsAt(samplePositions);
+
+        QList<QVariant> values;
+        values.reserve(sampleCount);
+        bool changed = false;
+        for (int index = firstIndex;; ++index) {
+            const qsizetype sampleIndex = index - firstIndex;
+            const double samplePosition = samplePositions.at(sampleIndex);
+            double ratio = 1.0;
+            if (!qFuzzyCompare(fromPosition + 1.0, toPosition + 1.0)) {
+                ratio = std::clamp((samplePosition - fromPosition) / (toPosition - fromPosition), 0.0, 1.0);
+            }
+            const double sampleY = from.y() + ratio * (to.y() - from.y());
+            const double factor = transformFactors.at(sampleIndex);
+            if (std::isfinite(factor) && !qFuzzyIsNull(factor)) {
+                const double value = std::clamp((1.0 - sampleY / q->height()) / factor, 0.0, 1.0);
+                values.append(value);
+                const auto oldValue = freeParameterViewModel->valueAtIndex(index);
+                changed |= !oldValue.isValid() || oldValue.toDouble() != value;
+            } else {
+                values.append(freeParameterViewModel->valueAtIndex(index));
+            }
+            if (index == lastIndex) {
+                break;
+            }
+        }
+        return changed && freeParameterViewModel->setValues(firstIndex, values);
+    }
+
     bool ParameterEditorQuickItem::drawFreeSegment(const QPointF &from, const QPointF &to, bool erase) {
         Q_D(ParameterEditorQuickItem);
         if (!d->freeParameterViewModel || height() <= 0.0 || !d->timeViewModel || !d->timeLayoutViewModel) {
+            return false;
+        }
+        if (!erase) {
+            return d->writeFreeLineSegment(from, to);
+        }
+        const double fromPosition = std::max(0.0, d->positionForX(from.x()));
+        const double toPosition = std::max(0.0, d->positionForX(to.x()));
+        const double fromScaledPosition = fromPosition / FreeParameterViewModel::step();
+        const double toScaledPosition = toPosition / FreeParameterViewModel::step();
+        if (fromScaledPosition > std::numeric_limits<int>::max()
+            || toScaledPosition > std::numeric_limits<int>::max()) {
+            return false;
+        }
+        int fromIndex = boundedRoundPosition(fromScaledPosition);
+        int toIndex = boundedRoundPosition(toScaledPosition);
+        int firstIndex = std::min(fromIndex, toIndex);
+        int lastIndex = std::max(fromIndex, toIndex);
+        lastIndex = std::min(lastIndex, d->freeParameterViewModel->size() - 1);
+        if (firstIndex > lastIndex) {
+            return false;
+        }
+        const qint64 sampleCount64 = static_cast<qint64>(lastIndex) - firstIndex + 1;
+        if (sampleCount64 > std::numeric_limits<int>::max()) {
+            return false;
+        }
+        const int sampleCount = static_cast<int>(sampleCount64);
+
+        QList<QVariant> values;
+        values.reserve(sampleCount);
+        bool changed = false;
+        for (int index = firstIndex;; ++index) {
+            values.append(QVariant());
+            changed |= d->freeParameterViewModel->valueAtIndex(index).isValid();
+            if (index == lastIndex) {
+                break;
+            }
+        }
+        return changed && d->freeParameterViewModel->setValues(firstIndex, values);
+    }
+
+    bool ParameterEditorQuickItem::brushFreeSegment(const QPointF &from, const QPointF &to) {
+        Q_D(ParameterEditorQuickItem);
+        if (!d->freeParameterViewModel || !d->originalParameterViewModel || height() <= 0.0
+            || !d->timeViewModel || !d->timeLayoutViewModel) {
             return false;
         }
         const double fromPosition = std::max(0.0, d->positionForX(from.x()));
@@ -917,11 +1021,10 @@ namespace sflow {
         int toIndex = boundedRoundPosition(toScaledPosition);
         int firstIndex = std::min(fromIndex, toIndex);
         int lastIndex = std::max(fromIndex, toIndex);
-        if (erase) {
-            lastIndex = std::min(lastIndex, d->freeParameterViewModel->size() - 1);
-            if (firstIndex > lastIndex) {
-                return false;
-            }
+        lastIndex = std::min(lastIndex,
+                             std::min(d->freeParameterViewModel->size(), d->originalParameterViewModel->size()) - 1);
+        if (firstIndex > lastIndex) {
+            return false;
         }
         const qint64 sampleCount64 = static_cast<qint64>(lastIndex) - firstIndex + 1;
         if (sampleCount64 > std::numeric_limits<int>::max()) {
@@ -929,49 +1032,103 @@ namespace sflow {
         }
         const int sampleCount = static_cast<int>(sampleCount64);
 
-        QList<double> samplePositions;
-        QList<double> transformFactors;
-        if (!erase) {
-            samplePositions.reserve(sampleCount);
-            for (int index = firstIndex;; ++index) {
-                samplePositions.append(static_cast<double>(index) * FreeParameterViewModel::step());
-                if (index == lastIndex) {
-                    break;
-                }
-            }
-            transformFactors = d->transformFactorsAt(samplePositions);
-        }
-
         QList<QVariant> values;
         values.reserve(sampleCount);
         bool changed = false;
         for (int index = firstIndex;; ++index) {
-            if (erase) {
-                values.append(QVariant());
-                changed |= d->freeParameterViewModel->valueAtIndex(index).isValid();
+            const auto originalValue = d->originalParameterViewModel->valueAtIndex(index);
+            if (originalValue.isValid()) {
+                values.append(originalValue);
+                const auto oldValue = d->freeParameterViewModel->valueAtIndex(index);
+                changed |= !oldValue.isValid() || oldValue.toDouble() != originalValue.toDouble();
             } else {
-                const qsizetype sampleIndex = index - firstIndex;
-                const double samplePosition = samplePositions.at(sampleIndex);
-                double ratio = 1.0;
-                if (!qFuzzyCompare(fromPosition + 1.0, toPosition + 1.0)) {
-                    ratio = std::clamp((samplePosition - fromPosition) / (toPosition - fromPosition), 0.0, 1.0);
-                }
-                const double sampleY = from.y() + ratio * (to.y() - from.y());
-                const double factor = transformFactors.at(sampleIndex);
-                if (std::isfinite(factor) && !qFuzzyIsNull(factor)) {
-                    const double value = std::clamp((1.0 - sampleY / height()) / factor, 0.0, 1.0);
-                    values.append(value);
-                    const auto oldValue = d->freeParameterViewModel->valueAtIndex(index);
-                    changed |= !oldValue.isValid() || oldValue.toDouble() != value;
-                } else {
-                    values.append(d->freeParameterViewModel->valueAtIndex(index));
-                }
+                values.append(d->freeParameterViewModel->valueAtIndex(index));
             }
             if (index == lastIndex) {
                 break;
             }
         }
         return changed && d->freeParameterViewModel->setValues(firstIndex, values);
+    }
+
+    bool ParameterEditorQuickItem::beginFreeLine(const QPointF &point) {
+        Q_D(ParameterEditorQuickItem);
+        d->lineStartPoint = point;
+        d->lineSnapshotFirst = 0;
+        d->lineSnapshotLast = -1;
+        d->lineSnapshot.clear();
+        return drawFreeSegment(point, point, false);
+    }
+
+    bool ParameterEditorQuickItem::updateFreeLine(const QPointF &point) {
+        Q_D(ParameterEditorQuickItem);
+        if (!d->freeParameterViewModel || height() <= 0.0 || !d->timeViewModel || !d->timeLayoutViewModel) {
+            return false;
+        }
+
+        if (d->lineSnapshotFirst <= d->lineSnapshotLast) {
+            d->freeParameterViewModel->setValues(d->lineSnapshotFirst, d->lineSnapshot);
+        }
+
+        const double fromPosition = std::max(0.0, d->positionForX(d->lineStartPoint.x()));
+        const double toPosition = std::max(0.0, d->positionForX(point.x()));
+        const double fromScaledPosition = fromPosition / FreeParameterViewModel::step();
+        const double toScaledPosition = toPosition / FreeParameterViewModel::step();
+        if (fromScaledPosition > std::numeric_limits<int>::max()
+            || toScaledPosition > std::numeric_limits<int>::max()) {
+            return false;
+        }
+        int fromIndex = boundedRoundPosition(fromScaledPosition);
+        int toIndex = boundedRoundPosition(toScaledPosition);
+        const int newFirstIndex = std::min(fromIndex, toIndex);
+        const int newLastIndex = std::max(fromIndex, toIndex);
+
+        if (d->lineSnapshotLast < 0) {
+            d->lineSnapshot.reserve(newLastIndex - newFirstIndex + 1);
+            for (int index = newFirstIndex; index <= newLastIndex; ++index) {
+                d->lineSnapshot.append(d->freeParameterViewModel->valueAtIndex(index));
+            }
+            d->lineSnapshotFirst = newFirstIndex;
+            d->lineSnapshotLast = newLastIndex;
+        } else {
+            if (newFirstIndex < d->lineSnapshotFirst) {
+                const int count = d->lineSnapshotFirst - newFirstIndex;
+                QList<QVariant> prepended;
+                prepended.reserve(count);
+                for (int index = newFirstIndex; index < d->lineSnapshotFirst; ++index) {
+                    prepended.append(d->freeParameterViewModel->valueAtIndex(index));
+                }
+                d->lineSnapshot = prepended + d->lineSnapshot;
+                d->lineSnapshotFirst = newFirstIndex;
+            }
+            if (newLastIndex > d->lineSnapshotLast) {
+                const int startIndex = std::max(d->lineSnapshotLast + 1, newFirstIndex);
+                for (int index = startIndex; index <= newLastIndex; ++index) {
+                    d->lineSnapshot.append(d->freeParameterViewModel->valueAtIndex(index));
+                }
+                d->lineSnapshotLast = newLastIndex;
+            }
+        }
+
+        return d->writeFreeLineSegment(d->lineStartPoint, point);
+    }
+
+    void ParameterEditorQuickItem::commitFreeLine() {
+        Q_D(ParameterEditorQuickItem);
+        d->lineSnapshotFirst = 0;
+        d->lineSnapshotLast = -1;
+        d->lineSnapshot.clear();
+    }
+
+    bool ParameterEditorQuickItem::abortFreeLine() {
+        Q_D(ParameterEditorQuickItem);
+        if (d->lineSnapshotFirst <= d->lineSnapshotLast && d->freeParameterViewModel) {
+            d->freeParameterViewModel->setValues(d->lineSnapshotFirst, d->lineSnapshot);
+        }
+        d->lineSnapshotFirst = 0;
+        d->lineSnapshotLast = -1;
+        d->lineSnapshot.clear();
+        return true;
     }
 
     ParameterAnchorViewModel *ParameterEditorQuickItem::anchorAt(const QPointF &point, double radius) const {

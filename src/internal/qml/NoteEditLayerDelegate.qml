@@ -17,7 +17,7 @@ FocusScope {
     property bool lyricEditing: false
     property color color: Theme.accentColor
     property string lyric: ""
-    property bool outOfClipRange: false
+    property bool transparentDisplay: false
     property bool thumbnailDisplay: false
     required property SelectionController selectionController
 
@@ -49,8 +49,8 @@ FocusScope {
         readonly property color baseColor: note.color
         color: {
             let a = 1
-            if (note.outOfClipRange) {
-                a /= 3
+            if (note.transparentDisplay) {
+                a /= 4
             }
             if (note.thumbnailDisplay) {
                 a /= 2
@@ -73,7 +73,7 @@ FocusScope {
             visible: width >= contentWidth && !note.thumbnailDisplay
             font: Theme.font
             text: note.lyric
-            opacity: note.outOfClipRange ? 0.75 : 1
+            opacity: note.transparentDisplay ? 0.75 : 1
         }
     }
 

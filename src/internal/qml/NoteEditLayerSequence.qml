@@ -21,6 +21,7 @@ FocusScope {
     property ListViewModel trackListViewModel: null
 
     property bool active: true
+    property bool transparentDisplay: false
     property ClipViewModel editingItem: null
     property int bottomExpansion: 0
 
@@ -38,6 +39,7 @@ FocusScope {
             selectionController: noteEditLayerSequence.selectionController
             trackListViewModel: noteEditLayerSequence.trackListViewModel
             active: noteEditLayerSequence.active
+            transparentDisplay: noteEditLayerSequence.transparentDisplay
             readonly property bool current: noteEditLayerSequence.editingItem === clipViewModel
             thumbnailDisplay: !current
             clipBoundaryVisible: current

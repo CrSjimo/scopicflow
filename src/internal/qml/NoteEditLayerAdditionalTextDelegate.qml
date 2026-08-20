@@ -17,6 +17,7 @@ FocusScope {
 
     opacity: additionalTextEditing ? 0 : 1
 
+    implicitWidth: additionalTextItem.implicitWidth
     implicitHeight: additionalTextItem.implicitHeight
 
     Binding {

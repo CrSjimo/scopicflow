@@ -195,6 +195,13 @@ FocusScope {
                             noteDelegate.visible: !noteEditLayer.thumbnailDisplay
                             when: noteDelegate.SequenceSlicerLoader.inRange
                         }
+                        MouseArea {
+                            height: parent.height
+                            width: Math.min(parent.width, parent.implicitWidth)
+                            onDoubleClicked: () => {
+                                noteEditLayer.noteEditLayerInteractionController.itemAdditionalTextDoubleClicked(noteEditLayer, noteDelegate.SequenceSlicerLoader.viewModel)
+                            }
+                        }
                     }
                 }
             }
@@ -505,7 +512,7 @@ FocusScope {
                 containerModel: noteEditLayer.noteSequenceViewModel
                 targetProperty: "additionalText"
                 radius: 2
-                width: associatedItem?.width ?? 0
+                width: associatedItem?.implicitWidth ?? 0
                 height: associatedItem?.height ?? 0
                 x: associatedItem?.x ?? 0
                 y: associatedItem?.y ?? 0

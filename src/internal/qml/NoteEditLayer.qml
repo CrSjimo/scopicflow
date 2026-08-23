@@ -75,7 +75,7 @@ FocusScope {
 
         target: noteEditLayer
         clavierViewModel: noteEditLayer.clavierViewModel
-        viewSize: noteEditLayer.height
+        viewSize: noteEditLayer.height - noteEditLayer.bottomExpansion
     }
     component NoteRubberBandDragHandler: RubberBandDragHandler {
         controller: noteEditLayer.noteEditLayerInteractionController
@@ -85,36 +85,52 @@ FocusScope {
         verticalManipulator: clavierManipulator
         rubberBandLayer: rubberBandLayer
     }
-    NoteRubberBandDragHandler {
-        id: rubberBandDragHandler
-        mode: RubberBandDragHandler.Normal
-    }
-    NoteRubberBandDragHandler {
-        id: timeRangeDragHandler
-        mode: RubberBandDragHandler.TimeRange
-    }
-    DrawDragHandler {
-        id: drawDragHandler
-        controller: noteEditLayer.noteEditLayerInteractionController
-        selectionController: noteEditLayer.selectionController
-        target: noteEditLayer
-        timeManipulator: timeManipulator
-        verticalManipulator: clavierManipulator
-        viewportContainer: viewportContainer
-        onCreateViewModelRequested: (position, keyIndex) => {
-            if (!noteEditLayer.noteSequenceViewModel)
-                return
-            viewModel = noteEditLayer.noteEditLayerInteractionController?.createAndInsertNoteOnDrawing(noteEditLayer.noteSequenceViewModel, position, keyIndex)
-            if (viewModel) {
-                viewModel.length = noteEditLayer.timeLayoutViewModel?.positionAlignment ?? viewModel.length
+    // The layer extends bottomExpansion beyond the visible edit area so that notes
+    // remain rendered behind the bottom additional track panes. Since drag handlers
+    // take their own (or paneItem's) geometry as the bounds of drag auto-scrolling,
+    // this proxy item provides the actual edit area bounds for those interactions.
+    // The layer itself is kept as the target of the interactions, while consumers
+    // may read the forwarded view models from this item when it appears as the
+    // pane item in controller signals.
+    Item {
+        id: editArea
+        x: 0
+        y: 0
+        width: noteEditLayer.width
+        height: Math.max(0, noteEditLayer.height - noteEditLayer.bottomExpansion)
+        readonly property ClipViewModel clipViewModel: noteEditLayer.clipViewModel
+        readonly property RangeSequenceViewModel noteSequenceViewModel: noteEditLayer.noteSequenceViewModel
+        NoteRubberBandDragHandler {
+            id: rubberBandDragHandler
+            mode: RubberBandDragHandler.Normal
+        }
+        NoteRubberBandDragHandler {
+            id: timeRangeDragHandler
+            mode: RubberBandDragHandler.TimeRange
+        }
+        DrawDragHandler {
+            id: drawDragHandler
+            controller: noteEditLayer.noteEditLayerInteractionController
+            selectionController: noteEditLayer.selectionController
+            target: noteEditLayer
+            timeManipulator: timeManipulator
+            verticalManipulator: clavierManipulator
+            viewportContainer: viewportContainer
+            onCreateViewModelRequested: (position, keyIndex) => {
+                if (!noteEditLayer.noteSequenceViewModel)
+                    return
+                viewModel = noteEditLayer.noteEditLayerInteractionController?.createAndInsertNoteOnDrawing(noteEditLayer.noteSequenceViewModel, position, keyIndex)
+                if (viewModel) {
+                    viewModel.length = noteEditLayer.timeLayoutViewModel?.positionAlignment ?? viewModel.length
+                    viewModel.key = Math.max(0, Math.min(keyIndex, 127))
+                }
+            }
+            onUpdateViewModelRequested: (length, keyIndex) => {
+                if (!viewModel)
+                    return
+                viewModel.length = length
                 viewModel.key = Math.max(0, Math.min(keyIndex, 127))
             }
-        }
-        onUpdateViewModelRequested: (length, keyIndex) => {
-            if (!viewModel)
-                return
-            viewModel.length = length
-            viewModel.key = Math.max(0, Math.min(keyIndex, 127))
         }
     }
     GenericComboSceneMouseArea {
@@ -340,7 +356,10 @@ FocusScope {
                         component NoteMoveDragHandler: MoveDragHandler {
                             controller: noteEditLayer.noteEditLayerInteractionController
                             selectionController: noteEditLayer.selectionController
-                            paneItem: noteEditLayer
+                            // The edit area proxy instead of the full-height layer,
+                            // so auto-scrolling near the bottom additional track panes
+                            // is triggered at the edit area edge
+                            paneItem: editArea
                             viewModel: noteDelegate.noteViewModel
                             timeManipulator: timeManipulator
                             verticalManipulator: clavierManipulator

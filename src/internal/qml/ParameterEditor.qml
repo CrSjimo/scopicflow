@@ -23,6 +23,8 @@ FocusScope {
     property TimeViewModel timeViewModel: null
     property TimeLayoutViewModel timeLayoutViewModel: null
     property ParameterEditorInteractionController interactionController: null
+    property QtObject verticalManipulator: null
+    property Item verticalViewport: null
 
     Accessible.name: qsTr("Parameter editor")
     Accessible.role: Accessible.Pane
@@ -37,6 +39,14 @@ FocusScope {
         target: parameterEditor
         timeViewModel: parameterEditor.timeViewModel
         timeLayoutViewModel: parameterEditor.timeLayoutViewModel
+    }
+
+    function mapLocalYToViewport(y: double): double {
+        return verticalViewport ? parameterEditor.mapToItem(verticalViewport, 0, y).y : 0
+    }
+
+    function mapViewportEdgeToLocalY(atBottom: bool): double {
+        return verticalViewport ? parameterEditor.mapFromItem(verticalViewport, 0, atBottom ? verticalViewport.height : 0).y : 0
     }
 
     ParameterEditorContent {
@@ -248,8 +258,8 @@ FocusScope {
                     operation === ParameterEditorInteractionController.EraseFree)
         }
         onDragMoved: (x, y) => {
-            freeEditDragScroller.determine(x, width, 0, 0, triggeredX => {
-                if (!triggeredX)
+            freeEditDragScroller.determine(x, width, parameterEditor.mapLocalYToViewport(y), parameterEditor.verticalViewport?.height ?? 0, (triggeredX, triggeredY) => {
+                if (!triggeredX && !triggeredY)
                     drawTo(Qt.point(x, y))
             })
         }
@@ -264,11 +274,19 @@ FocusScope {
 
         DragScroller {
             id: freeEditDragScroller
-            onMoved: deltaX => {
-                timeManipulator.moveViewBy(deltaX)
-                freeEditHandler.lastPoint = Qt.point(freeEditHandler.lastPoint.x - deltaX,
-                                                     freeEditHandler.lastPoint.y)
-                freeEditHandler.drawTo(Qt.point(deltaX > 0 ? freeEditHandler.width : 0, freeEditHandler.lastPoint.y))
+            onMoved: (deltaX, deltaY) => {
+                if (deltaX !== 0) {
+                    timeManipulator.moveViewBy(deltaX)
+                    freeEditHandler.lastPoint = Qt.point(freeEditHandler.lastPoint.x - deltaX,
+                                                         freeEditHandler.lastPoint.y)
+                }
+                if (deltaY !== 0)
+                    parameterEditor.verticalManipulator?.moveViewBy(deltaY)
+                if (deltaX !== 0 || deltaY !== 0) {
+                    freeEditHandler.drawTo(Qt.point(
+                        deltaX > 0 ? freeEditHandler.width : deltaX < 0 ? 0 : freeEditHandler.lastPoint.x,
+                        deltaY !== 0 ? parameterEditor.mapViewportEdgeToLocalY(deltaY > 0) : freeEditHandler.lastPoint.y))
+                }
             }
         }
     }
@@ -317,8 +335,8 @@ FocusScope {
                 parameterEditor, operation, editPositionAt(startPoint), editValueAt(startPoint))
         }
         onDragMoved: (x, y) => {
-            lineDrawDragScroller.determine(x, width, 0, 0, triggeredX => {
-                if (!triggeredX)
+            lineDrawDragScroller.determine(x, width, parameterEditor.mapLocalYToViewport(y), parameterEditor.verticalViewport?.height ?? 0, (triggeredX, triggeredY) => {
+                if (!triggeredX && !triggeredY)
                     drawTo(Qt.point(x, y))
             })
         }
@@ -335,10 +353,15 @@ FocusScope {
 
         DragScroller {
             id: lineDrawDragScroller
-            onMoved: deltaX => {
-                timeManipulator.moveViewBy(deltaX)
-                lineDrawDragHandler.drawTo(Qt.point(deltaX > 0 ? lineDrawDragHandler.width : 0,
-                                                    lineDrawDragHandler.lastPoint.y))
+            onMoved: (deltaX, deltaY) => {
+                if (deltaX !== 0)
+                    timeManipulator.moveViewBy(deltaX)
+                if (deltaY !== 0)
+                    parameterEditor.verticalManipulator?.moveViewBy(deltaY)
+                if (deltaX !== 0 || deltaY !== 0)
+                    lineDrawDragHandler.drawTo(Qt.point(
+                        deltaX > 0 ? lineDrawDragHandler.width : deltaX < 0 ? 0 : lineDrawDragHandler.lastPoint.x,
+                        deltaY !== 0 ? parameterEditor.mapViewportEdgeToLocalY(deltaY > 0) : lineDrawDragHandler.lastPoint.y))
             }
         }
     }
@@ -365,8 +388,8 @@ FocusScope {
             parameterEditor.interactionController?.anchorMovingStarted(parameterEditor, item)
         }
         onDragMoved: (x, y) => {
-            anchorMoveDragScroller.determine(x, width, 0, 0, triggeredX => {
-                if (!triggeredX)
+            anchorMoveDragScroller.determine(x, width, parameterEditor.mapLocalYToViewport(y), parameterEditor.verticalViewport?.height ?? 0, (triggeredX, triggeredY) => {
+                if (!triggeredX && !triggeredY)
                     moveTo(Qt.point(x, y))
             })
         }
@@ -393,10 +416,15 @@ FocusScope {
 
         DragScroller {
             id: anchorMoveDragScroller
-            onMoved: deltaX => {
-                timeManipulator.moveViewBy(deltaX)
-                anchorMoveDragHandler.moveTo(Qt.point(deltaX > 0 ? anchorMoveDragHandler.width : 0,
-                                                       anchorMoveDragHandler.lastPoint.y))
+            onMoved: (deltaX, deltaY) => {
+                if (deltaX !== 0)
+                    timeManipulator.moveViewBy(deltaX)
+                if (deltaY !== 0)
+                    parameterEditor.verticalManipulator?.moveViewBy(deltaY)
+                if (deltaX !== 0 || deltaY !== 0)
+                    anchorMoveDragHandler.moveTo(Qt.point(
+                        deltaX > 0 ? anchorMoveDragHandler.width : deltaX < 0 ? 0 : anchorMoveDragHandler.lastPoint.x,
+                        deltaY !== 0 ? parameterEditor.mapViewportEdgeToLocalY(deltaY > 0) : anchorMoveDragHandler.lastPoint.y))
             }
         }
     }

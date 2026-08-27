@@ -22,11 +22,13 @@ MouseArea {
     property var cursorResolver: null
     property var pressCursorResolver: cursorResolver
     property bool freezeCursorOnPress: false
+    property bool clearHoverOnInvalidHit: false
     property var resolvedCursor: undefined
     property var pressCursor: undefined
     property bool pressCursorActive: false
 
     acceptedButtons: Qt.LeftButton | Qt.RightButton
+    enabled: parent.enabled
     hoverEnabled: true
     focusPolicy: Qt.ClickFocus
     cursorShape: pressCursorActive ? pressCursor : resolvedCursor
@@ -88,6 +90,11 @@ MouseArea {
     function updateHover(mouse, event = undefined, resolvedHit = undefined) {
         event = event ?? createEvent(mouse)
         resolvedHit = resolvedHit ?? resolveHit(mouse)
+        if (!(resolvedHit.valid ?? false) && clearHoverOnInvalidHit) {
+            resolvedCursor = undefined
+            router.leaveHover(mouseArea)
+            return
+        }
         if (!pressed)
             resolvedCursor = resolveCursor(resolvedHit)
         router.updateHover(mouseArea, event, createHit(resolvedHit))

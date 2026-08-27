@@ -80,7 +80,7 @@ FocusScope {
         clavierViewModel: noteEditLayer.clavierViewModel
         viewSize: noteEditLayer.height - noteEditLayer.bottomExpansion
     }
-    component NoteRubberBandDragHandler: RubberBandDragHandler {
+    component ConfiguredNoteRubberBandDragHandler: NoteRubberBandDragHandler {
         controller: noteEditLayer.noteEditLayerInteractionController
         selectionController: noteEditLayer.selectionController
         target: noteEditLayer
@@ -89,6 +89,7 @@ FocusScope {
         verticalManipulator: clavierManipulator
         rubberBandLayer: rubberBandLayer
         selector: rubberBandSelector
+        noteItem: noteCanvas
     }
     Item {
         id: editArea
@@ -98,11 +99,11 @@ FocusScope {
         height: Math.max(0, noteEditLayer.height - noteEditLayer.bottomExpansion)
         readonly property ClipViewModel clipViewModel: noteEditLayer.clipViewModel
         readonly property RangeSequenceViewModel noteSequenceViewModel: noteEditLayer.noteSequenceViewModel
-        NoteRubberBandDragHandler {
+        ConfiguredNoteRubberBandDragHandler {
             id: rubberBandDragHandler
             mode: RubberBandDragHandler.Normal
         }
-        NoteRubberBandDragHandler {
+        ConfiguredNoteRubberBandDragHandler {
             id: timeRangeDragHandler
             mode: RubberBandDragHandler.TimeRange
         }
@@ -230,20 +231,6 @@ FocusScope {
             })
         }
     }
-    Connections {
-        target: noteEditLayer.selectionController
-        function onCurrentItemChanged() {
-            let oldItem = slicer.itemForModel(slicer.lastCurrentItem)
-            if (oldItem) {
-                oldItem.current = false
-            }
-            let newItem = slicer.itemForModel(noteEditLayer.selectionController.currentItem)
-            if (newItem) {
-                newItem.current = true
-            }
-            slicer.lastCurrentItem = noteEditLayer.selectionController.currentItem
-        }
-    }
     TimeViewportContainer {
         timeViewModel: noteEditLayer.timeViewModel
         timeLayoutViewModel: noteEditLayer.timeLayoutViewModel
@@ -309,172 +296,124 @@ FocusScope {
             Item {
                 id: slicerContainer
                 anchors.fill: parent
-                SequenceSlicer {
-                    id: slicer
-                    viewModel: noteEditLayer.noteSequenceViewModel
-                    sliceWidth: noteEditLayer.width
-                    timeLayoutViewModel: noteEditLayer.timeLayoutViewModel
+
+                readonly property color noteFillColor: noteEditLayer.trackListViewModel?.items[noteEditLayer.clipViewModel?.trackIndex ?? 0]?.color ?? Theme.accentColor
+
+                NoteEditLayerItem {
+                    id: noteCanvas
+
+                    anchors.fill: parent
+
+                    noteSequenceViewModel: noteEditLayer.noteSequenceViewModel
                     timeViewModel: proxyTimeViewModel
+                    timeLayoutViewModel: noteEditLayer.timeLayoutViewModel
+                    clavierViewModel: noteEditLayer.clavierViewModel
+                    selectionController: noteEditLayer.selectionController
+                    rubberBandSelector: rubberBandSelector
+                    fillColor: slicerContainer.noteFillColor
+                    selectedFillColor: SFPalette.noteSelectedColorChange.apply(slicerContainer.noteFillColor)
+                    selectedBorderColor: Theme.foregroundPrimaryColor
+                    overlappedBorderColor: (noteEditLayer.noteEditLayerInteractionController?.warnOfOverlappingNotes ?? true) ? Theme.warningColor : "transparent"
+                    textColor: Theme.foregroundPrimaryColor
+                    font: Theme.font
                     active: noteEditLayer.active
-                    property NoteViewModel lastCurrentItem: null
+                    transparentDisplay: noteEditLayer.transparentDisplay
+                    thumbnailDisplay: noteEditLayer.thumbnailDisplay
+                    editScopeFocused: noteEditLayer.selectionController?.editScopeFocused ?? false
+                    lyricEditingItem: lyricEditPopup.visible ? lyricEditPopup.model : null
+                    viewportWidth: noteEditLayer.width
+                    viewportHeight: editArea.height
+                    shortNoteThreshold: noteEditLayer.noteEditLayerInteractionController?.shortNoteThreshold ?? 0
+                    additionalTextAbove: noteEditLayer.noteEditLayerInteractionController?.additionalTextPosition === NoteEditLayerInteractionController.AdditionalTextPosition_Up
+                }
 
-                    delegate: NoteEditLayerDelegate {
-                        id: noteDelegate
+                PointerInputArea {
+                    anchors.fill: parent
+                    router: scenePointerInput.router
+                    coordinateSpace: editArea
+                    containmentMask: noteCanvas
+                    clearHoverOnInvalidHit: true
+                    freezeCursorOnPress: true
+                    hitResolver: (surfacePoint, localPoint) => noteCanvas.hitTest(localPoint, editArea)
+                    handlerResolver: (event, hit) => {
+                        if (hit.payload === EdgeDragHandler.LeftEdge)
+                            return leftEdgeDragHandler
+                        if (hit.payload === EdgeDragHandler.RightEdge)
+                            return rightEdgeDragHandler
+                        return scenePointerInput.resolveHandler(event, hit)
+                    }
+                    cursorResolver: hit => (!hit.valid || hit.payload === -1) ? Qt.ArrowCursor : Qt.SizeHorCursor
+                    pressCursorResolver: cursorResolver
+                }
 
-                        selectionController: noteEditLayer.selectionController
+                Repeater {
+                    model: noteCanvas.shortMarkerModel
+                    delegate: Item {
+                        id: shortMarker
 
-                        onNoteViewModelChanged: () => {
-                            current = (noteEditLayer.selectionController?.currentItem === noteViewModel)
-                        }
+                        required property NoteViewModel modelObject
+                        required property int markerType
+                        required property double centerX
+                        required property double centerY
+                        required property bool selected
 
-                        property int nextNotePos: 0
-                        property int restLength: 0
-                        property double restWidth: 0
-                        property double restLabelAnchorY: 0
+                        x: centerX
+                        y: centerY
+                        width: 0
+                        height: 0
+                        z: 2.5
+                        opacity: 0.75
 
-                        Binding {
-                            noteDelegate.x: (noteDelegate.noteViewModel?.position ?? 0) * (noteEditLayer.timeLayoutViewModel?.pixelDensity ?? 0)
-                            noteDelegate.y: (127 - (noteDelegate.noteViewModel?.key ?? 0)) * (noteEditLayer.clavierViewModel?.pixelDensity ?? 0)
-                            noteDelegate.width: (noteDelegate.noteViewModel?.length ?? 0) * (noteEditLayer.timeLayoutViewModel?.pixelDensity ?? 0)
-                            noteDelegate.height: noteEditLayer.clavierViewModel?.pixelDensity ?? 0
-                            noteDelegate.color: noteEditLayer.trackListViewModel?.items[noteEditLayer.clipViewModel?.trackIndex ?? 0]?.color ?? Theme.accentColor
-                            noteDelegate.transparentDisplay: noteEditLayer.transparentDisplay
-                            noteDelegate.thumbnailDisplay: noteEditLayer.thumbnailDisplay
-                            noteDelegate.nextNotePos: noteDelegate.noteViewModel?.nextNotePosition ?? 0
-                            noteDelegate.restLength: (noteDelegate.noteViewModel?.nextNotePosition ?? 0) - (noteDelegate.noteViewModel?.position ?? 0) - (noteDelegate.noteViewModel?.length ?? 0)
-                            noteDelegate.restWidth: noteDelegate.restLength * (noteEditLayer.timeLayoutViewModel?.pixelDensity ?? 0)
-                            noteDelegate.restLabelAnchorY: {
-                                let nextNoteY = (127 - (noteDelegate.noteViewModel?.nextNoteKey ?? 0)) * (noteEditLayer.clavierViewModel?.pixelDensity ?? 0)
-                                return noteEditLayer.noteEditLayerInteractionController?.additionalTextPosition === NoteEditLayerInteractionController.AdditionalTextPosition_Up ? Math.min(nextNoteY, noteDelegate.y) : Math.max(nextNoteY, noteDelegate.y)
+                        T.Button {
+                            id: shortMarkerButton
+
+                            width: 20
+                            height: 20
+                            anchors.centerIn: parent
+                            background: ButtonRectangle {
+                                control: shortMarkerButton
                             }
-                            shortNoteLabel.visible: noteDelegate.noteViewModel?.length <= noteEditLayer.noteEditLayerInteractionController?.shortNoteThreshold
-                            shortNoteLabel.anchors.verticalCenterOffset: noteEditLayer.noteEditLayerInteractionController?.additionalTextPosition === NoteEditLayerInteractionController.AdditionalTextPosition_Up ? 0.5 * noteDelegate.height + 16 : -0.5 * noteDelegate.height - 16
-                            shortRestLabel.visible: noteDelegate.restLength > 0 && noteDelegate.restLength <= noteEditLayer.noteEditLayerInteractionController?.shortNoteThreshold
-                            shortRestLabel.anchors.verticalCenterOffset: noteEditLayer.noteEditLayerInteractionController?.additionalTextPosition === NoteEditLayerInteractionController.AdditionalTextPosition_Up ? -0.5 * noteDelegate.height - 16 : 0.5 * noteDelegate.height + 16
-                            when: noteDelegate.SequenceSlicerLoader.inRange
-                        }
-
-                        Item {
-                            parent: slicerContainer
-                            x: noteDelegate.x + 0.5 * noteDelegate.width
-                            y: noteDelegate.y + 0.5 * noteDelegate.height
-                            z: 2.5
-                            opacity: 0.75
-                            T.Button {
-                                id: shortNoteLabel
-                                width: 20
-                                height: 20
-                                anchors.centerIn: parent
-                                background: ButtonRectangle {
-                                    control: shortNoteLabel
-                                }
-                                contentItem: IconImage {
-                                    source: "qrc:/qt/qml/dev/sjimo/ScopicFlow/Internal/assets/music_note.svg"
-                                    sourceSize.width: 16
-                                    sourceSize.height: 16
-                                    color: noteDelegate.selected ? Theme.accentColor : Theme.foregroundPrimaryColor
-                                }
-                                display: T.AbstractButton.IconOnly
-                                text: qsTr("Short note")
-                                ActionToolTipHelper {
-                                    text: shortNoteLabel.text
-                                    delay: Theme.toolTipDelay
-                                    timeout: Theme.toolTipTimeout
-                                    visible: shortNoteLabel.hovered
-                                }
-                                onClicked: () => {
-                                    noteEditLayer.selectionController.select(noteDelegate.noteViewModel, SelectionController.ClearPreviousSelection | SelectionController.SetCurrentItem | SelectionController.Select)
-                                }
+                            contentItem: IconImage {
+                                source: shortMarker.markerType === NoteEditLayerItem.ShortNoteMarker
+                                    ? "qrc:/qt/qml/dev/sjimo/ScopicFlow/Internal/assets/music_note.svg"
+                                    : "qrc:/qt/qml/dev/sjimo/ScopicFlow/Internal/assets/music_rest.svg"
+                                sourceSize.width: 16
+                                sourceSize.height: 16
+                                color: shortMarker.markerType === NoteEditLayerItem.ShortNoteMarker && shortMarker.selected
+                                    ? Theme.accentColor : Theme.foregroundPrimaryColor
                             }
-                        }
-
-                        Item {
-                            parent: slicerContainer
-                            x: noteDelegate.x + noteDelegate.width + 0.5 * (noteDelegate.restWidth)
-                            y: noteDelegate.restLabelAnchorY + 0.5 * noteDelegate.height
-                            z: 2.5
-                            opacity: 0.75
-                            T.Button {
-                                id: shortRestLabel
-                                width: 20
-                                height: 20
-                                anchors.centerIn: parent
-                                background: ButtonRectangle {
-                                    control: shortRestLabel
-                                }
-                                contentItem: IconImage {
-                                    source: "qrc:/qt/qml/dev/sjimo/ScopicFlow/Internal/assets/music_rest.svg"
-                                    sourceSize.width: 16
-                                    sourceSize.height: 16
-                                    color: Theme.foregroundPrimaryColor
-                                }
-                                display: T.AbstractButton.IconOnly
-                                text: qsTr("Short rest")
-                                ActionToolTipHelper {
-                                    text: shortRestLabel.text
-                                    delay: Theme.toolTipDelay
-                                    timeout: Theme.toolTipTimeout
-                                    visible: shortRestLabel.hovered
-                                }
-                                Menu {
-                                    id: shortRestMenu
-                                    Action {
-                                        text: qsTr("Extend previous note forward")
-                                        onTriggered: noteEditLayer.noteEditLayerInteractionController.rippleDeleteRequested(noteEditLayer, noteDelegate.noteViewModel, NoteEditLayerInteractionController.RippleDelete_Previous)
-                                    }
-                                    Action {
-                                        text: qsTr("Extend next note backward")
-                                        onTriggered: noteEditLayer.noteEditLayerInteractionController.rippleDeleteRequested(noteEditLayer, noteDelegate.noteViewModel, NoteEditLayerInteractionController.RippleDelete_Next)
-                                    }
-                                }
-                                onClicked: () => {
-                                    shortRestMenu.popup()
+                            display: T.AbstractButton.IconOnly
+                            text: shortMarker.markerType === NoteEditLayerItem.ShortNoteMarker ? qsTr("Short note") : qsTr("Short rest")
+                            ActionToolTipHelper {
+                                text: shortMarkerButton.text
+                                delay: Theme.toolTipDelay
+                                timeout: Theme.toolTipTimeout
+                                visible: shortMarkerButton.hovered
+                            }
+                            onClicked: () => {
+                                if (shortMarker.markerType === NoteEditLayerItem.ShortNoteMarker) {
+                                    noteEditLayer.selectionController.select(shortMarker.modelObject, SelectionController.ClearPreviousSelection | SelectionController.SetCurrentItem | SelectionController.Select)
+                                } else {
+                                    shortRestMenu.noteViewModel = shortMarker.modelObject
+                                    shortRestMenu.popup(shortMarkerButton)
                                 }
                             }
                         }
+                    }
+                }
 
-                        RubberBandItemConnections {
-                            target: noteDelegate
-                            viewModel: noteDelegate.noteViewModel
-                            selector: rubberBandSelector
-                        }
-                        ItemPointerInput {
-                            sceneInput: scenePointerInput
-                            item: noteDelegate
-                            viewModel: noteDelegate.noteViewModel
-                            payloadResolver: point => {
-                                const edgeWidth = Math.min(8, noteDelegate.width / 3)
-                                if (point.x < edgeWidth)
-                                    return EdgeDragHandler.LeftEdge
-                                if (point.x >= noteDelegate.width - edgeWidth)
-                                    return EdgeDragHandler.RightEdge
-                                return -1
-                            }
-                            itemHandlerResolver: (event, hit) => {
-                                if (hit.payload === EdgeDragHandler.LeftEdge)
-                                    return leftEdgeDragHandler
-                                if (hit.payload === EdgeDragHandler.RightEdge)
-                                    return rightEdgeDragHandler
-                                return scenePointerInput.resolveHandler(event, hit)
-                            }
-                            freezeCursorOnPress: true
-                            itemPressCursorResolver: hit => hit.payload === -1
-                                ? undefined : Qt.SizeHorCursor
-                        }
-                        MouseArea {
-                            anchors.left: parent.left
-                            width: Math.min(8, parent.width / 3)
-                            height: parent.height
-                            acceptedButtons: Qt.NoButton
-                            cursorShape: Qt.SizeHorCursor
-                        }
-                        MouseArea {
-                            anchors.right: parent.right
-                            width: Math.min(8, parent.width / 3)
-                            height: parent.height
-                            acceptedButtons: Qt.NoButton
-                            cursorShape: Qt.SizeHorCursor
-                        }
+                Menu {
+                    id: shortRestMenu
+
+                    property NoteViewModel noteViewModel: null
+
+                    Action {
+                        text: qsTr("Extend previous note forward")
+                        onTriggered: noteEditLayer.noteEditLayerInteractionController?.rippleDeleteRequested(noteEditLayer, shortRestMenu.noteViewModel, NoteEditLayerInteractionController.RippleDelete_Previous)
+                    }
+                    Action {
+                        text: qsTr("Extend next note backward")
+                        onTriggered: noteEditLayer.noteEditLayerInteractionController?.rippleDeleteRequested(noteEditLayer, shortRestMenu.noteViewModel, NoteEditLayerInteractionController.RippleDelete_Next)
                     }
                 }
             }
@@ -491,22 +430,23 @@ FocusScope {
                 id: rubberBandSelector
 
                 selectionController: noteEditLayer.selectionController
-                onSelectionAboutToEnd: (rect) => {
-                    slicer.temporarilyLoadForRubberBand(rect.x, rect.width)
-                }
+                itemHint: RubberBandSelector.SameHeight
             }
             ItemPopupEdit {
                 id: lyricEditPopup
 
-                readonly property Item associatedItem: slicer.itemForModel(model)
+                readonly property rect associatedRect: {
+                    noteCanvas.geometryRevision
+                    return noteCanvas.itemRect(model)
+                }
 
                 containerModel: noteEditLayer.noteSequenceViewModel
                 targetProperty: "lyric"
                 radius: 2
-                width: associatedItem?.width ?? 0
-                height: associatedItem?.height ?? 0
-                x: associatedItem?.x ?? 0
-                y: associatedItem?.y ?? 0
+                width: associatedRect.width
+                height: associatedRect.height
+                x: associatedRect.x
+                y: associatedRect.y
 
                 onEditPreviousRequested: noteEditLayer.noteEditLayerInteractionController?.lyricInPlaceEditOperationTriggered(noteEditLayer, model, NoteEditLayerInteractionController.MovePrevious)
                 onEditNextRequested: noteEditLayer.noteEditLayerInteractionController?.lyricInPlaceEditOperationTriggered(noteEditLayer, model, NoteEditLayerInteractionController.MoveNext)
@@ -514,10 +454,6 @@ FocusScope {
                 onEditEndRequested: noteEditLayer.noteEditLayerInteractionController?.lyricInPlaceEditOperationTriggered(noteEditLayer, model, NoteEditLayerInteractionController.MoveEnd)
                 onAccepted: noteEditLayer.noteEditLayerInteractionController?.lyricInPlaceEditOperationTriggered(noteEditLayer, model, NoteEditLayerInteractionController.CommitEditing)
                 onRejected: noteEditLayer.noteEditLayerInteractionController?.lyricInPlaceEditOperationTriggered(noteEditLayer, model, NoteEditLayerInteractionController.AbortEditing)
-                onVisibleChanged: () => {
-                    if (associatedItem)
-                        associatedItem.lyricEditing = visible
-                }
             }
             ItemPopupEdit {
                 id: additionalTextEditPopup

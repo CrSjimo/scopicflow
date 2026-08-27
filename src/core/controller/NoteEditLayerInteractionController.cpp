@@ -10,7 +10,8 @@ namespace sflow {
           m_primaryItemInteraction(Move), m_secondaryItemInteraction(CopyAndMove),
           m_primarySceneInteraction(RubberBandSelect), m_secondarySceneInteraction(TimeRangeSelect),
           m_primarySelectInteraction(RubberBandSelect), m_secondarySelectInteraction(TimeRangeSelect),
-          m_additionalTextPosition(AdditionalTextPosition_Up), m_shortNoteThreshold(30) {
+          m_additionalTextPosition(AdditionalTextPosition_Up), m_shortNoteThreshold(30),
+          m_warnOfOverlappingNotes(true) {
     }
 
     NoteEditLayerInteractionController::~NoteEditLayerInteractionController() = default;
@@ -34,6 +35,15 @@ namespace sflow {
         if (m_shortNoteThreshold != threshold) {
             m_shortNoteThreshold = threshold;
             emit shortNoteThresholdChanged();
+        }
+    }
+    bool NoteEditLayerInteractionController::warnOfOverlappingNotes() const {
+        return m_warnOfOverlappingNotes;
+    }
+    void NoteEditLayerInteractionController::setWarnOfOverlappingNotes(bool warnOfOverlappingNotes) {
+        if (m_warnOfOverlappingNotes != warnOfOverlappingNotes) {
+            m_warnOfOverlappingNotes = warnOfOverlappingNotes;
+            emit warnOfOverlappingNotesChanged();
         }
     }
     void NoteEditLayerInteractionController::setClickSelectable(bool clickSelectable) {

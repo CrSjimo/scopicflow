@@ -329,6 +329,11 @@ namespace sflow {
             return;
         d->itemHint = itemHint;
         d->index.reset();
+        auto *index = d->ensureIndex();
+        for (const auto &[item, entry] : d->items) {
+            Q_UNUSED(item);
+            index->insert(entry.get());
+        }
         Q_EMIT itemHintChanged();
     }
 

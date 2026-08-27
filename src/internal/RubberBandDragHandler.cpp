@@ -86,7 +86,7 @@ namespace sflow {
         if (rubberBandLayer) {
             const QRectF rect = rubberBandLayer->endSelection();
             if (selector)
-                selector->select(rect);
+                selector->select(q->mapToSelector(rect));
             else
                 qmlWarning(q) << "RubberBandDragHandler: selector is not set";
         }
@@ -282,6 +282,10 @@ namespace sflow {
     QPointF RubberBandDragHandler::mapToRubberBand(const QPointF &point) const {
         Q_D(const RubberBandDragHandler);
         return d->mapToRubberBand(point);
+    }
+
+    QRectF RubberBandDragHandler::mapToSelector(const QRectF &rect) const {
+        return rect;
     }
 
 }

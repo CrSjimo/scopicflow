@@ -26,6 +26,7 @@ namespace sflow {
         Q_PROPERTY(Interaction secondarySelectInteraction READ secondarySelectInteraction WRITE setSecondarySelectInteraction NOTIFY secondarySelectInteractionChanged)
         Q_PROPERTY(AdditionalTextPosition additionalTextPosition READ additionalTextPosition WRITE setAdditionalTextPosition NOTIFY additionalTextPositionChanged)
         Q_PROPERTY(int shortNoteThreshold READ shortNoteThreshold WRITE setShortNoteThreshold NOTIFY shortNoteThresholdChanged)
+        Q_PROPERTY(bool warnOfOverlappingNotes READ warnOfOverlappingNotes WRITE setWarnOfOverlappingNotes NOTIFY warnOfOverlappingNotesChanged)
     public:
         explicit NoteEditLayerInteractionController(QObject *parent = nullptr);
         ~NoteEditLayerInteractionController() override;
@@ -66,6 +67,9 @@ namespace sflow {
 
         int shortNoteThreshold() const;
         void setShortNoteThreshold(int threshold);
+
+        bool warnOfOverlappingNotes() const;
+        void setWarnOfOverlappingNotes(bool warnOfOverlappingNotes);
 
         enum MoveFlag {
             MF_Move,
@@ -108,6 +112,7 @@ namespace sflow {
         void secondarySelectInteractionChanged();
         void additionalTextPositionChanged();
         void shortNoteThresholdChanged();
+        void warnOfOverlappingNotesChanged();
 
         void rubberBandDraggingStarted(QQuickItem *noteArea);
         void rubberBandDraggingCommitted(QQuickItem *noteArea);
@@ -158,6 +163,7 @@ namespace sflow {
         Interaction m_secondarySelectInteraction;
         AdditionalTextPosition m_additionalTextPosition;
         int m_shortNoteThreshold;
+        bool m_warnOfOverlappingNotes;
     };
 
 }

@@ -2,6 +2,7 @@
 #define SCOPIC_FLOW_RUBBERBANDDRAGHANDLER_P_H
 
 #include <QScopedPointer>
+#include <QRectF>
 #include <qqmlintegration.h>
 
 #include <ScopicFlowInternal/private/DispatchedDragHandler_p.h>
@@ -69,6 +70,7 @@ namespace sflow {
         void setMode(int mode);
 
         Q_INVOKABLE QPointF mapToRubberBand(const QPointF &point) const;
+        Q_INVOKABLE virtual QRectF mapToSelector(const QRectF &rect) const;
 
     Q_SIGNALS:
         void controllerChanged();

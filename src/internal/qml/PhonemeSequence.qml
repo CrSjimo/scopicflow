@@ -18,8 +18,16 @@ FocusScope {
     property TimeLayoutViewModel timeLayoutViewModel: null
     property TimeViewModel timeViewModel: null
     property PhonemeSequenceInteractionController phonemeSequenceInteractionController: null
+    readonly property alias pointerTimePosition: helper.pointerTimePosition
 
     property int textHorizontalAlignment: Text.AlignLeft
+
+    onPhonemeSequenceViewModelChanged: pointerRouter.cancel()
+    onClipViewModelChanged: pointerRouter.cancel()
+
+    function hasPointerHover(): bool {
+        return pointerRouter.hasHover()
+    }
 
     clip: true
     implicitHeight: 20
@@ -61,42 +69,128 @@ FocusScope {
         timeViewModel: proxyTimeViewModel
     }
 
-    GenericBackRightButtonMouseArea {
-        controller: phonemeSequence.phonemeSequenceInteractionController
-        target: phonemeSequence
-        timeManipulator: timeManipulator
+    PointerInteractionRouter {
+        id: pointerRouter
     }
 
-    DispatcherMouseArea {
-        onDoubleClicked: mouse => {
-            phonemeSequence.phonemeSequenceInteractionController?.doubleClicked(
-                phonemeSequence, timeManipulator.mapToPosition(mouse.x))
+    QtObject {
+        id: helper
+
+        property int pointerTimePosition: 0
+
+        function updateHoverPointer(event) {
+            pointerTimePosition =
+                timeManipulator.mapToPosition(event.position.x)
         }
     }
 
-    HoverHandler {
-        blocking: false
-        cursorShape: undefined
+    DispatchedDragHandler {
+        id: moveDragHandler
 
-        onHoveredChanged: {
-            const controller =
-                phonemeSequence.phonemeSequenceInteractionController
+        property PhonemeViewModel activeViewModel: null
+
+        onStarted: (event, hit) => {
+            activeViewModel = hit.target
+            phonemeSequence.phonemeSequenceInteractionController?.movingStarted(
+                phonemeSequence, activeViewModel)
+        }
+
+        onMoved: event => {
+            const viewModel = activeViewModel
+            const noteViewModel = viewModel?.associatedNote ?? null
+            const pixelDensity = phonemeSequence.timeLayoutViewModel?.pixelDensity ?? 0
+            if (!viewModel || !noteViewModel || pixelDensity <= 0)
+                return
+            const handleCenter = hit.targetRect.x + 3
+                + event.position.x - pressPosition.x
+            const sequencePosition = proxyTimeViewModel.start
+                + handleCenter / pixelDensity
+            viewModel.position = sequencePosition - noteViewModel.position
+        }
+
+        onFinished: {
+            if (activeViewModel) {
+                phonemeSequence.phonemeSequenceInteractionController?.movingCommitted(
+                    phonemeSequence, activeViewModel)
+            }
+            activeViewModel = null
+        }
+
+        onCanceled: {
+            if (activeViewModel) {
+                phonemeSequence.phonemeSequenceInteractionController?.movingAborted(
+                    phonemeSequence, activeViewModel)
+            }
+            activeViewModel = null
+        }
+    }
+
+    PointerInputArea {
+        anchors.fill: parent
+        router: pointerRouter
+        coordinateSpace: phonemeSequence
+    }
+
+    Connections {
+        target: pointerRouter
+
+        function onDoubleClicked(event, hit) {
+            const controller = phonemeSequence.phonemeSequenceInteractionController
             if (!controller)
                 return
-            if (hovered) {
-                controller.hoverEntered(
-                    phonemeSequence,
-                    timeManipulator.mapToPosition(point.position.x))
+            if (hit.target) {
+                controller.itemDoubleClicked(phonemeSequence, hit.target)
             } else {
-                controller.hoverExited(phonemeSequence)
+                controller.doubleClicked(
+                    phonemeSequence,
+                    timeManipulator.mapToPosition(event.position.x))
             }
         }
 
-        onPointChanged: {
-            if (hovered) {
+        function onContextMenuRequested(event, hit) {
+            const controller = phonemeSequence.phonemeSequenceInteractionController
+            if (!controller)
+                return
+            if (hit.target) {
+                controller.itemContextMenuRequested(phonemeSequence, hit.target)
+            } else {
+                controller.contextMenuRequested(
+                    phonemeSequence,
+                    timeManipulator.mapToPosition(event.position.x))
+            }
+        }
+
+        function onHoverEntered(event, hit) {
+            helper.updateHoverPointer(event)
+            const controller = phonemeSequence.phonemeSequenceInteractionController
+            if (!controller)
+                return
+            if (hit.target) {
+                controller.itemHoverEntered(phonemeSequence, hit.target)
+            } else {
+                controller.hoverEntered(
+                    phonemeSequence,
+                    timeManipulator.mapToPosition(event.position.x))
+            }
+        }
+
+        function onHoverMoved(event, hit) {
+            helper.updateHoverPointer(event)
+            if (!hit.target) {
                 phonemeSequence.phonemeSequenceInteractionController?.hoverMoved(
                     phonemeSequence,
-                    timeManipulator.mapToPosition(point.position.x))
+                    timeManipulator.mapToPosition(event.position.x))
+            }
+        }
+
+        function onHoverExited(hit) {
+            const controller = phonemeSequence.phonemeSequenceInteractionController
+            if (!controller)
+                return
+            if (hit.target) {
+                controller.itemHoverExited(phonemeSequence, hit.target)
+            } else {
+                controller.hoverExited(phonemeSequence)
             }
         }
     }
@@ -206,110 +300,40 @@ FocusScope {
                         height: parent.height
                         enabled: !phonemeDelegate.editing
 
-                        HoverHandler {
-                            blocking: false
-
-                            onHoveredChanged: {
-                                const controller =
-                                    phonemeSequence.phonemeSequenceInteractionController
-                                if (!controller)
-                                    return
-                                if (hovered) {
-                                    controller.itemHoverEntered(
-                                        phonemeSequence,
-                                        phonemeDelegate.phonemeViewModel)
-                                } else {
-                                    controller.itemHoverExited(
-                                        phonemeSequence,
-                                        phonemeDelegate.phonemeViewModel)
+                        PointerInputArea {
+                            anchors.fill: parent
+                            router: pointerRouter
+                            coordinateSpace: phonemeSequence
+                            hitResolver: (surfacePoint, localPoint) => {
+                                const origin = itemInteractionArea.mapToItem(
+                                    phonemeSequence, 0, 0)
+                                return {
+                                    valid: true,
+                                    target: phonemeDelegate.phonemeViewModel,
+                                    targetRect: Qt.rect(
+                                        origin.x, origin.y,
+                                        itemInteractionArea.width,
+                                        itemInteractionArea.height),
+                                    hoverRegion: 0,
+                                    payload: localPoint.x >= 0 && localPoint.x < 6,
                                 }
                             }
-                        }
-
-                        GenericRightButtonMouseArea {
-                            enabled:
-                                phonemeSequence.phonemeSequenceInteractionController
-                                !== null
-                            controller:
-                                phonemeSequence.phonemeSequenceInteractionController
-                            paneItem: phonemeSequence
-                            viewModel: phonemeDelegate.phonemeViewModel
-                        }
-
-                        DispatcherMouseArea {
-                            determineDragHandler: mouse => {
-                                if (mouse.x < 0
-                                        || mouse.x >= dragHandleArea.width) {
+                            handlerResolver: (event, hit) => {
+                                if (!hit.payload)
                                     return null
-                                }
                                 const controller =
                                     phonemeSequence.phonemeSequenceInteractionController
                                 if (!controller)
                                     return null
-                                const interaction =
-                                    mouse.modifiers & Qt.AltModifier
+                                const interaction = event.modifiers & Qt.AltModifier
                                     ? controller.secondaryItemInteraction
                                     : controller.primaryItemInteraction
                                 return interaction
                                         === PhonemeSequenceInteractionController.Move
                                     ? moveDragHandler : null
                             }
-
-                            onDoubleClicked: () =>
-                                phonemeSequence.phonemeSequenceInteractionController?.itemDoubleClicked(
-                                    phonemeSequence, phonemeDelegate.phonemeViewModel)
-                        }
-
-                        Item {
-                            id: dragHandleArea
-
-                            width: 6
-                            height: parent.height
-
-                            DispatchedDragHandler {
-                                id: moveDragHandler
-
-                                CursorBinding.cursorShape: Qt.SizeHorCursor
-                                CursorBinding.enabled: dragged
-
-                                onDragStarted: () => {
-                                    phonemeSequence.phonemeSequenceInteractionController?.movingStarted(
-                                        phonemeSequence, phonemeDelegate.phonemeViewModel)
-                                }
-
-                                onDragMoved: (x) => {
-                                    const viewModel = phonemeDelegate.phonemeViewModel
-                                    const noteViewModel = viewModel?.associatedNote ?? null
-                                    const pixelDensity = phonemeSequence.timeLayoutViewModel?.pixelDensity ?? 0
-                                    if (!viewModel || !noteViewModel || pixelDensity <= 0) {
-                                        return
-                                    }
-                                    const centerPoint = moveDragHandler.mapToItem(
-                                        phonemeSequence,
-                                        x - moveDragHandler.startPoint.x
-                                            + moveDragHandler.width / 2,
-                                        0)
-                                    const sequencePosition = proxyTimeViewModel.start
-                                        + centerPoint.x / pixelDensity
-                                    viewModel.position = sequencePosition
-                                        - noteViewModel.position
-                                }
-
-                                onDragFinished: () => {
-                                    phonemeSequence.phonemeSequenceInteractionController?.movingCommitted(
-                                        phonemeSequence, phonemeDelegate.phonemeViewModel)
-                                }
-
-                                onDragCanceled: () => {
-                                    phonemeSequence.phonemeSequenceInteractionController?.movingAborted(
-                                        phonemeSequence, phonemeDelegate.phonemeViewModel)
-                                }
-                            }
-
-                            HoverHandler {
-                                blocking: false
-                                cursorShape: Qt.SizeHorCursor
-                            }
+                            cursorResolver: hit => hit.payload
+                                ? Qt.SizeHorCursor : undefined
                         }
                     }
                 }

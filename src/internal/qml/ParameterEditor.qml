@@ -25,6 +25,17 @@ FocusScope {
     property ParameterEditorInteractionController interactionController: null
     property QtObject verticalManipulator: null
     property Item verticalViewport: null
+    property int freeEditPointerPosition: 0
+    property double freeEditPointerValue: 0.0
+    readonly property alias pointerTimePosition: helper.pointerTimePosition
+    readonly property alias pointerTransformedValue: helper.pointerTransformedValue
+
+    onFreeParameterViewModelChanged: pointerRouter.cancel()
+    onAnchorParameterViewModelChanged: pointerRouter.cancel()
+
+    function hasPointerHover(): bool {
+        return pointerRouter.hasHover()
+    }
 
     Accessible.name: qsTr("Parameter editor")
     Accessible.role: Accessible.Pane
@@ -103,9 +114,10 @@ FocusScope {
     QtObject {
         id: helper
 
-        property ParameterAnchorViewModel pressedAnchor: null
-        property ParameterAnchorViewModel hoveredAnchor: null
         property int pressedInteraction: ParameterEditorInteractionController.None
+        property int pointerTimePosition: 0
+        property double pointerTransformedValue: 0.0
+
         readonly property int editLayer: {
             const sceneInteraction = parameterEditor.interactionController?.primarySceneInteraction
                                      ?? ParameterEditorInteractionController.None
@@ -124,6 +136,29 @@ FocusScope {
                 || interaction === ParameterEditorInteractionController.Brush
                 || interaction === ParameterEditorInteractionController.Eraser
                 || interaction === ParameterEditorInteractionController.FreeRangeSelect
+        }
+
+        function freeEditPointerAt(point: point): var {
+            const value = content.transformedValueFromPoint(point)
+            return {
+                position: Math.max(0, timeManipulator.mapToPosition(point.x)),
+                value: value === undefined || value === null ? 0.0 : value,
+            }
+        }
+
+        function setFreeEditPointer(pointer) {
+            parameterEditor.freeEditPointerPosition = pointer.position
+            parameterEditor.freeEditPointerValue = pointer.value
+        }
+
+        function updateFreeEditPointer(point: point) {
+            setFreeEditPointer(freeEditPointerAt(point))
+        }
+
+        function updateHoverPointer(event) {
+            pointerTimePosition = timeManipulator.mapToPosition(event.position.x)
+            pointerTransformedValue =
+                1.0 - event.position.y / parameterEditor.height
         }
 
         function isAnchorInteraction(interaction: int): bool {
@@ -166,7 +201,8 @@ FocusScope {
                 return []
             const selectionController = parameterEditor.anchorSelectionController
             if (parameterEditor.interactionController?.clickSelectable && selectionController)
-                selectionController.selectByMouse(item, Qt.RightButton, 0)
+                selectionController.selectByPointer(
+                    item, SelectionController.ContextSelection, 0)
             if (selectionController && item.selected) {
                 const selectedItems = selectionController.getSelectedItems()
                 if (selectedItems.length > 0)
@@ -225,16 +261,7 @@ FocusScope {
         id: freeEditHandler
         property int operation: ParameterEditorInteractionController.DrawFree
         property point lastPoint: Qt.point(0, 0)
-        startDraggingImmediately: true
-
-        function editPositionAt(point): int {
-            return Math.max(0, timeManipulator.mapToPosition(point.x))
-        }
-
-        function editValueAt(point): double {
-            const value = content.transformedValueFromPoint(point)
-            return value === undefined || value === null ? 0.0 : value
-        }
+        activationPolicy: DispatchedDragHandler.Immediately
 
         function drawTo(point) {
             if (operation === ParameterEditorInteractionController.BrushFree)
@@ -243,31 +270,40 @@ FocusScope {
                 content.drawFreeSegment(lastPoint, point,
                     operation === ParameterEditorInteractionController.EraseFree)
             lastPoint = point
+            helper.updateFreeEditPointer(point)
             parameterEditor.interactionController?.freeEditingUpdated(
-                parameterEditor, operation, editPositionAt(point), editValueAt(point))
+                parameterEditor, operation,
+                parameterEditor.freeEditPointerPosition,
+                parameterEditor.freeEditPointerValue)
         }
 
-        onDragStarted: (x, y) => {
-            lastPoint = Qt.point(x, y)
+        onStarted: event => {
+            lastPoint = event.position
+            const pointer = helper.freeEditPointerAt(lastPoint)
             parameterEditor.interactionController?.freeEditingStarted(
-                parameterEditor, operation, editPositionAt(lastPoint), editValueAt(lastPoint))
+                parameterEditor, operation, pointer.position, pointer.value)
+            helper.setFreeEditPointer(pointer)
             if (operation === ParameterEditorInteractionController.BrushFree)
                 content.brushFreeSegment(lastPoint, lastPoint)
             else
                 content.drawFreeSegment(lastPoint, lastPoint,
                     operation === ParameterEditorInteractionController.EraseFree)
         }
-        onDragMoved: (x, y) => {
-            freeEditDragScroller.determine(x, width, parameterEditor.mapLocalYToViewport(y), parameterEditor.verticalViewport?.height ?? 0, (triggeredX, triggeredY) => {
+        onMoved: event => {
+            const point = event.position
+            freeEditDragScroller.determine(point.x, event.surfaceRect.width,
+                                           parameterEditor.mapLocalYToViewport(point.y),
+                                           parameterEditor.verticalViewport?.height ?? 0,
+                                           (triggeredX, triggeredY) => {
                 if (!triggeredX && !triggeredY)
-                    drawTo(Qt.point(x, y))
+                    drawTo(point)
             })
         }
-        onDragFinished: () => {
+        onFinished: {
             freeEditDragScroller.running = false
             parameterEditor.interactionController?.freeEditingCommitted(parameterEditor, operation)
         }
-        onDragCanceled: () => {
+        onCanceled: {
             freeEditDragScroller.running = false
             parameterEditor.interactionController?.freeEditingAborted(parameterEditor, operation)
         }
@@ -284,7 +320,7 @@ FocusScope {
                     parameterEditor.verticalManipulator?.moveViewBy(deltaY)
                 if (deltaX !== 0 || deltaY !== 0) {
                     freeEditHandler.drawTo(Qt.point(
-                        deltaX > 0 ? freeEditHandler.width : deltaX < 0 ? 0 : freeEditHandler.lastPoint.x,
+                        deltaX > 0 ? freeEditHandler.surfaceRect.width : deltaX < 0 ? 0 : freeEditHandler.lastPoint.x,
                         deltaY !== 0 ? parameterEditor.mapViewportEdgeToLocalY(deltaY > 0) : freeEditHandler.lastPoint.y))
                 }
             }
@@ -307,45 +343,45 @@ FocusScope {
 
     DispatchedDragHandler {
         id: lineDrawDragHandler
-        property point startPoint: Qt.point(0, 0)
+        property point lineStartPoint: Qt.point(0, 0)
         property point lastPoint: Qt.point(0, 0)
         readonly property int operation: ParameterEditorInteractionController.DrawLineFree
-        startDraggingImmediately: true
-
-        function editPositionAt(point): int {
-            return Math.max(0, timeManipulator.mapToPosition(point.x))
-        }
-
-        function editValueAt(point): double {
-            const value = content.transformedValueFromPoint(point)
-            return value === undefined || value === null ? 0.0 : value
-        }
+        activationPolicy: DispatchedDragHandler.Immediately
 
         function drawTo(point) {
             content.updateFreeLine(point)
             lastPoint = point
+            helper.updateFreeEditPointer(point)
             parameterEditor.interactionController?.freeEditingUpdated(
-                parameterEditor, operation, editPositionAt(point), editValueAt(point))
+                parameterEditor, operation,
+                parameterEditor.freeEditPointerPosition,
+                parameterEditor.freeEditPointerValue)
         }
 
-        onDragStarted: (x, y) => {
-            startPoint = lastPoint = Qt.point(x, y)
-            content.beginFreeLine(startPoint)
+        onStarted: event => {
+            lineStartPoint = lastPoint = event.position
+            const pointer = helper.freeEditPointerAt(lineStartPoint)
+            content.beginFreeLine(lineStartPoint)
             parameterEditor.interactionController?.freeEditingStarted(
-                parameterEditor, operation, editPositionAt(startPoint), editValueAt(startPoint))
+                parameterEditor, operation, pointer.position, pointer.value)
+            helper.setFreeEditPointer(pointer)
         }
-        onDragMoved: (x, y) => {
-            lineDrawDragScroller.determine(x, width, parameterEditor.mapLocalYToViewport(y), parameterEditor.verticalViewport?.height ?? 0, (triggeredX, triggeredY) => {
+        onMoved: event => {
+            const point = event.position
+            lineDrawDragScroller.determine(point.x, event.surfaceRect.width,
+                                           parameterEditor.mapLocalYToViewport(point.y),
+                                           parameterEditor.verticalViewport?.height ?? 0,
+                                           (triggeredX, triggeredY) => {
                 if (!triggeredX && !triggeredY)
-                    drawTo(Qt.point(x, y))
+                    drawTo(point)
             })
         }
-        onDragFinished: () => {
+        onFinished: {
             lineDrawDragScroller.running = false
             content.commitFreeLine()
             parameterEditor.interactionController?.freeEditingCommitted(parameterEditor, operation)
         }
-        onDragCanceled: () => {
+        onCanceled: {
             lineDrawDragScroller.running = false
             content.abortFreeLine()
             parameterEditor.interactionController?.freeEditingAborted(parameterEditor, operation)
@@ -360,7 +396,7 @@ FocusScope {
                     parameterEditor.verticalManipulator?.moveViewBy(deltaY)
                 if (deltaX !== 0 || deltaY !== 0)
                     lineDrawDragHandler.drawTo(Qt.point(
-                        deltaX > 0 ? lineDrawDragHandler.width : deltaX < 0 ? 0 : lineDrawDragHandler.lastPoint.x,
+                        deltaX > 0 ? lineDrawDragHandler.surfaceRect.width : deltaX < 0 ? 0 : lineDrawDragHandler.lastPoint.x,
                         deltaY !== 0 ? parameterEditor.mapViewportEdgeToLocalY(deltaY > 0) : lineDrawDragHandler.lastPoint.y))
             }
         }
@@ -377,9 +413,9 @@ FocusScope {
             lastPoint = point
         }
 
-        onDragStarted: (x, y) => {
-            item = helper.pressedAnchor
-            lastPoint = Qt.point(x, y)
+        onStarted: (event, hit) => {
+            item = hit.target
+            lastPoint = event.position
             const movingItems = helper.anchorOperationItems(item)
             if (!item || !content.beginAnchorMove(movingItems, item, lastPoint)) {
                 item = null
@@ -387,13 +423,17 @@ FocusScope {
             }
             parameterEditor.interactionController?.anchorMovingStarted(parameterEditor, item)
         }
-        onDragMoved: (x, y) => {
-            anchorMoveDragScroller.determine(x, width, parameterEditor.mapLocalYToViewport(y), parameterEditor.verticalViewport?.height ?? 0, (triggeredX, triggeredY) => {
+        onMoved: event => {
+            const point = event.position
+            anchorMoveDragScroller.determine(point.x, event.surfaceRect.width,
+                                             parameterEditor.mapLocalYToViewport(point.y),
+                                             parameterEditor.verticalViewport?.height ?? 0,
+                                             (triggeredX, triggeredY) => {
                 if (!triggeredX && !triggeredY)
-                    moveTo(Qt.point(x, y))
+                    moveTo(point)
             })
         }
-        onDragFinished: () => {
+        onFinished: {
             anchorMoveDragScroller.running = false
             if (item) {
                 const removedItems = content.commitAnchorMove()
@@ -405,7 +445,7 @@ FocusScope {
             }
             item = null
         }
-        onDragCanceled: () => {
+        onCanceled: {
             anchorMoveDragScroller.running = false
             if (item) {
                 content.abortAnchorMove()
@@ -423,7 +463,7 @@ FocusScope {
                     parameterEditor.verticalManipulator?.moveViewBy(deltaY)
                 if (deltaX !== 0 || deltaY !== 0)
                     anchorMoveDragHandler.moveTo(Qt.point(
-                        deltaX > 0 ? anchorMoveDragHandler.width : deltaX < 0 ? 0 : anchorMoveDragHandler.lastPoint.x,
+                        deltaX > 0 ? anchorMoveDragHandler.surfaceRect.width : deltaX < 0 ? 0 : anchorMoveDragHandler.lastPoint.x,
                         deltaY !== 0 ? parameterEditor.mapViewportEdgeToLocalY(deltaY > 0) : anchorMoveDragHandler.lastPoint.y))
             }
         }
@@ -441,28 +481,29 @@ FocusScope {
             parameterEditor.freeParameterSelectionViewModel?.setRange(originPosition, position)
         }
 
-        onDragStarted: x => {
+        onStarted: event => {
             oldHasSelection = parameterEditor.freeParameterSelectionViewModel?.hasSelection ?? false
             oldStart = parameterEditor.freeParameterSelectionViewModel?.start ?? 0
             oldEnd = parameterEditor.freeParameterSelectionViewModel?.end ?? 0
-            originPosition = Math.max(0, timeManipulator.mapToPosition(x))
+            originPosition = Math.max(0, timeManipulator.mapToPosition(event.position.x))
             parameterEditor.interactionController?.freeRangeSelectingStarted(parameterEditor)
-            updateRange(x)
+            updateRange(event.position.x)
         }
-        onDragMoved: x => {
-            freeRangeDragScroller.determine(x, width, 0, 0, triggeredX => {
+        onMoved: event => {
+            freeRangeDragScroller.determine(
+                event.position.x, event.surfaceRect.width, 0, 0, triggeredX => {
                 if (!triggeredX)
-                    updateRange(x)
+                    updateRange(event.position.x)
             })
         }
-        onDragFinished: () => {
+        onFinished: {
             freeRangeDragScroller.running = false
             parameterEditor.interactionController?.freeRangeSelectingCommitted(
                 parameterEditor,
                 parameterEditor.freeParameterSelectionViewModel?.start ?? 0,
                 parameterEditor.freeParameterSelectionViewModel?.end ?? 0)
         }
-        onDragCanceled: () => {
+        onCanceled: {
             freeRangeDragScroller.running = false
             if (oldHasSelection)
                 parameterEditor.freeParameterSelectionViewModel?.setRange(oldStart, oldEnd)
@@ -475,7 +516,8 @@ FocusScope {
             id: freeRangeDragScroller
             onMoved: deltaX => {
                 timeManipulator.moveViewBy(deltaX)
-                freeRangeDragHandler.updateRange(deltaX > 0 ? freeRangeDragHandler.width : 0)
+                freeRangeDragHandler.updateRange(
+                    deltaX > 0 ? freeRangeDragHandler.surfaceRect.width : 0)
             }
         }
     }
@@ -502,23 +544,25 @@ FocusScope {
             }
         }
 
-        onDragStarted: (x, y, modifiers) => {
-            originPosition = Math.max(0, timeManipulator.mapToPosition(x))
-            originY = y
-            currentPoint = Qt.point(x, y)
+        onStarted: event => {
+            originPosition = Math.max(0, timeManipulator.mapToPosition(event.position.x))
+            originY = event.position.y
+            currentPoint = event.position
             oldSelection = parameterEditor.anchorSelectionController?.getSelectedItems() ?? []
-            parameterEditor.anchorSelectionController?.selectByMouse(null, Qt.LeftButton, modifiers)
+            parameterEditor.anchorSelectionController?.selectByPointer(
+                null, SelectionController.PrimarySelection, event.modifiers)
             anchorRubberBandRectangle.visible = true
             updateRectangle(currentPoint)
             parameterEditor.interactionController?.anchorRubberBandDraggingStarted(parameterEditor)
         }
-        onDragMoved: (x, y) => {
-            anchorSelectionDragScroller.determine(x, width, 0, 0, triggeredX => {
+        onMoved: event => {
+            anchorSelectionDragScroller.determine(
+                event.position.x, event.surfaceRect.width, 0, 0, triggeredX => {
                 if (!triggeredX)
-                    updateRectangle(Qt.point(x, y))
+                    updateRectangle(event.position)
             })
         }
-        onDragFinished: () => {
+        onFinished: {
             anchorSelectionDragScroller.running = false
             const items = timeRange
                 ? content.anchorsInTimeRange(originPosition,
@@ -535,7 +579,7 @@ FocusScope {
             oldSelection = []
             parameterEditor.interactionController?.anchorRubberBandDraggingCommitted(parameterEditor)
         }
-        onDragCanceled: () => {
+        onCanceled: {
             anchorSelectionDragScroller.running = false
             anchorRubberBandRectangle.visible = false
             if (parameterEditor.anchorSelectionController) {
@@ -552,7 +596,7 @@ FocusScope {
             onMoved: deltaX => {
                 timeManipulator.moveViewBy(deltaX)
                 anchorSelectionDragHandler.updateRectangle(Qt.point(
-                    deltaX > 0 ? anchorSelectionDragHandler.width : 0,
+                    deltaX > 0 ? anchorSelectionDragHandler.surfaceRect.width : 0,
                     anchorSelectionDragHandler.currentPoint.y))
             }
         }
@@ -567,15 +611,31 @@ FocusScope {
         timeRange: true
     }
 
-    DispatcherMouseArea {
-        id: dispatcher
-        anchors.fill: parent
-        z: 3
+    PointerInteractionRouter {
+        id: pointerRouter
+    }
 
-        determineDragHandler: mouse => {
-            helper.pressedAnchor = content.anchorAt(Qt.point(mouse.x, mouse.y), 8)
-            helper.pressedInteraction = helper.interactionFor(mouse, helper.pressedAnchor)
-            switch (helper.pressedInteraction) {
+    PointerInputArea {
+        id: pointerInputArea
+
+        anchors.fill: parent
+        router: pointerRouter
+        coordinateSpace: parameterEditor
+        z: 4
+
+        hitResolver: (point, _) => ({
+            valid: true,
+            target: content.anchorAt(point, 8),
+            targetRect: Qt.rect(0, 0, 0, 0),
+            hoverRegion: 0,
+            payload: undefined,
+        })
+
+        handlerResolver: (event, hit) => {
+            const interaction = helper.interactionFor(event, hit.target)
+            helper.pressedInteraction = interaction
+            hit.payload = interaction
+            switch (interaction) {
             case ParameterEditorInteractionController.Pencil:
                 return pencilDragHandler
             case ParameterEditorInteractionController.Line:
@@ -585,9 +645,9 @@ FocusScope {
             case ParameterEditorInteractionController.Eraser:
                 return eraserDragHandler
             case ParameterEditorInteractionController.Pointer:
-                return helper.pressedAnchor ? anchorMoveDragHandler : anchorRubberBandDragHandler
+                return hit.target ? anchorMoveDragHandler : anchorRubberBandDragHandler
             case ParameterEditorInteractionController.Pen:
-                return helper.pressedAnchor ? anchorMoveDragHandler : null
+                return hit.target ? anchorMoveDragHandler : null
             case ParameterEditorInteractionController.FreeRangeSelect:
                 return freeRangeDragHandler
             case ParameterEditorInteractionController.AnchorRubberBandSelect:
@@ -598,36 +658,42 @@ FocusScope {
                 return null
             }
         }
+    }
 
-        onClicked: mouse => {
+    Connections {
+        target: pointerRouter
+
+        function onClicked(event, hit) {
             const controller = parameterEditor.interactionController
-            const item = content.anchorAt(Qt.point(mouse.x, mouse.y), 8)
-            switch (helper.pressedInteraction) {
+            const item = hit.target
+            const point = event.position
+            const interaction = hit.payload
+                ?? helper.interactionFor(event, item)
+            switch (interaction) {
             case ParameterEditorInteractionController.Pointer:
                 if (controller?.clickSelectable && parameterEditor.anchorSelectionController)
-                    parameterEditor.anchorSelectionController.selectByMouse(item, Qt.LeftButton, mouse.modifiers)
+                    parameterEditor.anchorSelectionController.selectByPointer(
+                        item, SelectionController.PrimarySelection, event.modifiers)
                 break
             case ParameterEditorInteractionController.Pen:
                 if (item) {
                     helper.deleteAnchorItems(item)
                 } else {
-                    const position = Math.max(0, timeManipulator.mapToPosition(mouse.x))
-                    const value = content.transformedValueFromPoint(Qt.point(mouse.x, mouse.y))
+                    const position = Math.max(0, timeManipulator.mapToPosition(point.x))
+                    const value = content.transformedValueFromPoint(point)
                     if (value === undefined || value === null)
                         break
                     controller?.anchorInsertionStarted(parameterEditor, position, value)
                     if (controller?.clickSelectable && parameterEditor.anchorSelectionController)
-                        parameterEditor.anchorSelectionController.selectByMouse(null,
-                                                                                 Qt.LeftButton,
-                                                                                 0)
+                        parameterEditor.anchorSelectionController.selectByPointer(
+                            null, SelectionController.PrimarySelection, 0)
                     const newItem = controller?.createAndInsertAnchor(parameterEditor.anchorParameterViewModel,
                                                                       position, value) ?? null
                     if (newItem) {
                         controller?.anchorInsertionCommitted(parameterEditor, newItem)
                         if (controller?.clickSelectable && parameterEditor.anchorSelectionController)
-                            parameterEditor.anchorSelectionController.selectByMouse(newItem,
-                                                                                     Qt.LeftButton,
-                                                                                     0)
+                            parameterEditor.anchorSelectionController.selectByPointer(
+                                newItem, SelectionController.PrimarySelection, 0)
                     } else {
                         controller?.anchorInsertionAborted(parameterEditor)
                     }
@@ -640,7 +706,8 @@ FocusScope {
             case ParameterEditorInteractionController.AnchorRubberBandSelect:
             case ParameterEditorInteractionController.AnchorTimeRangeSelect:
                 if (controller?.clickSelectable && parameterEditor.anchorSelectionController)
-                    parameterEditor.anchorSelectionController.selectByMouse(item, Qt.LeftButton, mouse.modifiers)
+                    parameterEditor.anchorSelectionController.selectByPointer(
+                        item, SelectionController.PrimarySelection, event.modifiers)
                 break
             case ParameterEditorInteractionController.FreeRangeSelect:
                 parameterEditor.freeParameterSelectionViewModel?.clear()
@@ -648,58 +715,55 @@ FocusScope {
             default:
                 break
             }
-            helper.pressedAnchor = null
         }
-    }
 
-    HoverHandler {
-        id: hoverHandler
-        enabled: parameterEditor.enabled
-        onHoveredChanged: {
-            if (!hovered) {
-                if (helper.hoveredAnchor)
-                    parameterEditor.interactionController?.itemHoverExited(parameterEditor, helper.hoveredAnchor)
-                helper.hoveredAnchor = null
-                parameterEditor.interactionController?.hoverExited(parameterEditor)
+        function onContextMenuRequested(event, hit) {
+            const controller = parameterEditor.interactionController
+            if (hit.target) {
+                if (controller?.clickSelectable && parameterEditor.anchorSelectionController) {
+                    parameterEditor.anchorSelectionController.selectByPointer(
+                        hit.target, SelectionController.ContextSelection, event.modifiers)
+                }
+                controller?.itemContextMenuRequested(parameterEditor, hit.target)
             } else {
-                const position = Math.max(0, timeManipulator.mapToPosition(point.position.x))
-                const transformedValue = 1.0 - point.position.y / parameterEditor.height
-                parameterEditor.interactionController?.hoverEntered(parameterEditor, position, transformedValue)
-            }
-        }
-        onPointChanged: {
-            if (!hovered)
-                return
-            const item = content.anchorAt(point.position, 8)
-            if (item !== helper.hoveredAnchor) {
-                if (helper.hoveredAnchor)
-                    parameterEditor.interactionController?.itemHoverExited(parameterEditor, helper.hoveredAnchor)
-                helper.hoveredAnchor = item
-                if (helper.hoveredAnchor)
-                    parameterEditor.interactionController?.itemHoverEntered(parameterEditor, helper.hoveredAnchor)
-            }
-            parameterEditor.interactionController?.hoverMoved(
-                parameterEditor,
-                Math.max(0, timeManipulator.mapToPosition(point.position.x)),
-                1.0 - point.position.y / parameterEditor.height)
-        }
-    }
-
-    MouseArea {
-        anchors.fill: parent
-        acceptedButtons: Qt.RightButton
-        z: 4
-        onClicked: mouse => {
-            const item = content.anchorAt(Qt.point(mouse.x, mouse.y), 8)
-            if (item) {
-                if (parameterEditor.interactionController?.clickSelectable && parameterEditor.anchorSelectionController)
-                    parameterEditor.anchorSelectionController.selectByMouse(item, Qt.RightButton, mouse.modifiers)
-                parameterEditor.interactionController?.itemContextMenuRequested(parameterEditor, item)
-            } else {
-                parameterEditor.interactionController?.contextMenuRequested(
+                parameterEditor.anchorSelectionController?.select(
+                    null, SelectionController.ClearPreviousSelection)
+                controller?.contextMenuRequested(
                     parameterEditor,
-                    Math.max(0, timeManipulator.mapToPosition(mouse.x)),
-                    1.0 - mouse.y / parameterEditor.height)
+                    Math.max(0, timeManipulator.mapToPosition(event.position.x)),
+                    1.0 - event.position.y / parameterEditor.height)
+            }
+        }
+
+        function onHoverEntered(event, hit) {
+            helper.updateHoverPointer(event)
+            if (hit.target) {
+                parameterEditor.interactionController?.itemHoverEntered(
+                    parameterEditor, hit.target)
+            } else {
+                parameterEditor.interactionController?.hoverEntered(
+                    parameterEditor,
+                    timeManipulator.mapToPosition(event.position.x),
+                    1.0 - event.position.y / parameterEditor.height)
+            }
+        }
+
+        function onHoverMoved(event, hit) {
+            helper.updateHoverPointer(event)
+            if (!hit.target) {
+                parameterEditor.interactionController?.hoverMoved(
+                    parameterEditor,
+                    timeManipulator.mapToPosition(event.position.x),
+                    1.0 - event.position.y / parameterEditor.height)
+            }
+        }
+
+        function onHoverExited(hit) {
+            if (hit.target) {
+                parameterEditor.interactionController?.itemHoverExited(
+                    parameterEditor, hit.target)
+            } else {
+                parameterEditor.interactionController?.hoverExited(parameterEditor)
             }
         }
     }

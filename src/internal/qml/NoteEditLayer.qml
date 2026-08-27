@@ -31,6 +31,9 @@ FocusScope {
     property bool clipBoundaryVisible: false
     property int bottomExpansion: 0
 
+    onNoteSequenceViewModelChanged: scenePointerInput.router.cancel()
+    onClipViewModelChanged: scenePointerInput.router.cancel()
+
     clip: true
     enabled: !thumbnailDisplay
 
@@ -81,17 +84,11 @@ FocusScope {
         controller: noteEditLayer.noteEditLayerInteractionController
         selectionController: noteEditLayer.selectionController
         target: noteEditLayer
+        coordinateSpace: editArea
         timeManipulator: timeManipulator
         verticalManipulator: clavierManipulator
         rubberBandLayer: rubberBandLayer
     }
-    // The layer extends bottomExpansion beyond the visible edit area so that notes
-    // remain rendered behind the bottom additional track panes. Since drag handlers
-    // take their own (or paneItem's) geometry as the bounds of drag auto-scrolling,
-    // this proxy item provides the actual edit area bounds for those interactions.
-    // The layer itself is kept as the target of the interactions, while consumers
-    // may read the forwarded view models from this item when it appears as the
-    // pane item in controller signals.
     Item {
         id: editArea
         x: 0
@@ -115,7 +112,6 @@ FocusScope {
             target: noteEditLayer
             timeManipulator: timeManipulator
             verticalManipulator: clavierManipulator
-            viewportContainer: viewportContainer
             onCreateViewModelRequested: (position, keyIndex) => {
                 if (!noteEditLayer.noteSequenceViewModel)
                     return
@@ -132,18 +128,106 @@ FocusScope {
                 viewModel.key = Math.max(0, Math.min(keyIndex, 127))
             }
         }
-    }
-    GenericComboSceneMouseArea {
-        controller: noteEditLayer.noteEditLayerInteractionController
-        selectionController: noteEditLayer.selectionController
-        target: noteEditLayer
-        timeManipulator: timeManipulator
-        verticalManipulator: clavierManipulator
-        dispatchMap: ({
-            [NoteEditLayerInteractionController.RubberBandSelect]: rubberBandDragHandler,
-            [NoteEditLayerInteractionController.TimeRangeSelect]: timeRangeDragHandler,
-            [NoteEditLayerInteractionController.Draw]: drawDragHandler,
-        })
+
+        component NoteMoveDragHandler: MoveDragHandler {
+            controller: noteEditLayer.noteEditLayerInteractionController
+            selectionController: noteEditLayer.selectionController
+            paneItem: editArea
+            timeManipulator: timeManipulator
+            verticalManipulator: clavierManipulator
+
+            onMoveSelectionToYRequested: (y, viewModel) => {
+                const targetKey = Math.round(clavierManipulator.mapToPosition(y)) - 1
+                const deltaKey = targetKey - viewModel.key
+                if (deltaKey === 0)
+                    return
+                const selection = noteEditLayer.selectionController.getSelectedItems()
+                for (const note of selection) {
+                    const candidate = note.key + deltaKey
+                    if (candidate < 0 || candidate > 127)
+                        return
+                }
+                for (const note of selection)
+                    note.key += deltaKey
+            }
+        }
+        NoteMoveDragHandler {
+            id: moveDragHandler
+            moveFlag: NoteEditLayerInteractionController.MF_Move
+        }
+        NoteMoveDragHandler {
+            id: copyAndMoveDragHandler
+            moveFlag: NoteEditLayerInteractionController.MF_CopyAndMove
+        }
+        SplitDragHandler {
+            id: splitDragHandler
+            controller: noteEditLayer.noteEditLayerInteractionController
+            selectionController: noteEditLayer.selectionController
+            paneItem: noteEditLayer
+            timeManipulator: timeManipulator
+        }
+        component NoteEdgeDragHandler: EdgeDragHandler {
+            controller: noteEditLayer.noteEditLayerInteractionController
+            selectionController: noteEditLayer.selectionController
+            paneItem: noteEditLayer
+            timeManipulator: timeManipulator
+
+            onUpdateUnitedExtendRequested: {
+                const selection = noteEditLayer.selectionController.getSelectedItems()
+                if (selection.length !== 1)
+                    return
+                const note = selection[0]
+                if (edge === EdgeDragHandler.LeftEdge) {
+                    for (let previousNote = note;;) {
+                        previousNote = noteEditLayer.noteSequenceViewModel.iSliceable.previousItem(previousNote)
+                        if (!previousNote
+                                || previousNote.position + previousNote.length < note.position) {
+                            break
+                        }
+                        if (previousNote.position + previousNote.length > note.position)
+                            continue
+                        unitedExtendItem = previousNote
+                        unitedExtendRestrict = previousNote.length
+                    }
+                } else {
+                    for (let nextNote = note;;) {
+                        nextNote = noteEditLayer.noteSequenceViewModel.iSliceable.nextItem(nextNote)
+                        if (!nextNote || nextNote.position > note.position + note.length)
+                            break
+                        if (nextNote.position < note.position + note.length)
+                            continue
+                        unitedExtendItem = nextNote
+                        unitedExtendRestrict = nextNote.length
+                    }
+                }
+            }
+        }
+        NoteEdgeDragHandler {
+            id: leftEdgeDragHandler
+            edge: EdgeDragHandler.LeftEdge
+        }
+        NoteEdgeDragHandler {
+            id: rightEdgeDragHandler
+            edge: EdgeDragHandler.RightEdge
+        }
+        ScenePointerInput {
+            id: scenePointerInput
+            controller: noteEditLayer.noteEditLayerInteractionController
+            selectionController: noteEditLayer.selectionController
+            paneItem: noteEditLayer
+            coordinateSpace: editArea
+            timeManipulator: timeManipulator
+            verticalManipulator: clavierManipulator
+            freezeCursorOnPress: true
+            dispatchMap: ({
+                [NoteEditLayerInteractionController.Move]: moveDragHandler,
+                [NoteEditLayerInteractionController.CopyAndMove]: copyAndMoveDragHandler,
+                [NoteEditLayerInteractionController.Split]: splitDragHandler,
+                [NoteEditLayerInteractionController.RubberBandSelect]: rubberBandDragHandler,
+                [NoteEditLayerInteractionController.TimeRangeSelect]: timeRangeDragHandler,
+                [NoteEditLayerInteractionController.Draw]: drawDragHandler,
+            })
+        }
     }
     Connections {
         target: noteEditLayer.selectionController
@@ -353,134 +437,42 @@ FocusScope {
                             viewModel: noteDelegate.noteViewModel
                             rubberBandLayer: rubberBandLayer
                         }
-                        component NoteMoveDragHandler: MoveDragHandler {
-                            controller: noteEditLayer.noteEditLayerInteractionController
-                            selectionController: noteEditLayer.selectionController
-                            // The edit area proxy instead of the full-height layer,
-                            // so auto-scrolling near the bottom additional track panes
-                            // is triggered at the edit area edge
-                            paneItem: editArea
+                        ItemPointerInput {
+                            sceneInput: scenePointerInput
+                            item: noteDelegate
                             viewModel: noteDelegate.noteViewModel
-                            timeManipulator: timeManipulator
-                            verticalManipulator: clavierManipulator
-
-                            onMoveSelectionToYRequested: y => {
-                                let targetKey = Math.round(clavierManipulator.mapToPosition(y)) - 1
-                                let currentKey = noteDelegate.noteViewModel.key
-                                let deltaKey = targetKey - currentKey
-                                if (deltaKey === 0)
-                                    return
-                                let selection = noteEditLayer.selectionController.getSelectedItems()
-                                for (let note of selection) {
-                                    let candidate = note.key + deltaKey
-                                    if (candidate < 0 || candidate > 127)
-                                        return
-                                }
-                                for (let note of selection) {
-                                    note.key += deltaKey
-                                }
+                            payloadResolver: point => {
+                                const edgeWidth = Math.min(8, noteDelegate.width / 3)
+                                if (point.x < edgeWidth)
+                                    return EdgeDragHandler.LeftEdge
+                                if (point.x >= noteDelegate.width - edgeWidth)
+                                    return EdgeDragHandler.RightEdge
+                                return -1
                             }
-                        }
-                        NoteMoveDragHandler {
-                            id: moveDragHandler
-                            moveFlag: NoteEditLayerInteractionController.MF_Move
-                        }
-                        NoteMoveDragHandler {
-                            id: copyAndMoveDragHandler
-                            moveFlag: NoteEditLayerInteractionController.MF_CopyAndMove
-                        }
-                        SplitDragHandler {
-                            id: splitDragHandler
-                            controller: noteEditLayer.noteEditLayerInteractionController
-                            selectionController: noteEditLayer.selectionController
-                            paneItem: noteEditLayer
-                            viewModel: noteDelegate.noteViewModel
-                            timeManipulator: timeManipulator
-                        }
-                        component NoteEdgeDragHandler: EdgeDragHandler {
-                            controller: noteEditLayer.noteEditLayerInteractionController
-                            selectionController: noteEditLayer.selectionController
-                            paneItem: noteEditLayer
-                            viewModel: noteDelegate.noteViewModel
-                            timeManipulator: timeManipulator
-                            onUpdateUnitedExtendRequested: () => {
-                                let selection = noteEditLayer.selectionController.getSelectedItems()
-                                if (selection.length !== 1) {
-                                    return
-                                }
-                                let note = selection[0];
-                                if (edge === EdgeDragHandler.LeftEdge) {
-                                    for (let previousNote = note;;) {
-                                        previousNote = noteEditLayer.noteSequenceViewModel.iSliceable.previousItem(previousNote);
-                                        if (!previousNote || previousNote.position + previousNote.length < note.position) {
-                                            break
-                                        }
-                                        if (previousNote.position + previousNote.length > note.position) {
-                                            continue
-                                        }
-                                        unitedExtendItem = previousNote
-                                        unitedExtendRestrict = previousNote.length
-                                    }
-                                } else if (edge === EdgeDragHandler.RightEdge) {
-                                    for (let nextNote = note;;) {
-                                        nextNote = noteEditLayer.noteSequenceViewModel.iSliceable.nextItem(nextNote);
-                                        if (!nextNote || nextNote.position > note.position + note.length) {
-                                            break
-                                        }
-                                        if (nextNote.position < note.position + note.length) {
-                                            continue
-                                        }
-                                        unitedExtendItem = nextNote
-                                        unitedExtendRestrict = nextNote.length
-                                    }
-                                }
+                            itemHandlerResolver: (event, hit) => {
+                                if (hit.payload === EdgeDragHandler.LeftEdge)
+                                    return leftEdgeDragHandler
+                                if (hit.payload === EdgeDragHandler.RightEdge)
+                                    return rightEdgeDragHandler
+                                return scenePointerInput.resolveHandler(event, hit)
                             }
+                            freezeCursorOnPress: true
+                            itemPressCursorResolver: hit => hit.payload === -1
+                                ? undefined : Qt.SizeHorCursor
                         }
-                        GenericComboItemMouseArea {
-                            controller: noteEditLayer.noteEditLayerInteractionController
-                            selectionController: noteEditLayer.selectionController
-                            paneItem: noteEditLayer
-                            viewModel: noteDelegate.noteViewModel
-                            dispatchMap: ({
-                                [NoteEditLayerInteractionController.Move]: moveDragHandler,
-                                [NoteEditLayerInteractionController.CopyAndMove]: copyAndMoveDragHandler,
-                                [NoteEditLayerInteractionController.Split]: splitDragHandler,
-                                [NoteEditLayerInteractionController.RubberBandSelect]: rubberBandDragHandler,
-                                [NoteEditLayerInteractionController.TimeRangeSelect]: timeRangeDragHandler,
-                                [NoteEditLayerInteractionController.Draw]: drawDragHandler,
-                            })
-                        }
-                        Item {
-                            id: leftDragHandle
+                        MouseArea {
                             anchors.left: parent.left
-                            height: noteDelegate.height
                             width: Math.min(8, parent.width / 3)
-                            NoteEdgeDragHandler {
-                                id: leftEdgeDragHandler
-                                edge: EdgeDragHandler.LeftEdge
-                            }
-                            DispatcherMouseArea {
-                                determineDragHandler: () => leftEdgeDragHandler
-                            }
-                            HoverHandler {
-                                cursorShape: Qt.SizeHorCursor
-                            }
+                            height: parent.height
+                            acceptedButtons: Qt.NoButton
+                            cursorShape: Qt.SizeHorCursor
                         }
-                        Item {
-                            id: rightDragHandle
+                        MouseArea {
                             anchors.right: parent.right
-                            height: noteDelegate.height
                             width: Math.min(8, parent.width / 3)
-                            NoteEdgeDragHandler {
-                                id: rightEdgeDragHandler
-                                edge: EdgeDragHandler.RightEdge
-                            }
-                            DispatcherMouseArea {
-                                determineDragHandler: () => rightEdgeDragHandler
-                            }
-                            HoverHandler {
-                                cursorShape: Qt.SizeHorCursor
-                            }
+                            height: parent.height
+                            acceptedButtons: Qt.NoButton
+                            cursorShape: Qt.SizeHorCursor
                         }
                     }
                 }

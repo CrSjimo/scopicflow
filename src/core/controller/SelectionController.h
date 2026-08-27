@@ -34,7 +34,13 @@ namespace sflow {
         virtual QObject *currentItem() const = 0;
         virtual bool editScopeFocused() const = 0;
 
-        Q_INVOKABLE void selectByMouse(QObject *item, Qt::MouseButton button, Qt::KeyboardModifiers modifiers, const QString &selectedProperty = "selected");
+        enum PointerSelectionMode {
+            PrimarySelection,
+            ContextSelection,
+        };
+        Q_ENUM(PointerSelectionMode)
+
+        Q_INVOKABLE void selectByPointer(QObject *item, PointerSelectionMode mode, Qt::KeyboardModifiers modifiers, const QString &selectedProperty = "selected");
 
     Q_SIGNALS:
         void currentItemChanged();

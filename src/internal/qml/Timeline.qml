@@ -19,6 +19,8 @@ FocusScope {
     property ScrollBehaviorViewModel scrollBehaviorViewModel: null
     property TimelineInteractionController timelineInteractionController: null
 
+    onTimeViewModelChanged: pointerRouter.cancel()
+
     Accessible.name: qsTr("Timeline")
     Accessible.role: Accessible.Pane
     focus: true
@@ -55,31 +57,25 @@ FocusScope {
         timeViewModel: timeline.timeViewModel
     }
 
-    GenericBackRightButtonMouseArea {
-        id: rightButtonMouseArea
-
-        controller: timelineInteractionController
-        timeManipulator: timeManipulator
-    }
-
     DispatchedDragHandler {
         id: playheadDragHandler
-        onDragStarted: (x) => {
+        onStarted: event => {
             timeline.timelineInteractionController.positionIndicatorMovingStarted(timeline)
-            playheadDragScroller.setIndicatorPosition(x)
+            playheadDragScroller.setIndicatorPosition(event.position.x)
         }
-        onDragMoved: (x) => {
-            playheadDragScroller.determine(x, timeline.width, 0, 0, triggered => {
+        onMoved: event => {
+            playheadDragScroller.determine(
+                event.position.x, event.surfaceRect.width, 0, 0, triggered => {
                 if (triggered)
-                    return;
-                playheadDragScroller.setIndicatorPosition(x);
+                    return
+                playheadDragScroller.setIndicatorPosition(event.position.x)
             })
         }
-        onDragFinished: () => {
+        onFinished: {
             timeline.timelineInteractionController.positionIndicatorMovingFinished(timeline)
             playheadDragScroller.running = false
         }
-        onDragCanceled: () => {
+        onCanceled: {
             timeline.timelineInteractionController.positionIndicatorMovingFinished(timeline)
             playheadDragScroller.running = false
         }
@@ -97,34 +93,41 @@ FocusScope {
 
     DispatchedDragHandler {
         id: zoomDragHandler
-        onDragStarted: (x) => {
+        onStarted: event => {
             timeline.timelineInteractionController.rubberBandDraggingStarted(timeline)
-            zoomDragScroller.rubberBandOrigin = mapToItem(viewportContainer, x, 0).x
+            zoomDragScroller.rubberBandOrigin = timeline.mapToItem(
+                viewportContainer, event.position).x
             zoomRubberBand.visible = true
         }
-        onDragMoved: (x) => {
-            zoomDragScroller.determine(x, timeline.width, 0, 0, triggered => {
+        onMoved: event => {
+            zoomDragScroller.determine(
+                event.position.x, event.surfaceRect.width, 0, 0, triggered => {
                 if (triggered)
-                    return;
-                zoomDragScroller.handlePositionChanged(x);
+                    return
+                zoomDragScroller.handlePositionChanged(event.position.x)
             })
         }
-        onDragFinished: () => {
-            let selectionX = mapFromItem(viewportContainer, zoomRubberBand.x, 0).x
-            let selectionWidth = zoomRubberBand.width
-            let start = timeManipulator.mapToPosition(selectionX);
-            let end = timeManipulator.mapToPosition(selectionX + selectionWidth);
-            if (end - start < timeline.timeLayoutViewModel.positionAlignment)
-                return;
-            timeline.timeViewModel.start = start;
-            timeline.timeLayoutViewModel.pixelDensity = Math.max(timeline.timeLayoutViewModel.minimumPixelDensity, Math.min(width / (end - start), timeline.timeLayoutViewModel.maximumPixelDensity));
+        onFinished: {
+            const selectionX = timeline.mapFromItem(
+                viewportContainer, zoomRubberBand.x, 0).x
+            const selectionWidth = zoomRubberBand.width
+            const start = timeManipulator.mapToPosition(selectionX)
+            const end = timeManipulator.mapToPosition(selectionX + selectionWidth)
             zoomDragScroller.running = false
             zoomRubberBand.x = zoomRubberBand.width = 0
             zoomRubberBand.visible = false
+            if (end - start < timeline.timeLayoutViewModel.positionAlignment) {
+                timeline.timelineInteractionController.rubberBandDraggingAborted(timeline)
+                return
+            }
+            timeline.timeViewModel.start = start
+            timeline.timeLayoutViewModel.pixelDensity = Math.max(
+                timeline.timeLayoutViewModel.minimumPixelDensity,
+                Math.min(surfaceRect.width / (end - start),
+                         timeline.timeLayoutViewModel.maximumPixelDensity))
             timeline.timelineInteractionController.rubberBandDraggingCommitted(timeline)
-
         }
-        onDragCanceled: () => {
+        onCanceled: {
             zoomDragScroller.running = false
             zoomRubberBand.x = zoomRubberBand.width = 0
             zoomRubberBand.visible = false
@@ -134,8 +137,8 @@ FocusScope {
             id: zoomDragScroller
             property double rubberBandOrigin: 0
             function handlePositionChanged(x) {
-                let a1 = rubberBandOrigin
-                let a2 = mapToItem(viewportContainer, x, 0).x
+                const a1 = rubberBandOrigin
+                const a2 = timeline.mapToItem(viewportContainer, x, 0).x
                 zoomRubberBand.x = Math.min(a1, a2)
                 zoomRubberBand.width = Math.abs(a1 - a2)
             }
@@ -146,34 +149,75 @@ FocusScope {
         }
     }
 
-    DispatcherMouseArea {
-        determineDragHandler: (mouse) => {
-            if ((mouse.modifiers & Qt.ControlModifier) && (timeline.timelineInteractionController.interaction & TimelineInteractionController.ZoomByRubberBand)) {
-                return zoomDragHandler;
+    PointerInteractionRouter {
+        id: pointerRouter
+    }
+
+    PointerInputArea {
+        anchors.fill: parent
+        router: pointerRouter
+        coordinateSpace: timeline
+        hitResolver: (point, _) => ({
+            valid: true,
+            target: null,
+            targetRect: Qt.rect(0, 0, timeline.width, timeline.height),
+            hoverRegion: 0,
+            payload: undefined,
+        })
+        handlerResolver: (event, hit) => {
+            if (!timeline.timelineInteractionController)
+                return null
+            if ((event.modifiers & Qt.ControlModifier)
+                    && (timeline.timelineInteractionController.interaction
+                        & TimelineInteractionController.ZoomByRubberBand)) {
+                return zoomDragHandler
             }
-            if ((mouse.modifiers & Qt.AltModifier) && (timeline.timelineInteractionController.interaction & TimelineInteractionController.AdjustLoopRange)) {
-                return null; // TODO loop
+            if ((event.modifiers & Qt.AltModifier)
+                    && (timeline.timelineInteractionController.interaction
+                        & TimelineInteractionController.AdjustLoopRange)) {
+                return null
             }
-            if (timeline.timelineInteractionController.interaction & TimelineInteractionController.MovePlayhead) {
-                return playheadDragHandler;
-            }
-            return null;
-        }
-        onClicked: (mouse) => {
-            timeline.playbackViewModel.primaryPosition = timeline.playbackViewModel.secondaryPosition = timeManipulator.alignPosition(timeManipulator.mapToPosition(mouse.x), ScopicFlow.AO_Visible);
-        }
-        onDoubleClicked: (mouse) => {
-            timeline.timelineInteractionController.doubleClicked(timeline, timeManipulator.mapToPosition(mouse.x))
+            return timeline.timelineInteractionController.interaction
+                    & TimelineInteractionController.MovePlayhead
+                ? playheadDragHandler : null
         }
     }
 
-    GenericBackHoverMouseArea {
-        id: hoverMouseArea
+    Connections {
+        target: pointerRouter
 
-        controller: timeline.timelineInteractionController
-        target: timeline
-        timeManipulator: timeManipulator
+        function onClicked(event, hit) {
+            if (!timeline.playbackViewModel)
+                return
+            timeline.playbackViewModel.primaryPosition
+                = timeline.playbackViewModel.secondaryPosition
+                = timeManipulator.alignPosition(
+                    timeManipulator.mapToPosition(event.position.x), ScopicFlow.AO_Visible)
+        }
 
+        function onDoubleClicked(event, hit) {
+            timeline.timelineInteractionController?.doubleClicked(
+                timeline, timeManipulator.mapToPosition(event.position.x))
+        }
+
+        function onContextMenuRequested(event, hit) {
+            timeline.timelineInteractionController?.contextMenuRequested(
+                timeline, timeManipulator.mapToPosition(event.position.x))
+        }
+
+        function onHoverEntered(event, hit) {
+            timeline.timelineInteractionController?.hoverEntered(
+                timeline, timeManipulator.mapToPosition(event.position.x))
+        }
+
+        function onHoverMoved(event, hit) {
+            timeline.timelineInteractionController?.hoverMoved(
+                timeline, timeManipulator.mapToPosition(event.position.x))
+        }
+
+        function onHoverExited(hit) {
+            timeline.timelineInteractionController?.hoverExited(timeline)
+        }
     }
 
     component LoopMouseArea: MouseArea {

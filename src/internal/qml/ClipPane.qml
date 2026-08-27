@@ -23,6 +23,8 @@ FocusScope {
     property SelectionController selectionController: null
     property Component thumbnailComponent: null
 
+    onClipSequenceViewModelChanged: scenePointerInput.router.cancel()
+
     clip: true
 
     TimeManipulator {
@@ -104,7 +106,6 @@ FocusScope {
         target: clipPane
         timeManipulator: timeManipulator
         verticalManipulator: trackListManipulator
-        viewportContainer: viewportContainer
         onCreateViewModelRequested: (position, trackIndex) => {
             if (trackIndex >= clipPane.trackListViewModel.count)
                 return
@@ -115,13 +116,109 @@ FocusScope {
             viewModel.length = length
         }
     }
-    GenericComboSceneMouseArea {
+    component ClipMoveDragHandler: MoveDragHandler {
         controller: clipPane.clipPaneInteractionController
         selectionController: clipPane.selectionController
-        target: clipPane
+        paneItem: clipPane
+        timeManipulator: timeManipulator
+        verticalManipulator: trackListManipulator
+
+        onMoveSelectionToYRequested: (y, viewModel) => {
+            const trackCount = clipPane.trackListViewModel.items.length
+            const index = Math.max(0, Math.min(
+                trackListManipulator.mapToPosition(y), trackCount - 1))
+            const offset = (y - trackListManipulator.mapToY(index))
+                / clipPane.trackListViewModel.items[index].rowHeight
+            const targetIndex = Math.round(index + offset)
+            if (targetIndex === viewModel.trackIndex)
+                return
+            const deltaIndex = targetIndex - viewModel.trackIndex
+            const selection = clipPane.selectionController.getSelectedItems()
+            for (const clip of selection) {
+                if (clip.trackIndex + deltaIndex < 0
+                        || clip.trackIndex + deltaIndex >= trackCount) {
+                    return
+                }
+            }
+            for (const clip of selection)
+                clip.trackIndex += deltaIndex
+        }
+    }
+    ClipMoveDragHandler {
+        id: moveDragHandler
+        moveFlag: ClipPaneInteractionController.MF_Move
+    }
+    ClipMoveDragHandler {
+        id: copyAndMoveDragHandler
+        moveFlag: ClipPaneInteractionController.MF_CopyAndMove
+    }
+    SplitDragHandler {
+        id: splitDragHandler
+        controller: clipPane.clipPaneInteractionController
+        selectionController: clipPane.selectionController
+        paneItem: clipPane
+        timeManipulator: timeManipulator
+    }
+    component ClipEdgeDragHandler: EdgeDragHandler {
+        controller: clipPane.clipPaneInteractionController
+        selectionController: clipPane.selectionController
+        paneItem: clipPane
+        timeManipulator: timeManipulator
+
+        onUpdateUnitedExtendRequested: {
+            const selection = clipPane.selectionController.getSelectedItems()
+            if (selection.length !== 1)
+                return
+            const clip = selection[0]
+            if (edge === EdgeDragHandler.LeftEdge) {
+                for (let previousClip = clip;;) {
+                    previousClip = clipPane.clipSequenceViewModel.iSliceable.previousItem(previousClip)
+                    if (!previousClip
+                            || previousClip.position + previousClip.length < clip.position) {
+                        break
+                    }
+                    if (previousClip.position + previousClip.length > clip.position
+                            || previousClip.trackIndex !== clip.trackIndex) {
+                        continue
+                    }
+                    unitedExtendItem = previousClip
+                    unitedExtendRestrict = previousClip.length
+                }
+            } else {
+                for (let nextClip = clip;;) {
+                    nextClip = clipPane.clipSequenceViewModel.iSliceable.nextItem(nextClip)
+                    if (!nextClip || nextClip.position > clip.position + clip.length)
+                        break
+                    if (nextClip.position < clip.position + clip.length
+                            || nextClip.trackIndex !== clip.trackIndex) {
+                        continue
+                    }
+                    unitedExtendItem = nextClip
+                    unitedExtendRestrict = nextClip.length
+                }
+            }
+        }
+    }
+    ClipEdgeDragHandler {
+        id: leftEdgeDragHandler
+        edge: EdgeDragHandler.LeftEdge
+    }
+    ClipEdgeDragHandler {
+        id: rightEdgeDragHandler
+        edge: EdgeDragHandler.RightEdge
+    }
+    ScenePointerInput {
+        id: scenePointerInput
+        controller: clipPane.clipPaneInteractionController
+        selectionController: clipPane.selectionController
+        paneItem: clipPane
+        coordinateSpace: clipPane
         timeManipulator: timeManipulator
         verticalManipulator: trackListManipulator
         dispatchMap: ({
+            [ClipPaneInteractionController.Move]: moveDragHandler,
+            [ClipPaneInteractionController.CopyAndMove]: copyAndMoveDragHandler,
+            [ClipPaneInteractionController.Split]: splitDragHandler,
             [ClipPaneInteractionController.RubberBandSelect]: rubberBandDragHandler,
             [ClipPaneInteractionController.TimeRangeSelect]: timeRangeDragHandler,
             [ClipPaneInteractionController.Draw]: drawDragHandler
@@ -181,137 +278,27 @@ FocusScope {
                         viewModel: clipPaneDelegate.clipViewModel
                         rubberBandLayer: rubberBandLayer
                     }
-                    component ClipMoveDragHandler: MoveDragHandler {
-                        controller: clipPane.clipPaneInteractionController
-                        selectionController: clipPane.selectionController
-                        paneItem: clipPane
+                    ItemPointerInput {
+                        sceneInput: scenePointerInput
+                        item: clipPaneDelegate
                         viewModel: clipPaneDelegate.clipViewModel
-                        timeManipulator: timeManipulator
-                        verticalManipulator: trackListManipulator
-                        onMoveSelectionToYRequested: y => {
-                            let trackCount = clipPane.trackListViewModel.items.length;
-                            let i = Math.max(0, Math.min(trackListManipulator.mapToPosition(y), trackCount - 1))
-                            let d = (y - trackListManipulator.mapToY(i)) / clipPane.trackListViewModel.items[i].rowHeight
-                            let targetIndex = Math.round(i + d);
-                            if (targetIndex !== viewModel.trackIndex) {
-                                let deltaIndex = targetIndex - viewModel.trackIndex;
-                                let selection = selectionController.getSelectedItems()
-                                for (let clip of selection) {
-                                    if (clip.trackIndex + deltaIndex < 0 || clip.trackIndex + deltaIndex >= trackCount)
-                                        return;
-                                }
-                                for (let clip of selection) {
-                                    clip.trackIndex += deltaIndex;
-                                }
-                            }
+                        payloadResolver: point => {
+                            const edgeWidth = Math.min(8, clipPaneDelegate.width / 3)
+                            if (point.x < edgeWidth)
+                                return EdgeDragHandler.LeftEdge
+                            if (point.x >= clipPaneDelegate.width - edgeWidth)
+                                return EdgeDragHandler.RightEdge
+                            return -1
                         }
-                    }
-                    ClipMoveDragHandler {
-                        id: moveDragHandler
-                        moveFlag: ClipPaneInteractionController.MF_Move
-                    }
-                    ClipMoveDragHandler {
-                        id: copyAndMoveDragHandler
-                        moveFlag: ClipPaneInteractionController.MF_CopyAndMove
-                    }
-                    SplitDragHandler {
-                        id: splitDragHandler
-                        controller: clipPane.clipPaneInteractionController
-                        selectionController: clipPane.selectionController
-                        paneItem: clipPane
-                        viewModel: clipPaneDelegate.clipViewModel
-                        timeManipulator: timeManipulator
-                    }
-                    GenericComboItemMouseArea {
-                        controller: clipPane.clipPaneInteractionController
-                        selectionController: clipPane.selectionController
-                        paneItem: clipPane
-                        viewModel: clipPaneDelegate.clipViewModel
-                        dispatchMap: ({
-                            [ClipPaneInteractionController.Move]: moveDragHandler,
-                            [ClipPaneInteractionController.CopyAndMove]: copyAndMoveDragHandler,
-                            [ClipPaneInteractionController.Split]: splitDragHandler,
-                            [ClipPaneInteractionController.RubberBandSelect]: rubberBandDragHandler,
-                            [ClipPaneInteractionController.TimeRangeSelect]: timeRangeDragHandler,
-                            [ClipPaneInteractionController.Draw]: drawDragHandler
-                        })
-                    }
-                    component ClipEdgeDragHandler: EdgeDragHandler {
-                        controller: clipPane.clipPaneInteractionController
-                        selectionController: clipPane.selectionController
-                        paneItem: clipPane
-                        viewModel: clipPaneDelegate.clipViewModel
-                        timeManipulator: timeManipulator
-                        onUpdateUnitedExtendRequested: () => {
-                            let selection = clipPane.selectionController.getSelectedItems()
-                            if (selection.length !== 1) {
-                                return
-                            }
-                            let clip = selection[0];
-                            if (edge === EdgeDragHandler.LeftEdge) {
-                                for (let previousClip = clip;;) {
-                                    previousClip = clipPane.clipSequenceViewModel.iSliceable.previousItem(previousClip);
-                                    if (!previousClip || previousClip.position + previousClip.length < clip.position) {
-                                        break
-                                    }
-                                    if (previousClip.position + previousClip.length > clip.position) {
-                                        continue
-                                    }
-                                    if (previousClip.trackIndex !== clip.trackIndex) {
-                                        continue
-                                    }
-                                    unitedExtendItem = previousClip
-                                    unitedExtendRestrict = previousClip.length
-                                }
-                            } else if (edge === EdgeDragHandler.RightEdge) {
-                                for (let nextClip = clip;;) {
-                                    nextClip = clipPane.clipSequenceViewModel.iSliceable.nextItem(nextClip);
-                                    if (!nextClip || nextClip.position > clip.position + clip.length) {
-                                        break
-                                    }
-                                    if (nextClip.position < clip.position + clip.length) {
-                                        continue
-                                    }
-                                    if (nextClip.trackIndex !== clip.trackIndex) {
-                                        continue
-                                    }
-                                    unitedExtendItem = nextClip
-                                    unitedExtendRestrict = nextClip.length
-                                }
-                            }
+                        itemHandlerResolver: (event, hit) => {
+                            if (hit.payload === EdgeDragHandler.LeftEdge)
+                                return leftEdgeDragHandler
+                            if (hit.payload === EdgeDragHandler.RightEdge)
+                                return rightEdgeDragHandler
+                            return scenePointerInput.resolveHandler(event, hit)
                         }
-                    }
-                    Item {
-                        id: leftDragHandle
-                        anchors.left: parent.left
-                        height: parent.height
-                        width: Math.min(8, parent.width / 3)
-                        ClipEdgeDragHandler {
-                            id: leftEdgeDragHandler
-                            edge: EdgeDragHandler.LeftEdge
-                        }
-                        DispatcherMouseArea {
-                            determineDragHandler: () => leftEdgeDragHandler
-                        }
-                        HoverHandler {
-                            cursorShape: Qt.SizeHorCursor
-                        }
-                    }
-                    Item {
-                        id: rightDragHandle
-                        anchors.right: parent.right
-                        height: parent.height
-                        width: Math.min(8, parent.width / 3)
-                        ClipEdgeDragHandler {
-                            id: rightEdgeDragHandler
-                            edge: EdgeDragHandler.RightEdge
-                        }
-                        DispatcherMouseArea {
-                            determineDragHandler: () => rightEdgeDragHandler
-                        }
-                        HoverHandler {
-                            cursorShape: Qt.SizeHorCursor
-                        }
+                        itemCursorResolver: hit => hit.payload === -1
+                            ? undefined : Qt.SizeHorCursor
                     }
 
                 }

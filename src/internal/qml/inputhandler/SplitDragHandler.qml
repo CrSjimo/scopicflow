@@ -1,30 +1,63 @@
 import QtQml
 import QtQuick
-import QtQuick.Controls
-import QtQuick.Templates as T
 import QtQuick.Shapes
+import QtQuick.Templates as T
 
 import SVSCraft
-import SVSCraft.UIComponents
 
 import dev.sjimo.ScopicFlow
+import dev.sjimo.ScopicFlow.Internal
 
 DispatchedDragHandler {
     id: handler
 
+    activationPolicy: DispatchedDragHandler.Immediately
+
     property var controller: null
     property SelectionController selectionController: null
     property Item paneItem: null
-    property var viewModel: null
     property TimeManipulator timeManipulator: null
+    property QtObject activeViewModel: null
     property int splitPosition: 0
+    property double indicatorHeight: 0
 
-    startDraggingImmediately: true
+    onStarted: (event, hit) => {
+        handler.activeViewModel = hit.target
+        if (!handler.controller || !handler.activeViewModel) {
+            cancel()
+            return
+        }
+        handler.splitPosition = handler.timeManipulator.alignPosition(
+            handler.timeManipulator.mapToPosition(event.position.x),
+            ScopicFlow.AO_Visible)
+        handler.indicatorHeight = hit.targetRect.height
+        indicator.x = handler.timeManipulator.mapToX(handler.splitPosition)
+        indicator.y = hit.targetRect.y
+        if (handler.controller.clickSelectable && handler.selectionController) {
+            handler.selectionController.selectByPointer(
+                handler.activeViewModel, SelectionController.ContextSelection, 0)
+        }
+        handler.controller.splitStarted(handler.paneItem, handler.splitPosition)
+    }
+
+    onFinished: {
+        if (handler.controller && handler.activeViewModel)
+            handler.controller.splitCommitted(handler.paneItem, handler.splitPosition)
+        handler.activeViewModel = null
+    }
+
+    onCanceled: {
+        if (handler.controller && handler.activeViewModel)
+            handler.controller.splitAborted(handler.paneItem)
+        handler.activeViewModel = null
+    }
 
     T.Popup {
         id: indicator
-        x: 0
-        y: 0
+
+        parent: handler.paneItem
+        visible: handler.active
+
         Shape {
             ShapePath {
                 strokeWidth: 2
@@ -36,32 +69,11 @@ DispatchedDragHandler {
                 PathLine { x: 0; y: -4 }
                 PathLine { x: 4; y: -8 }
                 PathMove { x: 0; y: -4 }
-                PathLine { x: 0; y: handler.height + 4 }
-                PathMove { x: -4; y: handler.height + 8 }
-                PathLine { x: 0; y: handler.height + 4 }
-                PathLine { x: 4; y: handler.height + 8 }
+                PathLine { x: 0; y: handler.indicatorHeight + 4 }
+                PathMove { x: -4; y: handler.indicatorHeight + 8 }
+                PathLine { x: 0; y: handler.indicatorHeight + 4 }
+                PathLine { x: 4; y: handler.indicatorHeight + 8 }
             }
         }
-        visible: handler.dragged
-    }
-
-    onDragStarted: () => {
-        splitPosition = timeManipulator.alignPosition(
-            timeManipulator.mapToPosition(mapToItem(paneItem, startPoint.x, startPoint.y).x),
-            ScopicFlow.AO_Visible
-        )
-        indicator.x = mapFromItem(paneItem, timeManipulator.mapToX(splitPosition), 0).x
-        if (controller.clickSelectable) {
-            selectionController.selectByMouse(viewModel, Qt.RightButton, 0)
-        }
-        controller.splitStarted(paneItem, splitPosition)
-    }
-
-    onDragFinished: () => {
-        controller.splitCommitted(paneItem, splitPosition)
-    }
-
-    onDragCanceled: () => {
-        controller.splitAborted(paneItem)
     }
 }

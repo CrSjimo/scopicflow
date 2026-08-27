@@ -168,6 +168,7 @@ namespace sflow {
         void hoverEntered(QQuickItem *editor, int position, double transformedValue);
         void hoverMoved(QQuickItem *editor, int position, double transformedValue);
         void hoverExited(QQuickItem *editor);
+
         void itemHoverEntered(QQuickItem *editor, ParameterAnchorViewModel *item);
         void itemHoverExited(QQuickItem *editor, ParameterAnchorViewModel *item);
         void contextMenuRequested(QQuickItem *editor, int position, double transformedValue);

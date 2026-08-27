@@ -20,6 +20,8 @@ FocusScope {
     property LabelSequenceInteractionController labelSequenceInteractionController: null
     property SelectionController selectionController: null
 
+    onLabelSequenceViewModelChanged: scenePointerInput.router.cancel()
+
     clip: true
     implicitHeight: 20
 
@@ -99,12 +101,32 @@ FocusScope {
         timeManipulator: timeManipulator
         mode: RubberBandDragHandler.TimeRange
     }
-    GenericComboSceneMouseArea {
+    MoveDragHandler {
+        id: moveDragHandler
         controller: labelSequence.labelSequenceInteractionController
         selectionController: labelSequence.selectionController
-        target: labelSequence
+        paneItem: labelSequence
+        timeManipulator: timeManipulator
+        moveFlag: LabelSequenceInteractionController.MF_Move
+    }
+    MoveDragHandler {
+        id: copyAndMoveDragHandler
+        controller: labelSequence.labelSequenceInteractionController
+        selectionController: labelSequence.selectionController
+        paneItem: labelSequence
+        timeManipulator: timeManipulator
+        moveFlag: LabelSequenceInteractionController.MF_CopyAndMove
+    }
+    ScenePointerInput {
+        id: scenePointerInput
+        controller: labelSequence.labelSequenceInteractionController
+        selectionController: labelSequence.selectionController
+        paneItem: labelSequence
+        coordinateSpace: labelSequence
         timeManipulator: timeManipulator
         dispatchMap: ({
+            [LabelSequenceInteractionController.Move]: moveDragHandler,
+            [LabelSequenceInteractionController.CopyAndMove]: copyAndMoveDragHandler,
             [LabelSequenceInteractionController.RubberBandSelect]: rubberBandDragHandler,
         })
     }
@@ -143,31 +165,10 @@ FocusScope {
                         labelRect.x: labelRect.labelViewModel.position * (labelSequence.timeLayoutViewModel?.pixelDensity ?? 0)
                         when: labelRect.SequenceSlicerLoader.inRange
                     }
-                    component LabelMoveDragHandler: MoveDragHandler {
-                        controller: labelSequence.labelSequenceInteractionController
-                        selectionController: labelSequence.selectionController
-                        paneItem: labelSequence
+                    ItemPointerInput {
+                        sceneInput: scenePointerInput
+                        item: labelRect
                         viewModel: labelRect.labelViewModel
-                        timeManipulator: timeManipulator
-                    }
-                    LabelMoveDragHandler {
-                        id: moveDragHandler
-                        moveFlag: LabelSequenceInteractionController.MF_Move
-                    }
-                    LabelMoveDragHandler {
-                        id: copyAndMoveDragHandler
-                        moveFlag: LabelSequenceInteractionController.MF_CopyAndMove
-                    }
-                    GenericComboItemMouseArea {
-                        controller: labelSequence.labelSequenceInteractionController
-                        selectionController: labelSequence.selectionController
-                        paneItem: labelSequence
-                        viewModel: labelRect.labelViewModel
-                        dispatchMap: ({
-                            [LabelSequenceInteractionController.Move]: moveDragHandler,
-                            [LabelSequenceInteractionController.CopyAndMove]: copyAndMoveDragHandler,
-                            [LabelSequenceInteractionController.RubberBandSelect]: rubberBandDragHandler,
-                        })
                     }
                 }
             }

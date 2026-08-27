@@ -18,6 +18,8 @@ Item {
     property int trackWidth: 128
     readonly property double contentWidth: trackListManipulator.viewportHeight
 
+    onTrackListViewModelChanged: pointerRouter.cancel()
+
     clip: true
     implicitWidth: trackWidth
 
@@ -43,37 +45,87 @@ Item {
         width: Math.max(contentWidth, mixer.width)
         x: -(mixer.trackListLayoutViewModel?.viewportOffset ?? 0)
 
-        MouseArea {
-            id: backMouseArea
-
+        PointerInteractionRouter {
+            id: pointerRouter
+        }
+        PointerInputArea {
             anchors.fill: parent
+            router: pointerRouter
+            coordinateSpace: mixer
+            hitResolver: (point, _) => ({
+                valid: true,
+                target: null,
+                targetRect: Qt.rect(0, 0, mixer.width, mixer.height),
+                hoverRegion: 0,
+                payload: -1,
+            })
+        }
+        Connections {
+            target: pointerRouter
 
-            onClicked: mouse => {
-                if (mixer.trackListInteractionController.clickSelectable) {
-                    mixer.selectionController.selectByMouse(null, mouse.button, mouse.modifiers);
+            function onClicked(event, hit) {
+                if (mixer.trackListInteractionController?.clickSelectable
+                        && mixer.selectionController) {
+                    mixer.selectionController.selectByPointer(
+                        hit.target, SelectionController.PrimarySelection, event.modifiers)
                 }
             }
-            onDoubleClicked: mouse => {
-                if (mixer.trackListInteractionController.clickSelectable) {
-                    mixer.selectionController.selectByMouse(null, mouse.button, mouse.modifiers);
+
+            function onDoubleClicked(event, hit) {
+                if (!mixer.trackListInteractionController)
+                    return
+                if (hit.target) {
+                    mixer.trackListInteractionController.itemDoubleClicked(
+                        mixer, hit.payload)
+                } else {
+                    mixer.trackListInteractionController.doubleClicked(mixer)
                 }
-                mixer.trackListInteractionController.doubleClicked(mixer)
             }
-        }
 
-        GenericBackRightButtonMouseArea {
-            id: backRightButtonMouseArea
+            function onContextMenuRequested(event, hit) {
+                if (!hit.target) {
+                    mixer.selectionController?.select(
+                        null, SelectionController.ClearPreviousSelection)
+                }
+                if (!mixer.trackListInteractionController)
+                    return
+                if (hit.target) {
+                    if (mixer.trackListInteractionController.clickSelectable
+                            && mixer.selectionController) {
+                        mixer.selectionController.selectByPointer(
+                            hit.target, SelectionController.ContextSelection,
+                            event.modifiers)
+                    }
+                    mixer.trackListInteractionController.itemContextMenuRequested(
+                        mixer, hit.payload)
+                } else {
+                    mixer.trackListInteractionController.contextMenuRequested(mixer)
+                }
+            }
 
-            selectionController: mixer.selectionController
-            controller: mixer.trackListInteractionController
-            target: mixer
-        }
+            function onHoverEntered(event, hit) {
+                if (!mixer.trackListInteractionController)
+                    return
+                if (hit.target) {
+                    mixer.trackListInteractionController.itemHoverEntered(
+                        mixer, hit.payload,
+                        TrackListInteractionController.ItemBackground)
+                } else {
+                    mixer.trackListInteractionController.hoverEntered(mixer)
+                }
+            }
 
-        GenericBackHoverMouseArea {
-            id: backHoverMouseArea
-
-            controller: mixer.trackListInteractionController
-            target: mixer
+            function onHoverExited(hit) {
+                if (!mixer.trackListInteractionController)
+                    return
+                if (hit.target) {
+                    mixer.trackListInteractionController.itemHoverExited(
+                        mixer, hit.payload,
+                        TrackListInteractionController.ItemBackground)
+                } else {
+                    mixer.trackListInteractionController.hoverExited(mixer)
+                }
+            }
         }
 
         Repeater {
@@ -93,30 +145,19 @@ Item {
                 trackNumber: Qt.locale().toString(index + 1)
                 trackViewModel: mixer.trackListViewModel.items[index]
 
-                mouseArea: Item {
-
-                    MouseArea {
-                        id: trackMouseArea
-
-                        anchors.fill: parent
-                        acceptedButtons: Qt.LeftButton
-                        hoverEnabled: true
-
-                        onClicked: mouse => {
-                            if (mixer.trackListInteractionController.clickSelectable) {
-                                mixer.selectionController.selectByMouse(trackViewModel, mouse.button, mouse.modifiers);
-                            }
+                mouseArea: PointerInputArea {
+                    router: pointerRouter
+                    coordinateSpace: mixer
+                    hitResolver: (point, _) => {
+                        const topLeft = parent.mapToItem(mixer, 0, 0)
+                        return {
+                            valid: true,
+                            target: trackViewModel,
+                            targetRect: Qt.rect(topLeft.x, topLeft.y,
+                                                parent.width, parent.height),
+                            hoverRegion: TrackListInteractionController.ItemBackground,
+                            payload: index,
                         }
-                        onDoubleClicked: () => mixer.trackListInteractionController.itemDoubleClicked(mixer, index)
-                        onEntered: () => mixer.trackListInteractionController.itemHoverEntered(mixer, trackViewModel, TrackListInteractionController.ItemBackground)
-                        onExited: () => mixer.trackListInteractionController.itemHoverExited(mixer, trackViewModel, TrackListInteractionController.ItemBackground)
-                    }
-
-                    GenericRightButtonMouseArea {
-                        controller: mixer.trackListInteractionController
-                        paneItem: mixer
-                        viewModel: trackViewModel
-                        selectionController: mixer.selectionController
                     }
                 }
 

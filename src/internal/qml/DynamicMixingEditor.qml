@@ -28,7 +28,7 @@ FocusScope {
     LayoutMirroring.enabled: false
     LayoutMirroring.childrenInherit: true
 
-    onDynamicMixingViewModelChanged: anchorMoveDragHandler.abortForModelChange()
+    onDynamicMixingViewModelChanged: pointerRouter.cancel()
 
     TimeManipulator {
         id: timeManipulator
@@ -64,11 +64,6 @@ FocusScope {
         readonly property list<color> effectiveColors: dynamicMixingEditor.colors.length > 0
                                                        ? dynamicMixingEditor.colors
                                                        : [Theme.accentColor]
-        property DynamicMixingAnchorViewModel pressedAnchor: null
-        property int pressedHandleIndex: -1
-        property int pressedInteraction: DynamicMixingEditorInteractionController.None
-        property DynamicMixingAnchorViewModel hoveredAnchor: null
-
         function interactionFor(mouse, anchor): int {
             const controller = dynamicMixingEditor.interactionController
             if (!controller)
@@ -94,7 +89,8 @@ FocusScope {
             const controller = dynamicMixingEditor.interactionController
             const selectionController = dynamicMixingEditor.selectionController
             if (controller?.clickSelectable && selectionController)
-                selectionController.selectByMouse(item, Qt.RightButton, 0)
+                selectionController.selectByPointer(
+                    item, SelectionController.ContextSelection, 0)
             if (selectionController && item.selected) {
                 const selectedItems = selectionController.getSelectedItems()
                 if (selectedItems.length > 0)
@@ -147,7 +143,8 @@ FocusScope {
                 return
             }
             if (controller.clickSelectable && dynamicMixingEditor.selectionController)
-                dynamicMixingEditor.selectionController.selectByMouse(null, Qt.LeftButton, 0)
+                dynamicMixingEditor.selectionController.selectByPointer(
+                    null, SelectionController.PrimarySelection, 0)
             const newItem = controller.createAndInsertAnchor(viewModel, position, ratio)
             if (!newItem) {
                 controller.anchorInsertionAborted(dynamicMixingEditor)
@@ -155,7 +152,8 @@ FocusScope {
             }
             controller.anchorInsertionCommitted(dynamicMixingEditor, newItem)
             if (controller.clickSelectable && dynamicMixingEditor.selectionController)
-                dynamicMixingEditor.selectionController.selectByMouse(newItem, Qt.LeftButton, 0)
+                dynamicMixingEditor.selectionController.selectByPointer(
+                    newItem, SelectionController.PrimarySelection, 0)
         }
     }
 
@@ -176,22 +174,12 @@ FocusScope {
             lastPoint = point
         }
 
-        function abortForModelChange() {
-            if (!item)
-                return
-            anchorMoveDragScroller.running = false
-            content.abortAnchorMove()
-            dynamicMixingEditor.interactionController?.anchorMovingAborted(
-                dynamicMixingEditor, item)
-            item = null
-            handleIndex = -1
-        }
-
-        onDragStarted: (x, y) => {
-            item = helper.pressedAnchor
-            handleIndex = helper.pressedHandleIndex
-            lastPoint = Qt.point(x, y)
-            positionOffset = item ? timeManipulator.mapToPosition(x) - item.position : 0
+        onStarted: (event, hit) => {
+            item = hit.target
+            handleIndex = hit.payload?.handleIndex ?? -1
+            lastPoint = event.position
+            positionOffset = item
+                ? timeManipulator.mapToPosition(event.position.x) - item.position : 0
             const movingItems = helper.anchorOperationItems(item)
             if (!item || !content.beginAnchorMove(movingItems, item, handleIndex, lastPoint)) {
                 item = null
@@ -200,13 +188,14 @@ FocusScope {
             }
             dynamicMixingEditor.interactionController?.anchorMovingStarted(dynamicMixingEditor, item)
         }
-        onDragMoved: (x, y) => {
-            anchorMoveDragScroller.determine(x, width, 0, 0, triggeredX => {
+        onMoved: event => {
+            anchorMoveDragScroller.determine(
+                event.position.x, event.surfaceRect.width, 0, 0, triggeredX => {
                 if (!triggeredX)
-                    moveTo(Qt.point(x, y))
+                    moveTo(event.position)
             })
         }
-        onDragFinished: () => {
+        onFinished: {
             anchorMoveDragScroller.running = false
             if (item) {
                 const removedItems = content.commitAnchorMove()
@@ -221,7 +210,7 @@ FocusScope {
             item = null
             handleIndex = -1
         }
-        onDragCanceled: () => {
+        onCanceled: {
             anchorMoveDragScroller.running = false
             if (item) {
                 content.abortAnchorMove()
@@ -237,7 +226,7 @@ FocusScope {
             onMoved: deltaX => {
                 timeManipulator.moveViewBy(deltaX)
                 anchorMoveDragHandler.moveTo(Qt.point(
-                    deltaX > 0 ? anchorMoveDragHandler.width : 0,
+                    deltaX > 0 ? anchorMoveDragHandler.surfaceRect.width : 0,
                     anchorMoveDragHandler.lastPoint.y))
             }
         }
@@ -247,7 +236,7 @@ FocusScope {
         target: dynamicMixingEditor.dynamicMixingViewModel
 
         function onVoiceCountChanged() {
-            anchorMoveDragHandler.abortForModelChange()
+            pointerRouter.cancel()
         }
     }
 
@@ -267,23 +256,25 @@ FocusScope {
             rubberBandRectangle.height = dynamicMixingEditor.height
         }
 
-        onDragStarted: (x, y, modifiers) => {
-            originPosition = Math.max(0, timeManipulator.mapToPosition(x))
-            currentPoint = Qt.point(x, y)
+        onStarted: event => {
+            originPosition = Math.max(0, timeManipulator.mapToPosition(event.position.x))
+            currentPoint = event.position
             oldSelection = dynamicMixingEditor.selectionController?.getSelectedItems() ?? []
-            dynamicMixingEditor.selectionController?.selectByMouse(null, Qt.LeftButton, modifiers)
+            dynamicMixingEditor.selectionController?.selectByPointer(
+                null, SelectionController.PrimarySelection, event.modifiers)
             rubberBandRectangle.visible = true
             updateRectangle(currentPoint)
             dynamicMixingEditor.interactionController?.rubberBandDraggingStarted(
                 dynamicMixingEditor)
         }
-        onDragMoved: (x, y) => {
-            rubberBandDragScroller.determine(x, width, 0, 0, triggeredX => {
+        onMoved: event => {
+            rubberBandDragScroller.determine(
+                event.position.x, event.surfaceRect.width, 0, 0, triggeredX => {
                 if (!triggeredX)
-                    updateRectangle(Qt.point(x, y))
+                    updateRectangle(event.position)
             })
         }
-        onDragFinished: () => {
+        onFinished: {
             rubberBandDragScroller.running = false
             const items = content.anchorsInTimeRange(
                 originPosition, Math.max(0, timeManipulator.mapToPosition(currentPoint.x)))
@@ -296,7 +287,7 @@ FocusScope {
             dynamicMixingEditor.interactionController?.rubberBandDraggingCommitted(
                 dynamicMixingEditor)
         }
-        onDragCanceled: () => {
+        onCanceled: {
             rubberBandDragScroller.running = false
             rubberBandRectangle.visible = false
             if (dynamicMixingEditor.selectionController) {
@@ -315,25 +306,42 @@ FocusScope {
             onMoved: deltaX => {
                 timeManipulator.moveViewBy(deltaX)
                 rubberBandDragHandler.updateRectangle(Qt.point(
-                    deltaX > 0 ? rubberBandDragHandler.width : 0,
+                    deltaX > 0 ? rubberBandDragHandler.surfaceRect.width : 0,
                     rubberBandDragHandler.currentPoint.y))
             }
         }
     }
 
-    DispatcherMouseArea {
-        id: dispatcher
-        anchors.fill: parent
-        z: 3
+    PointerInteractionRouter {
+        id: pointerRouter
+    }
 
-        determineDragHandler: mouse => {
-            const hit = content.hitTest(Qt.point(mouse.x, mouse.y), 8)
-            helper.pressedAnchor = hit.anchor ?? null
-            helper.pressedHandleIndex = hit.handleIndex ?? -1
-            helper.pressedInteraction = helper.interactionFor(mouse, helper.pressedAnchor)
-            switch (helper.pressedInteraction) {
+    PointerInputArea {
+        anchors.fill: parent
+        router: pointerRouter
+        coordinateSpace: dynamicMixingEditor
+        z: 4
+
+        hitResolver: (point, _) => {
+            const hit = content.hitTest(point, 8)
+            return {
+                valid: true,
+                target: hit.anchor ?? null,
+                targetRect: Qt.rect(0, 0, 0, 0),
+                hoverRegion: 0,
+                payload: {
+                    handleIndex: hit.handleIndex ?? -1,
+                    interaction: DynamicMixingEditorInteractionController.None,
+                },
+            }
+        }
+
+        handlerResolver: (event, hit) => {
+            const interaction = helper.interactionFor(event, hit.target)
+            hit.payload.interaction = interaction
+            switch (interaction) {
             case DynamicMixingEditorInteractionController.Pointer:
-                return helper.pressedAnchor
+                return hit.target
                     ? anchorMoveDragHandler : rubberBandDragHandler
             case DynamicMixingEditorInteractionController.RubberBandSelect:
                 return rubberBandDragHandler
@@ -341,19 +349,25 @@ FocusScope {
                 return null
             }
         }
+    }
 
-        onClicked: mouse => {
+    Connections {
+        target: pointerRouter
+
+        function onClicked(event, hit) {
             const controller = dynamicMixingEditor.interactionController
-            const item = content.anchorAt(Qt.point(mouse.x, mouse.y), 8)
-            switch (helper.pressedInteraction) {
+            const item = hit.target
+            const interaction = hit.payload?.interaction
+                ?? helper.interactionFor(event, item)
+            switch (interaction) {
             case DynamicMixingEditorInteractionController.Pointer:
             case DynamicMixingEditorInteractionController.RubberBandSelect:
                 if (controller?.clickSelectable && dynamicMixingEditor.selectionController)
-                    dynamicMixingEditor.selectionController.selectByMouse(
-                        item, Qt.LeftButton, mouse.modifiers)
+                    dynamicMixingEditor.selectionController.selectByPointer(
+                        item, SelectionController.PrimarySelection, event.modifiers)
                 break
             case DynamicMixingEditorInteractionController.AddAnchor:
-                helper.insertAnchorAt(mouse.x)
+                helper.insertAnchorAt(event.position.x)
                 break
             case DynamicMixingEditorInteractionController.DeleteAnchor:
                 if (item)
@@ -362,63 +376,51 @@ FocusScope {
             default:
                 break
             }
-            helper.pressedAnchor = null
-            helper.pressedHandleIndex = -1
         }
-    }
 
-    HoverHandler {
-        id: hoverHandler
-        onHoveredChanged: {
-            if (!hovered) {
-                if (helper.hoveredAnchor)
-                    dynamicMixingEditor.interactionController?.itemHoverExited(
-                        dynamicMixingEditor, helper.hoveredAnchor)
-                helper.hoveredAnchor = null
-                dynamicMixingEditor.interactionController?.hoverExited(dynamicMixingEditor)
+        function onContextMenuRequested(event, hit) {
+            const controller = dynamicMixingEditor.interactionController
+            if (hit.target) {
+                if (controller?.clickSelectable && dynamicMixingEditor.selectionController) {
+                    dynamicMixingEditor.selectionController.selectByPointer(
+                        hit.target, SelectionController.ContextSelection, event.modifiers)
+                }
+                controller?.itemContextMenuRequested(dynamicMixingEditor, hit.target)
+            } else {
+                dynamicMixingEditor.selectionController?.select(
+                    null, SelectionController.ClearPreviousSelection)
+                controller?.contextMenuRequested(
+                    dynamicMixingEditor,
+                    Math.max(0, timeManipulator.mapToPosition(event.position.x)))
+            }
+        }
+
+        function onHoverEntered(event, hit) {
+            if (hit.target) {
+                dynamicMixingEditor.interactionController?.itemHoverEntered(
+                    dynamicMixingEditor, hit.target)
             } else {
                 dynamicMixingEditor.interactionController?.hoverEntered(
                     dynamicMixingEditor,
-                    Math.max(0, timeManipulator.mapToPosition(point.position.x)))
+                    Math.max(0, timeManipulator.mapToPosition(event.position.x)))
             }
         }
-        onPointChanged: {
-            if (!hovered)
-                return
-            const item = content.anchorAt(point.position, 8)
-            if (item !== helper.hoveredAnchor) {
-                if (helper.hoveredAnchor)
-                    dynamicMixingEditor.interactionController?.itemHoverExited(
-                        dynamicMixingEditor, helper.hoveredAnchor)
-                helper.hoveredAnchor = item
-                if (helper.hoveredAnchor)
-                    dynamicMixingEditor.interactionController?.itemHoverEntered(
-                        dynamicMixingEditor, helper.hoveredAnchor)
-            }
-            dynamicMixingEditor.interactionController?.hoverMoved(
-                dynamicMixingEditor,
-                Math.max(0, timeManipulator.mapToPosition(point.position.x)))
-        }
-    }
 
-    MouseArea {
-        anchors.fill: parent
-        acceptedButtons: Qt.RightButton
-        z: 4
-        onClicked: mouse => {
-            const item = content.anchorAt(Qt.point(mouse.x, mouse.y), 8)
-            if (item) {
-                if (dynamicMixingEditor.interactionController?.clickSelectable
-                    && dynamicMixingEditor.selectionController) {
-                    dynamicMixingEditor.selectionController.selectByMouse(
-                        item, Qt.RightButton, mouse.modifiers)
-                }
-                dynamicMixingEditor.interactionController?.itemContextMenuRequested(
-                    dynamicMixingEditor, item)
-            } else {
-                dynamicMixingEditor.interactionController?.contextMenuRequested(
+        function onHoverMoved(event, hit) {
+            if (!hit.target) {
+                dynamicMixingEditor.interactionController?.hoverMoved(
                     dynamicMixingEditor,
-                    Math.max(0, timeManipulator.mapToPosition(mouse.x)))
+                    Math.max(0, timeManipulator.mapToPosition(event.position.x)))
+            }
+        }
+
+        function onHoverExited(hit) {
+            if (hit.target) {
+                dynamicMixingEditor.interactionController?.itemHoverExited(
+                    dynamicMixingEditor, hit.target)
+            } else {
+                dynamicMixingEditor.interactionController?.hoverExited(
+                    dynamicMixingEditor)
             }
         }
     }

@@ -10,7 +10,7 @@ import dev.sjimo.ScopicFlow
 QtObject {
     required property Item target
     required property var viewModel
-    required property RubberBandLayer rubberBandLayer
+    required property RubberBandSelector selector
     property double x: target.x
     property double y: target.y
     property double width: target.width
@@ -18,11 +18,11 @@ QtObject {
     property bool visible: target.visible
     function handleRubberBand() {
         if (visible)
-            rubberBandLayer.insertItem(viewModel, Qt.rect(x, y, width, height));
+            selector.insertItem(viewModel, Qt.rect(x, y, width, height));
         else
-            rubberBandLayer.removeItem(viewModel);
+            selector.removeItem(viewModel);
     }
-    Component.onDestruction: rubberBandLayer.removeItem(viewModel)
+    Component.onDestruction: selector.removeItem(viewModel)
     onVisibleChanged: handleRubberBand()
     onXChanged: handleRubberBand()
     onYChanged: handleRubberBand()

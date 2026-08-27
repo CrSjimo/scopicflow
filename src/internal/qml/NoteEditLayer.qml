@@ -88,6 +88,7 @@ FocusScope {
         timeManipulator: timeManipulator
         verticalManipulator: clavierManipulator
         rubberBandLayer: rubberBandLayer
+        selector: rubberBandSelector
     }
     Item {
         id: editArea
@@ -435,7 +436,7 @@ FocusScope {
                         RubberBandItemConnections {
                             target: noteDelegate
                             viewModel: noteDelegate.noteViewModel
-                            rubberBandLayer: rubberBandLayer
+                            selector: rubberBandSelector
                         }
                         ItemPointerInput {
                             sceneInput: scenePointerInput
@@ -481,12 +482,15 @@ FocusScope {
                 id: rubberBandLayer
 
                 anchors.fill: parent
-                selectionController: noteEditLayer.selectionController
                 z: 2
 
                 rubberBand: RubberBandRectangle {
                 }
+            }
+            RubberBandSelector {
+                id: rubberBandSelector
 
+                selectionController: noteEditLayer.selectionController
                 onSelectionAboutToEnd: (rect) => {
                     slicer.temporarilyLoadForRubberBand(rect.x, rect.width)
                 }

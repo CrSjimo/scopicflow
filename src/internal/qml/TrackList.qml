@@ -106,6 +106,7 @@ Item {
             target: trackList
             verticalManipulator: trackListManipulator
             rubberBandLayer: rubberBandLayer
+            selector: rubberBandSelector
             selectionController: trackList.selectionController
         }
 
@@ -389,13 +390,13 @@ Item {
                     }
 
                     Component.onDestruction: () => {
-                        rubberBandLayer.removeItem(trackViewModel);
+                        rubberBandSelector.removeItem(trackViewModel);
                     }
                     onHeightChanged: () => {
-                        rubberBandLayer.insertItem(trackViewModel, Qt.rect(0, y, 1 << 20, height));
+                        rubberBandSelector.insertItem(trackViewModel, Qt.rect(0, y, 1 << 20, height));
                     }
                     onYChanged: () => {
-                        rubberBandLayer.insertItem(trackViewModel, Qt.rect(0, y, 1 << 20, height));
+                        rubberBandSelector.insertItem(trackViewModel, Qt.rect(0, y, 1 << 20, height));
                     }
 
                     colorIndicator.onClicked: () => {
@@ -694,10 +695,15 @@ Item {
             id: rubberBandLayer
 
             anchors.fill: parent
-            selectionController: trackList.selectionController
 
             rubberBand: RubberBandRectangle {
             }
+        }
+        RubberBandSelector {
+            id: rubberBandSelector
+
+            itemHint: RubberBandSelector.IgnoreDimensionX
+            selectionController: trackList.selectionController
         }
     }
     StandardScrollHandler {

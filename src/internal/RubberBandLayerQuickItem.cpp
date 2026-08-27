@@ -1,7 +1,8 @@
 #include "RubberBandLayerQuickItem_p.h"
-#include "RubberBandLayerQuickItem_p_p.h"
 
-#include <ScopicFlowCore/SelectionController.h>
+#include <QSizeF>
+
+#include <ScopicFlowInternal/private/RubberBandLayerQuickItem_p_p.h>
 
 namespace sflow {
 
@@ -10,17 +11,6 @@ namespace sflow {
         d->q_ptr = this;
     }
     RubberBandLayerQuickItem::~RubberBandLayerQuickItem() = default;
-
-    SelectionController *RubberBandLayerQuickItem::selectionController() const {
-        Q_D(const RubberBandLayerQuickItem);
-        return d->selectionController;
-    }
-
-    void RubberBandLayerQuickItem::setSelectionController(SelectionController *selectionController) {
-        Q_D(RubberBandLayerQuickItem);
-        d->selectionController = selectionController;
-        emit selectionControllerChanged();
-    }
 
     QQmlComponent *RubberBandLayerQuickItem::rubberBand() const {
         Q_D(const RubberBandLayerQuickItem);
@@ -38,36 +28,25 @@ namespace sflow {
                 item->setParentItem(this);
             d->rubberBandItem = item;
         }
-        emit rubberBandChanged();
+        Q_EMIT rubberBandChanged();
     }
     bool RubberBandLayerQuickItem::started() const {
         Q_D(const RubberBandLayerQuickItem);
         return d->started;
     }
-    void RubberBandLayerQuickItem::insertItem(QObject *item, const QRectF &rect) {
-        Q_D(RubberBandLayerQuickItem);
-        if (!d->selectionController)
-            return;
-        if (!item)
-            return;
-        d->itemRects.insert(item, rect);
-        connect(item, &QObject::destroyed, this, [this, item] { removeItem(item); });
+
+    QRectF RubberBandLayerQuickItem::selectionRect() const {
+        Q_D(const RubberBandLayerQuickItem);
+        return d->selectionRect;
     }
-    void RubberBandLayerQuickItem::removeItem(QObject *item) {
-        Q_D(RubberBandLayerQuickItem);
-        if (!d->selectionController)
-            return;
-        if (!item)
-            return;
-        d->itemRects.remove(item);
-        d->taggedItems.remove(item);
-        disconnect(item, nullptr, this, nullptr);
-    }
+
     void RubberBandLayerQuickItem::startSelection(const QPointF &startPos) {
         Q_D(RubberBandLayerQuickItem);
         if (d->started)
             return;
         d->startPos = startPos;
+        d->endPos = startPos;
+        d->selectionRect = QRectF(startPos, QSizeF());
         d->started = true;
         if (d->rubberBandItem) {
             d->rubberBandItem->setVisible(true);
@@ -76,64 +55,38 @@ namespace sflow {
             d->rubberBandItem->setWidth(0);
             d->rubberBandItem->setHeight(0);
         }
-        emit startedChanged(true);
+        Q_EMIT selectionRectChanged();
+        Q_EMIT startedChanged(true);
     }
     void RubberBandLayerQuickItem::updateSelection(const QPointF &pos) {
         Q_D(RubberBandLayerQuickItem);
-        if (!d->started)
-            return;
         d->endPos = pos;
-        QRectF rubberBandRect(
+        d->selectionRect = QRectF(
             qMin(d->startPos.x(), d->endPos.x()),
             qMin(d->startPos.y(), d->endPos.y()),
             qAbs(d->endPos.x() - d->startPos.x()),
             qAbs(d->endPos.y() - d->startPos.y()));
+        if (!d->started)
+            return;
         if (d->rubberBandItem) {
-            d->rubberBandItem->setX(rubberBandRect.x());
-            d->rubberBandItem->setY(rubberBandRect.y());
-            d->rubberBandItem->setWidth(rubberBandRect.width());
-            d->rubberBandItem->setHeight(rubberBandRect.height());
+            d->rubberBandItem->setX(d->selectionRect.x());
+            d->rubberBandItem->setY(d->selectionRect.y());
+            d->rubberBandItem->setWidth(d->selectionRect.width());
+            d->rubberBandItem->setHeight(d->selectionRect.height());
         }
+        Q_EMIT selectionRectChanged();
     }
-    QRectF RubberBandLayerQuickItem::endSelection(bool canceled) {
+    QRectF RubberBandLayerQuickItem::endSelection() {
         Q_D(RubberBandLayerQuickItem);
         if (!d->started)
             return {};
-        QRectF rubberBandRect = {d->rubberBandItem->x(), d->rubberBandItem->y(), d->rubberBandItem->width(), d->rubberBandItem->height()};
-        do {
-            if (!d->selectionController || canceled)
-                break;
-            Q_EMIT selectionAboutToEnd(rubberBandRect);
-            // TODO: Current implementation is high in time complexity. Optimize it in future
-            // Step 1: toggle-select ALL(not covered by rubber band && tagged)
-            QList<QObject *> disjointItems;
-            for (auto item : d->taggedItems) {
-                auto itemRect = d->itemRects.value(item);
-                if (!rubberBandRect.intersects(itemRect)) {
-                    d->selectionController->select(item, SelectionController::Toggle);
-                    disjointItems.append(item);
-                }
-            }
-            // Step 2: remove tag from ALL(not covered by rubber band && tagged)
-            for (auto itemId : disjointItems) {
-                d->taggedItems.remove(itemId);
-            }
-            // Step 3: toggle-select ALL(covered by rubber band && not tagged)
-            for (const auto &[item, itemRect] : d->itemRects.asKeyValueRange()) {
-                if (!d->taggedItems.contains(item) && rubberBandRect.intersects(itemRect)) {
-                    d->selectionController->select(item, SelectionController::Toggle);
-                    // Step 4: tag ALL(covered by rubber band && not tagged)
-                    d->taggedItems.insert(item);
-                }
-            }
-        } while (false);
+        const QRectF selectionRect = d->selectionRect;
         d->started = false;
         if (d->rubberBandItem) {
             d->rubberBandItem->setVisible(false);
         }
-        d->taggedItems.clear();
-        emit startedChanged(false);
-        return rubberBandRect;
+        Q_EMIT startedChanged(false);
+        return selectionRect;
     }
 }
 

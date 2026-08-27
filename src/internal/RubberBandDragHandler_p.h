@@ -11,6 +11,7 @@ class QQuickItem;
 namespace sflow {
 
     class RubberBandLayerQuickItem;
+    class RubberBandSelector;
     class SelectionController;
     class TimeManipulator;
 
@@ -24,6 +25,7 @@ namespace sflow {
         Q_PROPERTY(TimeManipulator *timeManipulator READ timeManipulator WRITE setTimeManipulator NOTIFY timeManipulatorChanged)
         Q_PROPERTY(QObject *verticalManipulator READ verticalManipulator WRITE setVerticalManipulator NOTIFY verticalManipulatorChanged)
         Q_PROPERTY(RubberBandLayerQuickItem *rubberBandLayer READ rubberBandLayer WRITE setRubberBandLayer NOTIFY rubberBandLayerChanged)
+        Q_PROPERTY(RubberBandSelector *selector READ selector WRITE setSelector NOTIFY selectorChanged)
         Q_PROPERTY(SelectionController *selectionController READ selectionController WRITE setSelectionController NOTIFY selectionControllerChanged)
         Q_PROPERTY(QQuickItem *target READ target WRITE setTarget NOTIFY targetChanged REQUIRED)
         Q_PROPERTY(QQuickItem *coordinateSpace READ coordinateSpace WRITE setCoordinateSpace NOTIFY coordinateSpaceChanged)
@@ -51,6 +53,9 @@ namespace sflow {
         RubberBandLayerQuickItem *rubberBandLayer() const;
         void setRubberBandLayer(RubberBandLayerQuickItem *rubberBandLayer);
 
+        RubberBandSelector *selector() const;
+        void setSelector(RubberBandSelector *selector);
+
         SelectionController *selectionController() const;
         void setSelectionController(SelectionController *selectionController);
 
@@ -70,6 +75,7 @@ namespace sflow {
         void timeManipulatorChanged();
         void verticalManipulatorChanged();
         void rubberBandLayerChanged();
+        void selectorChanged();
         void selectionControllerChanged();
         void targetChanged();
         void coordinateSpaceChanged();

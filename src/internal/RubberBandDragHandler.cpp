@@ -11,6 +11,7 @@
 #include <ScopicFlowInternal/private/DragScroller_p.h>
 #include <ScopicFlowInternal/private/InvokeMethodHelper_p.h>
 #include <ScopicFlowInternal/private/RubberBandLayerQuickItem_p.h>
+#include <ScopicFlowInternal/private/RubberBandSelector_p.h>
 
 namespace sflow {
 
@@ -82,8 +83,13 @@ namespace sflow {
 
     void RubberBandDragHandlerPrivate::onFinished() {
         Q_Q(RubberBandDragHandler);
-        if (rubberBandLayer)
-            rubberBandLayer->endSelection();
+        if (rubberBandLayer) {
+            const QRectF rect = rubberBandLayer->endSelection();
+            if (selector)
+                selector->select(rect);
+            else
+                qmlWarning(q) << "RubberBandDragHandler: selector is not set";
+        }
         dragScroller->setRunning(false);
         InvokeMethodHelper::invokeWithoutReturn(q, controller.data(), controllerRubberBandDraggingCommittedMethod,
                                                 target.data());
@@ -92,7 +98,7 @@ namespace sflow {
     void RubberBandDragHandlerPrivate::onCanceled() {
         Q_Q(RubberBandDragHandler);
         if (rubberBandLayer)
-            rubberBandLayer->endSelection(true);
+            rubberBandLayer->endSelection();
         dragScroller->setRunning(false);
         if (controller) {
             InvokeMethodHelper::invokeWithoutReturn(q, controller.data(), controllerRubberBandDraggingAbortedMethod,
@@ -204,6 +210,19 @@ namespace sflow {
             return;
         d->rubberBandLayer = rubberBandLayer;
         Q_EMIT rubberBandLayerChanged();
+    }
+
+    RubberBandSelector *RubberBandDragHandler::selector() const {
+        Q_D(const RubberBandDragHandler);
+        return d->selector;
+    }
+
+    void RubberBandDragHandler::setSelector(RubberBandSelector *selector) {
+        Q_D(RubberBandDragHandler);
+        if (d->selector == selector)
+            return;
+        d->selector = selector;
+        Q_EMIT selectorChanged();
     }
 
     SelectionController *RubberBandDragHandler::selectionController() const {

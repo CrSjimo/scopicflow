@@ -90,6 +90,7 @@ FocusScope {
         timeManipulator: timeManipulator
         verticalManipulator: trackListManipulator
         rubberBandLayer: rubberBandLayer
+        selector: rubberBandSelector
     }
     ClipPaneRubberBandDragHandler {
         id: rubberBandDragHandler
@@ -276,7 +277,7 @@ FocusScope {
                     RubberBandItemConnections {
                         target: clipPaneDelegate
                         viewModel: clipPaneDelegate.clipViewModel
-                        rubberBandLayer: rubberBandLayer
+                        selector: rubberBandSelector
                     }
                     ItemPointerInput {
                         sceneInput: scenePointerInput
@@ -308,12 +309,15 @@ FocusScope {
             id: rubberBandLayer
 
             anchors.fill: parent
-            selectionController: clipPane.selectionController
             z: 2
 
             rubberBand: RubberBandRectangle {
             }
+        }
+        RubberBandSelector {
+            id: rubberBandSelector
 
+            selectionController: clipPane.selectionController
             onSelectionAboutToEnd: (rect) => {
                 slicer.temporarilyLoadForRubberBand(rect.x, rect.width)
             }

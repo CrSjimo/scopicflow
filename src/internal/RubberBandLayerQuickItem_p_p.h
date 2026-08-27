@@ -1,6 +1,8 @@
 #ifndef SCOPIC_FLOW_RUBBERBANDLAYERQUICKITEM_P_P_H
 #define SCOPIC_FLOW_RUBBERBANDLAYERQUICKITEM_P_P_H
 
+#include <QPointer>
+
 #include <ScopicFlowInternal/private/RubberBandLayerQuickItem_p.h>
 
 namespace sflow {
@@ -9,17 +11,14 @@ namespace sflow {
     public:
         RubberBandLayerQuickItem *q_ptr;
 
-        QPointer<SelectionController> selectionController;
         QPointer<QQmlComponent> rubberBandComponent;
         QPointer<QQuickItem> rubberBandItem;
 
         QPointF startPos;
         QPointF endPos;
+        QRectF selectionRect;
 
         bool started = false;
-
-        QHash<QObject *, QRectF> itemRects;
-        QSet<QObject *> taggedItems;
     };
 }
 

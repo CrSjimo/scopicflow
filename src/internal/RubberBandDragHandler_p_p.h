@@ -13,6 +13,7 @@ namespace sflow {
 
     class DragScroller;
     class RubberBandLayerQuickItem;
+    class RubberBandSelector;
     class SelectionController;
     class TimeManipulator;
 
@@ -39,6 +40,7 @@ namespace sflow {
         QPointer<TimeManipulator> timeManipulator;
         QPointer<QObject> verticalManipulator;
         QPointer<RubberBandLayerQuickItem> rubberBandLayer;
+        QPointer<RubberBandSelector> selector;
         QPointer<SelectionController> selectionController;
         QPointer<QQuickItem> target;
         QPointer<QQuickItem> coordinateSpace;

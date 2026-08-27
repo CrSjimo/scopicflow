@@ -96,6 +96,7 @@ FocusScope {
         id: rubberBandDragHandler
         controller: labelSequence.labelSequenceInteractionController
         rubberBandLayer: rubberBandLayer
+        selector: rubberBandSelector
         selectionController: labelSequence.selectionController
         target: labelSequence
         timeManipulator: timeManipulator
@@ -159,7 +160,7 @@ FocusScope {
                     RubberBandItemConnections {
                         target: labelRect
                         viewModel: labelRect.labelViewModel
-                        rubberBandLayer: rubberBandLayer
+                        selector: rubberBandSelector
                     }
                     Binding {
                         labelRect.x: labelRect.labelViewModel.position * (labelSequence.timeLayoutViewModel?.pixelDensity ?? 0)
@@ -177,12 +178,16 @@ FocusScope {
             id: rubberBandLayer
 
             anchors.fill: parent
-            selectionController: labelSequence.selectionController
             z: 2
 
             rubberBand: RubberBandRectangle {
             }
+        }
+        RubberBandSelector {
+            id: rubberBandSelector
 
+            itemHint: RubberBandSelector.IgnoreDimensionY
+            selectionController: labelSequence.selectionController
             onSelectionAboutToEnd: (rect) => {
                 slicer.temporarilyLoadForRubberBand(rect.x, rect.width)
             }

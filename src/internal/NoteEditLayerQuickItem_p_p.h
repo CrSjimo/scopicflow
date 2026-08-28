@@ -9,6 +9,7 @@
 #include <QPointF>
 #include <QPointer>
 #include <QSet>
+#include <QSizeF>
 #include <QString>
 #include <QVector>
 
@@ -23,6 +24,7 @@ namespace sflow {
     struct NoteEditLayerRecord {
         NoteViewModel *model = nullptr;
         QString lyric;
+        QString additionalText;
         int position = 0;
         int length = 0;
         int key = 0;
@@ -30,7 +32,10 @@ namespace sflow {
         int nextNoteKey = 0;
         bool selected = false;
         bool overlapped = false;
+        bool additionalTextHighlighted = false;
         quint64 insertionOrder = 0;
+        mutable QSizeF additionalTextSize;
+        mutable quint64 additionalTextMetricsRevision = 0;
     };
 
     struct NoteEditLayerInterval : lib_interval_tree::interval<int> {
@@ -105,8 +110,12 @@ namespace sflow {
 
         bool hasValidLayout() const;
         QRectF itemRect(const NoteEditLayerRecord &record) const;
+        QSizeF additionalTextSize(const NoteEditLayerRecord &record) const;
+        qreal additionalTextHeight() const;
+        QRectF additionalTextRect(const NoteEditLayerRecord &record, bool clipped) const;
         int visualLayer(const NoteEditLayerRecord &record) const;
         const NoteEditLayerRecord *hitTestRecord(const QPointF &point) const;
+        const NoteEditLayerRecord *hitTestAdditionalTextRecord(const QPointF &point) const;
 
         NoteEditLayerQuickItem *q_ptr = nullptr;
         QPointer<RangeSequenceViewModel> noteSequenceViewModel;
@@ -116,13 +125,17 @@ namespace sflow {
         QPointer<SelectionController> selectionController;
         QPointer<RubberBandSelector> rubberBandSelector;
         QPointer<NoteViewModel> lyricEditingItem;
+        QPointer<NoteViewModel> additionalTextEditingItem;
         QMetaObject::Connection lyricEditingItemDestroyedConnection;
+        QMetaObject::Connection additionalTextEditingItemDestroyedConnection;
 
         QColor fillColor;
         QColor selectedFillColor;
         QColor selectedBorderColor;
         QColor overlappedBorderColor;
         QColor textColor;
+        QColor additionalTextColor;
+        QColor highlightedAdditionalTextColor;
         QFont font;
         bool active = true;
         bool transparentDisplay = false;
@@ -133,6 +146,9 @@ namespace sflow {
         double viewportHeight = 0;
         int shortNoteThreshold = 0;
         quint64 geometryRevision = 0;
+        quint64 fontRevision = 1;
+        mutable qreal additionalTextLineHeight = 0;
+        mutable quint64 additionalTextLineHeightRevision = 0;
         quint64 nextInsertionOrder = 0;
         quint64 residentTrimGeneration = 0;
 

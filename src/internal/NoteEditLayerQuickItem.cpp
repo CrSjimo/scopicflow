@@ -9,6 +9,7 @@
 #include <utility>
 #include <vector>
 
+#include <QFontMetricsF>
 #include <QMatrix4x4>
 #include <QQuickWindow>
 #include <QSGClipNode>
@@ -42,6 +43,8 @@ namespace sflow {
         constexpr int CornerSegments = 4;
         constexpr qreal ThumbnailBodyHeight = 4.0;
         constexpr qreal LyricHorizontalMargin = 6.0;
+        constexpr qreal AdditionalTextHorizontalPadding = 6.5;
+        constexpr qreal AdditionalTextVerticalPadding = 4.0;
         constexpr qreal EdgeHitMaximumWidth = 8.0;
         constexpr qreal EdgeHitWidthFraction = 1.0 / 3.0;
         constexpr qreal TransparentFillOpacity = 0.25;
@@ -55,6 +58,18 @@ namespace sflow {
         QColor multiplyAlpha(QColor color, qreal factor) {
             color.setAlphaF(std::clamp(color.alphaF() * factor, 0.0, 1.0));
             return color;
+        }
+
+        QSizeF measureSingleLineText(const QString &text, const QFont &font) {
+            QTextLayout layout(text, font);
+            layout.beginLayout();
+            const QTextLine line = layout.createLine();
+            layout.endLayout();
+            const QFontMetricsF metrics(font);
+            return {
+                line.isValid() ? line.naturalTextWidth() : 0,
+                std::max(layout.boundingRect().height(), metrics.height()),
+            };
         }
 
         QSGGeometryNode *createGeometryNode() {
@@ -151,6 +166,87 @@ namespace sflow {
             node->markDirty(QSGNode::DirtyGeometry | QSGNode::DirtyMaterial);
         }
 
+        struct ClippedTextVisualState {
+            QString text;
+            QFont font;
+            QColor color;
+            QRectF clipRect;
+            qreal left = 0;
+            qreal top = 0;
+            qreal centerHeight = 0;
+            bool verticallyCentered = false;
+        };
+
+        class ClippedTextVisualNode : public QSGClipNode {
+        public:
+            ClippedTextVisualNode() {
+                setFlag(QSGNode::OwnedByParent);
+                setIsRectangular(true);
+            }
+
+            void synchronize(const ClippedTextVisualState &state, QQuickWindow *window) {
+                const bool textVisible = window && !state.text.isEmpty() && state.color.alpha() > 0
+                    && state.clipRect.width() > 0 && state.clipRect.height() > 0;
+                const bool textChanged = m_text != state.text || m_font != state.font
+                    || m_color != state.color || m_window != window || !m_textNode;
+                if (!textVisible) {
+                    clearTextNode();
+                } else if (textChanged) {
+                    clearTextNode();
+                    QTextLayout layout(state.text, state.font);
+                    layout.beginLayout();
+                    layout.createLine();
+                    layout.endLayout();
+                    m_textHeight = layout.boundingRect().height();
+                    m_textNode = window->createTextNode();
+                    m_textNode->setFlag(QSGNode::OwnedByParent);
+                    m_textNode->setColor(state.color);
+                    m_textNode->addTextLayout({}, &layout);
+                    appendChildNode(m_textNode);
+                }
+
+                const qreal textTop = state.verticallyCentered
+                    ? 0.5 * (state.centerHeight - m_textHeight)
+                    : state.top;
+                if (m_textNode) {
+                    QMatrix4x4 textMatrix;
+                    textMatrix.translate(state.left, textTop);
+                    m_textNode->setMatrix(textMatrix);
+                }
+
+                QRectF clipRect = state.clipRect;
+                if (state.verticallyCentered) {
+                    const qreal clipTop = std::min(clipRect.top(), textTop);
+                    const qreal clipBottom = std::max(clipRect.bottom(), textTop + m_textHeight);
+                    clipRect.setTop(clipTop);
+                    clipRect.setBottom(clipBottom);
+                }
+                setClipRect(clipRect);
+
+                m_text = state.text;
+                m_font = state.font;
+                m_color = state.color;
+                m_window = window;
+            }
+
+        private:
+            void clearTextNode() {
+                if (!m_textNode)
+                    return;
+                removeChildNode(m_textNode);
+                delete m_textNode;
+                m_textNode = nullptr;
+                m_textHeight = 0;
+            }
+
+            QSGTextNode *m_textNode = nullptr;
+            QString m_text;
+            QFont m_font;
+            QColor m_color;
+            qreal m_textHeight = 0;
+            QQuickWindow *m_window = nullptr;
+        };
+
         struct NoteVisualState {
             NoteEditLayerRecord record;
             qreal positionX = 0;
@@ -172,10 +268,7 @@ namespace sflow {
                 appendChildNode(m_borderNode = createGeometryNode());
                 appendChildNode(m_fillNode = createGeometryNode());
                 appendChildNode(m_overlappedBorderNode = createGeometryNode());
-                m_clipNode = new QSGClipNode;
-                m_clipNode->setFlag(QSGNode::OwnedByParent);
-                m_clipNode->setIsRectangular(true);
-                appendChildNode(m_clipNode);
+                appendChildNode(m_textNode = new ClippedTextVisualNode);
             }
 
             void synchronize(const NoteVisualState &state, QQuickWindow *window) {
@@ -213,97 +306,79 @@ namespace sflow {
 
                 const qreal lyricLeft = BodyInset + LyricHorizontalMargin;
                 const qreal lyricWidth = std::max<qreal>(0, state.noteWidth - 2 * lyricLeft);
-                const bool textVisible = !state.thumbnailDisplay && lyricWidth > 0 && !state.record.lyric.isEmpty();
-                const bool textChanged = m_text != state.record.lyric || m_font != state.font
-                    || m_textColor != state.textColor || m_window != window || !m_textNode;
-                if (!textVisible) {
-                    clearTextNode();
-                } else if (textChanged) {
-                    clearTextNode();
-                    if (window) {
-                        QTextLayout layout(state.record.lyric, state.font);
-                        layout.beginLayout();
-                        layout.createLine();
-                        layout.endLayout();
-                        m_textHeight = layout.boundingRect().height();
-                        m_textNode = window->createTextNode();
-                        m_textNode->setFlag(QSGNode::OwnedByParent);
-                        m_textNode->setColor(state.textColor);
-                        m_textNode->addTextLayout({}, &layout);
-                        QMatrix4x4 textMatrix;
-                        textMatrix.translate(
-                            lyricLeft,
-                            0.5 * (state.noteHeight - m_textHeight));
-                        m_textNode->setMatrix(textMatrix);
-                        m_clipNode->appendChildNode(m_textNode);
-                    }
-                } else if (m_textNode) {
-                    QMatrix4x4 textMatrix;
-                    textMatrix.translate(
-                        lyricLeft,
-                        0.5 * (state.noteHeight - m_textHeight));
-                    m_textNode->setMatrix(textMatrix);
-                }
-                const qreal textTop = 0.5 * (state.noteHeight - m_textHeight);
-                const qreal clipTop = std::min<qreal>(0, textTop);
-                const qreal clipBottom = std::max<qreal>(state.noteHeight, textTop + m_textHeight);
-                m_clipNode->setClipRect(QRectF(lyricLeft, clipTop, lyricWidth, clipBottom - clipTop));
-
-                m_text = state.record.lyric;
-                m_font = state.font;
-                m_textColor = state.textColor;
-                m_window = window;
+                m_textNode->synchronize({
+                    .text = state.thumbnailDisplay ? QString() : state.record.lyric,
+                    .font = state.font,
+                    .color = state.textColor,
+                    .clipRect = QRectF(lyricLeft, 0, lyricWidth, state.noteHeight),
+                    .left = lyricLeft,
+                    .centerHeight = state.noteHeight,
+                    .verticallyCentered = true,
+                }, window);
             }
 
         private:
-            void clearTextNode() {
-                if (!m_textNode)
-                    return;
-                m_clipNode->removeChildNode(m_textNode);
-                delete m_textNode;
-                m_textNode = nullptr;
-                m_textHeight = 0;
-            }
-
             QSGGeometryNode *m_borderNode = nullptr;
             QSGGeometryNode *m_fillNode = nullptr;
             QSGGeometryNode *m_overlappedBorderNode = nullptr;
-            QSGClipNode *m_clipNode = nullptr;
-            QSGTextNode *m_textNode = nullptr;
-            QString m_text;
-            QFont m_font;
-            QColor m_textColor;
-            qreal m_textHeight = 0;
-            QQuickWindow *m_window = nullptr;
+            ClippedTextVisualNode *m_textNode = nullptr;
         };
 
-        class NoteEditLayerRootNode : public QSGNode {
+        struct AdditionalTextVisualState {
+            QString text;
+            QFont font;
+            QColor color;
+            qreal positionX = 0;
+            qreal positionY = 0;
+            qreal width = 0;
+            qreal height = 0;
+        };
+
+        class AdditionalTextVisualNode : public QSGTransformNode {
         public:
-            NoteEditLayerRootNode() {
+            AdditionalTextVisualNode() {
+                setFlag(QSGNode::OwnedByParent, false);
+                appendChildNode(m_textNode = new ClippedTextVisualNode);
+            }
+
+            void synchronize(const AdditionalTextVisualState &state, QQuickWindow *window) {
+                QMatrix4x4 matrix;
+                matrix.translate(state.positionX, state.positionY);
+                setMatrix(matrix);
+                m_textNode->synchronize({
+                    .text = state.text,
+                    .font = state.font,
+                    .color = state.color,
+                    .clipRect = QRectF(0, 0, state.width, state.height),
+                    .left = AdditionalTextHorizontalPadding,
+                    .top = AdditionalTextVerticalPadding,
+                }, window);
+            }
+
+        private:
+            ClippedTextVisualNode *m_textNode = nullptr;
+        };
+
+        template<typename Node>
+        class LayeredNodeCollection {
+        public:
+            explicit LayeredNodeCollection(QSGNode *parent) {
                 for (auto &layer : m_layers) {
                     layer = new QSGNode;
                     layer->setFlag(QSGNode::OwnedByParent);
-                    appendChildNode(layer);
+                    parent->appendChildNode(layer);
                 }
             }
 
-            ~NoteEditLayerRootNode() override {
+            ~LayeredNodeCollection() {
                 for (auto &[model, visual] : m_activeNodes) {
                     Q_UNUSED(model);
                     if (visual->parent())
                         visual->parent()->removeChildNode(visual.get());
                 }
-                m_activeNodes.clear();
-                m_pool.clear();
             }
 
-            void synchronize(NoteEditLayerQuickItemPrivate *d) {
-                QSet<NoteViewModel *> desiredItems;
-                if (d->active && d->hasValidLayout()) {
-                    desiredItems = d->residentItems;
-                    desiredItems.remove(d->lyricEditingItem.data());
-                }
-
+            void retain(const QSet<NoteViewModel *> &desiredItems, bool active) {
                 for (auto it = m_activeNodes.begin(); it != m_activeNodes.end();) {
                     if (desiredItems.contains(it->first)) {
                         ++it;
@@ -315,12 +390,67 @@ namespace sflow {
                         m_pool.push_back(std::move(it->second));
                     it = m_activeNodes.erase(it);
                 }
-                if (!d->active)
+                if (!active)
                     m_pool.clear();
+            }
+
+            Node *nodeFor(NoteViewModel *model) {
+                auto activeIt = m_activeNodes.find(model);
+                if (activeIt == m_activeNodes.end()) {
+                    std::unique_ptr<Node> visual;
+                    if (m_pool.empty()) {
+                        visual = std::make_unique<Node>();
+                    } else {
+                        visual = std::move(m_pool.back());
+                        m_pool.pop_back();
+                    }
+                    activeIt = m_activeNodes.emplace(model, std::move(visual)).first;
+                }
+                return activeIt->second.get();
+            }
+
+            void append(Node *node, int layer) {
+                if (node->parent())
+                    node->parent()->removeChildNode(node);
+                m_layers[layer]->appendChildNode(node);
+            }
+
+        private:
+            std::array<QSGNode *, 3> m_layers{};
+            std::unordered_map<NoteViewModel *, std::unique_ptr<Node>> m_activeNodes;
+            std::vector<std::unique_ptr<Node>> m_pool;
+        };
+
+        class NoteEditLayerRootNode : public QSGNode {
+        public:
+            NoteEditLayerRootNode() : m_additionalTextNodes(this), m_noteNodes(this) {
+            }
+
+            void synchronize(NoteEditLayerQuickItemPrivate *d) {
+                QSet<NoteViewModel *> desiredNoteItems;
+                QSet<NoteViewModel *> desiredAdditionalTextItems;
+                if (d->active && d->hasValidLayout()) {
+                    desiredNoteItems = d->residentItems;
+                    desiredNoteItems.remove(d->lyricEditingItem.data());
+                    if (!d->thumbnailDisplay) {
+                        for (auto *model : std::as_const(d->residentItems)) {
+                            const auto it = d->records.constFind(model);
+                            if (it != d->records.cend() && !it->additionalText.isEmpty()
+                                && model != d->additionalTextEditingItem.data()
+                                && (it->additionalTextHighlighted
+                                        ? d->highlightedAdditionalTextColor
+                                        : d->additionalTextColor).alpha() > 0) {
+                                desiredAdditionalTextItems.insert(model);
+                            }
+                        }
+                    }
+                }
+                m_additionalTextNodes.retain(desiredAdditionalTextItems, d->active);
+                m_noteNodes.retain(desiredNoteItems, d->active);
 
                 QVector<const NoteEditLayerRecord *> sortedRecords;
-                sortedRecords.reserve(desiredItems.size());
-                for (auto *model : std::as_const(desiredItems)) {
+                sortedRecords.reserve(d->residentItems.size());
+                for (auto *model : std::as_const(d->residentItems)) {
                     const auto it = d->records.constFind(model);
                     if (it != d->records.cend())
                         sortedRecords.append(&it.value());
@@ -339,21 +469,26 @@ namespace sflow {
                 const qreal timePixelDensity = d->timeLayoutViewModel->pixelDensity();
                 const qreal clavierPixelDensity = d->clavierViewModel->pixelDensity();
                 for (const auto *record : std::as_const(sortedRecords)) {
-                    auto activeIt = m_activeNodes.find(record->model);
-                    if (activeIt == m_activeNodes.end()) {
-                        std::unique_ptr<NoteVisualNode> visual;
-                        if (m_pool.empty()) {
-                            visual = std::make_unique<NoteVisualNode>();
-                        } else {
-                            visual = std::move(m_pool.back());
-                            m_pool.pop_back();
-                        }
-                        activeIt = m_activeNodes.emplace(record->model, std::move(visual)).first;
+                    if (desiredAdditionalTextItems.contains(record->model)) {
+                        auto *visual = m_additionalTextNodes.nodeFor(record->model);
+                        const QRectF textRect = d->additionalTextRect(*record, true);
+                        visual->synchronize({
+                            .text = record->additionalText,
+                            .font = d->font,
+                            .color = record->additionalTextHighlighted
+                                ? d->highlightedAdditionalTextColor
+                                : d->additionalTextColor,
+                            .positionX = textRect.x(),
+                            .positionY = textRect.y(),
+                            .width = textRect.width(),
+                            .height = textRect.height(),
+                        }, d->q_ptr->window());
+                        m_additionalTextNodes.append(visual, d->visualLayer(*record));
                     }
 
-                    auto *visual = activeIt->second.get();
-                    if (visual->parent())
-                        visual->parent()->removeChildNode(visual);
+                    if (!desiredNoteItems.contains(record->model))
+                        continue;
+                    auto *visual = m_noteNodes.nodeFor(record->model);
 
                     qreal fillOpacity = 1.0;
                     if (d->transparentDisplay)
@@ -380,14 +515,13 @@ namespace sflow {
                         .thumbnailDisplay = d->thumbnailDisplay,
                     };
                     visual->synchronize(state, d->q_ptr->window());
-                    m_layers[d->visualLayer(*record)]->appendChildNode(visual);
+                    m_noteNodes.append(visual, d->visualLayer(*record));
                 }
             }
 
         private:
-            std::array<QSGNode *, 3> m_layers{};
-            std::unordered_map<NoteViewModel *, std::unique_ptr<NoteVisualNode>> m_activeNodes;
-            std::vector<std::unique_ptr<NoteVisualNode>> m_pool;
+            LayeredNodeCollection<AdditionalTextVisualNode> m_additionalTextNodes;
+            LayeredNodeCollection<NoteVisualNode> m_noteNodes;
         };
 
         bool intervalIntersects(qreal start, qreal end, const NoteEditLayerRecord &record) {
@@ -539,6 +673,7 @@ namespace sflow {
         NoteEditLayerRecord record {
             .model = model,
             .lyric = model->lyric(),
+            .additionalText = model->additionalText(),
             .position = model->position(),
             .length = model->length(),
             .key = model->key(),
@@ -546,6 +681,7 @@ namespace sflow {
             .nextNoteKey = model->nextNoteKey(),
             .selected = model->isSelected(),
             .overlapped = model->isOverlapped(),
+            .additionalTextHighlighted = model->isAdditionalTextHighlighted(),
             .insertionOrder = ++nextInsertionOrder,
         };
         records.insert(model, record);
@@ -553,11 +689,13 @@ namespace sflow {
         updateSelectorRegistration(model);
 
         auto &connections = recordConnections[model];
-        connections.reserve(9);
+        connections.reserve(11);
         connections.append(QObject::connect(model, &NoteViewModel::positionChanged, q, [this, model] { updateRecord(model, true, true); }));
         connections.append(QObject::connect(model, &NoteViewModel::lengthChanged, q, [this, model] { updateRecord(model, true, true); }));
         connections.append(QObject::connect(model, &NoteViewModel::keyChanged, q, [this, model] { updateRecord(model, true, true); }));
         connections.append(QObject::connect(model, &NoteViewModel::lyricChanged, q, [this, model] { updateRecord(model, false, false); }));
+        connections.append(QObject::connect(model, &NoteViewModel::additionalTextChanged, q, [this, model] { updateRecord(model, true, false); }));
+        connections.append(QObject::connect(model, &NoteViewModel::additionalTextHighlightedChanged, q, [this, model] { updateRecord(model, false, false); }));
         connections.append(QObject::connect(model, &NoteViewModel::selectedChanged, q, [this, model] { updateRecord(model, false, false); }));
         connections.append(QObject::connect(model, &NoteViewModel::overlappedChanged, q, [this, model] { updateRecord(model, false, false); }));
         connections.append(QObject::connect(model, &NoteViewModel::nextNotePositionChanged, q, [this, model] { updateRecord(model, false, false); }));
@@ -625,6 +763,7 @@ namespace sflow {
         const NoteEditLayerRecord oldRecord = it.value();
         NoteEditLayerRecord &record = it.value();
         record.lyric = model->lyric();
+        record.additionalText = model->additionalText();
         record.position = model->position();
         record.length = model->length();
         record.key = model->key();
@@ -632,6 +771,10 @@ namespace sflow {
         record.nextNoteKey = model->nextNoteKey();
         record.selected = model->isSelected();
         record.overlapped = model->isOverlapped();
+        record.additionalTextHighlighted = model->isAdditionalTextHighlighted();
+
+        if (oldRecord.additionalText != record.additionalText)
+            record.additionalTextMetricsRevision = 0;
 
         const bool indexChanged = oldRecord.position != record.position || oldRecord.length != record.length || oldRecord.key != record.key;
         if (indexChanged) {
@@ -705,10 +848,13 @@ namespace sflow {
         const qreal visibleKeyEnd = clavierViewModel->start();
         const qreal visibleKeyLength = viewportHeight / clavierPixelDensity;
         const qreal visibleKeyStart = visibleKeyEnd - visibleKeyLength;
+        const qreal additionalTextKeyLength = thumbnailDisplay ? 0 : additionalTextHeight() / clavierPixelDensity;
+        const qreal requiredKeyStart = visibleKeyStart - (additionalTextAbove ? additionalTextKeyLength : 0);
+        const qreal requiredKeyEnd = visibleKeyEnd + (additionalTextAbove ? 0 : additionalTextKeyLength);
 
         if (!forceResidentRange && residentRangeValid
             && visiblePositionStart >= residentPositionStart && visiblePositionEnd <= residentPositionEnd
-            && visibleKeyStart >= residentKeyStart && visibleKeyEnd <= residentKeyEnd) {
+            && requiredKeyStart >= residentKeyStart && requiredKeyEnd <= residentKeyEnd) {
             if (geometryChanged) {
                 scheduleMarkerRebuild();
                 bumpGeometryRevision();
@@ -719,8 +865,8 @@ namespace sflow {
 
         residentPositionStart = visiblePositionStart - 0.5 * visiblePositionLength;
         residentPositionEnd = visiblePositionEnd + 0.5 * visiblePositionLength;
-        residentKeyStart = visibleKeyStart - 0.5 * visibleKeyLength;
-        residentKeyEnd = visibleKeyEnd + 0.5 * visibleKeyLength;
+        residentKeyStart = requiredKeyStart - 0.5 * visibleKeyLength;
+        residentKeyEnd = requiredKeyEnd + 0.5 * visibleKeyLength;
         residentRangeValid = true;
 
         const int queryPosition = static_cast<int>(std::floor(residentPositionStart));
@@ -870,6 +1016,39 @@ namespace sflow {
         };
     }
 
+    QSizeF NoteEditLayerQuickItemPrivate::additionalTextSize(const NoteEditLayerRecord &record) const {
+        if (record.additionalTextMetricsRevision != fontRevision) {
+            record.additionalTextSize = measureSingleLineText(record.additionalText, font);
+            record.additionalTextMetricsRevision = fontRevision;
+        }
+        return record.additionalTextSize;
+    }
+
+    qreal NoteEditLayerQuickItemPrivate::additionalTextHeight() const {
+        if (additionalTextLineHeightRevision != fontRevision) {
+            additionalTextLineHeight = measureSingleLineText({}, font).height();
+            additionalTextLineHeightRevision = fontRevision;
+        }
+        return additionalTextLineHeight + 2 * AdditionalTextVerticalPadding;
+    }
+
+    QRectF NoteEditLayerQuickItemPrivate::additionalTextRect(const NoteEditLayerRecord &record, bool clipped) const {
+        if (!hasValidLayout())
+            return {};
+        const QSizeF textSize = additionalTextSize(record);
+        const qreal fullWidth = textSize.width() + 2 * AdditionalTextHorizontalPadding;
+        const qreal height = textSize.height() + 2 * AdditionalTextVerticalPadding;
+        const qreal noteX = record.position * timeLayoutViewModel->pixelDensity();
+        const qreal noteY = (127 - record.key) * clavierViewModel->pixelDensity();
+        const qreal noteWidth = std::max<qreal>(0, record.length * timeLayoutViewModel->pixelDensity());
+        return {
+            noteX,
+            additionalTextAbove ? noteY - height : noteY + clavierViewModel->pixelDensity(),
+            clipped ? std::min(noteWidth, fullWidth) : fullWidth,
+            height,
+        };
+    }
+
     int NoteEditLayerQuickItemPrivate::visualLayer(const NoteEditLayerRecord &record) const {
         if (record.selected && selectionController && selectionController->currentItem() == record.model)
             return 2;
@@ -905,6 +1084,47 @@ namespace sflow {
             }
             return true;
         });
+        return targetRecord;
+    }
+
+    const NoteEditLayerRecord *NoteEditLayerQuickItemPrivate::hitTestAdditionalTextRecord(const QPointF &point) const {
+        if (!active || thumbnailDisplay || !hasValidLayout())
+            return nullptr;
+
+        const qreal timePixelDensity = timeLayoutViewModel->pixelDensity();
+        const qreal clavierPixelDensity = clavierViewModel->pixelDensity();
+        const qreal boxHeight = additionalTextHeight();
+        const qreal minimumNoteY = additionalTextAbove
+            ? point.y()
+            : point.y() - clavierPixelDensity - boxHeight;
+        const qreal maximumNoteY = additionalTextAbove
+            ? point.y() + boxHeight
+            : point.y() - clavierPixelDensity;
+        const int minimumRow = std::max(0, static_cast<int>(std::floor(minimumNoteY / clavierPixelDensity)) - 1);
+        const int maximumRow = std::min(127, static_cast<int>(std::ceil(maximumNoteY / clavierPixelDensity)) + 1);
+        const int position = static_cast<int>(std::floor(point.x() / timePixelDensity));
+        const NoteEditLayerInterval query(position, 1, nullptr);
+        const NoteEditLayerRecord *targetRecord = nullptr;
+        for (int row = minimumRow; row <= maximumRow; ++row) {
+            const int key = 127 - row;
+            intervalTrees[key].overlap_find_all(query, [this, point, &targetRecord](const auto &intervalIterator) {
+                const auto it = records.constFind(intervalIterator.interval().model);
+                if (it == records.cend() || it->model == additionalTextEditingItem.data())
+                    return true;
+                const QRectF rect = additionalTextRect(it.value(), true);
+                if (rect.width() <= 0 || rect.height() <= 0
+                    || point.x() < rect.left() || point.x() >= rect.right()
+                    || point.y() < rect.top() || point.y() >= rect.bottom()) {
+                    return true;
+                }
+                if (!targetRecord || visualLayer(it.value()) > visualLayer(*targetRecord)
+                    || (visualLayer(it.value()) == visualLayer(*targetRecord)
+                        && it->insertionOrder > targetRecord->insertionOrder)) {
+                    targetRecord = &it.value();
+                }
+                return true;
+            });
+        }
         return targetRecord;
     }
 
@@ -1139,6 +1359,34 @@ namespace sflow {
         Q_EMIT textColorChanged();
     }
 
+    QColor NoteEditLayerQuickItem::additionalTextColor() const {
+        Q_D(const NoteEditLayerQuickItem);
+        return d->additionalTextColor;
+    }
+
+    void NoteEditLayerQuickItem::setAdditionalTextColor(const QColor &additionalTextColor) {
+        Q_D(NoteEditLayerQuickItem);
+        if (d->additionalTextColor == additionalTextColor)
+            return;
+        d->additionalTextColor = additionalTextColor;
+        update();
+        Q_EMIT additionalTextColorChanged();
+    }
+
+    QColor NoteEditLayerQuickItem::highlightedAdditionalTextColor() const {
+        Q_D(const NoteEditLayerQuickItem);
+        return d->highlightedAdditionalTextColor;
+    }
+
+    void NoteEditLayerQuickItem::setHighlightedAdditionalTextColor(const QColor &highlightedAdditionalTextColor) {
+        Q_D(NoteEditLayerQuickItem);
+        if (d->highlightedAdditionalTextColor == highlightedAdditionalTextColor)
+            return;
+        d->highlightedAdditionalTextColor = highlightedAdditionalTextColor;
+        update();
+        Q_EMIT highlightedAdditionalTextColorChanged();
+    }
+
     QFont NoteEditLayerQuickItem::font() const {
         Q_D(const NoteEditLayerQuickItem);
         return d->font;
@@ -1149,7 +1397,9 @@ namespace sflow {
         if (d->font == font)
             return;
         d->font = font;
-        update();
+        ++d->fontRevision;
+        d->residentRangeValid = false;
+        d->updateViewport(true, true);
         Q_EMIT fontChanged();
     }
 
@@ -1193,7 +1443,8 @@ namespace sflow {
         if (d->thumbnailDisplay == thumbnailDisplay)
             return;
         d->thumbnailDisplay = thumbnailDisplay;
-        update();
+        d->residentRangeValid = false;
+        d->updateViewport(true, false);
         Q_EMIT thumbnailDisplayChanged();
     }
 
@@ -1235,6 +1486,32 @@ namespace sflow {
         }
         update();
         Q_EMIT lyricEditingItemChanged();
+    }
+
+    NoteViewModel *NoteEditLayerQuickItem::additionalTextEditingItem() const {
+        Q_D(const NoteEditLayerQuickItem);
+        return d->additionalTextEditingItem;
+    }
+
+    void NoteEditLayerQuickItem::setAdditionalTextEditingItem(NoteViewModel *additionalTextEditingItem) {
+        Q_D(NoteEditLayerQuickItem);
+        if (d->additionalTextEditingItem == additionalTextEditingItem)
+            return;
+        disconnect(d->additionalTextEditingItemDestroyedConnection);
+        d->additionalTextEditingItem = additionalTextEditingItem;
+        if (d->additionalTextEditingItem) {
+            d->additionalTextEditingItemDestroyedConnection = connect(d->additionalTextEditingItem, &QObject::destroyed, this, [this] {
+                Q_D(NoteEditLayerQuickItem);
+                d->additionalTextEditingItem = nullptr;
+                d->additionalTextEditingItemDestroyedConnection = {};
+                update();
+                Q_EMIT additionalTextEditingItemChanged();
+            });
+        } else {
+            d->additionalTextEditingItemDestroyedConnection = {};
+        }
+        update();
+        Q_EMIT additionalTextEditingItemChanged();
     }
 
     double NoteEditLayerQuickItem::viewportWidth() const {
@@ -1289,7 +1566,8 @@ namespace sflow {
         if (d->additionalTextAbove == additionalTextAbove)
             return;
         d->additionalTextAbove = additionalTextAbove;
-        d->rebuildMarkers();
+        d->residentRangeValid = false;
+        d->updateViewport(true, true);
         Q_EMIT additionalTextAboveChanged();
     }
 
@@ -1307,8 +1585,17 @@ namespace sflow {
         Q_D(const NoteEditLayerQuickItem);
         PointerHit hit;
         const NoteEditLayerRecord *targetRecord = d->hitTestRecord(point);
-        if (!targetRecord)
+        if (!targetRecord) {
+            targetRecord = d->hitTestAdditionalTextRecord(point);
+            if (!targetRecord)
+                return hit;
+            const QRectF localRect = d->additionalTextRect(*targetRecord, true);
+            hit.valid = true;
+            hit.targetRect = coordinateSpace ? mapRectToItem(coordinateSpace, localRect) : localRect;
+            hit.hoverRegion = AdditionalTextHitRegion;
+            hit.payload = QVariant::fromValue(static_cast<QObject *>(targetRecord->model));
             return hit;
+        }
 
         const QRectF localRect = d->itemRect(*targetRecord);
         const qreal edgeWidth = std::min(EdgeHitMaximumWidth, localRect.width() * EdgeHitWidthFraction);
@@ -1321,6 +1608,7 @@ namespace sflow {
         hit.valid = true;
         hit.target = targetRecord->model;
         hit.targetRect = coordinateSpace ? mapRectToItem(coordinateSpace, localRect) : localRect;
+        hit.hoverRegion = NoteHitRegion;
         hit.payload = payload;
         return hit;
     }
@@ -1332,9 +1620,16 @@ namespace sflow {
         return it == d->records.cend() ? QRectF() : d->itemRect(it.value());
     }
 
+    QRectF NoteEditLayerQuickItem::additionalTextRect(QObject *model) const {
+        Q_D(const NoteEditLayerQuickItem);
+        auto *note = qobject_cast<NoteViewModel *>(model);
+        const auto it = d->records.constFind(note);
+        return it == d->records.cend() ? QRectF() : d->additionalTextRect(it.value(), false);
+    }
+
     bool NoteEditLayerQuickItem::contains(const QPointF &point) const {
         Q_D(const NoteEditLayerQuickItem);
-        return d->hitTestRecord(point) != nullptr;
+        return d->hitTestRecord(point) || d->hitTestAdditionalTextRecord(point);
     }
 
     QRectF NoteEditLayerQuickItem::mapToTickKeyRect(const QRectF &sourceRect) const {

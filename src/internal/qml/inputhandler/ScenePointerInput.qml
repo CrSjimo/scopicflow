@@ -16,6 +16,7 @@ FocusScope {
     property TimeManipulator timeManipulator: null
     property var verticalManipulator: null
     property var dispatchMap: ({})
+    property var clickInterceptor: null
     property bool freezeCursorOnPress: false
     readonly property alias router: router
 
@@ -74,6 +75,9 @@ FocusScope {
         target: sceneInput.router
 
         function onClicked(event, hit) {
+            if (sceneInput.clickInterceptor
+                    && sceneInput.clickInterceptor(event, hit, false))
+                return
             if (sceneInput.controller?.clickSelectable && sceneInput.selectionController) {
                 sceneInput.selectionController.selectByPointer(
                     hit.target, SelectionController.PrimarySelection, event.modifiers)
@@ -81,6 +85,9 @@ FocusScope {
         }
 
         function onDoubleClicked(event, hit) {
+            if (sceneInput.clickInterceptor
+                    && sceneInput.clickInterceptor(event, hit, true))
+                return
             if (!sceneInput.controller)
                 return
             if (hit.target) {

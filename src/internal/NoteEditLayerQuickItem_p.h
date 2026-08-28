@@ -37,12 +37,15 @@ namespace sflow {
         Q_PROPERTY(QColor selectedBorderColor READ selectedBorderColor WRITE setSelectedBorderColor NOTIFY selectedBorderColorChanged)
         Q_PROPERTY(QColor overlappedBorderColor READ overlappedBorderColor WRITE setOverlappedBorderColor NOTIFY overlappedBorderColorChanged)
         Q_PROPERTY(QColor textColor READ textColor WRITE setTextColor NOTIFY textColorChanged)
+        Q_PROPERTY(QColor additionalTextColor READ additionalTextColor WRITE setAdditionalTextColor NOTIFY additionalTextColorChanged)
+        Q_PROPERTY(QColor highlightedAdditionalTextColor READ highlightedAdditionalTextColor WRITE setHighlightedAdditionalTextColor NOTIFY highlightedAdditionalTextColorChanged)
         Q_PROPERTY(QFont font READ font WRITE setFont NOTIFY fontChanged)
         Q_PROPERTY(bool active READ isActive WRITE setActive NOTIFY activeChanged)
         Q_PROPERTY(bool transparentDisplay READ isTransparentDisplay WRITE setTransparentDisplay NOTIFY transparentDisplayChanged)
         Q_PROPERTY(bool thumbnailDisplay READ isThumbnailDisplay WRITE setThumbnailDisplay NOTIFY thumbnailDisplayChanged)
         Q_PROPERTY(bool editScopeFocused READ isEditScopeFocused WRITE setEditScopeFocused NOTIFY editScopeFocusedChanged)
         Q_PROPERTY(NoteViewModel *lyricEditingItem READ lyricEditingItem WRITE setLyricEditingItem NOTIFY lyricEditingItemChanged)
+        Q_PROPERTY(NoteViewModel *additionalTextEditingItem READ additionalTextEditingItem WRITE setAdditionalTextEditingItem NOTIFY additionalTextEditingItemChanged)
         Q_PROPERTY(double viewportWidth READ viewportWidth WRITE setViewportWidth NOTIFY viewportWidthChanged)
         Q_PROPERTY(double viewportHeight READ viewportHeight WRITE setViewportHeight NOTIFY viewportHeightChanged)
         Q_PROPERTY(int shortNoteThreshold READ shortNoteThreshold WRITE setShortNoteThreshold NOTIFY shortNoteThresholdChanged)
@@ -56,6 +59,12 @@ namespace sflow {
             ShortRestMarker,
         };
         Q_ENUM(MarkerType)
+
+        enum HitRegion {
+            NoteHitRegion,
+            AdditionalTextHitRegion,
+        };
+        Q_ENUM(HitRegion)
 
         explicit NoteEditLayerQuickItem(QQuickItem *parent = nullptr);
         ~NoteEditLayerQuickItem() override;
@@ -93,6 +102,12 @@ namespace sflow {
         QColor textColor() const;
         void setTextColor(const QColor &textColor);
 
+        QColor additionalTextColor() const;
+        void setAdditionalTextColor(const QColor &additionalTextColor);
+
+        QColor highlightedAdditionalTextColor() const;
+        void setHighlightedAdditionalTextColor(const QColor &highlightedAdditionalTextColor);
+
         QFont font() const;
         void setFont(const QFont &font);
 
@@ -111,6 +126,9 @@ namespace sflow {
         NoteViewModel *lyricEditingItem() const;
         void setLyricEditingItem(NoteViewModel *lyricEditingItem);
 
+        NoteViewModel *additionalTextEditingItem() const;
+        void setAdditionalTextEditingItem(NoteViewModel *additionalTextEditingItem);
+
         double viewportWidth() const;
         void setViewportWidth(double viewportWidth);
 
@@ -128,6 +146,7 @@ namespace sflow {
 
         Q_INVOKABLE PointerHit hitTest(const QPointF &point, QQuickItem *coordinateSpace = nullptr) const;
         Q_INVOKABLE QRectF itemRect(QObject *model) const;
+        Q_INVOKABLE QRectF additionalTextRect(QObject *model) const;
         bool contains(const QPointF &point) const override;
 
         QRectF mapToTickKeyRect(const QRectF &rect) const;
@@ -144,12 +163,15 @@ namespace sflow {
         void selectedBorderColorChanged();
         void overlappedBorderColorChanged();
         void textColorChanged();
+        void additionalTextColorChanged();
+        void highlightedAdditionalTextColorChanged();
         void fontChanged();
         void activeChanged();
         void transparentDisplayChanged();
         void thumbnailDisplayChanged();
         void editScopeFocusedChanged();
         void lyricEditingItemChanged();
+        void additionalTextEditingItemChanged();
         void viewportWidthChanged();
         void viewportHeightChanged();
         void shortNoteThresholdChanged();

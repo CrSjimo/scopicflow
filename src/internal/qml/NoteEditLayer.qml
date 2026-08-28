@@ -229,6 +229,15 @@ FocusScope {
                 [NoteEditLayerInteractionController.TimeRangeSelect]: timeRangeDragHandler,
                 [NoteEditLayerInteractionController.Draw]: drawDragHandler,
             })
+            clickInterceptor: (event, hit, doubleClick) => {
+                if (hit.hoverRegion !== NoteEditLayerItem.AdditionalTextHitRegion)
+                    return false
+                if (doubleClick && hit.payload) {
+                    noteEditLayer.noteEditLayerInteractionController?.itemAdditionalTextDoubleClicked(
+                        noteEditLayer, hit.payload)
+                }
+                return true
+            }
         }
     }
     TimeViewportContainer {
@@ -264,37 +273,7 @@ FocusScope {
 
             clavierViewModel: noteEditLayer.clavierViewModel
             Item {
-                anchors.fill: parent
-                SequenceSlicer {
-                    id: additionalTextSlicer
-                    leftOutBound: 256
-                    viewModel: noteEditLayer.noteSequenceViewModel
-                    sliceWidth: noteEditLayer.width
-                    timeLayoutViewModel: noteEditLayer.timeLayoutViewModel
-                    timeViewModel: proxyTimeViewModel
-                    active: noteEditLayer.active
-                    delegate: NoteEditLayerAdditionalTextDelegate {
-                        id: noteDelegate
-                        Binding {
-                            noteDelegate.x: (noteDelegate.noteViewModel?.position ?? 0) * (noteEditLayer.timeLayoutViewModel?.pixelDensity ?? 0)
-                            noteDelegate.y: (127 - (noteDelegate.noteViewModel?.key ?? 0)) * (noteEditLayer.clavierViewModel?.pixelDensity ?? 0) + (noteEditLayer.noteEditLayerInteractionController?.additionalTextPosition === NoteEditLayerInteractionController.AdditionalTextPosition_Up ? -noteDelegate.height : (noteEditLayer.clavierViewModel?.pixelDensity ?? 0))
-                            noteDelegate.width: (noteDelegate.noteViewModel?.length ?? 0) * (noteEditLayer.timeLayoutViewModel?.pixelDensity ?? 0)
-                            noteDelegate.color: noteEditLayer.trackListViewModel?.items[noteEditLayer.clipViewModel?.trackIndex ?? 0]?.color ?? Theme.accentColor
-                            noteDelegate.visible: !noteEditLayer.thumbnailDisplay
-                            when: noteDelegate.SequenceSlicerLoader.inRange
-                        }
-                        MouseArea {
-                            height: parent.height
-                            width: Math.min(parent.width, parent.implicitWidth)
-                            onDoubleClicked: () => {
-                                noteEditLayer.noteEditLayerInteractionController.itemAdditionalTextDoubleClicked(noteEditLayer, noteDelegate.SequenceSlicerLoader.viewModel)
-                            }
-                        }
-                    }
-                }
-            }
-            Item {
-                id: slicerContainer
+                id: canvasContainer
                 anchors.fill: parent
 
                 readonly property color noteFillColor: noteEditLayer.trackListViewModel?.items[noteEditLayer.clipViewModel?.trackIndex ?? 0]?.color ?? Theme.accentColor
@@ -310,17 +289,20 @@ FocusScope {
                     clavierViewModel: noteEditLayer.clavierViewModel
                     selectionController: noteEditLayer.selectionController
                     rubberBandSelector: rubberBandSelector
-                    fillColor: slicerContainer.noteFillColor
-                    selectedFillColor: SFPalette.noteSelectedColorChange.apply(slicerContainer.noteFillColor)
+                    fillColor: canvasContainer.noteFillColor
+                    selectedFillColor: SFPalette.noteSelectedColorChange.apply(canvasContainer.noteFillColor)
                     selectedBorderColor: Theme.foregroundPrimaryColor
                     overlappedBorderColor: (noteEditLayer.noteEditLayerInteractionController?.warnOfOverlappingNotes ?? true) ? Theme.warningColor : "transparent"
                     textColor: Theme.foregroundPrimaryColor
+                    additionalTextColor: Theme.foregroundSecondaryColor
+                    highlightedAdditionalTextColor: canvasContainer.noteFillColor
                     font: Theme.font
                     active: noteEditLayer.active
                     transparentDisplay: noteEditLayer.transparentDisplay
                     thumbnailDisplay: noteEditLayer.thumbnailDisplay
                     editScopeFocused: noteEditLayer.selectionController?.editScopeFocused ?? false
                     lyricEditingItem: lyricEditPopup.visible ? lyricEditPopup.model : null
+                    additionalTextEditingItem: additionalTextEditPopup.visible ? additionalTextEditPopup.model : null
                     viewportWidth: noteEditLayer.width
                     viewportHeight: editArea.height
                     shortNoteThreshold: noteEditLayer.noteEditLayerInteractionController?.shortNoteThreshold ?? 0
@@ -336,13 +318,17 @@ FocusScope {
                     freezeCursorOnPress: true
                     hitResolver: (surfacePoint, localPoint) => noteCanvas.hitTest(localPoint, editArea)
                     handlerResolver: (event, hit) => {
+                        if (hit.hoverRegion === NoteEditLayerItem.AdditionalTextHitRegion)
+                            return null
                         if (hit.payload === EdgeDragHandler.LeftEdge)
                             return leftEdgeDragHandler
                         if (hit.payload === EdgeDragHandler.RightEdge)
                             return rightEdgeDragHandler
                         return scenePointerInput.resolveHandler(event, hit)
                     }
-                    cursorResolver: hit => (!hit.valid || hit.payload === -1) ? Qt.ArrowCursor : Qt.SizeHorCursor
+                    cursorResolver: hit => (!hit.valid
+                            || hit.hoverRegion === NoteEditLayerItem.AdditionalTextHitRegion
+                            || hit.payload === -1) ? Qt.ArrowCursor : Qt.SizeHorCursor
                     pressCursorResolver: cursorResolver
                 }
 
@@ -458,15 +444,18 @@ FocusScope {
             ItemPopupEdit {
                 id: additionalTextEditPopup
 
-                readonly property Item associatedItem: additionalTextSlicer.itemForModel(model)
+                readonly property rect associatedRect: {
+                    noteCanvas.geometryRevision
+                    return noteCanvas.additionalTextRect(model)
+                }
 
                 containerModel: noteEditLayer.noteSequenceViewModel
                 targetProperty: "additionalText"
                 radius: 2
-                width: associatedItem?.implicitWidth ?? 0
-                height: associatedItem?.height ?? 0
-                x: associatedItem?.x ?? 0
-                y: associatedItem?.y ?? 0
+                width: associatedRect.width
+                height: associatedRect.height
+                x: associatedRect.x
+                y: associatedRect.y
 
                 onEditPreviousRequested: noteEditLayer.noteEditLayerInteractionController?.additionalTextInPlaceEditOperationTriggered(noteEditLayer, model, NoteEditLayerInteractionController.MovePrevious)
                 onEditNextRequested: noteEditLayer.noteEditLayerInteractionController?.additionalTextInPlaceEditOperationTriggered(noteEditLayer, model, NoteEditLayerInteractionController.MoveNext)
@@ -474,10 +463,6 @@ FocusScope {
                 onEditEndRequested: noteEditLayer.noteEditLayerInteractionController?.additionalTextInPlaceEditOperationTriggered(noteEditLayer, model, NoteEditLayerInteractionController.MoveEnd)
                 onAccepted: noteEditLayer.noteEditLayerInteractionController?.additionalTextInPlaceEditOperationTriggered(noteEditLayer, model, NoteEditLayerInteractionController.CommitEditing)
                 onRejected: noteEditLayer.noteEditLayerInteractionController?.additionalTextInPlaceEditOperationTriggered(noteEditLayer, model, NoteEditLayerInteractionController.AbortEditing)
-                onVisibleChanged: () => {
-                    if (associatedItem)
-                        associatedItem.additionalTextEditing = visible
-                }
             }
         }
     }

@@ -3,5 +3,5 @@ import QtQuick
 
 import dev.sjimo.ScopicFlow.Internal as ScopicFlowInternal
 
-ScopicFlowInternal.ClipSequence {
+ScopicFlowInternal.RangeIndicatorSequence {
 }

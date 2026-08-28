@@ -10,14 +10,24 @@
 
 namespace sflow {
 
+    struct ParameterEditorGeometryVertex {
+        QPointF point;
+        float coverage = 1.0f;
+    };
+
+    struct ParameterEditorGeometry {
+        QVector<ParameterEditorGeometryVertex> vertices;
+        QVector<quint32> indices;
+    };
+
     struct ParameterEditorGeometrySnapshot {
-        QVector<QPointF> fill;
-        QVector<QPointF> solid;
-        QVector<QPointF> dashed;
-        QVector<QPointF> accent;
-        QVector<QPointF> anchors;
-        QVector<QPointF> selectedAnchors;
-        QVector<QPointF> reference;
+        ParameterEditorGeometry fill;
+        ParameterEditorGeometry solid;
+        ParameterEditorGeometry dashed;
+        ParameterEditorGeometry accent;
+        ParameterEditorGeometry anchors;
+        ParameterEditorGeometry selectedAnchors;
+        ParameterEditorGeometry reference;
     };
 
     class ParameterEditorQuickItemPrivate {

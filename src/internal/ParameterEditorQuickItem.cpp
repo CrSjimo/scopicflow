@@ -6,8 +6,10 @@
 #include <limits>
 #include <numbers>
 
-#include <QSGFlatColorMaterial>
+#include <QQuickWindow>
+#include <QSGGeometry>
 #include <QSGGeometryNode>
+#include <QSGVertexColorMaterial>
 #include <QSet>
 
 #include <ScopicFlowCore/AnchorParameterViewModel.h>
@@ -27,6 +29,42 @@ namespace sflow {
         constexpr double anchorRadius = 4.0;
         constexpr double selectedAnchorRadius = 6.0;
         constexpr int circleSegments = 12;
+
+        struct RasterMetrics {
+            double devicePixelRatio = 1.0;
+            double xScale = 1.0;
+            double xPhase = 0.0;
+            double antialiasWidth = 1.0;
+        };
+
+        RasterMetrics rasterMetricsForItem(const QQuickItem *item) {
+            RasterMetrics metrics;
+            if (item->window()) {
+                metrics.devicePixelRatio = item->window()->effectiveDevicePixelRatio();
+            }
+            if (!std::isfinite(metrics.devicePixelRatio) || metrics.devicePixelRatio <= 0.0) {
+                metrics.devicePixelRatio = 1.0;
+            }
+
+            const QPointF sceneOrigin = item->mapToScene(QPointF());
+            const QPointF sceneX = item->mapToScene(QPointF(1.0, 0.0)) - sceneOrigin;
+            const QPointF sceneY = item->mapToScene(QPointF(0.0, 1.0)) - sceneOrigin;
+            metrics.xScale = std::hypot(sceneX.x(), sceneX.y());
+            const double yScale = std::hypot(sceneY.x(), sceneY.y());
+            if (!std::isfinite(metrics.xScale) || metrics.xScale <= 0.0) {
+                metrics.xScale = 1.0;
+            }
+            const double validYScale = std::isfinite(yScale) && yScale > 0.0 ? yScale : 1.0;
+            const QPointF sceneXAxis = sceneX / metrics.xScale;
+            metrics.xPhase = QPointF::dotProduct(sceneOrigin, sceneXAxis) * metrics.devicePixelRatio;
+            if (!std::isfinite(metrics.xPhase)) {
+                metrics.xPhase = 0.0;
+            } else {
+                metrics.xPhase -= std::floor(metrics.xPhase);
+            }
+            metrics.antialiasWidth = 1.0 / (metrics.devicePixelRatio * std::sqrt(metrics.xScale * validYScale));
+            return metrics;
+        }
 
         int boundedFloorPosition(double position) {
             if (!std::isfinite(position) || position <= 0.0) {
@@ -79,32 +117,78 @@ namespace sflow {
             NodeCount,
         };
 
-        void appendTriangle(QVector<QPointF> &geometry, const QPointF &a, const QPointF &b, const QPointF &c) {
-            geometry.append(a);
-            geometry.append(b);
-            geometry.append(c);
+        quint32 appendVertex(ParameterEditorGeometry &geometry,
+                             const QPointF &point,
+                             float coverage) {
+            const auto index = static_cast<quint32>(geometry.vertices.size());
+            geometry.vertices.append({point, coverage});
+            return index;
         }
 
-        void appendLineQuad(QVector<QPointF> &geometry, const QPointF &a, const QPointF &b, double width) {
+        void appendQuadIndices(ParameterEditorGeometry &geometry,
+                               quint32 a,
+                               quint32 b,
+                               quint32 c,
+                               quint32 d) {
+            geometry.indices.append(a);
+            geometry.indices.append(b);
+            geometry.indices.append(c);
+            geometry.indices.append(c);
+            geometry.indices.append(b);
+            geometry.indices.append(d);
+        }
+
+        void appendLineQuad(ParameterEditorGeometry &geometry,
+                            const QPointF &a,
+                            const QPointF &b,
+                            double width,
+                            double antialiasWidth) {
             const QPointF direction = b - a;
             const double length = std::hypot(direction.x(), direction.y());
             if (qFuzzyIsNull(length)) {
                 return;
             }
-            const QPointF normal(-direction.y() * width * 0.5 / length,
-                                 direction.x() * width * 0.5 / length);
-            const QPointF a1 = a + normal;
-            const QPointF a2 = a - normal;
-            const QPointF b1 = b + normal;
-            const QPointF b2 = b - normal;
-            appendTriangle(geometry, a1, a2, b1);
-            appendTriangle(geometry, b1, a2, b2);
+            const QPointF unitNormal(-direction.y() / length, direction.x() / length);
+            const double fringeHalfWidth = qMax(0.0, antialiasWidth * 0.5);
+            const double innerHalfWidth = qMax(0.0, width * 0.5 - fringeHalfWidth);
+            const double outerHalfWidth = width * 0.5 + fringeHalfWidth;
+            const QPointF innerNormal = unitNormal * innerHalfWidth;
+            const QPointF outerNormal = unitNormal * outerHalfWidth;
+
+            const QPointF innerPositiveA = a + innerNormal;
+            const QPointF innerNegativeA = a - innerNormal;
+            const QPointF innerPositiveB = b + innerNormal;
+            const QPointF innerNegativeB = b - innerNormal;
+            const quint32 outerPositiveA = appendVertex(geometry, a + outerNormal, 0.0f);
+            const quint32 innerPositiveAIndex = appendVertex(geometry, innerPositiveA, 1.0f);
+            const quint32 innerNegativeAIndex = appendVertex(geometry, innerNegativeA, 1.0f);
+            const quint32 outerNegativeA = appendVertex(geometry, a - outerNormal, 0.0f);
+            const quint32 outerPositiveB = appendVertex(geometry, b + outerNormal, 0.0f);
+            const quint32 innerPositiveBIndex = appendVertex(geometry, innerPositiveB, 1.0f);
+            const quint32 innerNegativeBIndex = appendVertex(geometry, innerNegativeB, 1.0f);
+            const quint32 outerNegativeB = appendVertex(geometry, b - outerNormal, 0.0f);
+            appendQuadIndices(geometry,
+                              outerPositiveA,
+                              innerPositiveAIndex,
+                              outerPositiveB,
+                              innerPositiveBIndex);
+            appendQuadIndices(geometry,
+                              innerPositiveAIndex,
+                              innerNegativeAIndex,
+                              innerPositiveBIndex,
+                              innerNegativeBIndex);
+            appendQuadIndices(geometry,
+                              innerNegativeAIndex,
+                              outerNegativeA,
+                              innerNegativeBIndex,
+                              outerNegativeB);
         }
 
-        void appendDashedLine(QVector<QPointF> &geometry,
+        void appendDashedLine(ParameterEditorGeometry &geometry,
                               const QPointF &a,
                               const QPointF &b,
                               double width,
+                              double antialiasWidth,
                               double &phase) {
             const QPointF delta = b - a;
             const double length = std::hypot(delta.x(), delta.y());
@@ -122,92 +206,153 @@ namespace sflow {
                     appendLineQuad(geometry,
                                    a + delta * (offset / length),
                                    a + delta * (endOffset / length),
-                                   width);
+                                   width,
+                                   antialiasWidth);
                 }
                 offset = endOffset;
             }
             phase = std::fmod(phase + length, patternLength);
         }
 
-        void appendFillQuad(QVector<QPointF> &geometry,
+        void appendFillQuad(ParameterEditorGeometry &geometry,
                             const QPointF &a,
                             const QPointF &b,
-                            double baseline) {
+                            double baseline,
+                            double antialiasWidth) {
+            if (qFuzzyCompare(a.y() + 1.0, baseline + 1.0)
+                && qFuzzyCompare(b.y() + 1.0, baseline + 1.0)) {
+                return;
+            }
             const QPointF bottomA(a.x(), baseline);
             const QPointF bottomB(b.x(), baseline);
-            appendTriangle(geometry, a, bottomA, b);
-            appendTriangle(geometry, b, bottomA, bottomB);
+            const QPointF direction = b - a;
+            const double length = std::hypot(direction.x(), direction.y());
+            if (qFuzzyIsNull(length)) {
+                return;
+            }
+            QPointF inwardNormal(-direction.y() / length, direction.x() / length);
+            const QPointF curveCenter = (a + b) * 0.5;
+            const QPointF baselineCenter(curveCenter.x(), baseline);
+            if (QPointF::dotProduct(baselineCenter - curveCenter, inwardNormal) < 0.0) {
+                inwardNormal = -inwardNormal;
+            }
+            const QPointF fringeNormal = inwardNormal * qMax(0.0, antialiasWidth * 0.5);
+            const QPointF innerA = a + fringeNormal;
+            const QPointF innerB = b + fringeNormal;
+            const QPointF outerA = a - fringeNormal;
+            const QPointF outerB = b - fringeNormal;
+            const quint32 outerAIndex = appendVertex(geometry, outerA, 0.0f);
+            const quint32 innerAIndex = appendVertex(geometry, innerA, 1.0f);
+            const quint32 bottomAIndex = appendVertex(geometry, bottomA, 1.0f);
+            const quint32 outerBIndex = appendVertex(geometry, outerB, 0.0f);
+            const quint32 innerBIndex = appendVertex(geometry, innerB, 1.0f);
+            const quint32 bottomBIndex = appendVertex(geometry, bottomB, 1.0f);
+            appendQuadIndices(geometry, outerAIndex, innerAIndex, outerBIndex, innerBIndex);
+            appendQuadIndices(geometry, innerAIndex, bottomAIndex, innerBIndex, bottomBIndex);
         }
 
-        void appendCircle(QVector<QPointF> &geometry, const QPointF &center, double radius) {
-            for (int i = 0; i < circleSegments; ++i) {
-                const double angle1 = 2.0 * std::numbers::pi * i / circleSegments;
-                const double angle2 = 2.0 * std::numbers::pi * (i + 1) / circleSegments;
-                appendTriangle(geometry,
-                               center,
-                               center + QPointF(std::cos(angle1) * radius, std::sin(angle1) * radius),
-                               center + QPointF(std::cos(angle2) * radius, std::sin(angle2) * radius));
+        void appendAntialiasedPolygon(ParameterEditorGeometry &geometry,
+                                      const QPointF &center,
+                                      const QVector<QPointF> &unitPerimeter,
+                                      double radius,
+                                      double antialiasWidth) {
+            const double innerRadius = qMax(0.0, radius - antialiasWidth * 0.5);
+            const double outerRadius = radius + antialiasWidth * 0.5;
+            const quint32 centerIndex = appendVertex(geometry, center, 1.0f);
+            QVector<quint32> innerIndices;
+            QVector<quint32> outerIndices;
+            innerIndices.reserve(unitPerimeter.size());
+            outerIndices.reserve(unitPerimeter.size());
+            for (const auto &point : unitPerimeter) {
+                innerIndices.append(appendVertex(geometry, center + point * innerRadius, 1.0f));
+                outerIndices.append(appendVertex(geometry, center + point * outerRadius, 0.0f));
+            }
+            for (qsizetype i = 0; i < unitPerimeter.size(); ++i) {
+                const qsizetype next = (i + 1) % unitPerimeter.size();
+                geometry.indices.append(centerIndex);
+                geometry.indices.append(innerIndices.at(i));
+                geometry.indices.append(innerIndices.at(next));
+                appendQuadIndices(geometry,
+                                  innerIndices.at(i),
+                                  outerIndices.at(i),
+                                  innerIndices.at(next),
+                                  outerIndices.at(next));
             }
         }
 
-        void appendDiamond(QVector<QPointF> &geometry, const QPointF &center, double radius) {
-            const double vertexRadius = radius * std::numbers::sqrt2;
-            const QPointF top(center.x(), center.y() - vertexRadius);
-            const QPointF right(center.x() + vertexRadius, center.y());
-            const QPointF bottom(center.x(), center.y() + vertexRadius);
-            const QPointF left(center.x() - vertexRadius, center.y());
-            appendTriangle(geometry, top, right, bottom);
-            appendTriangle(geometry, top, bottom, left);
-        }
-
-        void appendSquare(QVector<QPointF> &geometry, const QPointF &center, double radius) {
-            const QPointF topLeft(center.x() - radius, center.y() - radius);
-            const QPointF topRight(center.x() + radius, center.y() - radius);
-            const QPointF bottomRight(center.x() + radius, center.y() + radius);
-            const QPointF bottomLeft(center.x() - radius, center.y() + radius);
-            appendTriangle(geometry, topLeft, topRight, bottomRight);
-            appendTriangle(geometry, topLeft, bottomRight, bottomLeft);
-        }
-
-        void appendAnchor(QVector<QPointF> &geometry,
+        void appendAnchor(ParameterEditorGeometry &geometry,
                           const QPointF &center,
                           double radius,
-                          ParameterAnchorViewModel::InterpolationMode interpolationMode) {
+                          ParameterAnchorViewModel::InterpolationMode interpolationMode,
+                          double antialiasWidth) {
+            QVector<QPointF> perimeter;
             switch (interpolationMode) {
                 case ParameterAnchorViewModel::Hermite:
-                    appendCircle(geometry, center, radius);
+                    perimeter.reserve(circleSegments);
+                    for (int i = 0; i < circleSegments; ++i) {
+                        const double angle = 2.0 * std::numbers::pi * i / circleSegments;
+                        perimeter.append(QPointF(std::cos(angle), std::sin(angle)));
+                    }
                     break;
                 case ParameterAnchorViewModel::Linear:
-                    appendDiamond(geometry, center, radius);
+                    perimeter = {
+                        QPointF(0.0, -std::numbers::sqrt2),
+                        QPointF(std::numbers::sqrt2, 0.0),
+                        QPointF(0.0, std::numbers::sqrt2),
+                        QPointF(-std::numbers::sqrt2, 0.0),
+                    };
                     break;
                 case ParameterAnchorViewModel::None:
-                    appendSquare(geometry, center, radius);
+                    perimeter = {
+                        QPointF(-1.0, -1.0),
+                        QPointF(1.0, -1.0),
+                        QPointF(1.0, 1.0),
+                        QPointF(-1.0, 1.0),
+                    };
                     break;
             }
+            appendAntialiasedPolygon(geometry, center, perimeter, radius, antialiasWidth);
         }
 
         QSGGeometryNode *createGeometryNode() {
             auto *node = new QSGGeometryNode;
-            auto *geometry = new QSGGeometry(QSGGeometry::defaultAttributes_Point2D(), 0);
+            auto *geometry = new QSGGeometry(QSGGeometry::defaultAttributes_ColoredPoint2D(),
+                                             0,
+                                             0,
+                                             QSGGeometry::UnsignedIntType);
             geometry->setDrawingMode(QSGGeometry::DrawTriangles);
+            geometry->setVertexDataPattern(QSGGeometry::DynamicPattern);
+            geometry->setIndexDataPattern(QSGGeometry::DynamicPattern);
             node->setGeometry(geometry);
             node->setFlag(QSGNode::OwnsGeometry);
-            auto *material = new QSGFlatColorMaterial;
+            auto *material = new QSGVertexColorMaterial;
             node->setMaterial(material);
             node->setFlag(QSGNode::OwnsMaterial);
             return node;
         }
 
-        void updateGeometryNode(QSGGeometryNode *node, const QVector<QPointF> &points, const QColor &color) {
+        void updateGeometryNode(QSGGeometryNode *node,
+                                const ParameterEditorGeometry &source,
+                                const QColor &color) {
             auto *geometry = node->geometry();
-            geometry->allocate(static_cast<int>(points.size()));
-            auto *vertices = geometry->vertexDataAsPoint2D();
-            for (int i = 0; i < points.size(); ++i) {
-                vertices[i].set(static_cast<float>(points.at(i).x()), static_cast<float>(points.at(i).y()));
+            geometry->allocate(static_cast<int>(source.vertices.size()),
+                               static_cast<int>(source.indices.size()));
+            auto *vertices = geometry->vertexDataAsColoredPoint2D();
+            for (int i = 0; i < source.vertices.size(); ++i) {
+                const auto &point = source.vertices.at(i);
+                const int alpha = qRound(color.alpha() * std::clamp(point.coverage, 0.0f, 1.0f));
+                const int red = qRound(color.red() * alpha / 255.0);
+                const int green = qRound(color.green() * alpha / 255.0);
+                const int blue = qRound(color.blue() * alpha / 255.0);
+                vertices[i].set(static_cast<float>(point.point.x()),
+                                static_cast<float>(point.point.y()),
+                                red,
+                                green,
+                                blue,
+                                alpha);
             }
-            auto *material = static_cast<QSGFlatColorMaterial *>(node->material());
-            material->setColor(color);
-            node->markDirty(QSGNode::DirtyGeometry | QSGNode::DirtyMaterial);
+            std::copy(source.indices.cbegin(), source.indices.cend(), geometry->indexDataAsUInt());
+            node->markDirty(QSGNode::DirtyGeometry);
         }
 
         QVariant preferredValue(const AnchorParameterViewModel *anchorViewModel,
@@ -348,12 +493,24 @@ namespace sflow {
             return;
         }
 
+        const RasterMetrics rasterMetrics = rasterMetricsForItem(q);
         QVector<double> sampleXs;
-        const int integerWidth = static_cast<int>(std::ceil(q->width()));
-        sampleXs.reserve(integerWidth + 16);
-        for (int x = 0; x <= integerWidth; ++x) {
-            sampleXs.append(std::min<double>(x, q->width()));
+        const double physicalWidth = q->width() * rasterMetrics.devicePixelRatio * rasterMetrics.xScale;
+        if (!std::isfinite(physicalWidth) || physicalWidth > std::numeric_limits<int>::max() - 1.0) {
+            return;
         }
+        const int rasterPointCount = static_cast<int>(std::ceil(physicalWidth));
+        sampleXs.reserve(rasterPointCount + 16);
+        sampleXs.append(0.0);
+        const double firstDeviceX = std::ceil(rasterMetrics.xPhase);
+        const double localUnitsPerDevicePixel = 1.0 / (rasterMetrics.devicePixelRatio * rasterMetrics.xScale);
+        for (int i = 0; i <= rasterPointCount; ++i) {
+            const double x = (firstDeviceX + i - rasterMetrics.xPhase) * localUnitsPerDevicePixel;
+            if (x > 0.0 && x < q->width()) {
+                sampleXs.append(x);
+            }
+        }
+        sampleXs.append(q->width());
         const double visibleStart = positionForX(0.0);
         const double visibleEnd = positionForX(q->width());
         const auto addAnchorBreakpoints = [&](AnchorParameterViewModel *viewModel) {
@@ -380,6 +537,40 @@ namespace sflow {
         };
         addAnchorBreakpoints(anchorParameterViewModel);
         addAnchorBreakpoints(anchorTransformParameterViewModel);
+        const auto addFreeBreakpoints = [&] {
+            if ((!freeParameterViewModel && !originalParameterViewModel && !freeTransformParameterViewModel)
+                || visibleEnd < 0.0) {
+                return;
+            }
+            const double projectedStep = FreeParameterViewModel::step()
+                * timeLayoutViewModel->pixelDensity()
+                * rasterMetrics.devicePixelRatio
+                * rasterMetrics.xScale;
+            if (!std::isfinite(projectedStep) || projectedStep < 0.5) {
+                return;
+            }
+            const double firstScaledPosition = std::ceil(std::max(0.0, visibleStart) / FreeParameterViewModel::step());
+            const double lastScaledPosition = std::floor(std::max(0.0, visibleEnd) / FreeParameterViewModel::step());
+            if (firstScaledPosition > lastScaledPosition
+                || firstScaledPosition > std::numeric_limits<int>::max()) {
+                return;
+            }
+            const int firstIndex = static_cast<int>(firstScaledPosition);
+            const int lastIndex = static_cast<int>(std::min<double>(lastScaledPosition,
+                                                                    std::numeric_limits<int>::max()));
+            const qsizetype mergeStart = sampleXs.size();
+            for (int index = firstIndex;; ++index) {
+                const double x = xForPosition(static_cast<double>(index) * FreeParameterViewModel::step());
+                if (x > 0.0 && x < q->width()) {
+                    sampleXs.append(x);
+                }
+                if (index == lastIndex) {
+                    break;
+                }
+            }
+            std::inplace_merge(sampleXs.begin(), sampleXs.begin() + mergeStart, sampleXs.end());
+        };
+        addFreeBreakpoints();
         sampleXs.erase(std::unique(sampleXs.begin(), sampleXs.end(), [](double a, double b) {
             return qFuzzyCompare(a + 1.0, b + 1.0);
         }), sampleXs.end());
@@ -463,17 +654,30 @@ namespace sflow {
             bool currentSegmentDashed = false;
             if (previousFinal.valid && currentFinal.valid) {
                 if (fillMode != ParameterEditorQuickItem::NoFill) {
-                    appendFillQuad(snapshot.fill, previousFinal.point, currentFinal.point, fillY);
+                    appendFillQuad(snapshot.fill,
+                                   previousFinal.point,
+                                   currentFinal.point,
+                                   fillY,
+                                   rasterMetrics.antialiasWidth);
                 }
                 const bool fallbackSegment = previousFinal.source != EditedSource
                     && currentFinal.source != EditedSource;
                 if (!fallbackSegment || fallbackDisplayMode == ParameterEditorQuickItem::CurveSolid) {
-                    appendLineQuad(snapshot.solid, previousFinal.point, currentFinal.point, lineWidth);
+                    appendLineQuad(snapshot.solid,
+                                   previousFinal.point,
+                                   currentFinal.point,
+                                   lineWidth,
+                                   rasterMetrics.antialiasWidth);
                 } else if (fallbackDisplayMode == ParameterEditorQuickItem::CurveDashed) {
                     if (!previousSegmentDashed) {
                         dashedPhase = 0.0;
                     }
-                    appendDashedLine(snapshot.dashed, previousFinal.point, currentFinal.point, lineWidth, dashedPhase);
+                    appendDashedLine(snapshot.dashed,
+                                     previousFinal.point,
+                                     currentFinal.point,
+                                     lineWidth,
+                                     rasterMetrics.antialiasWidth,
+                                     dashedPhase);
                     currentSegmentDashed = true;
                 }
             }
@@ -484,7 +688,11 @@ namespace sflow {
             const bool overlayValid = overlayValue.isValid();
             const QPointF currentOverlay(x, overlayValid ? yForValue(overlayValue.toDouble()) : 0.0);
             if (previousOverlayValid && overlayValid) {
-                appendLineQuad(snapshot.accent, previousOverlay, currentOverlay, accentLineWidth);
+                appendLineQuad(snapshot.accent,
+                               previousOverlay,
+                               currentOverlay,
+                               accentLineWidth,
+                               rasterMetrics.antialiasWidth);
             }
             previousOverlay = currentOverlay;
             previousOverlayValid = overlayValid;
@@ -494,7 +702,8 @@ namespace sflow {
             appendLineQuad(snapshot.reference,
                            QPointF(0.0, yForValue(referenceBaseline)),
                            QPointF(q->width(), yForValue(referenceBaseline)),
-                           lineWidth);
+                           lineWidth,
+                           rasterMetrics.antialiasWidth);
         }
 
         if (editLayer == ParameterEditorQuickItem::AnchorLayer && anchorParameterViewModel && visibleEnd >= 0.0) {
@@ -515,9 +724,14 @@ namespace sflow {
                     appendAnchor(snapshot.selectedAnchors,
                                  center,
                                  selectedAnchorRadius,
-                                 item->interpolationMode());
+                                 item->interpolationMode(),
+                                 rasterMetrics.antialiasWidth);
                 }
-                appendAnchor(snapshot.anchors, center, anchorRadius, item->interpolationMode());
+                appendAnchor(snapshot.anchors,
+                             center,
+                             anchorRadius,
+                             item->interpolationMode(),
+                             rasterMetrics.antialiasWidth);
             }
         }
     }
@@ -532,6 +746,14 @@ namespace sflow {
     }
 
     ParameterEditorQuickItem::~ParameterEditorQuickItem() = default;
+
+    void ParameterEditorQuickItem::itemChange(ItemChange change, const ItemChangeData &value) {
+        QQuickItem::itemChange(change, value);
+        if ((change == ItemTransformHasChanged || change == ItemDevicePixelRatioHasChanged) && !d_ptr.isNull()) {
+            Q_D(ParameterEditorQuickItem);
+            d->invalidate();
+        }
+    }
 
     FreeParameterViewModel *ParameterEditorQuickItem::freeParameterViewModel() const {
         Q_D(const ParameterEditorQuickItem);

@@ -160,6 +160,7 @@ namespace sflow {
         void selectedAnchorColorChanged();
 
     protected:
+        void itemChange(ItemChange change, const ItemChangeData &value) override;
         void updatePolish() override;
         QSGNode *updatePaintNode(QSGNode *oldNode, UpdatePaintNodeData *) override;
 

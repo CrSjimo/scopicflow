@@ -9,10 +9,16 @@
 #include <utility>
 
 #include <QGuiApplication>
+#include <QPainter>
+#include <QPainterPath>
+#include <QQuickWindow>
 #include <QSet>
 #include <QSGFlatColorMaterial>
 #include <QSGGeometryNode>
+#include <QSGRendererInterface>
 #include <QStyleHints>
+
+#include <SVSCraftQuick/SoftwarePainterNode.h>
 
 #include <ScopicFlowCore/DynamicMixingAnchorViewModel.h>
 #include <ScopicFlowCore/DynamicMixingViewModel.h>
@@ -38,6 +44,112 @@ namespace sflow {
             HandleNode,
             RootNodeCount,
         };
+
+        class DynamicMixingHardwareNode : public QSGNode {
+        };
+
+        QPainterPath trianglePath(const QVector<QPointF> &points) {
+            QPainterPath path;
+            path.setFillRule(Qt::WindingFill);
+            for (qsizetype i = 0; i + 2 < points.size(); i += 3) {
+                path.moveTo(points.at(i));
+                path.lineTo(points.at(i + 1));
+                path.lineTo(points.at(i + 2));
+                path.closeSubpath();
+            }
+            return path;
+        }
+
+        class DynamicMixingSoftwareNode : public SVS::SoftwarePainterNode {
+        public:
+            explicit DynamicMixingSoftwareNode(QQuickItem *item) : SoftwarePainterNode(item) {
+            }
+
+            void synchronize(const DynamicMixingEditorGeometrySnapshot &snapshot,
+                             quint64 revision,
+                             const QList<QColor> &colors,
+                             const QColor &boundaryLineColor,
+                             const QColor &anchorLineColor,
+                             const QColor &selectedAnchorLineColor,
+                             const QColor &selectedHandleBorderColor,
+                             const QColor &handleColor) {
+                if (m_revision != revision) {
+                    m_fillPaths.clear();
+                    m_fillPaths.reserve(snapshot.fills.size());
+                    for (const auto &fill : snapshot.fills) {
+                        m_fillPaths.append(trianglePath(fill));
+                    }
+                    m_boundaryPath = trianglePath(snapshot.boundaries);
+                    m_anchorLinePath = trianglePath(snapshot.anchorLines);
+                    m_selectedAnchorLinePath = trianglePath(snapshot.selectedAnchorLines);
+                    m_selectedHandleBorderPath = trianglePath(snapshot.selectedHandleBorders);
+                    m_handlePath = trianglePath(snapshot.handles);
+                    QRectF bounds;
+                    for (const auto &path : std::as_const(m_fillPaths)) {
+                        bounds |= path.boundingRect();
+                    }
+                    bounds |= m_boundaryPath.boundingRect();
+                    bounds |= m_anchorLinePath.boundingRect();
+                    bounds |= m_selectedAnchorLinePath.boundingRect();
+                    bounds |= m_selectedHandleBorderPath.boundingRect();
+                    bounds |= m_handlePath.boundingRect();
+                    if (!bounds.isEmpty()) {
+                        bounds.adjust(-0.5, -0.5, 0.5, 0.5);
+                    }
+                    setBoundingRect(bounds);
+                    m_revision = revision;
+                    markDirty(QSGNode::DirtyGeometry);
+                }
+                if (m_colors != colors
+                    || m_boundaryLineColor != boundaryLineColor
+                    || m_anchorLineColor != anchorLineColor
+                    || m_selectedAnchorLineColor != selectedAnchorLineColor
+                    || m_selectedHandleBorderColor != selectedHandleBorderColor
+                    || m_handleColor != handleColor) {
+                    m_colors = colors;
+                    m_boundaryLineColor = boundaryLineColor;
+                    m_anchorLineColor = anchorLineColor;
+                    m_selectedAnchorLineColor = selectedAnchorLineColor;
+                    m_selectedHandleBorderColor = selectedHandleBorderColor;
+                    m_handleColor = handleColor;
+                    markDirty(QSGNode::DirtyMaterial);
+                }
+            }
+
+        protected:
+            void paint(QPainter *painter) override {
+                painter->setRenderHint(QPainter::Antialiasing);
+                painter->setPen(Qt::NoPen);
+                for (qsizetype i = 0; i < m_fillPaths.size() && i < m_colors.size(); ++i) {
+                    painter->fillPath(m_fillPaths.at(i), m_colors.at(i));
+                }
+                painter->fillPath(m_boundaryPath, m_boundaryLineColor);
+                painter->fillPath(m_anchorLinePath, m_anchorLineColor);
+                painter->fillPath(m_selectedAnchorLinePath, m_selectedAnchorLineColor);
+                painter->fillPath(m_selectedHandleBorderPath, m_selectedHandleBorderColor);
+                painter->fillPath(m_handlePath, m_handleColor);
+            }
+
+        private:
+            QVector<QPainterPath> m_fillPaths;
+            QPainterPath m_boundaryPath;
+            QPainterPath m_anchorLinePath;
+            QPainterPath m_selectedAnchorLinePath;
+            QPainterPath m_selectedHandleBorderPath;
+            QPainterPath m_handlePath;
+            QList<QColor> m_colors;
+            QColor m_boundaryLineColor;
+            QColor m_anchorLineColor;
+            QColor m_selectedAnchorLineColor;
+            QColor m_selectedHandleBorderColor;
+            QColor m_handleColor;
+            quint64 m_revision = std::numeric_limits<quint64>::max();
+        };
+
+        bool usesSoftwareRenderer(const QQuickItem *item) {
+            return item->window()
+                && item->window()->rendererInterface()->graphicsApi() == QSGRendererInterface::Software;
+        }
 
         int boundedFloorPosition(double position) {
             if (!std::isfinite(position) || position <= 0.0) {
@@ -319,6 +431,7 @@ namespace sflow {
     void DynamicMixingEditorQuickItemPrivate::rebuildGeometry() {
         Q_Q(DynamicMixingEditorQuickItem);
         snapshot = {};
+        ++snapshotRevision;
         if (!dynamicMixingViewModel || !timeViewModel || !timeLayoutViewModel
             || timeLayoutViewModel->pixelDensity() <= 0.0 || q->width() <= 0.0
             || q->height() <= 0.0 || dynamicMixingViewModel->voiceCount() < 1) {
@@ -794,9 +907,26 @@ namespace sflow {
     QSGNode *DynamicMixingEditorQuickItem::updatePaintNode(QSGNode *oldNode,
                                                            UpdatePaintNodeData *) {
         Q_D(DynamicMixingEditorQuickItem);
-        auto *root = oldNode;
+        if (usesSoftwareRenderer(this)) {
+            auto *node = dynamic_cast<DynamicMixingSoftwareNode *>(oldNode);
+            if (!node) {
+                delete oldNode;
+                node = new DynamicMixingSoftwareNode(this);
+            }
+            node->synchronize(d->snapshot,
+                              d->snapshotRevision,
+                              d->colors,
+                              d->boundaryLineColor,
+                              d->anchorLineColor,
+                              d->selectedAnchorLineColor,
+                              d->selectedHandleBorderColor,
+                              d->handleColor);
+            return node;
+        }
+        auto *root = dynamic_cast<DynamicMixingHardwareNode *>(oldNode);
         if (!root) {
-            root = new QSGNode;
+            delete oldNode;
+            root = new DynamicMixingHardwareNode;
             root->appendChildNode(new QSGNode);
             for (int i = 1; i < RootNodeCount; ++i) {
                 root->appendChildNode(createGeometryNode());

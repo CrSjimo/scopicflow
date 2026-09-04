@@ -3,8 +3,12 @@
 
 #include <cmath>
 
+#include <QQuickWindow>
+#include <QSGRectangleNode>
+#include <QSGRendererInterface>
 #include <QSGSimpleRectNode>
 #include <QSGTextNode>
+#include <QSGTransformNode>
 #include <QTextLayout>
 
 #include <SVSCraftCore/MusicTimeline.h>
@@ -15,6 +19,77 @@
 #include <ScopicFlowCore/TimeLayoutViewModel.h>
 
 namespace sflow {
+
+    namespace {
+
+        class TimelineScaleRootNode : public QSGTransformNode {
+        public:
+            explicit TimelineScaleRootNode(bool software) : software(software) {
+            }
+
+            bool software = false;
+        };
+
+        bool usesSoftwareRenderer(const QQuickItem *item) {
+            return item->window()
+                && item->window()->rendererInterface()->graphicsApi() == QSGRendererInterface::Software;
+        }
+
+        void ensureRectangleNodeCount(QSGNode *container, int count, QQuickWindow *window) {
+            while (container->childCount() < count) {
+                auto *node = window->createRectangleNode();
+                node->setFlag(QSGNode::OwnedByParent);
+                container->appendChildNode(node);
+            }
+            while (container->childCount() > count) {
+                auto *node = container->lastChild();
+                container->removeChildNode(node);
+                delete node;
+            }
+        }
+
+        template<typename Key>
+        void trimDetachedTextNodes(QHash<Key, QSharedPointer<QSGTextNode>> &nodes, qsizetype maximumSize) {
+            if (nodes.size() <= maximumSize) {
+                return;
+            }
+            for (auto it = nodes.begin(); it != nodes.end() && nodes.size() > maximumSize;) {
+                if (!it.value()->parent()) {
+                    it = nodes.erase(it);
+                } else {
+                    ++it;
+                }
+            }
+        }
+
+        void synchronizeChildOrder(QSGNode *container, const QList<QSGNode *> &desiredNodes) {
+            for (int index = 0; index < desiredNodes.size(); ++index) {
+                auto *desiredNode = desiredNodes.at(index);
+                auto *currentNode = index < container->childCount()
+                    ? container->childAtIndex(index)
+                    : nullptr;
+                if (currentNode == desiredNode) {
+                    continue;
+                }
+                if (desiredNode->parent()) {
+                    desiredNode->parent()->removeChildNode(desiredNode);
+                }
+                if (currentNode) {
+                    container->insertChildNodeBefore(desiredNode, currentNode);
+                } else {
+                    container->appendChildNode(desiredNode);
+                }
+            }
+            while (container->childCount() > desiredNodes.size()) {
+                auto *staleNode = container->lastChild();
+                container->removeChildNode(staleNode);
+                if (staleNode->flags().testFlag(QSGNode::OwnedByParent)) {
+                    delete staleNode;
+                }
+            }
+        }
+
+    }
 
     ScaleSGNode::~ScaleSGNode() = default;
     QTextLayout *ScaleSGNode::createTextLayoutForBarNumber(int bar) {
@@ -39,8 +114,9 @@ namespace sflow {
         if (layout && layout->font() == d->font && textNode && d->q_ptr->window() == window && textNode->color() == d->color) {
             return textNode.get();
         }
-        if (barNumberTextNodes.size() > 1024) {
-            barNumberTextNodes.clear();
+        trimDetachedTextNodes(barNumberTextNodes, 1024);
+        if (textNode && textNode->parent()) {
+            textNode->parent()->removeChildNode(textNode.get());
         }
         window = d->q_ptr->window();
         textNode.reset(window->createTextNode());
@@ -67,12 +143,23 @@ namespace sflow {
         timeSignatureTextLayouts.insert(k, layout);
         return layout.get();
     }
-    QSGTextNode *ScaleSGNode::createTextNodeForTimeSignature(int numerator, int denominator) {
-        auto textNode = window->createTextNode();
+    QSGTextNode *ScaleSGNode::createTextNodeForTimeSignature(int bar, int numerator, int denominator) {
+        const QString key = QStringLiteral("%1/%2/%3").arg(bar).arg(numerator).arg(denominator);
+        auto textNode = timeSignatureTextNodes.value(key);
+        if (textNode && d->q_ptr->window() == window && textNode->color() == d->color) {
+            return textNode.get();
+        }
+        trimDetachedTextNodes(timeSignatureTextNodes, 1024);
+        if (textNode && textNode->parent()) {
+            textNode->parent()->removeChildNode(textNode.get());
+        }
+        window = d->q_ptr->window();
+        textNode.reset(window->createTextNode());
         textNode->setColor(d->color);
         textNode->addTextLayout({}, createTextLayoutForTimeSignature(numerator, denominator));
-        textNode->setFlag(QSGNode::OwnedByParent, true);
-        return textNode;
+        textNode->setFlag(QSGNode::OwnedByParent, false);
+        timeSignatureTextNodes.insert(key, textNode);
+        return textNode.get();
     }
     void TimelineScaleQuickItemPrivate::updateTimeline() {
         Q_Q(TimelineScaleQuickItem);
@@ -193,25 +280,31 @@ namespace sflow {
 
     QSGNode *TimelineScaleQuickItem::updatePaintNode(QSGNode *node, UpdatePaintNodeData *) {
         Q_D(TimelineScaleQuickItem);
+        const bool software = usesSoftwareRenderer(this);
         ScaleSGNode *scaleNode;
-        QSGGeometryNode *lineNode;
-        QSGFlatColorMaterial *material;
-        if (!node) {
-            node = new QSGNode;
+        auto *root = static_cast<TimelineScaleRootNode *>(node);
+        if (!root || root->software != software) {
+            delete root;
+            root = new TimelineScaleRootNode(software);
+            node = root;
             node->appendChildNode(scaleNode = new ScaleSGNode(d));
             scaleNode->setFlag(QSGNode::OwnedByParent);
-            lineNode = new QSGGeometryNode;
-            lineNode->setFlag(QSGNode::OwnedByParent);
-            material = new QSGFlatColorMaterial;
-            lineNode->setMaterial(material);
-            lineNode->setFlag(QSGNode::OwnsMaterial);
-            lineNode->setGeometry(new QSGGeometry(QSGGeometry::defaultAttributes_Point2D(), 2));
-            lineNode->setFlag(QSGNode::OwnsGeometry);
-            node->appendChildNode(lineNode);
+            if (software) {
+                auto *lineContainer = new QSGTransformNode;
+                lineContainer->setFlag(QSGNode::OwnedByParent);
+                node->appendChildNode(lineContainer);
+            } else {
+                auto *lineNode = new QSGGeometryNode;
+                lineNode->setFlag(QSGNode::OwnedByParent);
+                auto *material = new QSGFlatColorMaterial;
+                lineNode->setMaterial(material);
+                lineNode->setFlag(QSGNode::OwnsMaterial);
+                lineNode->setGeometry(new QSGGeometry(QSGGeometry::defaultAttributes_Point2D(), 2));
+                lineNode->setFlag(QSGNode::OwnsGeometry);
+                node->appendChildNode(lineNode);
+            }
         } else {
             scaleNode = static_cast<ScaleSGNode *>(node->childAtIndex(0));
-            lineNode = static_cast<QSGGeometryNode *>(node->childAtIndex(1));
-            material = static_cast<QSGFlatColorMaterial *>(lineNode->material());
         }
 
         if (!d->timeViewModel || !d->timeLayoutViewModel || !d->timeViewModel->timeline())
@@ -230,7 +323,7 @@ namespace sflow {
 
         QList<QPair<float, bool>> xList;
 
-        scaleNode->removeAllChildNodes();
+        QList<QSGNode *> desiredTextNodes;
 
         for (;; moveForward(musicTime, barScaleIntervalExp2, doDrawBeatScale)) {
             double deltaTick = musicTime.totalTick() - d->timeViewModel->start();
@@ -248,28 +341,47 @@ namespace sflow {
             QMatrix4x4 transform;
             transform.translate(x + 2, 6);
             textNode->setMatrix(transform);
-            scaleNode->appendChildNode(textNode);
+            desiredTextNodes.append(textNode);
 
             if (d->timeViewModel->timeline()->nearestBarWithTimeSignatureTo(musicTime.measure()) != musicTime.measure())
                 continue;
 
             auto timeSignature = d->timeViewModel->timeline()->timeSignatureAt(musicTime.measure());
-            textNode = scaleNode->createTextNodeForTimeSignature(timeSignature.numerator(), timeSignature.denominator());
+            textNode = scaleNode->createTextNodeForTimeSignature(musicTime.measure(), timeSignature.numerator(), timeSignature.denominator());
             transform.translate(8 + barNumberLayout->maximumWidth(), 0);
             textNode->setMatrix(transform);
-            scaleNode->appendChildNode(textNode);
+            desiredTextNodes.append(textNode);
         }
-        auto lineGeometry = new QSGGeometry(QSGGeometry::defaultAttributes_Point2D(), xList.size() * 2);
-        lineGeometry->setDrawingMode(QSGGeometry::DrawLines);
-        lineGeometry->setLineWidth(1);
-        for (int i = 0; i < xList.size(); i++) {
-            const auto &[x, isEmphasized] = xList[i];
-            lineGeometry->vertexDataAsPoint2D()[i * 2].set(x, height());
-            lineGeometry->vertexDataAsPoint2D()[i * 2 + 1].set(x, isEmphasized ? 8 : 16);
+        synchronizeChildOrder(scaleNode, desiredTextNodes);
+        if (software) {
+            auto *lineContainer = node->childAtIndex(1);
+            ensureRectangleNodeCount(lineContainer, xList.size(), window());
+            for (int i = 0; i < xList.size(); ++i) {
+                const auto &[x, isEmphasized] = xList.at(i);
+                const qreal top = isEmphasized ? 8 : 16;
+                auto *lineNode = static_cast<QSGRectangleNode *>(lineContainer->childAtIndex(i));
+                const QRectF rect(x - 0.5, top, 1, std::max<qreal>(0, height() - top));
+                if (lineNode->rect() != rect) {
+                    lineNode->setRect(rect);
+                }
+                if (lineNode->color() != d->color) {
+                    lineNode->setColor(d->color);
+                }
+            }
+        } else {
+            auto *lineNode = static_cast<QSGGeometryNode *>(node->childAtIndex(1));
+            auto *material = static_cast<QSGFlatColorMaterial *>(lineNode->material());
+            auto lineGeometry = new QSGGeometry(QSGGeometry::defaultAttributes_Point2D(), xList.size() * 2);
+            lineGeometry->setDrawingMode(QSGGeometry::DrawLines);
+            lineGeometry->setLineWidth(1);
+            for (int i = 0; i < xList.size(); i++) {
+                const auto &[x, isEmphasized] = xList[i];
+                lineGeometry->vertexDataAsPoint2D()[i * 2].set(x, height());
+                lineGeometry->vertexDataAsPoint2D()[i * 2 + 1].set(x, isEmphasized ? 8 : 16);
+            }
+            lineNode->setGeometry(lineGeometry);
+            material->setColor(d->color);
         }
-
-        lineNode->setGeometry(lineGeometry);
-        material->setColor(d->color);
         return node;
 
     }

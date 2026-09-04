@@ -1,12 +1,14 @@
 #ifndef SCOPIC_FLOW_PARAMETEREDITORQUICKITEM_P_P_H
 #define SCOPIC_FLOW_PARAMETEREDITORQUICKITEM_P_P_H
 
+#include <ScopicFlowInternal/private/ParameterEditorQuickItem_p.h>
+
 #include <QList>
 #include <QPointer>
 #include <QPointF>
 #include <QVector>
 
-#include <ScopicFlowInternal/private/ParameterEditorQuickItem_p.h>
+#include <ScopicFlowCore/ParameterAnchorViewModel.h>
 
 namespace sflow {
 
@@ -28,6 +30,31 @@ namespace sflow {
         ParameterEditorGeometry anchors;
         ParameterEditorGeometry selectedAnchors;
         ParameterEditorGeometry reference;
+    };
+
+    struct ParameterEditorSemanticSample {
+        QPointF finalPoint;
+        QPointF overlayPoint;
+        int finalSource = 0;
+        bool finalValid = false;
+        bool overlayValid = false;
+    };
+
+    struct ParameterEditorSemanticAnchor {
+        QPointF center;
+        ParameterAnchorViewModel::InterpolationMode interpolationMode = ParameterAnchorViewModel::Hermite;
+        bool selected = false;
+    };
+
+    struct ParameterEditorSemanticSnapshot {
+        QVector<ParameterEditorSemanticSample> samples;
+        QVector<ParameterEditorSemanticAnchor> anchors;
+        double fillY = 0.0;
+        double referenceY = 0.0;
+        double antialiasWidth = 1.0;
+        ParameterEditorQuickItem::FillMode fillMode = ParameterEditorQuickItem::NoFill;
+        ParameterEditorQuickItem::CurveDisplayMode fallbackDisplayMode = ParameterEditorQuickItem::CurveDashed;
+        bool referenceVisible = false;
     };
 
     class ParameterEditorQuickItemPrivate {
@@ -85,7 +112,9 @@ namespace sflow {
         int lineSnapshotLast = -1;
         QList<QVariant> lineSnapshot;
 
-        ParameterEditorGeometrySnapshot snapshot;
+        ParameterEditorSemanticSnapshot semanticSnapshot;
+        quint64 snapshotRevision = 0;
+        bool geometryDirty = true;
 
         void invalidate();
         void reconnectModels();

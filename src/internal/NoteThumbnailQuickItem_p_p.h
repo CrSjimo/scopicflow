@@ -9,7 +9,7 @@
 #include <unordered_map>
 #include <vector>
 
-class QSGGeometryNode;
+class QSGNode;
 
 namespace sflow {
 
@@ -32,7 +32,7 @@ namespace sflow {
         void onItemRemoved(NoteViewModel *itemModel);
         void onItemKeyChanged(NoteViewModel *itemModel, int oldKey, int newKey);
 
-        QHash<NoteViewModel *, QSGGeometryNode *> itemModelToNode;
+        QHash<NoteViewModel *, QSGNode *> itemModelToNode;
         QSet<NoteViewModel *> pendingUpdateItems;
         QSet<NoteViewModel *> pendingRemoveItems;
 

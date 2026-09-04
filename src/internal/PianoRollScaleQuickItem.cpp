@@ -1,7 +1,11 @@
 #include "PianoRollScaleQuickItem_p.h"
 #include "PianoRollScaleQuickItem_p_p.h"
 
+#include <QQuickWindow>
 #include <QSGGeometryNode>
+#include <QSGRectangleNode>
+#include <QSGRendererInterface>
+#include <QSGTransformNode>
 #include <QSGVertexColorMaterial>
 
 #include <SVSCraftCore/MusicTimeline.h>
@@ -12,6 +16,34 @@
 #include <ScopicFlowCore/TimeLayoutViewModel.h>
 
 namespace sflow {
+
+    namespace {
+
+        class PianoRollScaleHardwareNode : public QSGGeometryNode {
+        };
+
+        class PianoRollScaleSoftwareNode : public QSGTransformNode {
+        };
+
+        bool usesSoftwareRenderer(const QQuickItem *item) {
+            return item->window()
+                && item->window()->rendererInterface()->graphicsApi() == QSGRendererInterface::Software;
+        }
+
+        void ensureRectangleNodeCount(QSGNode *container, int count, QQuickWindow *window) {
+            while (container->childCount() < count) {
+                auto *node = window->createRectangleNode();
+                node->setFlag(QSGNode::OwnedByParent);
+                container->appendChildNode(node);
+            }
+            while (container->childCount() > count) {
+                auto *node = container->lastChild();
+                container->removeChildNode(node);
+                delete node;
+            }
+        }
+
+    }
 
     double PianoRollScaleQuickItemPrivate::tickToX(int tick) const {
         if (!timeViewModel || !timeLayoutViewModel)
@@ -122,16 +154,19 @@ namespace sflow {
         }
     }
     QSGNode *PianoRollScaleQuickItem::updatePaintNode(QSGNode *node, UpdatePaintNodeData *update_paint_node_data) {
+        Q_UNUSED(update_paint_node_data)
         Q_D(PianoRollScaleQuickItem);
         if (!d->timeViewModel || !d->timeLayoutViewModel || !d->timeline) {
             delete node;
             return nullptr;
         }
-        QSGGeometryNode *barScaleNode;
-        if (!node) {
-            barScaleNode = new QSGGeometryNode;
-        } else {
-            barScaleNode = static_cast<QSGGeometryNode *>(node);
+        const bool software = usesSoftwareRenderer(this);
+        if ((software && !dynamic_cast<PianoRollScaleSoftwareNode *>(node))
+            || (!software && !dynamic_cast<PianoRollScaleHardwareNode *>(node))) {
+            delete node;
+            node = software
+                ? static_cast<QSGNode *>(new PianoRollScaleSoftwareNode)
+                : static_cast<QSGNode *>(new PianoRollScaleHardwareNode);
         }
 
         d->xList.clear();
@@ -176,24 +211,43 @@ namespace sflow {
         auto segmentScaleColor = d->segmentScaleColor.isValid() ? d->segmentScaleColor : Qt::black;
 
 
-        auto barScaleGeometry = new QSGGeometry(QSGGeometry::defaultAttributes_ColoredPoint2D(), d->xList.size() * 4);
-        barScaleGeometry->setDrawingMode(QSGGeometry::DrawTriangleStrip);
-        for (int i = 0; i < d->xList.size(); i++) {
-            const auto &[x, type] = d->xList.at(i);
-            auto color = type == PianoRollScaleQuickItemPrivate::Bar ? barScaleColor : type == PianoRollScaleQuickItemPrivate::Beat ? beatScaleColor : segmentScaleColor;
-            auto y1 = i % 2 ? 0 : height();
-            auto y2 = i % 2 ? height() : 0;
-            barScaleGeometry->vertexDataAsColoredPoint2D()[i * 4].set(x - 0.5f, y1, color.red(), color.green(), color.blue(), color.alpha());
-            barScaleGeometry->vertexDataAsColoredPoint2D()[i * 4 + 1].set(x + 0.5f, y1, color.red(), color.green(), color.blue(), color.alpha());
-            barScaleGeometry->vertexDataAsColoredPoint2D()[i * 4 + 2].set(x - 0.5f, y2, color.red(), color.green(), color.blue(), color.alpha());
-            barScaleGeometry->vertexDataAsColoredPoint2D()[i * 4 + 3].set(x + 0.5f, y2, color.red(), color.green(), color.blue(), color.alpha());
+        if (software) {
+            auto *root = static_cast<PianoRollScaleSoftwareNode *>(node);
+            ensureRectangleNodeCount(root, d->xList.size(), window());
+            for (int i = 0; i < d->xList.size(); ++i) {
+                const auto &[x, type] = d->xList.at(i);
+                const auto color = type == PianoRollScaleQuickItemPrivate::Bar
+                    ? barScaleColor
+                    : type == PianoRollScaleQuickItemPrivate::Beat ? beatScaleColor : segmentScaleColor;
+                auto *lineNode = static_cast<QSGRectangleNode *>(root->childAtIndex(i));
+                const QRectF rect(x - 0.5, 0, 1, height());
+                if (lineNode->rect() != rect) {
+                    lineNode->setRect(rect);
+                }
+                if (lineNode->color() != color) {
+                    lineNode->setColor(color);
+                }
+            }
+        } else {
+            auto *barScaleNode = static_cast<PianoRollScaleHardwareNode *>(node);
+            auto barScaleGeometry = new QSGGeometry(QSGGeometry::defaultAttributes_ColoredPoint2D(), d->xList.size() * 4);
+            barScaleGeometry->setDrawingMode(QSGGeometry::DrawTriangleStrip);
+            for (int i = 0; i < d->xList.size(); i++) {
+                const auto &[x, type] = d->xList.at(i);
+                auto color = type == PianoRollScaleQuickItemPrivate::Bar ? barScaleColor : type == PianoRollScaleQuickItemPrivate::Beat ? beatScaleColor : segmentScaleColor;
+                auto y1 = i % 2 ? 0 : height();
+                auto y2 = i % 2 ? height() : 0;
+                barScaleGeometry->vertexDataAsColoredPoint2D()[i * 4].set(x - 0.5f, y1, color.red(), color.green(), color.blue(), color.alpha());
+                barScaleGeometry->vertexDataAsColoredPoint2D()[i * 4 + 1].set(x + 0.5f, y1, color.red(), color.green(), color.blue(), color.alpha());
+                barScaleGeometry->vertexDataAsColoredPoint2D()[i * 4 + 2].set(x - 0.5f, y2, color.red(), color.green(), color.blue(), color.alpha());
+                barScaleGeometry->vertexDataAsColoredPoint2D()[i * 4 + 3].set(x + 0.5f, y2, color.red(), color.green(), color.blue(), color.alpha());
+            }
+            barScaleNode->setGeometry(barScaleGeometry);
+            barScaleNode->setFlag(QSGNode::OwnsGeometry);
+            barScaleNode->setMaterial(new QSGVertexColorMaterial);
+            barScaleNode->setFlag(QSGNode::OwnsMaterial);
         }
-        barScaleNode->setGeometry(barScaleGeometry);
-        barScaleNode->setFlag(QSGNode::OwnsGeometry);
-        barScaleNode->setMaterial(new QSGVertexColorMaterial);
-        barScaleNode->setFlag(QSGNode::OwnsMaterial);
-
-        return barScaleNode;
+        return node;
     }
     
 }

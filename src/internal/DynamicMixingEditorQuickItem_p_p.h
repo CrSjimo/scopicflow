@@ -60,6 +60,7 @@ namespace sflow {
         MoveAxis moveAxis = PendingAxis;
 
         DynamicMixingEditorGeometrySnapshot snapshot;
+        quint64 snapshotRevision = 0;
 
         void invalidate();
         void reconnectModels();

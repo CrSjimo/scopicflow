@@ -1,14 +1,35 @@
 #include "NoteThumbnailQuickItem_p.h"
 #include "NoteThumbnailQuickItem_p_p.h"
 
+#include <QQuickWindow>
 #include <QSGGeometry>
 #include <QSGGeometryNode>
 #include <QSGFlatColorMaterial>
+#include <QSGRectangleNode>
+#include <QSGRendererInterface>
+#include <QSGTransformNode>
 
 #include <ScopicFlowCore/NoteViewModel.h>
 #include <ScopicFlowCore/RangeSequenceViewModel.h>
 
 namespace sflow {
+
+    namespace {
+
+        class NoteThumbnailRootNode : public QSGTransformNode {
+        public:
+            explicit NoteThumbnailRootNode(bool software) : software(software) {
+            }
+
+            bool software = false;
+        };
+
+        bool usesSoftwareRenderer(const QQuickItem *item) {
+            return item->window()
+                && item->window()->rendererInterface()->graphicsApi() == QSGRendererInterface::Software;
+        }
+
+    }
 
     NoteThumbnailQuickItem::NoteThumbnailQuickItem(QQuickItem *parent) : QQuickItem(parent), d_ptr(new NoteThumbnailQuickItemPrivate) {
         Q_D(NoteThumbnailQuickItem);
@@ -63,8 +84,21 @@ namespace sflow {
 
     QSGNode *NoteThumbnailQuickItem::updatePaintNode(QSGNode *node, UpdatePaintNodeData *) {
         Q_D(NoteThumbnailQuickItem);
-        if (!node) {
-            node = new QSGNode;
+        const bool software = usesSoftwareRenderer(this);
+        auto *root = static_cast<NoteThumbnailRootNode *>(node);
+        if (!root || root->software != software) {
+            delete root;
+            root = new NoteThumbnailRootNode(software);
+            node = root;
+            d->itemModelToNode.clear();
+            d->pendingRemoveItems.clear();
+            if (d->noteSequenceViewModel) {
+                for (auto *item : d->noteSequenceViewModel->items()) {
+                    if (auto *note = qobject_cast<NoteViewModel *>(item)) {
+                        d->pendingUpdateItems.insert(note);
+                    }
+                }
+            }
         }
         for (auto itemModel : d->pendingRemoveItems) {
             auto itemNode = d->itemModelToNode.take(itemModel);
@@ -77,33 +111,60 @@ namespace sflow {
         if (d->color != d->nodeColor) {
             d->nodeColor = d->color;
             for (auto itemNode : d->itemModelToNode) {
-                static_cast<QSGFlatColorMaterial *>(itemNode->material())->setColor(d->color);
-                itemNode->markDirty(QSGNode::DirtyMaterial);
+                if (software) {
+                    auto *rectangleNode = static_cast<QSGRectangleNode *>(itemNode);
+                    if (rectangleNode->color() != d->color) {
+                        rectangleNode->setColor(d->color);
+                    }
+                } else {
+                    auto *geometryNode = static_cast<QSGGeometryNode *>(itemNode);
+                    static_cast<QSGFlatColorMaterial *>(geometryNode->material())->setColor(d->color);
+                    geometryNode->markDirty(QSGNode::DirtyMaterial);
+                }
             }
         }
         for (auto itemModel : d->pendingUpdateItems) {
             auto itemNode = d->itemModelToNode.value(itemModel);
             if (!itemNode) {
-                itemNode = new QSGGeometryNode;
+                if (software) {
+                    auto *rectangleNode = window()->createRectangleNode();
+                    rectangleNode->setColor(d->color);
+                    itemNode = rectangleNode;
+                } else {
+                    auto *geometryNode = new QSGGeometryNode;
+                    geometryNode->setFlag(QSGNode::OwnsGeometry);
+                    geometryNode->setFlag(QSGNode::OwnsMaterial);
+                    auto geometry = new QSGGeometry(QSGGeometry::defaultAttributes_Point2D(), 4);
+                    geometry->setDrawingMode(QSGGeometry::DrawTriangleStrip);
+                    geometry->setLineWidth(1);
+                    geometryNode->setGeometry(geometry);
+                    auto material = new QSGFlatColorMaterial;
+                    material->setColor(d->color);
+                    geometryNode->setMaterial(material);
+                    itemNode = geometryNode;
+                }
                 itemNode->setFlag(QSGNode::OwnedByParent);
-                itemNode->setFlag(QSGNode::OwnsGeometry);
-                itemNode->setFlag(QSGNode::OwnsMaterial);
-                auto geometry = new QSGGeometry(QSGGeometry::defaultAttributes_Point2D(), 4);
-                geometry->setDrawingMode(QSGGeometry::DrawTriangleStrip);
-                geometry->setLineWidth(1);
-                itemNode->setGeometry(geometry);
-                auto material = new QSGFlatColorMaterial;
-                material->setColor(d->color);
-                itemNode->setMaterial(material);
                 node->appendChildNode(itemNode);
                 d->itemModelToNode.insert(itemModel, itemNode);
             }
-            auto geometry = itemNode->geometry();
-            geometry->vertexDataAsPoint2D()[0].set(horizontalFactor() * itemModel->position(), 128 - itemModel->key());
-            geometry->vertexDataAsPoint2D()[1].set(horizontalFactor() * (itemModel->position() + itemModel->length()), 128 - itemModel->key());
-            geometry->vertexDataAsPoint2D()[2].set(horizontalFactor() * itemModel->position(), 127 - itemModel->key());
-            geometry->vertexDataAsPoint2D()[3].set(horizontalFactor() * (itemModel->position() + itemModel->length()), 127 - itemModel->key());
-            itemNode->markDirty(QSGNode::DirtyGeometry);
+            if (software) {
+                auto *rectangleNode = static_cast<QSGRectangleNode *>(itemNode);
+                const QRectF rect(horizontalFactor() * itemModel->position(),
+                                  127 - itemModel->key(),
+                                  horizontalFactor() * itemModel->length(),
+                                  1);
+                if (rectangleNode->rect() != rect) {
+                    rectangleNode->setRect(rect);
+                }
+            } else {
+                auto *geometryNode = static_cast<QSGGeometryNode *>(itemNode);
+                auto geometry = geometryNode->geometry();
+                geometry->vertexDataAsPoint2D()[0].set(horizontalFactor() * itemModel->position(), 128 - itemModel->key());
+                geometry->vertexDataAsPoint2D()[1].set(horizontalFactor() * (itemModel->position() + itemModel->length()), 128 - itemModel->key());
+                geometry->vertexDataAsPoint2D()[2].set(horizontalFactor() * itemModel->position(), 127 - itemModel->key());
+                geometry->vertexDataAsPoint2D()[3].set(horizontalFactor() * (itemModel->position() + itemModel->length()), 127 - itemModel->key());
+                geometryNode->markDirty(QSGNode::DirtyGeometry);
+            }
         }
         d->pendingUpdateItems.clear();
         return node;

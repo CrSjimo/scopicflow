@@ -11,16 +11,21 @@
 
 #include <QFontMetricsF>
 #include <QMatrix4x4>
+#include <QPainter>
+#include <QPainterPath>
 #include <QQuickWindow>
 #include <QSGClipNode>
 #include <QSGFlatColorMaterial>
 #include <QSGGeometry>
 #include <QSGGeometryNode>
+#include <QSGRendererInterface>
 #include <QSGTextNode>
 #include <QSGTransformNode>
 #include <QTextLayout>
 #include <QTimer>
 #include <QVariant>
+
+#include <SVSCraftQuick/SoftwarePainterNode.h>
 
 #include <ScopicFlowCore/ClavierViewModel.h>
 #include <ScopicFlowCore/NoteViewModel.h>
@@ -104,6 +109,33 @@ namespace sflow {
                 }
             }
             return perimeter;
+        }
+
+        QPainterPath perimeterPath(const QRectF &rect, qreal radius) {
+            QPainterPath path;
+            if (rect.width() <= 0 || rect.height() <= 0) {
+                return path;
+            }
+            const auto perimeter = roundedPerimeter(rect.normalized(), radius);
+            if (perimeter.empty()) {
+                return path;
+            }
+            path.moveTo(perimeter.front());
+            for (qsizetype i = 1; i < std::ssize(perimeter); ++i) {
+                path.lineTo(perimeter[i]);
+            }
+            path.closeSubpath();
+            return path;
+        }
+
+        QPainterPath borderPath(const QRectF &rect, qreal radius, qreal borderWidth) {
+            QPainterPath path = perimeterPath(rect, radius);
+            const QRectF innerRect = rect.adjusted(borderWidth, borderWidth, -borderWidth, -borderWidth);
+            if (innerRect.width() > 0 && innerRect.height() > 0) {
+                path.addPath(perimeterPath(innerRect, std::max<qreal>(0, radius - borderWidth)));
+                path.setFillRule(Qt::OddEvenFill);
+            }
+            return path;
         }
 
         void updateRoundedGeometry(QSGGeometryNode *node, const QRectF &sourceRect, qreal sourceRadius, const QColor &color) {
@@ -261,9 +293,68 @@ namespace sflow {
             bool thumbnailDisplay = false;
         };
 
+        class NoteShapeSoftwareNode : public SVS::SoftwarePainterNode {
+        public:
+            explicit NoteShapeSoftwareNode(QQuickItem *item) : SoftwarePainterNode(item) {
+                setFlag(QSGNode::OwnedByParent);
+            }
+
+            void synchronize(const QRectF &bodyRect,
+                             bool thumbnailDisplay,
+                             const QColor &fillColor,
+                             const QColor &borderColor,
+                             const QColor &overlappedBorderColor) {
+                if (m_bodyRect != bodyRect || m_thumbnailDisplay != thumbnailDisplay) {
+                    m_bodyRect = bodyRect;
+                    m_thumbnailDisplay = thumbnailDisplay;
+                    if (thumbnailDisplay) {
+                        m_borderPath = {};
+                        m_fillPath = perimeterPath(bodyRect, CornerRadius);
+                    } else {
+                        m_borderPath = borderPath(bodyRect, CornerRadius, BorderWidth);
+                        m_fillPath = perimeterPath(
+                            bodyRect.adjusted(BorderWidth, BorderWidth, -BorderWidth, -BorderWidth),
+                            std::max<qreal>(0, CornerRadius - BorderWidth));
+                    }
+                    setBoundingRect(bodyRect.adjusted(-1, -1, 1, 1));
+                    markDirty(QSGNode::DirtyGeometry);
+                }
+                if (m_fillColor != fillColor
+                    || m_borderColor != borderColor
+                    || m_overlappedBorderColor != overlappedBorderColor) {
+                    m_fillColor = fillColor;
+                    m_borderColor = borderColor;
+                    m_overlappedBorderColor = overlappedBorderColor;
+                    markDirty(QSGNode::DirtyMaterial);
+                }
+            }
+
+        protected:
+            void paint(QPainter *painter) override {
+                painter->setRenderHint(QPainter::Antialiasing);
+                painter->setPen(Qt::NoPen);
+                if (!m_thumbnailDisplay) {
+                    painter->fillPath(m_borderPath, m_borderColor);
+                }
+                painter->fillPath(m_fillPath, m_fillColor);
+                if (!m_thumbnailDisplay) {
+                    painter->fillPath(m_borderPath, m_overlappedBorderColor);
+                }
+            }
+
+        private:
+            QRectF m_bodyRect;
+            QPainterPath m_borderPath;
+            QPainterPath m_fillPath;
+            QColor m_fillColor;
+            QColor m_borderColor;
+            QColor m_overlappedBorderColor;
+            bool m_thumbnailDisplay = false;
+        };
+
         class NoteVisualNode : public QSGTransformNode {
         public:
-            NoteVisualNode() {
+            explicit NoteVisualNode(QQuickItem *) {
                 setFlag(QSGNode::OwnedByParent, false);
                 appendChildNode(m_borderNode = createGeometryNode());
                 appendChildNode(m_fillNode = createGeometryNode());
@@ -324,6 +415,53 @@ namespace sflow {
             ClippedTextVisualNode *m_textNode = nullptr;
         };
 
+        class SoftwareNoteVisualNode : public QSGTransformNode {
+        public:
+            explicit SoftwareNoteVisualNode(QQuickItem *item) {
+                setFlag(QSGNode::OwnedByParent, false);
+                appendChildNode(m_shapeNode = new NoteShapeSoftwareNode(item));
+                appendChildNode(m_textNode = new ClippedTextVisualNode);
+            }
+
+            void synchronize(const NoteVisualState &state, QQuickWindow *window) {
+                QMatrix4x4 matrix;
+                matrix.translate(state.positionX, state.positionY);
+                if (this->matrix() != matrix) {
+                    setMatrix(matrix);
+                }
+
+                const qreal bodyHeight = state.thumbnailDisplay
+                    ? ThumbnailBodyHeight
+                    : std::max<qreal>(0, state.noteHeight - 2 * BodyInset);
+                const QRectF bodyRect(
+                    BodyInset,
+                    0.5 * (state.noteHeight - bodyHeight),
+                    std::max<qreal>(0, state.noteWidth - 2 * BodyInset),
+                    bodyHeight);
+                m_shapeNode->synchronize(bodyRect,
+                                         state.thumbnailDisplay,
+                                         state.fillColor,
+                                         state.borderColor,
+                                         state.overlappedBorderColor);
+
+                const qreal lyricLeft = BodyInset + LyricHorizontalMargin;
+                const qreal lyricWidth = std::max<qreal>(0, state.noteWidth - 2 * lyricLeft);
+                m_textNode->synchronize({
+                    .text = state.thumbnailDisplay ? QString() : state.record.lyric,
+                    .font = state.font,
+                    .color = state.textColor,
+                    .clipRect = QRectF(lyricLeft, 0, lyricWidth, state.noteHeight),
+                    .left = lyricLeft,
+                    .centerHeight = state.noteHeight,
+                    .verticallyCentered = true,
+                }, window);
+            }
+
+        private:
+            NoteShapeSoftwareNode *m_shapeNode = nullptr;
+            ClippedTextVisualNode *m_textNode = nullptr;
+        };
+
         struct AdditionalTextVisualState {
             QString text;
             QFont font;
@@ -336,7 +474,7 @@ namespace sflow {
 
         class AdditionalTextVisualNode : public QSGTransformNode {
         public:
-            AdditionalTextVisualNode() {
+            explicit AdditionalTextVisualNode(QQuickItem *) {
                 setFlag(QSGNode::OwnedByParent, false);
                 appendChildNode(m_textNode = new ClippedTextVisualNode);
             }
@@ -359,12 +497,12 @@ namespace sflow {
             ClippedTextVisualNode *m_textNode = nullptr;
         };
 
-        template<typename Node>
+        template<typename Node, typename LayerNode>
         class LayeredNodeCollection {
         public:
-            explicit LayeredNodeCollection(QSGNode *parent) {
+            LayeredNodeCollection(QSGNode *parent, QQuickItem *item) : m_item(item) {
                 for (auto &layer : m_layers) {
-                    layer = new QSGNode;
+                    layer = new LayerNode;
                     layer->setFlag(QSGNode::OwnedByParent);
                     parent->appendChildNode(layer);
                 }
@@ -394,12 +532,16 @@ namespace sflow {
                     m_pool.clear();
             }
 
+            void beginLayout() {
+                m_nextIndices.fill(0);
+            }
+
             Node *nodeFor(NoteViewModel *model) {
                 auto activeIt = m_activeNodes.find(model);
                 if (activeIt == m_activeNodes.end()) {
                     std::unique_ptr<Node> visual;
                     if (m_pool.empty()) {
-                        visual = std::make_unique<Node>();
+                        visual = std::make_unique<Node>(m_item);
                     } else {
                         visual = std::move(m_pool.back());
                         m_pool.pop_back();
@@ -410,20 +552,37 @@ namespace sflow {
             }
 
             void append(Node *node, int layer) {
-                if (node->parent())
+                auto *targetLayer = m_layers[layer];
+                const int targetIndex = m_nextIndices[layer]++;
+                auto *currentNode = targetIndex < targetLayer->childCount()
+                    ? targetLayer->childAtIndex(targetIndex)
+                    : nullptr;
+                if (currentNode == node) {
+                    return;
+                }
+                if (node->parent()) {
                     node->parent()->removeChildNode(node);
-                m_layers[layer]->appendChildNode(node);
+                }
+                if (currentNode) {
+                    targetLayer->insertChildNodeBefore(node, currentNode);
+                } else {
+                    targetLayer->appendChildNode(node);
+                }
             }
 
         private:
             std::array<QSGNode *, 3> m_layers{};
+            std::array<int, 3> m_nextIndices{};
             std::unordered_map<NoteViewModel *, std::unique_ptr<Node>> m_activeNodes;
             std::vector<std::unique_ptr<Node>> m_pool;
+            QQuickItem *m_item = nullptr;
         };
 
+        template<typename NoteNode, typename LayerNode>
         class NoteEditLayerRootNode : public QSGNode {
         public:
-            NoteEditLayerRootNode() : m_additionalTextNodes(this), m_noteNodes(this) {
+            explicit NoteEditLayerRootNode(QQuickItem *item)
+                : m_additionalTextNodes(this, item), m_noteNodes(this, item) {
             }
 
             void synchronize(NoteEditLayerQuickItemPrivate *d) {
@@ -447,6 +606,8 @@ namespace sflow {
                 }
                 m_additionalTextNodes.retain(desiredAdditionalTextItems, d->active);
                 m_noteNodes.retain(desiredNoteItems, d->active);
+                m_additionalTextNodes.beginLayout();
+                m_noteNodes.beginLayout();
 
                 QVector<const NoteEditLayerRecord *> sortedRecords;
                 sortedRecords.reserve(d->residentItems.size());
@@ -520,9 +681,17 @@ namespace sflow {
             }
 
         private:
-            LayeredNodeCollection<AdditionalTextVisualNode> m_additionalTextNodes;
-            LayeredNodeCollection<NoteVisualNode> m_noteNodes;
+            LayeredNodeCollection<AdditionalTextVisualNode, LayerNode> m_additionalTextNodes;
+            LayeredNodeCollection<NoteNode, LayerNode> m_noteNodes;
         };
+
+        using HardwareNoteEditLayerRootNode = NoteEditLayerRootNode<NoteVisualNode, QSGNode>;
+        using SoftwareNoteEditLayerRootNode = NoteEditLayerRootNode<SoftwareNoteVisualNode, QSGTransformNode>;
+
+        bool usesSoftwareRenderer(const QQuickItem *item) {
+            return item->window()
+                && item->window()->rendererInterface()->graphicsApi() == QSGRendererInterface::Software;
+        }
 
         bool intervalIntersects(qreal start, qreal end, const NoteEditLayerRecord &record) {
             return record.position < end && record.position + std::max(record.length, 1) > start;
@@ -1649,9 +1818,20 @@ namespace sflow {
 
     QSGNode *NoteEditLayerQuickItem::updatePaintNode(QSGNode *oldNode, UpdatePaintNodeData *) {
         Q_D(NoteEditLayerQuickItem);
-        auto *rootNode = static_cast<NoteEditLayerRootNode *>(oldNode);
-        if (!rootNode)
-            rootNode = new NoteEditLayerRootNode;
+        if (usesSoftwareRenderer(this)) {
+            auto *rootNode = dynamic_cast<SoftwareNoteEditLayerRootNode *>(oldNode);
+            if (!rootNode) {
+                delete oldNode;
+                rootNode = new SoftwareNoteEditLayerRootNode(this);
+            }
+            rootNode->synchronize(d);
+            return rootNode;
+        }
+        auto *rootNode = dynamic_cast<HardwareNoteEditLayerRootNode *>(oldNode);
+        if (!rootNode) {
+            delete oldNode;
+            rootNode = new HardwareNoteEditLayerRootNode(this);
+        }
         rootNode->synchronize(d);
         return rootNode;
     }

@@ -2,15 +2,21 @@
 #include "ParameterEditorQuickItem_p_p.h"
 
 #include <algorithm>
+#include <array>
 #include <cmath>
 #include <limits>
 #include <numbers>
 
+#include <QPainter>
+#include <QPainterPath>
 #include <QQuickWindow>
 #include <QSGGeometry>
 #include <QSGGeometryNode>
+#include <QSGRendererInterface>
 #include <QSGVertexColorMaterial>
 #include <QSet>
+
+#include <SVSCraftQuick/SoftwarePainterNode.h>
 
 #include <ScopicFlowCore/AnchorParameterViewModel.h>
 #include <ScopicFlowCore/FreeParameterViewModel.h>
@@ -280,11 +286,7 @@ namespace sflow {
             }
         }
 
-        void appendAnchor(ParameterEditorGeometry &geometry,
-                          const QPointF &center,
-                          double radius,
-                          ParameterAnchorViewModel::InterpolationMode interpolationMode,
-                          double antialiasWidth) {
+        QVector<QPointF> anchorPerimeter(ParameterAnchorViewModel::InterpolationMode interpolationMode) {
             QVector<QPointF> perimeter;
             switch (interpolationMode) {
                 case ParameterAnchorViewModel::Hermite:
@@ -311,7 +313,248 @@ namespace sflow {
                     };
                     break;
             }
+            return perimeter;
+        }
+
+        void appendAnchor(ParameterEditorGeometry &geometry,
+                          const QPointF &center,
+                          double radius,
+                          ParameterAnchorViewModel::InterpolationMode interpolationMode,
+                          double antialiasWidth) {
+            const auto perimeter = anchorPerimeter(interpolationMode);
             appendAntialiasedPolygon(geometry, center, perimeter, radius, antialiasWidth);
+        }
+
+        enum SoftwarePrimitive : quint32 {
+            SoftwareFill = 1 << 0,
+            SoftwareCurve = 1 << 1,
+            SoftwareAccent = 1 << 2,
+            SoftwareSelectedAnchor = 1 << 3,
+            SoftwareReference = 1 << 4,
+        };
+
+        struct ParameterEditorSoftwareSnapshot {
+            QPainterPath fill;
+            QPainterPath solid;
+            QPainterPath dashed;
+            QPainterPath accent;
+            QPainterPath anchors;
+            QPainterPath selectedAnchors;
+            QPainterPath reference;
+        };
+
+        void appendPathLine(QPainterPath &path, const QPointF &a, const QPointF &b) {
+            if (qFuzzyIsNull(std::hypot(b.x() - a.x(), b.y() - a.y()))) {
+                return;
+            }
+            path.moveTo(a);
+            path.lineTo(b);
+        }
+
+        void appendDashedPath(QPainterPath &path,
+                              const QPointF &a,
+                              const QPointF &b,
+                              double &phase) {
+            const QPointF delta = b - a;
+            const double length = std::hypot(delta.x(), delta.y());
+            if (qFuzzyIsNull(length)) {
+                return;
+            }
+            const double patternLength = dashLength + dashGap;
+            double offset = 0.0;
+            while (offset < length) {
+                const double patternPosition = std::fmod(phase + offset, patternLength);
+                const bool drawing = patternPosition < dashLength;
+                const double patternEnd = drawing ? dashLength : patternLength;
+                const double endOffset = std::min(length, offset + patternEnd - patternPosition);
+                if (drawing) {
+                    appendPathLine(path,
+                                   a + delta * (offset / length),
+                                   a + delta * (endOffset / length));
+                }
+                offset = endOffset;
+            }
+            phase = std::fmod(phase + length, patternLength);
+        }
+
+        void appendAnchorPath(QPainterPath &path,
+                              const QPointF &center,
+                              double radius,
+                              ParameterAnchorViewModel::InterpolationMode interpolationMode) {
+            const auto perimeter = anchorPerimeter(interpolationMode);
+            if (perimeter.isEmpty()) {
+                return;
+            }
+            path.moveTo(center + perimeter.first() * radius);
+            for (qsizetype i = 1; i < perimeter.size(); ++i) {
+                path.lineTo(center + perimeter.at(i) * radius);
+            }
+            path.closeSubpath();
+        }
+
+        void appendFillRun(QPainterPath &path,
+                           const QVector<ParameterEditorSemanticSample> &samples,
+                           qsizetype first,
+                           qsizetype last,
+                           double baseline) {
+            if (last <= first) {
+                return;
+            }
+            bool hasArea = false;
+            for (qsizetype i = first; i <= last; ++i) {
+                if (!qFuzzyCompare(samples.at(i).finalPoint.y() + 1.0, baseline + 1.0)) {
+                    hasArea = true;
+                    break;
+                }
+            }
+            if (!hasArea) {
+                return;
+            }
+            path.moveTo(samples.at(first).finalPoint);
+            for (qsizetype i = first + 1; i <= last; ++i) {
+                path.lineTo(samples.at(i).finalPoint);
+            }
+            path.lineTo(samples.at(last).finalPoint.x(), baseline);
+            path.lineTo(samples.at(first).finalPoint.x(), baseline);
+            path.closeSubpath();
+        }
+
+        ParameterEditorGeometrySnapshot buildHardwareSnapshot(const ParameterEditorSemanticSnapshot &source) {
+            ParameterEditorGeometrySnapshot result;
+            ParameterEditorSemanticSample previous;
+            bool hasPrevious = false;
+            double dashedPhase = 0.0;
+            bool previousSegmentDashed = false;
+            for (const auto &current : source.samples) {
+                bool currentSegmentDashed = false;
+                if (hasPrevious && previous.finalValid && current.finalValid) {
+                    if (source.fillMode != ParameterEditorQuickItem::NoFill) {
+                        appendFillQuad(result.fill,
+                                       previous.finalPoint,
+                                       current.finalPoint,
+                                       source.fillY,
+                                       source.antialiasWidth);
+                    }
+                    const bool fallbackSegment = previous.finalSource != ParameterEditorQuickItemPrivate::EditedSource
+                        && current.finalSource != ParameterEditorQuickItemPrivate::EditedSource;
+                    if (!fallbackSegment || source.fallbackDisplayMode == ParameterEditorQuickItem::CurveSolid) {
+                        appendLineQuad(result.solid,
+                                       previous.finalPoint,
+                                       current.finalPoint,
+                                       lineWidth,
+                                       source.antialiasWidth);
+                    } else if (source.fallbackDisplayMode == ParameterEditorQuickItem::CurveDashed) {
+                        if (!previousSegmentDashed) {
+                            dashedPhase = 0.0;
+                        }
+                        appendDashedLine(result.dashed,
+                                         previous.finalPoint,
+                                         current.finalPoint,
+                                         lineWidth,
+                                         source.antialiasWidth,
+                                         dashedPhase);
+                        currentSegmentDashed = true;
+                    }
+                }
+                if (hasPrevious && previous.overlayValid && current.overlayValid) {
+                    appendLineQuad(result.accent,
+                                   previous.overlayPoint,
+                                   current.overlayPoint,
+                                   accentLineWidth,
+                                   source.antialiasWidth);
+                }
+                previousSegmentDashed = currentSegmentDashed;
+                previous = current;
+                hasPrevious = true;
+            }
+            if (source.referenceVisible) {
+                appendLineQuad(result.reference,
+                               QPointF(0.0, source.referenceY),
+                               QPointF(source.samples.isEmpty() ? 0.0 : source.samples.constLast().finalPoint.x(), source.referenceY),
+                               lineWidth,
+                               source.antialiasWidth);
+            }
+            for (const auto &anchor : source.anchors) {
+                if (anchor.selected) {
+                    appendAnchor(result.selectedAnchors,
+                                 anchor.center,
+                                 selectedAnchorRadius,
+                                 anchor.interpolationMode,
+                                 source.antialiasWidth);
+                }
+                appendAnchor(result.anchors,
+                             anchor.center,
+                             anchorRadius,
+                             anchor.interpolationMode,
+                             source.antialiasWidth);
+            }
+            return result;
+        }
+
+        ParameterEditorSoftwareSnapshot buildSoftwareSnapshot(const ParameterEditorSemanticSnapshot &source,
+                                                               quint32 drawMask) {
+            ParameterEditorSoftwareSnapshot result;
+            qsizetype fillStart = -1;
+            ParameterEditorSemanticSample previous;
+            bool hasPrevious = false;
+            double dashedPhase = 0.0;
+            bool previousSegmentDashed = false;
+            for (qsizetype index = 0; index < source.samples.size(); ++index) {
+                const auto &current = source.samples.at(index);
+                if ((drawMask & SoftwareFill) && source.fillMode != ParameterEditorQuickItem::NoFill) {
+                    if (current.finalValid) {
+                        if (fillStart < 0) {
+                            fillStart = index;
+                        }
+                    } else if (fillStart >= 0) {
+                        appendFillRun(result.fill, source.samples, fillStart, index - 1, source.fillY);
+                        fillStart = -1;
+                    }
+                }
+                bool currentSegmentDashed = false;
+                if (hasPrevious && previous.finalValid && current.finalValid && (drawMask & SoftwareCurve)) {
+                    const bool fallbackSegment = previous.finalSource != ParameterEditorQuickItemPrivate::EditedSource
+                        && current.finalSource != ParameterEditorQuickItemPrivate::EditedSource;
+                    if (!fallbackSegment || source.fallbackDisplayMode == ParameterEditorQuickItem::CurveSolid) {
+                        appendPathLine(result.solid, previous.finalPoint, current.finalPoint);
+                    } else if (source.fallbackDisplayMode == ParameterEditorQuickItem::CurveDashed) {
+                        if (!previousSegmentDashed) {
+                            dashedPhase = 0.0;
+                        }
+                        appendDashedPath(result.dashed, previous.finalPoint, current.finalPoint, dashedPhase);
+                        currentSegmentDashed = true;
+                    }
+                }
+                if (hasPrevious && previous.overlayValid && current.overlayValid && (drawMask & SoftwareAccent)) {
+                    appendPathLine(result.accent, previous.overlayPoint, current.overlayPoint);
+                }
+                previousSegmentDashed = currentSegmentDashed;
+                previous = current;
+                hasPrevious = true;
+            }
+            if (fillStart >= 0) {
+                appendFillRun(result.fill, source.samples, fillStart, source.samples.size() - 1, source.fillY);
+            }
+            if ((drawMask & SoftwareReference) && source.referenceVisible && !source.samples.isEmpty()) {
+                appendPathLine(result.reference,
+                               QPointF(0.0, source.referenceY),
+                               QPointF(source.samples.constLast().finalPoint.x(), source.referenceY));
+            }
+            for (const auto &anchor : source.anchors) {
+                if (anchor.selected && (drawMask & SoftwareSelectedAnchor)) {
+                    appendAnchorPath(result.selectedAnchors,
+                                     anchor.center,
+                                     selectedAnchorRadius,
+                                     anchor.interpolationMode);
+                }
+                if (drawMask & SoftwareAccent) {
+                    appendAnchorPath(result.anchors,
+                                     anchor.center,
+                                     anchorRadius,
+                                     anchor.interpolationMode);
+                }
+            }
+            return result;
         }
 
         QSGGeometryNode *createGeometryNode() {
@@ -355,6 +598,156 @@ namespace sflow {
             node->markDirty(QSGNode::DirtyGeometry);
         }
 
+        class ParameterEditorHardwareNode : public QSGNode {
+        public:
+            ParameterEditorHardwareNode() {
+                for (int i = 0; i < NodeCount; ++i) {
+                    appendChildNode(createGeometryNode());
+                }
+            }
+
+            void synchronize(const ParameterEditorSemanticSnapshot &snapshot,
+                             quint64 revision,
+                             const std::array<QColor, NodeCount> &colors) {
+                const bool geometryChanged = m_revision != revision;
+                if (geometryChanged) {
+                    m_snapshot = buildHardwareSnapshot(snapshot);
+                    m_revision = revision;
+                }
+                const std::array<const ParameterEditorGeometry *, NodeCount> geometries {
+                    &m_snapshot.fill,
+                    &m_snapshot.solid,
+                    &m_snapshot.dashed,
+                    &m_snapshot.accent,
+                    &m_snapshot.selectedAnchors,
+                    &m_snapshot.anchors,
+                    &m_snapshot.reference,
+                };
+                for (int i = 0; i < NodeCount; ++i) {
+                    if (geometryChanged || m_colors.at(i) != colors.at(i)) {
+                        updateGeometryNode(static_cast<QSGGeometryNode *>(childAtIndex(i)),
+                                           *geometries.at(i),
+                                           colors.at(i));
+                    }
+                }
+                m_colors = colors;
+            }
+
+        private:
+            ParameterEditorGeometrySnapshot m_snapshot;
+            std::array<QColor, NodeCount> m_colors{};
+            quint64 m_revision = std::numeric_limits<quint64>::max();
+        };
+
+        class ParameterEditorSoftwareNode : public SVS::SoftwarePainterNode {
+        public:
+            explicit ParameterEditorSoftwareNode(QQuickItem *item) : SoftwarePainterNode(item) {
+            }
+
+            void synchronize(const ParameterEditorSemanticSnapshot &snapshot,
+                             quint64 revision,
+                             const QColor &fillColor,
+                             const QColor &curveColor,
+                             const QColor &accentColor,
+                             const QColor &selectedAnchorColor,
+                             const QColor &referenceColor,
+                             const QSizeF &size) {
+                quint32 drawMask = 0;
+                if (fillColor.alpha() > 0 && snapshot.fillMode != ParameterEditorQuickItem::NoFill) {
+                    drawMask |= SoftwareFill;
+                }
+                if (curveColor.alpha() > 0) {
+                    drawMask |= SoftwareCurve;
+                }
+                if (accentColor.alpha() > 0) {
+                    drawMask |= SoftwareAccent;
+                }
+                if (selectedAnchorColor.alpha() > 0) {
+                    drawMask |= SoftwareSelectedAnchor;
+                }
+                if (referenceColor.alpha() > 0 && snapshot.referenceVisible) {
+                    drawMask |= SoftwareReference;
+                }
+                if (m_revision != revision || m_drawMask != drawMask) {
+                    m_snapshot = buildSoftwareSnapshot(snapshot, drawMask);
+                    m_revision = revision;
+                    m_drawMask = drawMask;
+                    markDirty(QSGNode::DirtyGeometry);
+                }
+                if (m_fillColor != fillColor
+                    || m_curveColor != curveColor
+                    || m_accentColor != accentColor
+                    || m_selectedAnchorColor != selectedAnchorColor
+                    || m_referenceColor != referenceColor) {
+                    m_fillColor = fillColor;
+                    m_curveColor = curveColor;
+                    m_accentColor = accentColor;
+                    m_selectedAnchorColor = selectedAnchorColor;
+                    m_referenceColor = referenceColor;
+                    markDirty(QSGNode::DirtyMaterial);
+                }
+                constexpr double antialiasMargin = 1.0;
+                const double margin = selectedAnchorRadius + antialiasMargin;
+                setBoundingRect(QRectF(QPointF(), size).adjusted(-margin,
+                                                                 -margin,
+                                                                 margin,
+                                                                 margin));
+            }
+
+        protected:
+            void paint(QPainter *painter) override {
+                painter->setRenderHint(QPainter::Antialiasing);
+                if (!m_snapshot.fill.isEmpty() && m_fillColor.alpha() > 0) {
+                    painter->setPen(Qt::NoPen);
+                    painter->setBrush(m_fillColor);
+                    painter->drawPath(m_snapshot.fill);
+                }
+
+                drawLinePath(painter, m_snapshot.solid, m_curveColor, lineWidth);
+                drawLinePath(painter, m_snapshot.dashed, m_curveColor, lineWidth);
+                drawLinePath(painter, m_snapshot.accent, m_accentColor, accentLineWidth);
+
+                if (!m_snapshot.selectedAnchors.isEmpty() && m_selectedAnchorColor.alpha() > 0) {
+                    painter->setPen(Qt::NoPen);
+                    painter->setBrush(m_selectedAnchorColor);
+                    painter->drawPath(m_snapshot.selectedAnchors);
+                }
+                if (!m_snapshot.anchors.isEmpty() && m_accentColor.alpha() > 0) {
+                    painter->setPen(Qt::NoPen);
+                    painter->setBrush(m_accentColor);
+                    painter->drawPath(m_snapshot.anchors);
+                }
+                drawLinePath(painter, m_snapshot.reference, m_referenceColor, lineWidth);
+            }
+
+        private:
+            static void drawLinePath(QPainter *painter,
+                                     const QPainterPath &path,
+                                     const QColor &color,
+                                     double width) {
+                if (path.isEmpty() || color.alpha() == 0) {
+                    return;
+                }
+                painter->setPen(QPen(color, width, Qt::SolidLine, Qt::FlatCap, Qt::MiterJoin));
+                painter->setBrush(Qt::NoBrush);
+                painter->drawPath(path);
+            }
+
+            ParameterEditorSoftwareSnapshot m_snapshot;
+            QColor m_fillColor;
+            QColor m_curveColor;
+            QColor m_accentColor;
+            QColor m_selectedAnchorColor;
+            QColor m_referenceColor;
+            quint32 m_drawMask = 0;
+            quint64 m_revision = std::numeric_limits<quint64>::max();
+        };
+
+        bool usesSoftwareRenderer(const QQuickItem *item) {
+            return item->window()
+                && item->window()->rendererInterface()->graphicsApi() == QSGRendererInterface::Software;
+        }
+
         QVariant preferredValue(const AnchorParameterViewModel *anchorViewModel,
                                 const FreeParameterViewModel *freeViewModel,
                                 double position) {
@@ -371,6 +764,7 @@ namespace sflow {
 
     void ParameterEditorQuickItemPrivate::invalidate() {
         Q_Q(ParameterEditorQuickItem);
+        geometryDirty = true;
         q->polish();
         q->update();
     }
@@ -487,7 +881,9 @@ namespace sflow {
 
     void ParameterEditorQuickItemPrivate::rebuildGeometry() {
         Q_Q(ParameterEditorQuickItem);
-        snapshot = {};
+        geometryDirty = false;
+        semanticSnapshot = {};
+        ++snapshotRevision;
         if (!timeViewModel || !timeLayoutViewModel || timeLayoutViewModel->pixelDensity() <= 0.0
             || q->width() <= 0.0 || q->height() <= 0.0) {
             return;
@@ -641,69 +1037,27 @@ namespace sflow {
         } else if (fillMode == ParameterEditorQuickItem::BaselineFill) {
             fillY = yForValue(fillBaseline);
         }
-
-        Sample previousFinal;
-        QPointF previousOverlay;
-        bool previousOverlayValid = false;
-        double dashedPhase = 0.0;
-        bool previousSegmentDashed = false;
+        semanticSnapshot.fillMode = fillMode;
+        semanticSnapshot.fillY = fillY;
+        semanticSnapshot.fallbackDisplayMode = fallbackDisplayMode;
+        semanticSnapshot.referenceVisible = referenceVisible;
+        semanticSnapshot.referenceY = yForValue(referenceBaseline);
+        semanticSnapshot.antialiasWidth = rasterMetrics.antialiasWidth;
+        semanticSnapshot.samples.reserve(sampleXs.size());
         for (qsizetype index = 0; index < sampleXs.size(); ++index) {
             const double x = sampleXs.at(index);
             auto currentFinal = evaluateFinal(index);
             currentFinal.point.setX(x);
-            bool currentSegmentDashed = false;
-            if (previousFinal.valid && currentFinal.valid) {
-                if (fillMode != ParameterEditorQuickItem::NoFill) {
-                    appendFillQuad(snapshot.fill,
-                                   previousFinal.point,
-                                   currentFinal.point,
-                                   fillY,
-                                   rasterMetrics.antialiasWidth);
-                }
-                const bool fallbackSegment = previousFinal.source != EditedSource
-                    && currentFinal.source != EditedSource;
-                if (!fallbackSegment || fallbackDisplayMode == ParameterEditorQuickItem::CurveSolid) {
-                    appendLineQuad(snapshot.solid,
-                                   previousFinal.point,
-                                   currentFinal.point,
-                                   lineWidth,
-                                   rasterMetrics.antialiasWidth);
-                } else if (fallbackDisplayMode == ParameterEditorQuickItem::CurveDashed) {
-                    if (!previousSegmentDashed) {
-                        dashedPhase = 0.0;
-                    }
-                    appendDashedLine(snapshot.dashed,
-                                     previousFinal.point,
-                                     currentFinal.point,
-                                     lineWidth,
-                                     rasterMetrics.antialiasWidth,
-                                     dashedPhase);
-                    currentSegmentDashed = true;
-                }
-            }
-            previousSegmentDashed = currentSegmentDashed;
-            previousFinal = currentFinal;
-
             const auto overlayValue = evaluateOverlay(index);
             const bool overlayValid = overlayValue.isValid();
             const QPointF currentOverlay(x, overlayValid ? yForValue(overlayValue.toDouble()) : 0.0);
-            if (previousOverlayValid && overlayValid) {
-                appendLineQuad(snapshot.accent,
-                               previousOverlay,
-                               currentOverlay,
-                               accentLineWidth,
-                               rasterMetrics.antialiasWidth);
-            }
-            previousOverlay = currentOverlay;
-            previousOverlayValid = overlayValid;
-        }
-
-        if (referenceVisible) {
-            appendLineQuad(snapshot.reference,
-                           QPointF(0.0, yForValue(referenceBaseline)),
-                           QPointF(q->width(), yForValue(referenceBaseline)),
-                           lineWidth,
-                           rasterMetrics.antialiasWidth);
+            semanticSnapshot.samples.append({
+                .finalPoint = currentFinal.point,
+                .overlayPoint = currentOverlay,
+                .finalSource = currentFinal.source,
+                .finalValid = currentFinal.valid,
+                .overlayValid = overlayValid,
+            });
         }
 
         if (editLayer == ParameterEditorQuickItem::AnchorLayer && anchorParameterViewModel && visibleEnd >= 0.0) {
@@ -720,18 +1074,11 @@ namespace sflow {
                 auto *item = qobject_cast<ParameterAnchorViewModel *>(objects.at(i));
                 const QPointF center(xForPosition(item->position()),
                                      yForValue(item->value() * anchorTransformFactors.at(i)));
-                if (item->isSelected()) {
-                    appendAnchor(snapshot.selectedAnchors,
-                                 center,
-                                 selectedAnchorRadius,
-                                 item->interpolationMode(),
-                                 rasterMetrics.antialiasWidth);
-                }
-                appendAnchor(snapshot.anchors,
-                             center,
-                             anchorRadius,
-                             item->interpolationMode(),
-                             rasterMetrics.antialiasWidth);
+                semanticSnapshot.anchors.append({
+                    .center = center,
+                    .interpolationMode = item->interpolationMode(),
+                    .selected = item->isSelected(),
+                });
             }
         }
     }
@@ -743,6 +1090,11 @@ namespace sflow {
         setFlag(ItemHasContents, true);
         connect(this, &QQuickItem::widthChanged, this, [d] { d->invalidate(); });
         connect(this, &QQuickItem::heightChanged, this, [d] { d->invalidate(); });
+        connect(this, &QQuickItem::visibleChanged, this, [this, d] {
+            if (isVisible()) {
+                d->invalidate();
+            }
+        });
     }
 
     ParameterEditorQuickItem::~ParameterEditorQuickItem() = default;
@@ -1563,27 +1915,48 @@ namespace sflow {
 
     void ParameterEditorQuickItem::updatePolish() {
         Q_D(ParameterEditorQuickItem);
+        if (!d->geometryDirty || !isVisible()) {
+            return;
+        }
         d->rebuildGeometry();
     }
 
     QSGNode *ParameterEditorQuickItem::updatePaintNode(QSGNode *oldNode, UpdatePaintNodeData *) {
         Q_D(ParameterEditorQuickItem);
-        auto *root = oldNode;
-        if (!root) {
-            root = new QSGNode;
-            for (int i = 0; i < NodeCount; ++i) {
-                root->appendChildNode(createGeometryNode());
-            }
-        }
         const QColor finalCurveColor = d->editLayer == FinalLayer ? d->curveColor : d->dimmedCurveColor;
         const QColor finalFillColor = d->editLayer == FinalLayer ? d->fillColor : d->dimmedFillColor;
-        updateGeometryNode(static_cast<QSGGeometryNode *>(root->childAtIndex(FillNode)), d->snapshot.fill, finalFillColor);
-        updateGeometryNode(static_cast<QSGGeometryNode *>(root->childAtIndex(SolidNode)), d->snapshot.solid, finalCurveColor);
-        updateGeometryNode(static_cast<QSGGeometryNode *>(root->childAtIndex(DashedNode)), d->snapshot.dashed, finalCurveColor);
-        updateGeometryNode(static_cast<QSGGeometryNode *>(root->childAtIndex(AccentNode)), d->snapshot.accent, d->accentColor);
-        updateGeometryNode(static_cast<QSGGeometryNode *>(root->childAtIndex(SelectedAnchorNode)), d->snapshot.selectedAnchors, d->selectedAnchorColor);
-        updateGeometryNode(static_cast<QSGGeometryNode *>(root->childAtIndex(AnchorNode)), d->snapshot.anchors, d->accentColor);
-        updateGeometryNode(static_cast<QSGGeometryNode *>(root->childAtIndex(ReferenceNode)), d->snapshot.reference, d->referenceColor);
+        if (usesSoftwareRenderer(this)) {
+            auto *node = dynamic_cast<ParameterEditorSoftwareNode *>(oldNode);
+            if (!node) {
+                delete oldNode;
+                node = new ParameterEditorSoftwareNode(this);
+            }
+            node->synchronize(d->semanticSnapshot,
+                              d->snapshotRevision,
+                              finalFillColor,
+                              finalCurveColor,
+                              d->accentColor,
+                              d->selectedAnchorColor,
+                              d->referenceColor,
+                              size());
+            return node;
+        }
+        auto *root = dynamic_cast<ParameterEditorHardwareNode *>(oldNode);
+        if (!root) {
+            delete oldNode;
+            root = new ParameterEditorHardwareNode;
+        }
+        root->synchronize(d->semanticSnapshot,
+                          d->snapshotRevision,
+                          {
+                              finalFillColor,
+                              finalCurveColor,
+                              finalCurveColor,
+                              d->accentColor,
+                              d->selectedAnchorColor,
+                              d->accentColor,
+                              d->referenceColor,
+                          });
         return root;
     }
 

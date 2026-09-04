@@ -1,19 +1,19 @@
 #ifndef SCOPIC_FLOW_TIMELINESCALEQUICKITEM_P_P_H
 #define SCOPIC_FLOW_TIMELINESCALEQUICKITEM_P_P_H
 
+#include <ScopicFlowInternal/private/TimelineScaleQuickItem_p.h>
+
 #include <QVariantAnimation>
-#include <QSGNode>
+#include <QSGTransformNode>
 
 #include <SVSCraftCore/MusicTimeline.h>
-
-#include <ScopicFlowInternal/private/TimelineScaleQuickItem_p.h>
 
 class QSGTextNode;
 class QTextLayout;
 
 namespace sflow {
 
-    class ScaleSGNode : public QSGNode {
+    class ScaleSGNode : public QSGTransformNode {
     public:
         explicit ScaleSGNode(TimelineScaleQuickItemPrivate *d) : d(d) {}
         ~ScaleSGNode() override;
@@ -22,11 +22,12 @@ namespace sflow {
         QTextLayout *createTextLayoutForBarNumber(int bar);
         QSGTextNode *createTextNodeForBarNumber(int bar);
         QTextLayout *createTextLayoutForTimeSignature(int numerator, int denominator);
-        QSGTextNode *createTextNodeForTimeSignature(int numerator, int denominator);
+        QSGTextNode *createTextNodeForTimeSignature(int bar, int numerator, int denominator);
 
         QHash<int, QSharedPointer<QTextLayout>> barNumberTextLayouts;
         QHash<int, QSharedPointer<QSGTextNode>> barNumberTextNodes;
         QHash<qint64, QSharedPointer<QTextLayout>> timeSignatureTextLayouts;
+        QHash<QString, QSharedPointer<QSGTextNode>> timeSignatureTextNodes;
         QQuickWindow *window{};
     };
 

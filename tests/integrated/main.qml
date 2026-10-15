@@ -40,7 +40,6 @@ ApplicationWindow {
     required property QtObject levelTimer
     required property QtObject anchoredCurveViewModel
     required property QtObject parameterRangeViewModel
-    readonly property double minimumPanelSize: 100
 
     Menu {
         id: contextMenu
@@ -511,63 +510,23 @@ ApplicationWindow {
         }
     }
 
-    SplitView {
-        anchors.fill: parent
-        orientation: Qt.Horizontal
-        ThemedItem.splitHandleEnabled: rightDock.panelOpened
-
-        SplitView {
-            SplitView.minimumWidth: leftDock.SplitView.minimumWidth + main.minimumPanelSize
-            SplitView.fillWidth: true
-            ThemedItem.splitHandleEnabled: leftDock.panelOpened
-            DockingView {
-                id: leftDock
-                property double preferredPanelSize: 400
-                SplitView.minimumWidth: barSize + (panelOpened ? main.minimumPanelSize : 0)
-                SplitView.preferredWidth: barSize + (panelOpened ? preferredPanelSize : 0)
-                SplitView.maximumWidth: !panelOpened ? barSize : Infinity
-                clip: true
-                panelSize: width - barSize
-                onPanelSizeChanged: () => {
-                    if (panelSize > 0)
-                        preferredPanelSize = panelSize
-                }
-                DockingPane {
+    property DockingContext dockingContext: DockingContext {}
+    property DockingHost dockingHost: DockingHost { context: main.dockingContext; window: main }
+    property list<DockingPane> dockingPanes: [
+        DockingPane {
+            panelKey: "settings"
+            minimumSize: Qt.size(100, 100)
                     title: "设置"
                     icon.source: "qrc:/qt/qml/dev/sjimo/ScopicFlow/Test/Settings16Filled.svg"
                     SettingsPanel {
                         anchors.fill: parent
                     }
-                }
-                DockingStretch {
-                }
-            }
-            SplitView {
-                id: middleSplitView
-                orientation: Qt.Vertical
-                SplitView.fillWidth: true
-                SplitView.fillHeight: true
-                SplitView.minimumWidth: main.minimumPanelSize
-                ThemedItem.splitHandleVisible: topDock.panelOpened || bottomDock.panelOpened
-                Item {
-                    SplitView.minimumHeight: !bottomDock.panelOpened ? middleSplitView.height - bottomDock.barSize - 1 : topDock.barSize + (topDock.panelOpened ? main.minimumPanelSize : 0)
-                    SplitView.preferredHeight: (middleSplitView.height - 1) / 2
-                    SplitView.maximumHeight: Math.max(SplitView.minimumHeight, !topDock.panelOpened ? topDock.barSize : Infinity)
-                    DockingView {
-                        id: topDock
-                        width: parent.width
-                        anchors.top: parent.top
-                        edge: Qt.TopEdge
-                        property double preferredPanelSize: 400
-                        panelSize: parent.height - barSize
-                        onPanelSizeChanged: () => {
-                            if (panelSize > 0)
-                                preferredPanelSize = panelSize
-                        }
-                        DockingPane {
+                },
+        DockingPane {
+            panelKey: "arrangement"
+            minimumSize: Qt.size(100, 100)
                             title: "编曲面板"
                             icon.source: "qrc:/qt/qml/dev/sjimo/ScopicFlow/Test/GanttChart20Filled.svg"
-                            Component.onCompleted: Docking.dockingView.showPane(this)
                             header: ToolBar {
                                 Row {
                                     anchors.fill: parent
@@ -605,37 +564,12 @@ ApplicationWindow {
                             ArrangementPanel {
                                 anchors.fill: parent
                             }
-                        }
-                        DockingStretch {
-                        }
-                    }
-                    Rectangle {
-                        width: parent.width
-                        height: 1
-                        anchors.top: topDock.bottom
-                        color: Theme.splitterColor
-                        visible: !topDock.panelOpened
-                    }
-                }
-                Item {
-                    SplitView.minimumHeight: bottomDock.barSize + (bottomDock.panelOpened ? main.minimumPanelSize : 0)
-                    SplitView.preferredHeight: (middleSplitView.height - 1) / 2
-                    SplitView.maximumHeight: Math.max(SplitView.minimumHeight, !bottomDock.panelOpened ? bottomDock.barSize : Infinity)
-                    DockingView {
-                        id: bottomDock
-                        width: parent.width
-                        anchors.bottom: parent.bottom
-                        edge: Qt.BottomEdge
-                        property double preferredPanelSize: 400
-                        panelSize: parent.height - barSize
-                        onPanelSizeChanged: () => {
-                            if (panelSize > 0)
-                                preferredPanelSize = panelSize
-                        }
-                        DockingPane {
+                        },
+        DockingPane {
+            panelKey: "pianoRoll"
+            minimumSize: Qt.size(100, 100)
                             title: "钢琴卷帘"
                             icon.source: "qrc:/qt/qml/dev/sjimo/ScopicFlow/Test/Midi20Filled.svg"
-                            Component.onCompleted: Docking.dockingView.showPane(this)
                             header: ToolBar {
                                 Row {
                                     anchors.fill: parent
@@ -673,11 +607,12 @@ ApplicationWindow {
                             PianoRollPanel {
                                 anchors.fill: parent
                             }
-                        }
-                        DockingPane {
+                        },
+        DockingPane {
+            panelKey: "mixer"
+            minimumSize: Qt.size(100, 100)
                             title: "混音器"
                             icon.source: "qrc:/qt/qml/dev/sjimo/ScopicFlow/Test/Midi20Filled.svg"
-                            Component.onCompleted: Docking.dockingView.showPane(this)
                             header: ToolBar {
                                 Row {
                                     anchors.fill: parent
@@ -703,44 +638,35 @@ ApplicationWindow {
                             MixerPanel {
                                 anchors.fill: parent
                             }
-                        }
-                        DockingStretch {
-                        }
-                    }
-                    Rectangle {
-                        width: parent.width
-                        height: 1
-                        anchors.bottom: bottomDock.top
-                        color: Theme.splitterColor
-                        visible: !bottomDock.panelOpened
-                    }
-                }
-            }
-        }
-
-        DockingView {
-            id: rightDock
-            SplitView.minimumWidth: barSize + (panelOpened ? main.minimumPanelSize : 0)
-            SplitView.preferredWidth: barSize + (panelOpened ? preferredPanelSize : 0)
-            SplitView.maximumWidth: !panelOpened ? barSize : Infinity
-            clip: true
-            edge: Qt.RightEdge
-            property double preferredPanelSize: 400
-            panelSize: width - barSize
-            onPanelSizeChanged: () => {
-                if (panelSize > 0)
-                    preferredPanelSize = panelSize
-            }
-            DockingStretch {
-            }
-            DockingPane {
+                        },
+        DockingPane {
+            panelKey: "properties"
+            minimumSize: Qt.size(100, 100)
                 title: "设置"
                 icon.source: "qrc:/qt/qml/dev/sjimo/ScopicFlow/Test/Settings16Filled.svg"
                 SettingsPanel {
                     anchors.fill: parent
                 }
             }
-        }
+    ]
+    DockingView { anchors.fill: parent; host: main.dockingHost }
+    Component.onCompleted: {
+        for (const pane of dockingPanes) dockingContext.registerPanel(pane.panel)
+        dockingHost.layout.restore({
+            kind: "split", nodeId: "root", orientation: Qt.Horizontal, weights: [1, 2, 1],
+            children: [
+                {kind: "group", nodeId: "left", tabBarEdge: Qt.LeftEdge,
+                 leading: {panelIds: ["settings"], selected: "settings"}},
+                {kind: "split", nodeId: "center", orientation: Qt.Vertical, weights: [1, 1],
+                 children: [
+                     {kind: "group", nodeId: "top", tabBarEdge: Qt.TopEdge,
+                      leading: {panelIds: ["arrangement"], selected: "arrangement"}},
+                     {kind: "group", nodeId: "bottom", tabBarEdge: Qt.BottomEdge,
+                      leading: {panelIds: ["pianoRoll", "mixer"], selected: "pianoRoll"}}
+                 ]},
+                {kind: "group", nodeId: "right", tabBarEdge: Qt.RightEdge,
+                 leading: {panelIds: ["properties"], selected: "properties"}}
+            ]
+        })
     }
-
 }

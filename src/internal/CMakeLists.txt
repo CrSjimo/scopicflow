@@ -1,6 +1,6 @@
 project(ScopicFlowInternal VERSION 0.0.1 LANGUAGES CXX)
 
-qm_import(Qml)
+qm_import(QtQml)
 
 file(GLOB_RECURSE _src *.h *.cpp *.qrc)
 file(GLOB_RECURSE _qml_files RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} *.qml *.js *.mjs)
@@ -28,7 +28,7 @@ qt_add_qml_module(${PROJECT_NAME}
     OUTPUT_DIRECTORY ${QMSETUP_BUILD_DIR}/qml/dev/sjimo/ScopicFlow/Internal
 )
 
-qm_import(Qml)
+qm_import(QtQml)
 qm_install_qml_modules(${PROJECT_NAME})
 
 find_path(INTERVAL_TREE_INCLUDE_DIRS "interval-tree/interval_tree.hpp" REQUIRED)

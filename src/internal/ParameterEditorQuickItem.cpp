@@ -6,6 +6,7 @@
 #include <cmath>
 #include <limits>
 #include <numbers>
+#include <utility>
 
 #include <QPainter>
 #include <QPainterPath>
@@ -1703,6 +1704,151 @@ namespace sflow {
         d->lineSnapshotLast = -1;
         d->lineSnapshot.clear();
         return true;
+    }
+
+    bool ParameterEditorQuickItem::beginFreeTransform(int start, int end) {
+        Q_D(ParameterEditorQuickItem);
+        if (!d->freeParameterViewModel || d->freeTransformState.viewModel || start < 0 || end <= start) {
+            return false;
+        }
+
+        const int step = FreeParameterViewModel::step();
+        const int firstIndex = start / step + (start % step != 0);
+        int lastIndex = (end - 1) / step;
+        if (!d->defaultValueEnabled) {
+            const int sourceSize = std::max(d->freeParameterViewModel->size(),
+                                           d->originalParameterViewModel ? d->originalParameterViewModel->size() : 0);
+            lastIndex = std::min(lastIndex, sourceSize - 1);
+        }
+        if (firstIndex > lastIndex) {
+            return false;
+        }
+
+        ParameterEditorQuickItemPrivate::FreeTransformState state;
+        state.viewModel = d->freeParameterViewModel;
+        state.firstIndex = firstIndex;
+        state.originalSize = state.viewModel->size();
+        const int count = lastIndex - firstIndex + 1;
+        state.snapshot = state.viewModel->slice(firstIndex, count);
+        state.sourceValues.reserve(count);
+        state.baselines.resize(count);
+        QList<double> positions;
+        positions.reserve(count);
+        for (int i = 0; i < count; ++i) {
+            positions.append(static_cast<double>(firstIndex + i) * step);
+            auto value = state.snapshot.value(i);
+            if (!value.isValid() && d->originalParameterViewModel) {
+                value = d->originalParameterViewModel->valueAtIndex(firstIndex + i);
+            }
+            if (!value.isValid() && d->defaultValueEnabled) {
+                value = d->defaultValue;
+            }
+            state.sourceValues.append(value);
+        }
+        state.factors = d->transformFactorsAt(positions);
+
+        bool hasSource = false;
+        for (int i = 0; i < count; ++i) {
+            const double factor = state.factors.at(i);
+            if (!std::isfinite(factor) || qFuzzyIsNull(factor)
+                || !std::isfinite(state.sourceValues.at(i).toDouble() * factor)) {
+                state.sourceValues[i] = QVariant();
+            }
+            hasSource |= state.sourceValues.at(i).isValid();
+        }
+        if (!hasSource) {
+            return false;
+        }
+
+        // Each continuous source segment has an independent endpoint baseline.
+        for (int first = 0; first < count;) {
+            if (!state.sourceValues.at(first).isValid()) {
+                ++first;
+                continue;
+            }
+            int last = first;
+            while (last + 1 < count && state.sourceValues.at(last + 1).isValid()) {
+                ++last;
+            }
+            const double firstValue = state.sourceValues.at(first).toDouble() * state.factors.at(first);
+            const double lastValue = state.sourceValues.at(last).toDouble() * state.factors.at(last);
+            for (int i = first; i <= last; ++i) {
+                const double ratio = first == last ? 0.0 : static_cast<double>(i - first) / (last - first);
+                state.baselines[i] = std::lerp(firstValue, lastValue, ratio);
+            }
+            first = last + 1;
+        }
+        d->freeTransformState = std::move(state);
+        return true;
+    }
+
+    bool ParameterEditorQuickItem::updateFreeTransform(double scale, double offset) {
+        Q_D(ParameterEditorQuickItem);
+        const auto state = d->freeTransformState;
+        if (!state.viewModel || state.viewModel != d->freeParameterViewModel
+            || !std::isfinite(scale) || scale < 0.0 || !std::isfinite(offset)) {
+            return false;
+        }
+
+        auto values = state.snapshot;
+        values.resize(state.sourceValues.size());
+        for (qsizetype i = 0; i < state.sourceValues.size(); ++i) {
+            if (!state.sourceValues.at(i).isValid()) {
+                continue;
+            }
+            const double source = state.sourceValues.at(i).toDouble();
+            const double factor = state.factors.at(i);
+            const double delta = (scale - 1.0) * (source * factor - state.baselines.at(i)) + offset;
+            if (qFuzzyIsNull(delta)) {
+                continue;
+            }
+            const double value = std::clamp(source + delta / factor, 0.0, 1.0);
+            if (value != source) {
+                values[i] = value;
+            }
+        }
+        while (!values.isEmpty() && state.firstIndex + values.size() > state.originalSize
+               && !values.constLast().isValid()) {
+            values.removeLast();
+        }
+        const int targetSize = values.isEmpty() ? state.originalSize
+                                               : std::max(state.originalSize, state.firstIndex + static_cast<int>(values.size()));
+        bool changed = false;
+        if (!values.isEmpty() && state.viewModel->slice(state.firstIndex, values.size()) != values) {
+            changed = state.viewModel->setValues(state.firstIndex, values);
+        }
+        if (state.viewModel && d->freeTransformState.viewModel == state.viewModel && state.viewModel->size() > targetSize) {
+            changed |= state.viewModel->splice(targetSize, state.viewModel->size() - targetSize, {});
+        }
+        return changed;
+    }
+
+    bool ParameterEditorQuickItem::commitFreeTransform() {
+        Q_D(ParameterEditorQuickItem);
+        const auto &state = d->freeTransformState;
+        const bool changed = state.viewModel
+            && (state.viewModel->size() != state.originalSize
+                || state.viewModel->slice(state.firstIndex, state.sourceValues.size()) != state.snapshot);
+        d->freeTransformState = {};
+        return changed;
+    }
+
+    void ParameterEditorQuickItemPrivate::restoreFreeTransform() {
+        const auto state = freeTransformState;
+        freeTransformState = {};
+        if (state.viewModel) {
+            if (!state.snapshot.isEmpty() && state.viewModel->slice(state.firstIndex, state.snapshot.size()) != state.snapshot) {
+                state.viewModel->setValues(state.firstIndex, state.snapshot);
+            }
+            if (state.viewModel && state.viewModel->size() > state.originalSize) {
+                state.viewModel->splice(state.originalSize, state.viewModel->size() - state.originalSize, {});
+            }
+        }
+    }
+
+    void ParameterEditorQuickItem::abortFreeTransform() {
+        Q_D(ParameterEditorQuickItem);
+        d->restoreFreeTransform();
     }
 
     ParameterAnchorViewModel *ParameterEditorQuickItem::anchorAt(const QPointF &point, double radius) const {

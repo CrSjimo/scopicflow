@@ -42,6 +42,7 @@ namespace sflow {
             Pointer,
             Pen,
             ConvertAnchor,
+            Transform,
             FreeRangeSelect = 0x10000,
             AnchorRubberBandSelect,
             AnchorTimeRangeSelect,
@@ -53,6 +54,7 @@ namespace sflow {
             DrawLineFree,
             BrushFree,
             EraseFree,
+            TransformFree,
         };
         Q_ENUM(FreeEditOperation)
 

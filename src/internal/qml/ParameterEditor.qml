@@ -32,6 +32,8 @@ FocusScope {
 
     onFreeParameterViewModelChanged: pointerRouter.cancel()
     onAnchorParameterViewModelChanged: pointerRouter.cancel()
+    onFreeParameterSelectionViewModelChanged: freeTransformDragHandler.cancel()
+    onInteractionControllerChanged: freeTransformDragHandler.cancel()
 
     function hasPointerHover(): bool {
         return pointerRouter.hasHover()
@@ -135,6 +137,7 @@ FocusScope {
                 || interaction === ParameterEditorInteractionController.Line
                 || interaction === ParameterEditorInteractionController.Brush
                 || interaction === ParameterEditorInteractionController.Eraser
+                || interaction === ParameterEditorInteractionController.Transform
                 || interaction === ParameterEditorInteractionController.FreeRangeSelect
         }
 
@@ -403,6 +406,89 @@ FocusScope {
     }
 
     DispatchedDragHandler {
+        id: freeTransformDragHandler
+
+        readonly property double deadZone: 16
+        readonly property double shapeDistance: 100
+        readonly property double translationFactor: 1.0
+        readonly property int operation: ParameterEditorInteractionController.TransformFree
+        property int direction: 0
+        property bool editing: false
+        property ParameterEditorInteractionController controller: null
+        activationPolicy: DispatchedDragHandler.Immediately
+
+        function transformTo(point) {
+            const deltaX = point.x - pressPosition.x
+            const deltaY = point.y - pressPosition.y
+            if (direction === 0) {
+                if (Math.max(Math.abs(deltaX), Math.abs(deltaY)) <= deadZone)
+                    return
+                direction = Math.abs(deltaX) >= Math.abs(deltaY) ? Qt.Horizontal : Qt.Vertical
+                editing = true
+                const pointer = helper.freeEditPointerAt(pressPosition)
+                controller?.freeEditingStarted(parameterEditor, operation, pointer.position, pointer.value)
+                if (!editing)
+                    return
+            }
+            const delta = direction === Qt.Horizontal ? deltaX : deltaY
+            const distance = Math.sign(delta) * Math.max(0, Math.abs(delta) - deadZone)
+            const scale = direction === Qt.Horizontal ? Math.max(0, 1 + distance / shapeDistance) : 1
+            const offset = direction === Qt.Vertical && parameterEditor.height > 0
+                ? -distance / parameterEditor.height * translationFactor : 0
+            content.updateFreeTransform(scale, offset)
+            if (!editing)
+                return
+            helper.updateFreeEditPointer(point)
+            controller?.freeEditingUpdated(parameterEditor, operation,
+                                           parameterEditor.freeEditPointerPosition,
+                                           parameterEditor.freeEditPointerValue)
+        }
+
+        onStarted: event => {
+            direction = 0
+            editing = false
+            controller = parameterEditor.interactionController
+            const selection = parameterEditor.freeParameterSelectionViewModel
+            if (!selection?.hasSelection || !controller
+                || !content.beginFreeTransform(selection.start, selection.end)) {
+                cancel()
+                return
+            }
+            helper.updateFreeEditPointer(event.position)
+        }
+        onMoved: event => transformTo(event.position)
+        onFinished: event => {
+            transformTo(event.position)
+            const changed = content.commitFreeTransform()
+            const wasEditing = editing
+            editing = false
+            if (wasEditing) {
+                if (changed)
+                    controller?.freeEditingCommitted(parameterEditor, operation)
+                else
+                    controller?.freeEditingAborted(parameterEditor, operation)
+            }
+            controller = null
+        }
+        onCanceled: {
+            const wasEditing = editing
+            editing = false
+            content.abortFreeTransform()
+            if (wasEditing)
+                controller?.freeEditingAborted(parameterEditor, operation)
+            controller = null
+        }
+    }
+
+    Connections {
+        target: parameterEditor.freeParameterSelectionViewModel
+
+        function onRangeChanged() {
+            freeTransformDragHandler.cancel()
+        }
+    }
+
+    DispatchedDragHandler {
         id: anchorMoveDragHandler
         property ParameterAnchorViewModel item: null
         property point lastPoint: Qt.point(0, 0)
@@ -644,6 +730,8 @@ FocusScope {
                 return brushDragHandler
             case ParameterEditorInteractionController.Eraser:
                 return eraserDragHandler
+            case ParameterEditorInteractionController.Transform:
+                return freeTransformDragHandler
             case ParameterEditorInteractionController.Pointer:
                 return hit.target ? anchorMoveDragHandler : anchorRubberBandDragHandler
             case ParameterEditorInteractionController.Pen:

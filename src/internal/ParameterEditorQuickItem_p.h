@@ -124,6 +124,10 @@ namespace sflow {
         Q_INVOKABLE bool updateFreeLine(const QPointF &point);
         Q_INVOKABLE void commitFreeLine();
         Q_INVOKABLE bool abortFreeLine();
+        Q_INVOKABLE bool beginFreeTransform(int start, int end);
+        Q_INVOKABLE bool updateFreeTransform(double scale, double offset);
+        Q_INVOKABLE bool commitFreeTransform();
+        Q_INVOKABLE void abortFreeTransform();
         Q_INVOKABLE ParameterAnchorViewModel *anchorAt(const QPointF &point, double radius) const;
         Q_INVOKABLE QObjectList anchorsInRect(const QRectF &rect) const;
         Q_INVOKABLE QObjectList anchorsInTimeRange(int firstPosition, int lastPosition) const;

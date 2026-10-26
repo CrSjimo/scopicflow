@@ -112,6 +112,18 @@ namespace sflow {
         int lineSnapshotLast = -1;
         QList<QVariant> lineSnapshot;
 
+        struct FreeTransformState {
+            QPointer<FreeParameterViewModel> viewModel;
+            int firstIndex = 0;
+            int originalSize = 0;
+            QList<QVariant> snapshot;
+            QList<QVariant> sourceValues;
+            QList<double> factors;
+            QList<double> baselines;
+        };
+
+        FreeTransformState freeTransformState;
+
         ParameterEditorSemanticSnapshot semanticSnapshot;
         quint64 snapshotRevision = 0;
         bool geometryDirty = true;
@@ -127,6 +139,7 @@ namespace sflow {
         double transformedAnchorValue(const ParameterAnchorViewModel *item) const;
         void rebuildGeometry();
         bool writeFreeLineSegment(const QPointF &from, const QPointF &to);
+        void restoreFreeTransform();
     };
 
 }

@@ -77,9 +77,24 @@ ApplicationWindow {
             case ParameterEditorInteractionController.Line:
             case ParameterEditorInteractionController.Brush:
             case ParameterEditorInteractionController.Eraser:
+                controller.primaryItemInteraction = tool
+                controller.primarySceneInteraction = tool
+                break
+            case ParameterEditorInteractionController.Transform:
+                controller.primaryItemInteraction = tool
+                controller.primarySceneInteraction = tool
+                controller.secondaryItemInteraction = tool
+                controller.secondarySceneInteraction = tool
+                controller.primarySelectInteraction = ParameterEditorInteractionController.FreeRangeSelect
+                controller.secondarySelectInteraction = ParameterEditorInteractionController.FreeRangeSelect
+                break
             case ParameterEditorInteractionController.FreeRangeSelect:
                 controller.primaryItemInteraction = tool
                 controller.primarySceneInteraction = tool
+                controller.primarySelectInteraction = tool
+                controller.secondaryItemInteraction = ParameterEditorInteractionController.Transform
+                controller.secondarySceneInteraction = ParameterEditorInteractionController.Transform
+                controller.secondarySelectInteraction = ParameterEditorInteractionController.Transform
                 break
             case ParameterEditorInteractionController.Pen:
                 controller.primaryItemInteraction = tool
@@ -140,6 +155,12 @@ ApplicationWindow {
                 checkable: true
                 checked: toolSelector.currentTool === ParameterEditorInteractionController.Eraser
                 onClicked: toolSelector.selectTool(ParameterEditorInteractionController.Eraser)
+            }
+            ToolButton {
+                text: qsTr("Transform")
+                checkable: true
+                checked: toolSelector.currentTool === ParameterEditorInteractionController.Transform
+                onClicked: toolSelector.selectTool(ParameterEditorInteractionController.Transform)
             }
             ToolButton {
                 visible: toolSelector.anchorToolsVisible

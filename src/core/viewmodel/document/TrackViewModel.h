@@ -15,7 +15,6 @@ namespace sflow {
         Q_PROPERTY(QString name READ name WRITE setName NOTIFY nameChanged)
         Q_PROPERTY(bool mute READ isMute WRITE setMute NOTIFY muteChanged)
         Q_PROPERTY(bool solo READ isSolo WRITE setSolo NOTIFY soloChanged)
-        Q_PROPERTY(bool record READ isRecord WRITE setRecord NOTIFY recordChanged)
         Q_PROPERTY(double gain READ gain WRITE setGain NOTIFY gainChanged)
         Q_PROPERTY(double pan READ pan WRITE setPan NOTIFY panChanged)
         Q_PROPERTY(double leftLevel READ leftLevel WRITE setLeftLevel NOTIFY leftLevelChanged)
@@ -39,9 +38,6 @@ namespace sflow {
 
         bool isSolo() const;
         void setSolo(bool solo);
-
-        bool isRecord() const;
-        void setRecord(bool record);
 
         double gain() const;
         void setGain(double gain);
@@ -80,7 +76,6 @@ namespace sflow {
         void nameChanged();
         void muteChanged();
         void soloChanged();
-        void recordChanged();
         void gainChanged();
         void panChanged();
         void leftLevelChanged();
@@ -97,7 +92,6 @@ namespace sflow {
         QString m_name;
         bool m_mute;
         bool m_solo;
-        bool m_record;
         double m_gain;
         double m_pan;
         double m_leftLevel;

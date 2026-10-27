@@ -23,7 +23,7 @@ Item {
     property bool rightAligned: false
     property Item mouseArea: null
 
-    readonly property TrackMSR trackMSR: controlsFirstRow
+    readonly property TrackControl trackControl: controlsFirstRow
     readonly property TrackEditLabel trackNameEditLabel: trackNameEditLabel
     readonly property Slider gainSlider: gainSlider
     readonly property TrackEditLabel gainEditLabel: gainEditLabel
@@ -136,7 +136,7 @@ Item {
                 anchors.top: parent.top
                 spacing: 8
 
-                TrackMSR {
+                TrackControl {
                     id: controlsFirstRow
                     trackViewModel: track.trackViewModel
                 }

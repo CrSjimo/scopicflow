@@ -8,7 +8,7 @@ namespace sflow {
           m_primaryItemInteraction(DragMove), m_secondaryItemInteraction(DragCopy),
           m_primarySceneInteraction(RubberBandSelect), m_secondarySceneInteraction(RubberBandSelect),
           m_primarySelectInteraction(RubberBandSelect), m_secondarySelectInteraction(RubberBandSelect),
-          m_itemAction(EditMute | EditSolo | EditRecord | EditName | EditGain | EditPan | AdjustHeight) {
+          m_itemAction(EditMute | EditSolo | EditName | EditGain | EditPan | AdjustHeight) {
     }
 
     TrackListInteractionController::~TrackListInteractionController() = default;

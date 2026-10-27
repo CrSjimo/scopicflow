@@ -410,49 +410,34 @@ Item {
                         }
                     }
 
-                    trackMSR.muteButton.visible: Boolean(trackList.trackListInteractionController.itemAction & TrackListInteractionController.EditMute)
-                    trackMSR.soloButton.visible: Boolean(trackList.trackListInteractionController.itemAction & TrackListInteractionController.EditSolo)
-                    trackMSR.recordButton.visible: Boolean(trackList.trackListInteractionController.itemAction & TrackListInteractionController.EditRecord)
+                    trackControl.muteButton.visible: Boolean(trackList.trackListInteractionController.itemAction & TrackListInteractionController.EditMute)
+                    trackControl.soloButton.visible: Boolean(trackList.trackListInteractionController.itemAction & TrackListInteractionController.EditSolo)
 
-                    trackMSR.muteButton.onClicked: () => {
+                    trackControl.muteButton.onClicked: () => {
                         trackList.trackListInteractionController.muteEditingStarted(trackList, index)
-                        trackViewModel.mute = trackMSR.muteButton.checked
+                        trackViewModel.mute = trackControl.muteButton.checked
                         trackList.trackListInteractionController.muteEditingFinished(trackList, index)
                     }
 
-                    trackMSR.soloButton.onClicked: () => {
+                    trackControl.soloButton.onClicked: () => {
                         trackList.trackListInteractionController.soloEditingStarted(trackList, index)
-                        trackViewModel.solo = trackMSR.soloButton.checked
+                        trackViewModel.solo = trackControl.soloButton.checked
                         trackList.trackListInteractionController.soloEditingFinished(trackList, index)
                     }
 
-                    trackMSR.recordButton.onClicked: () => {
-                        trackList.trackListInteractionController.recordEditingStarted(trackList, index)
-                        trackViewModel.record = trackMSR.recordButton.checked
-                        trackList.trackListInteractionController.recordEditingFinished(trackList, index)
-                    }
-
-                    trackMSR.muteButton.onHoveredChanged: () => {
-                        if (trackMSR.muteButton.hovered) {
+                    trackControl.muteButton.onHoveredChanged: () => {
+                        if (trackControl.muteButton.hovered) {
                             trackList.trackListInteractionController.itemHoverEntered(trackList, trackListDelegate.trackViewModel, TrackListInteractionController.MuteButton)
                         } else {
                             trackList.trackListInteractionController.itemHoverExited(trackList, trackListDelegate.trackViewModel, TrackListInteractionController.MuteButton)
                         }
                     }
 
-                    trackMSR.soloButton.onHoveredChanged: () => {
-                        if (trackMSR.soloButton.hovered) {
+                    trackControl.soloButton.onHoveredChanged: () => {
+                        if (trackControl.soloButton.hovered) {
                             trackList.trackListInteractionController.itemHoverEntered(trackList, trackListDelegate.trackViewModel, TrackListInteractionController.SoloButton)
                         } else {
                             trackList.trackListInteractionController.itemHoverExited(trackList, trackListDelegate.trackViewModel, TrackListInteractionController.SoloButton)
-                        }
-                    }
-
-                    trackMSR.recordButton.onHoveredChanged: () => {
-                        if (trackMSR.recordButton.hovered) {
-                            trackList.trackListInteractionController.itemHoverEntered(trackList, trackListDelegate.trackViewModel, TrackListInteractionController.RecordButton)
-                        } else {
-                            trackList.trackListInteractionController.itemHoverExited(trackList, trackListDelegate.trackViewModel, TrackListInteractionController.RecordButton)
                         }
                     }
 

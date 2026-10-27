@@ -9,10 +9,9 @@ import dev.sjimo.ScopicFlow
 import dev.sjimo.ScopicFlow.Internal
 
 RowLayout {
-    id: msr
+    id: control
 
     readonly property ToolButton muteButton: muteButton_
-    readonly property ToolButton recordButton: recordButton_
     readonly property ToolButton soloButton: soloButton_
     required property QtObject trackViewModel
 
@@ -24,7 +23,7 @@ RowLayout {
         Theme.accentColor: SFPalette.muteColor
         ThemedItem.controlType: SVS.CT_Accent
         checkable: true
-        checked: msr.trackViewModel.mute ?? false
+        checked: control.trackViewModel.mute ?? false
         flat: false
         text: 'Mute'
         Component.onCompleted: contentItem.text = 'M'
@@ -36,22 +35,10 @@ RowLayout {
         Theme.accentColor: SFPalette.soloColor
         ThemedItem.controlType: SVS.CT_Accent
         checkable: true
-        checked: msr.trackViewModel.solo ?? false
+        checked: control.trackViewModel.solo ?? false
         flat: false
         text: 'Solo'
         Component.onCompleted: contentItem.text = 'S'
-        DescriptiveText.toolTip: text
-    }
-    ToolButton {
-        id: recordButton_
-
-        Theme.accentColor: SFPalette.recordColor
-        ThemedItem.controlType: SVS.CT_Accent
-        checkable: true
-        checked: msr.trackViewModel.record ?? false
-        flat: false
-        text: 'Record'
-        Component.onCompleted: contentItem.text = 'R'
         DescriptiveText.toolTip: text
     }
 }

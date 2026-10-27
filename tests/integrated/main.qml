@@ -270,10 +270,10 @@ ApplicationWindow {
                         anchors.centerIn: parent
                         text: "Custom Track Extra Delegate\n" +
                             `name = ${parent.trackViewModel.name}\n` +
-                            "msr = " +
+                            "control = " +
                             (parent.trackViewModel.mute ? "[M]" : "") +
                             (parent.trackViewModel.solo ? "[S]" : "") +
-                            (parent.trackViewModel.record ? "[R]" : "") + "\n" +
+                            "\n" +
                             `gain = ${parent.trackViewModel.gain}\n` +
                             `pan = ${parent.trackViewModel.pan}\n` +
                             `selected = ${parent.trackViewModel.selected}\n` +
@@ -623,10 +623,6 @@ ApplicationWindow {
                                     }
                                     ToolButton {
                                         text: "Solo All"
-                                        checkable: true
-                                    }
-                                    ToolButton {
-                                        text: "Record All"
                                         checkable: true
                                     }
                                     ToolButton {

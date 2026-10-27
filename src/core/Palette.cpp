@@ -56,7 +56,6 @@ namespace sflow {
 
     IMPLEMENTATION(muteColor, muteColor, setMuteColor, resetMuteColor)
     IMPLEMENTATION(soloColor, soloColor, setSoloColor, resetSoloColor)
-    IMPLEMENTATION(recordColor, recordColor, setRecordColor, resetRecordColor)
     IMPLEMENTATION(routeColor, routeColor, setRouteColor, resetRouteColor)
     IMPLEMENTATION(clipMuteColor, clipMuteColor, setClipMuteColor, resetClipMuteColor)
 

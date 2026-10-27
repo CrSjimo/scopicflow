@@ -177,45 +177,32 @@ Item {
                     color: Theme.borderColor
                 }
 
-                trackMSR.muteButton.visible: Boolean(mixer.trackListInteractionController.itemAction & TrackListInteractionController.EditMute)
-                trackMSR.soloButton.visible: Boolean(mixer.trackListInteractionController.itemAction & TrackListInteractionController.EditSolo)
-                trackMSR.recordButton.visible: Boolean(mixer.trackListInteractionController.itemAction & TrackListInteractionController.EditRecord)
+                trackControl.muteButton.visible: Boolean(mixer.trackListInteractionController.itemAction & TrackListInteractionController.EditMute)
+                trackControl.soloButton.visible: Boolean(mixer.trackListInteractionController.itemAction & TrackListInteractionController.EditSolo)
 
-                trackMSR.muteButton.onClicked: () => {
+                trackControl.muteButton.onClicked: () => {
                     mixer.trackListInteractionController.muteEditingStarted(mixer, index)
-                    trackViewModel.mute = trackMSR.muteButton.checked
+                    trackViewModel.mute = trackControl.muteButton.checked
                     mixer.trackListInteractionController.muteEditingFinished(mixer, index)
                 }
-                trackMSR.soloButton.onClicked: () => {
+                trackControl.soloButton.onClicked: () => {
                     mixer.trackListInteractionController.soloEditingStarted(mixer, index)
-                    trackViewModel.solo = trackMSR.soloButton.checked
+                    trackViewModel.solo = trackControl.soloButton.checked
                     mixer.trackListInteractionController.soloEditingFinished(mixer, index)
                 }
-                trackMSR.recordButton.onClicked: () => {
-                    mixer.trackListInteractionController.recordEditingStarted(mixer, index)
-                    trackViewModel.record = trackMSR.recordButton.checked
-                    mixer.trackListInteractionController.recordEditingFinished(mixer, index)
-                }
 
-                trackMSR.muteButton.onHoveredChanged: () => {
-                    if (trackMSR.muteButton.hovered) {
+                trackControl.muteButton.onHoveredChanged: () => {
+                    if (trackControl.muteButton.hovered) {
                         mixer.trackListInteractionController.itemHoverEntered(mixer, trackViewModel, TrackListInteractionController.MuteButton)
                     } else {
                         mixer.trackListInteractionController.itemHoverExited(mixer, trackViewModel, TrackListInteractionController.MuteButton)
                     }
                 }
-                trackMSR.soloButton.onHoveredChanged: () => {
-                    if (trackMSR.soloButton.hovered) {
+                trackControl.soloButton.onHoveredChanged: () => {
+                    if (trackControl.soloButton.hovered) {
                         mixer.trackListInteractionController.itemHoverEntered(mixer, trackViewModel, TrackListInteractionController.SoloButton)
                     } else {
                         mixer.trackListInteractionController.itemHoverExited(mixer, trackViewModel, TrackListInteractionController.SoloButton)
-                    }
-                }
-                trackMSR.recordButton.onHoveredChanged: () => {
-                    if (trackMSR.recordButton.hovered) {
-                        mixer.trackListInteractionController.itemHoverEntered(mixer, trackViewModel, TrackListInteractionController.RecordButton)
-                    } else {
-                        mixer.trackListInteractionController.itemHoverExited(mixer, trackViewModel, TrackListInteractionController.RecordButton)
                     }
                 }
 

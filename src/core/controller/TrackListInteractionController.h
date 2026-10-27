@@ -53,12 +53,11 @@ namespace sflow {
         enum ItemActionFlag {
             EditMute = 0x1,
             EditSolo = 0x2,
-            EditRecord = 0x4,
-            EditName = 0x8,
-            EditGain = 0x10,
-            EditPan = 0x20,
-            AdjustHeight = 0x40,
-            EditMultiChannelOutput = 0x80,
+            EditName = 0x4,
+            EditGain = 0x8,
+            EditPan = 0x10,
+            AdjustHeight = 0x20,
+            EditMultiChannelOutput = 0x40,
         };
         Q_ENUM(ItemActionFlag)
         Q_DECLARE_FLAGS(ItemAction, ItemActionFlag)
@@ -71,7 +70,6 @@ namespace sflow {
             ColorIndicator,
             MuteButton,
             SoloButton,
-            RecordButton,
             MultiChannelOutputButton,
             NameLabel,
             GainSlider,
@@ -106,9 +104,6 @@ namespace sflow {
 
         void soloEditingStarted(QQuickItem *trackList, int index);
         void soloEditingFinished(QQuickItem *trackList, int index);
-
-        void recordEditingStarted(QQuickItem *trackList, int index);
-        void recordEditingFinished(QQuickItem *trackList, int index);
 
         void nameEditingStarted(QQuickItem *trackList, int index);
         void nameEditingCommitted(QQuickItem *trackList, int index);

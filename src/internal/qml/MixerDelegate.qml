@@ -23,7 +23,7 @@ Item {
     readonly property Dial panDial: panDial
     readonly property TrackEditLabel panEditLabel: panEditLabel
     readonly property ToolButton multiChannelOutputButton: multiChannelOutputButton
-    readonly property TrackMSR trackMSR: msr
+    readonly property TrackControl trackControl: control
     readonly property MixerSlider gainSlider: gainSlider
     readonly property TrackEditLabel gainEditLabel: gainEditLabel
     readonly property MouseArea levelMeterMouseArea: levelMeterMouseArea
@@ -110,8 +110,8 @@ Item {
             Layout.fillHeight: true
             Layout.fillWidth: true
 
-            TrackMSR {
-                id: msr
+            TrackControl {
+                id: control
 
                 anchors.horizontalCenter: parent.horizontalCenter
                 trackViewModel: mixerDelegate.trackViewModel
@@ -119,7 +119,7 @@ Item {
             RowLayout {
                 anchors.bottom: parent.bottom
                 anchors.horizontalCenter: parent.horizontalCenter
-                anchors.top: msr.bottom
+                anchors.top: control.bottom
 
                 ColumnLayout {
                     Layout.fillHeight: true

@@ -5,7 +5,7 @@
 namespace sflow {
 
     TrackViewModel::TrackViewModel(QObject *parent)
-        : QObject(parent), m_mute(false), m_solo(false), m_record(false), m_gain(0.0), m_pan(0.0),
+        : QObject(parent), m_mute(false), m_solo(false), m_gain(0.0), m_pan(0.0),
           m_leftLevel(std::numeric_limits<double>::lowest()), m_rightLevel(std::numeric_limits<double>::lowest()),
           m_leftClipping(false), m_rightClipping(false), m_peakLevel(std::numeric_limits<double>::lowest()),
           m_rowHeight(80.0), m_color(Qt::transparent), m_multiChannelOutput(true),
@@ -44,17 +44,6 @@ namespace sflow {
         if (m_solo != solo) {
             m_solo = solo;
             Q_EMIT soloChanged();
-        }
-    }
-
-    bool TrackViewModel::isRecord() const {
-        return m_record;
-    }
-
-    void TrackViewModel::setRecord(bool record) {
-        if (m_record != record) {
-            m_record = record;
-            Q_EMIT recordChanged();
         }
     }
 

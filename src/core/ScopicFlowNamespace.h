@@ -86,7 +86,6 @@ namespace sflow {
             InteractionOnColorIndicator,
             InteractionOnMute,
             InteractionOnSolo,
-            InteractionOnRecord,
             InteractionOnRoute,
             InteractionOnTrackName,
             InteractionOnGainSlider,

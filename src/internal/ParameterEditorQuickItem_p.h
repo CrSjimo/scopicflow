@@ -5,6 +5,8 @@
 #include <QQuickItem>
 #include <QVariant>
 
+#include <ScopicFlowCore/ParameterEditorInteractionController.h>
+
 namespace sflow {
 
     class FreeParameterViewModel;
@@ -124,8 +126,8 @@ namespace sflow {
         Q_INVOKABLE bool updateFreeLine(const QPointF &point);
         Q_INVOKABLE void commitFreeLine();
         Q_INVOKABLE bool abortFreeLine();
-        Q_INVOKABLE bool beginFreeTransform(int start, int end);
-        Q_INVOKABLE bool updateFreeTransform(double scale, double offset);
+        Q_INVOKABLE bool beginFreeTransform(int start, int end, ParameterEditorInteractionController::ScaleMode scaleMode);
+        Q_INVOKABLE bool updateFreeTransform(double scale, double offset, double absoluteScale);
         Q_INVOKABLE bool commitFreeTransform();
         Q_INVOKABLE void abortFreeTransform();
         Q_INVOKABLE ParameterAnchorViewModel *anchorAt(const QPointF &point, double radius) const;

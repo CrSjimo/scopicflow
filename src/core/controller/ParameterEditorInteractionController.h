@@ -23,6 +23,10 @@ namespace sflow {
         Q_PROPERTY(Interaction secondarySceneInteraction READ secondarySceneInteraction WRITE setSecondarySceneInteraction NOTIFY secondarySceneInteractionChanged)
         Q_PROPERTY(Interaction primarySelectInteraction READ primarySelectInteraction WRITE setPrimarySelectInteraction NOTIFY primarySelectInteractionChanged)
         Q_PROPERTY(Interaction secondarySelectInteraction READ secondarySelectInteraction WRITE setSecondarySelectInteraction NOTIFY secondarySelectInteractionChanged)
+        Q_PROPERTY(ShiftMode transformShiftMode READ transformShiftMode WRITE setTransformShiftMode NOTIFY transformShiftModeChanged)
+        Q_PROPERTY(ShiftMode alternativeTransformShiftMode READ alternativeTransformShiftMode WRITE setAlternativeTransformShiftMode NOTIFY alternativeTransformShiftModeChanged)
+        Q_PROPERTY(ScaleMode transformScaleMode READ transformScaleMode WRITE setTransformScaleMode NOTIFY transformScaleModeChanged)
+        Q_PROPERTY(ScaleMode alternativeTransformScaleMode READ alternativeTransformScaleMode WRITE setAlternativeTransformScaleMode NOTIFY alternativeTransformScaleModeChanged)
         Q_PROPERTY(ParameterAnchorViewModel::InterpolationMode newAnchorInterpolationMode READ newAnchorInterpolationMode WRITE setNewAnchorInterpolationMode NOTIFY newAnchorInterpolationModeChanged)
         Q_PROPERTY(FillMode fillMode READ fillMode WRITE setFillMode NOTIFY fillModeChanged)
         Q_PROPERTY(double fillBaseline READ fillBaseline WRITE setFillBaseline NOTIFY fillBaselineChanged)
@@ -43,6 +47,7 @@ namespace sflow {
             Pen,
             ConvertAnchor,
             Transform,
+            AlternativeTransform,
             FreeRangeSelect = 0x10000,
             AnchorRubberBandSelect,
             AnchorTimeRangeSelect,
@@ -55,8 +60,21 @@ namespace sflow {
             BrushFree,
             EraseFree,
             TransformFree,
+            AlternativeTransformFree,
         };
         Q_ENUM(FreeEditOperation)
+
+        enum ShiftMode {
+            TranslateValues,
+            ScaleAbsoluteValues,
+        };
+        Q_ENUM(ShiftMode)
+
+        enum ScaleMode {
+            ScaleToEndpoints,
+            ScaleToMean,
+        };
+        Q_ENUM(ScaleMode)
 
         enum FillMode {
             NoFill,
@@ -91,6 +109,18 @@ namespace sflow {
         void setPrimarySelectInteraction(Interaction interaction);
         Interaction secondarySelectInteraction() const;
         void setSecondarySelectInteraction(Interaction interaction);
+
+        ShiftMode transformShiftMode() const;
+        void setTransformShiftMode(ShiftMode mode);
+
+        ShiftMode alternativeTransformShiftMode() const;
+        void setAlternativeTransformShiftMode(ShiftMode mode);
+
+        ScaleMode transformScaleMode() const;
+        void setTransformScaleMode(ScaleMode mode);
+
+        ScaleMode alternativeTransformScaleMode() const;
+        void setAlternativeTransformScaleMode(ScaleMode mode);
 
         ParameterAnchorViewModel::InterpolationMode newAnchorInterpolationMode() const;
         void setNewAnchorInterpolationMode(ParameterAnchorViewModel::InterpolationMode interpolationMode);
@@ -127,6 +157,10 @@ namespace sflow {
         void secondarySceneInteractionChanged();
         void primarySelectInteractionChanged();
         void secondarySelectInteractionChanged();
+        void transformShiftModeChanged();
+        void alternativeTransformShiftModeChanged();
+        void transformScaleModeChanged();
+        void alternativeTransformScaleModeChanged();
         void newAnchorInterpolationModeChanged();
         void fillModeChanged();
         void fillBaselineChanged();
@@ -184,6 +218,10 @@ namespace sflow {
         Interaction m_secondarySceneInteraction = None;
         Interaction m_primarySelectInteraction = None;
         Interaction m_secondarySelectInteraction = None;
+        ShiftMode m_transformShiftMode = TranslateValues;
+        ShiftMode m_alternativeTransformShiftMode = ScaleAbsoluteValues;
+        ScaleMode m_transformScaleMode = ScaleToEndpoints;
+        ScaleMode m_alternativeTransformScaleMode = ScaleToMean;
         ParameterAnchorViewModel::InterpolationMode m_newAnchorInterpolationMode = ParameterAnchorViewModel::Hermite;
         FillMode m_fillMode = NoFill;
         double m_fillBaseline = 0.0;

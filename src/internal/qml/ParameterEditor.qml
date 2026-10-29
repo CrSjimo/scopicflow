@@ -32,8 +32,13 @@ FocusScope {
 
     onFreeParameterViewModelChanged: pointerRouter.cancel()
     onAnchorParameterViewModelChanged: pointerRouter.cancel()
-    onFreeParameterSelectionViewModelChanged: freeTransformDragHandler.cancel()
-    onInteractionControllerChanged: freeTransformDragHandler.cancel()
+    onFreeParameterSelectionViewModelChanged: cancelFreeTransform()
+    onInteractionControllerChanged: cancelFreeTransform()
+
+    function cancelFreeTransform() {
+        freeTransformDragHandler.cancel()
+        alternativeFreeTransformDragHandler.cancel()
+    }
 
     function hasPointerHover(): bool {
         return pointerRouter.hasHover()
@@ -138,6 +143,7 @@ FocusScope {
                 || interaction === ParameterEditorInteractionController.Brush
                 || interaction === ParameterEditorInteractionController.Eraser
                 || interaction === ParameterEditorInteractionController.Transform
+                || interaction === ParameterEditorInteractionController.AlternativeTransform
                 || interaction === ParameterEditorInteractionController.FreeRangeSelect
         }
 
@@ -405,14 +411,18 @@ FocusScope {
         }
     }
 
-    DispatchedDragHandler {
-        id: freeTransformDragHandler
+    component FreeTransformDragHandler: DispatchedDragHandler {
+        id: freeTransformHandler
 
+        property bool alternative: false
         readonly property double deadZone: 16
         readonly property double shapeDistance: 100
         readonly property double translationFactor: 1.0
-        readonly property int operation: ParameterEditorInteractionController.TransformFree
+        readonly property int operation: alternative ? ParameterEditorInteractionController.AlternativeTransformFree
+                                                     : ParameterEditorInteractionController.TransformFree
         property int direction: 0
+        property int shiftMode: ParameterEditorInteractionController.TranslateValues
+        property int scaleMode: ParameterEditorInteractionController.ScaleToEndpoints
         property bool editing: false
         property ParameterEditorInteractionController controller: null
         activationPolicy: DispatchedDragHandler.Immediately
@@ -433,9 +443,12 @@ FocusScope {
             const delta = direction === Qt.Horizontal ? deltaX : deltaY
             const distance = Math.sign(delta) * Math.max(0, Math.abs(delta) - deadZone)
             const scale = direction === Qt.Horizontal ? Math.max(0, 1 + distance / shapeDistance) : 1
-            const offset = direction === Qt.Vertical && parameterEditor.height > 0
+            const shift = direction === Qt.Vertical && parameterEditor.height > 0
                 ? -distance / parameterEditor.height * translationFactor : 0
-            content.updateFreeTransform(scale, offset)
+            const offset = shiftMode === ParameterEditorInteractionController.TranslateValues ? shift : 0
+            const absoluteScale = shiftMode === ParameterEditorInteractionController.ScaleAbsoluteValues
+                ? Math.max(0, 1 + shift) : 1
+            content.updateFreeTransform(scale, offset, absoluteScale)
             if (!editing)
                 return
             helper.updateFreeEditPointer(point)
@@ -448,9 +461,13 @@ FocusScope {
             direction = 0
             editing = false
             controller = parameterEditor.interactionController
+            shiftMode = (alternative ? controller?.alternativeTransformShiftMode : controller?.transformShiftMode)
+                ?? ParameterEditorInteractionController.TranslateValues
+            scaleMode = (alternative ? controller?.alternativeTransformScaleMode : controller?.transformScaleMode)
+                ?? ParameterEditorInteractionController.ScaleToEndpoints
             const selection = parameterEditor.freeParameterSelectionViewModel
             if (!selection?.hasSelection || !controller
-                || !content.beginFreeTransform(selection.start, selection.end)) {
+                || !content.beginFreeTransform(selection.start, selection.end, scaleMode)) {
                 cancel()
                 return
             }
@@ -480,11 +497,20 @@ FocusScope {
         }
     }
 
+    FreeTransformDragHandler {
+        id: freeTransformDragHandler
+    }
+
+    FreeTransformDragHandler {
+        id: alternativeFreeTransformDragHandler
+        alternative: true
+    }
+
     Connections {
         target: parameterEditor.freeParameterSelectionViewModel
 
         function onRangeChanged() {
-            freeTransformDragHandler.cancel()
+            parameterEditor.cancelFreeTransform()
         }
     }
 
@@ -732,6 +758,8 @@ FocusScope {
                 return eraserDragHandler
             case ParameterEditorInteractionController.Transform:
                 return freeTransformDragHandler
+            case ParameterEditorInteractionController.AlternativeTransform:
+                return alternativeFreeTransformDragHandler
             case ParameterEditorInteractionController.Pointer:
                 return hit.target ? anchorMoveDragHandler : anchorRubberBandDragHandler
             case ParameterEditorInteractionController.Pen:

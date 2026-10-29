@@ -1706,9 +1706,10 @@ namespace sflow {
         return true;
     }
 
-    bool ParameterEditorQuickItem::beginFreeTransform(int start, int end) {
+    bool ParameterEditorQuickItem::beginFreeTransform(int start, int end, ParameterEditorInteractionController::ScaleMode scaleMode) {
         Q_D(ParameterEditorQuickItem);
-        if (!d->freeParameterViewModel || d->freeTransformState.viewModel || start < 0 || end <= start) {
+        if (!d->freeParameterViewModel || d->freeTransformState.viewModel || start < 0 || end <= start
+            || scaleMode < ParameterEditorInteractionController::ScaleToEndpoints || scaleMode > ParameterEditorInteractionController::ScaleToMean) {
             return false;
         }
 
@@ -1747,46 +1748,55 @@ namespace sflow {
         }
         state.factors = d->transformFactorsAt(positions);
 
-        bool hasSource = false;
+        int sourceCount = 0;
+        double meanValue = 0.0;
         for (int i = 0; i < count; ++i) {
             const double factor = state.factors.at(i);
             if (!std::isfinite(factor) || qFuzzyIsNull(factor)
                 || !std::isfinite(state.sourceValues.at(i).toDouble() * factor)) {
                 state.sourceValues[i] = QVariant();
             }
-            hasSource |= state.sourceValues.at(i).isValid();
+            if (state.sourceValues.at(i).isValid()) {
+                ++sourceCount;
+                meanValue += (state.sourceValues.at(i).toDouble() * factor - meanValue) / sourceCount;
+            }
         }
-        if (!hasSource) {
+        if (sourceCount == 0) {
             return false;
         }
 
-        // Each continuous source segment has an independent endpoint baseline.
-        for (int first = 0; first < count;) {
-            if (!state.sourceValues.at(first).isValid()) {
-                ++first;
-                continue;
+        if (scaleMode == ParameterEditorInteractionController::ScaleToMean) {
+            state.baselines.fill(meanValue);
+        } else {
+            // Each continuous source segment has an independent endpoint baseline.
+            for (int first = 0; first < count;) {
+                if (!state.sourceValues.at(first).isValid()) {
+                    ++first;
+                    continue;
+                }
+                int last = first;
+                while (last + 1 < count && state.sourceValues.at(last + 1).isValid()) {
+                    ++last;
+                }
+                const double firstValue = state.sourceValues.at(first).toDouble() * state.factors.at(first);
+                const double lastValue = state.sourceValues.at(last).toDouble() * state.factors.at(last);
+                for (int i = first; i <= last; ++i) {
+                    const double ratio = first == last ? 0.0 : static_cast<double>(i - first) / (last - first);
+                    state.baselines[i] = std::lerp(firstValue, lastValue, ratio);
+                }
+                first = last + 1;
             }
-            int last = first;
-            while (last + 1 < count && state.sourceValues.at(last + 1).isValid()) {
-                ++last;
-            }
-            const double firstValue = state.sourceValues.at(first).toDouble() * state.factors.at(first);
-            const double lastValue = state.sourceValues.at(last).toDouble() * state.factors.at(last);
-            for (int i = first; i <= last; ++i) {
-                const double ratio = first == last ? 0.0 : static_cast<double>(i - first) / (last - first);
-                state.baselines[i] = std::lerp(firstValue, lastValue, ratio);
-            }
-            first = last + 1;
         }
         d->freeTransformState = std::move(state);
         return true;
     }
 
-    bool ParameterEditorQuickItem::updateFreeTransform(double scale, double offset) {
+    bool ParameterEditorQuickItem::updateFreeTransform(double scale, double offset, double absoluteScale) {
         Q_D(ParameterEditorQuickItem);
         const auto state = d->freeTransformState;
         if (!state.viewModel || state.viewModel != d->freeParameterViewModel
-            || !std::isfinite(scale) || scale < 0.0 || !std::isfinite(offset)) {
+            || !std::isfinite(scale) || scale < 0.0 || !std::isfinite(offset)
+            || !std::isfinite(absoluteScale) || absoluteScale < 0.0) {
             return false;
         }
 
@@ -1798,7 +1808,8 @@ namespace sflow {
             }
             const double source = state.sourceValues.at(i).toDouble();
             const double factor = state.factors.at(i);
-            const double delta = (scale - 1.0) * (source * factor - state.baselines.at(i)) + offset;
+            const double delta = (scale - 1.0) * (source * factor - state.baselines.at(i))
+                + (absoluteScale - 1.0) * source * factor + offset;
             if (qFuzzyIsNull(delta)) {
                 continue;
             }

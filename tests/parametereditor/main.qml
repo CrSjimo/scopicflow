@@ -83,8 +83,8 @@ ApplicationWindow {
             case ParameterEditorInteractionController.Transform:
                 controller.primaryItemInteraction = tool
                 controller.primarySceneInteraction = tool
-                controller.secondaryItemInteraction = tool
-                controller.secondarySceneInteraction = tool
+                controller.secondaryItemInteraction = ParameterEditorInteractionController.AlternativeTransform
+                controller.secondarySceneInteraction = ParameterEditorInteractionController.AlternativeTransform
                 controller.primarySelectInteraction = ParameterEditorInteractionController.FreeRangeSelect
                 controller.secondarySelectInteraction = ParameterEditorInteractionController.FreeRangeSelect
                 break

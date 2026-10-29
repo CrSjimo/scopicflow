@@ -97,6 +97,54 @@ namespace sflow {
         Q_EMIT secondarySelectInteractionChanged();
     }
 
+    ParameterEditorInteractionController::ShiftMode ParameterEditorInteractionController::transformShiftMode() const {
+        return m_transformShiftMode;
+    }
+
+    void ParameterEditorInteractionController::setTransformShiftMode(ShiftMode mode) {
+        if (mode < TranslateValues || mode > ScaleAbsoluteValues || m_transformShiftMode == mode) {
+            return;
+        }
+        m_transformShiftMode = mode;
+        Q_EMIT transformShiftModeChanged();
+    }
+
+    ParameterEditorInteractionController::ShiftMode ParameterEditorInteractionController::alternativeTransformShiftMode() const {
+        return m_alternativeTransformShiftMode;
+    }
+
+    void ParameterEditorInteractionController::setAlternativeTransformShiftMode(ShiftMode mode) {
+        if (mode < TranslateValues || mode > ScaleAbsoluteValues || m_alternativeTransformShiftMode == mode) {
+            return;
+        }
+        m_alternativeTransformShiftMode = mode;
+        Q_EMIT alternativeTransformShiftModeChanged();
+    }
+
+    ParameterEditorInteractionController::ScaleMode ParameterEditorInteractionController::transformScaleMode() const {
+        return m_transformScaleMode;
+    }
+
+    void ParameterEditorInteractionController::setTransformScaleMode(ScaleMode mode) {
+        if (mode < ScaleToEndpoints || mode > ScaleToMean || m_transformScaleMode == mode) {
+            return;
+        }
+        m_transformScaleMode = mode;
+        Q_EMIT transformScaleModeChanged();
+    }
+
+    ParameterEditorInteractionController::ScaleMode ParameterEditorInteractionController::alternativeTransformScaleMode() const {
+        return m_alternativeTransformScaleMode;
+    }
+
+    void ParameterEditorInteractionController::setAlternativeTransformScaleMode(ScaleMode mode) {
+        if (mode < ScaleToEndpoints || mode > ScaleToMean || m_alternativeTransformScaleMode == mode) {
+            return;
+        }
+        m_alternativeTransformScaleMode = mode;
+        Q_EMIT alternativeTransformScaleModeChanged();
+    }
+
     ParameterAnchorViewModel::InterpolationMode ParameterEditorInteractionController::newAnchorInterpolationMode() const {
         return m_newAnchorInterpolationMode;
     }

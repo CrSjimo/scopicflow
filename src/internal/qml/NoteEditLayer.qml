@@ -304,7 +304,7 @@ FocusScope {
                     lyricEditingItem: lyricEditPopup.visible ? lyricEditPopup.model : null
                     additionalTextEditingItem: additionalTextEditPopup.visible ? additionalTextEditPopup.model : null
                     viewportWidth: noteEditLayer.width
-                    viewportHeight: editArea.height
+                    viewportHeight: noteEditLayer.height
                     shortNoteThreshold: noteEditLayer.noteEditLayerInteractionController?.shortNoteThreshold ?? 0
                     additionalTextAbove: noteEditLayer.noteEditLayerInteractionController?.additionalTextPosition === NoteEditLayerInteractionController.AdditionalTextPosition_Up
                 }

@@ -1596,8 +1596,7 @@ namespace sflow {
         int toIndex = boundedRoundPosition(toScaledPosition);
         int firstIndex = std::min(fromIndex, toIndex);
         int lastIndex = std::max(fromIndex, toIndex);
-        lastIndex = std::min(lastIndex,
-                             std::min(d->freeParameterViewModel->size(), d->originalParameterViewModel->size()) - 1);
+        lastIndex = std::min(lastIndex, d->originalParameterViewModel->size() - 1);
         if (firstIndex > lastIndex) {
             return false;
         }

@@ -2,6 +2,7 @@
 #include "DrawDragHandler_p_p.h"
 
 #include <algorithm>
+#include <cmath>
 
 #include <QQuickItem>
 #include <QQmlInfo>
@@ -74,9 +75,9 @@ namespace sflow {
         q->setInitialPosition(timeManipulator->alignPosition(timeManipulator->mapToPosition(event.position.x()),
                                                              ScopicFlow::AO_Visible));
         q->setInitialYIndex(verticalManipulator
-                                ? InvokeMethodHelper::invokeWithReturn<int>(q, verticalManipulator.data(),
-                                                                            verticalManipulatorMapToPositionMethod,
-                                                                            event.position.y())
+                                ? static_cast<int>(std::floor(InvokeMethodHelper::invokeWithReturn<double>(
+                                      q, verticalManipulator.data(), verticalManipulatorMapToPositionMethod,
+                                      event.position.y())))
                                 : 0);
     }
 
@@ -144,8 +145,8 @@ namespace sflow {
         const int position = timeManipulator->alignPosition(timeManipulator->mapToPosition(targetPoint.x()),
                                                             ScopicFlow::AO_Visible);
         const int yIndex = verticalManipulator
-            ? InvokeMethodHelper::invokeWithReturn<int>(q, verticalManipulator.data(),
-                                                        verticalManipulatorMapToPositionMethod, targetPoint.y())
+            ? static_cast<int>(std::floor(InvokeMethodHelper::invokeWithReturn<double>(
+                  q, verticalManipulator.data(), verticalManipulatorMapToPositionMethod, targetPoint.y())))
             : 0;
         const auto timeLayoutViewModel = timeManipulator->timeLayoutViewModel();
         if (realDrawingStarted && !timeLayoutViewModel) {

@@ -51,7 +51,7 @@ namespace sflow {
             true
 #else
             false
-#endif;
+#endif
         ;
         auto isAxisRevert = isWindows && (modifiers & Qt::AltModifier);
         auto isRealAlternateAxis = (modifiers & m_alternateAxisModifier) || (modifiers & m_pageModifier) && m_usePageModifierAsAlternateAxisZoom;

@@ -41,13 +41,13 @@ namespace sflow {
             QObject::disconnect(handle, nullptr, q, nullptr);
         handle = handle_;
         if (handle) {
-            QObject::connect(handle, &SliceableViewModelManipulatorInterface::itemInserted, q, [=](QObject *item) {
+            QObject::connect(handle, &SliceableViewModelManipulatorInterface::itemInserted, q, [=, this](QObject *item) {
                 onItemInserted(item);
             });
-            QObject::connect(handle, &SliceableViewModelManipulatorInterface::itemRemoved, q, [=](QObject *item) {
+            QObject::connect(handle, &SliceableViewModelManipulatorInterface::itemRemoved, q, [=, this](QObject *item) {
                 onItemRemoved(item);
             });
-            QObject::connect(handle, &SliceableViewModelManipulatorInterface::itemUpdated, q, [=](QObject *item) {
+            QObject::connect(handle, &SliceableViewModelManipulatorInterface::itemUpdated, q, [=, this](QObject *item) {
                 onItemUpdated(item);
             });
         }

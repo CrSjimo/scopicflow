@@ -6,6 +6,7 @@ import QtQuick.Shapes
 import SVSCraft.UIComponents
 
 import dev.sjimo.ScopicFlow
+import dev.sjimo.ScopicFlow.Internal
 
 FocusScope {
     id: handler
@@ -52,22 +53,20 @@ FocusScope {
     }
 
     // Wheel
-    MouseArea {
-        acceptedButtons: Qt.NoButton
+    WheelInputArea {
         anchors.fill: parent
-        cursorShape: undefined
         enabled: (handler.viewModel?.scrollTypes ?? 0) & ScrollBehaviorViewModel.Wheel
 
-        onWheel: function (wheel) {
+        onWheel: function (angleDelta, pixelDelta, position, modifiers) {
             let isAlternateAxis = handler.wheelAlternateAxis
-                                  || (handler.viewModel?.isAlternateAxis(wheel.modifiers) ?? false)
-            let isZoom = handler.viewModel?.isZoom(wheel.modifiers) ?? false
-            let isPage = handler.viewModel?.isPage(wheel.modifiers) ?? false
+                                  || (handler.viewModel?.isAlternateAxis(modifiers) ?? false)
+            let isZoom = handler.viewModel?.isZoom(modifiers) ?? false
+            let isPage = handler.viewModel?.isPage(modifiers) ?? false
 
             wheelManipulator.handleWheel(
-                wheel.angleDelta,
-                wheel.pixelDelta,
-                Qt.point(wheel.x, wheel.y),
+                angleDelta,
+                pixelDelta,
+                position,
                 Qt.size(handler.width, handler.height),
                 isAlternateAxis,
                 isZoom,

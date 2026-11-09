@@ -2,7 +2,7 @@ project(ScopicFlowInternal VERSION 0.0.1 LANGUAGES CXX)
 
 qm_import(QtQml)
 
-file(GLOB_RECURSE _src *.h *.cpp *.qrc)
+file(GLOB_RECURSE _src CONFIGURE_DEPENDS *.h *.cpp *.qrc)
 file(GLOB_RECURSE _qml_files RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} *.qml *.js *.mjs)
 file(GLOB_RECURSE _resource_files RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} assets/*)
 

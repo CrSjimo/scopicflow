@@ -120,6 +120,11 @@ MouseArea {
     }
 
     onPressed: mouse => {
+        if (router.pressed && (pressedButtons & ~mouse.button)) {
+            mouse.accepted = true
+            router.cancel(mouseArea)
+            return
+        }
         const event = createEvent(mouse)
         const resolvedHit = resolveHit(mouse)
         resolvedCursor = resolveCursor(resolvedHit)
@@ -150,8 +155,10 @@ MouseArea {
     }
     onClicked: mouse => router.click(
         mouseArea, createEvent(mouse), createHit(resolveHit(mouse)))
-    onDoubleClicked: mouse => router.doubleClick(
-        mouseArea, createEvent(mouse), createHit(resolveHit(mouse)))
+    onDoubleClicked: mouse => {
+        if (!(mouse.buttons & ~mouse.button))
+            router.doubleClick(mouseArea, createEvent(mouse), createHit(resolveHit(mouse)))
+    }
     onEntered: updateHover({
         x: mouseX,
         y: mouseY,

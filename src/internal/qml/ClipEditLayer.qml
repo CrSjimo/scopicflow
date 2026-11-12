@@ -11,7 +11,7 @@ import dev.sjimo.ScopicFlow
 import dev.sjimo.ScopicFlow.Internal
 
 FocusScope {
-    id: clipPane
+    id: clipEditLayer
 
     property RangeSequenceViewModel clipSequenceViewModel: null
     property ScrollBehaviorViewModel scrollBehaviorViewModel: null
@@ -22,6 +22,7 @@ FocusScope {
     property ClipPaneInteractionController clipPaneInteractionController: null
     property SelectionController selectionController: null
     property Component thumbnailComponent: null
+    property Item selectionOverlayParent: null
 
     onClipSequenceViewModelChanged: scenePointerInput.router.cancel()
 
@@ -30,63 +31,21 @@ FocusScope {
     TimeManipulator {
         id: timeManipulator
 
-        target: clipPane
-        timeLayoutViewModel: clipPane.timeLayoutViewModel
-        timeViewModel: clipPane.timeViewModel
+        target: clipEditLayer
+        timeLayoutViewModel: clipEditLayer.timeLayoutViewModel
+        timeViewModel: clipEditLayer.timeViewModel
     }
     TrackListManipulator {
         id: trackListManipulator
 
-        target: clipPane
-        trackListLayoutViewModel: clipPane.trackListLayoutViewModel
-        trackListViewModel: clipPane.trackListViewModel
-    }
-    Rectangle {
-        id: background
-
-        anchors.fill: parent
-        color: SFPalette.editAreaPrimaryColor
-    }
-    PianoRollScale {
-        anchors.fill: parent
-        barScaleColor: SFPalette.scalePrimaryColor
-        beatScaleColor: SFPalette.scaleSecondaryColor
-        segmentScaleColor: SFPalette.scaleTertiaryColor
-        timeLayoutViewModel: clipPane.timeLayoutViewModel
-        timeViewModel: clipPane.timeViewModel
-    }
-    Item {
-        id: trackSplitters
-
-        anchors.left: parent.left
-        anchors.right: parent.right
-        y: -(clipPane.trackListLayoutViewModel?.viewportOffset ?? 0)
-
-        Repeater {
-            id: trackSpaceRepeater
-
-            model: (clipPane.trackListViewModel?.count ?? 0) + 1
-
-            Item {
-                required property int index
-                readonly property QtObject trackViewModel: index !== (clipPane.trackListViewModel?.count ?? 0) ? clipPane.trackListViewModel.items[index] : null
-
-                width: parent.width
-                height: trackViewModel?.rowHeight ?? 0
-                y: trackListManipulator.map[index] ?? 0
-                Rectangle {
-                    width: parent.width
-                    height: 2
-                    anchors.verticalCenter: parent.top
-                    color: SFPalette.scaleTertiaryColor
-                }
-            }
-        }
+        target: clipEditLayer
+        trackListLayoutViewModel: clipEditLayer.trackListLayoutViewModel
+        trackListViewModel: clipEditLayer.trackListViewModel
     }
     component ClipPaneRubberBandDragHandler: RubberBandDragHandler {
-        controller: clipPane.clipPaneInteractionController
-        selectionController: clipPane.selectionController
-        target: clipPane
+        controller: clipEditLayer.clipPaneInteractionController
+        selectionController: clipEditLayer.selectionController
+        target: clipEditLayer
         timeManipulator: timeManipulator
         verticalManipulator: trackListManipulator
         rubberBandLayer: rubberBandLayer
@@ -102,39 +61,39 @@ FocusScope {
     }
     DrawDragHandler {
         id: drawDragHandler
-        controller: clipPane.clipPaneInteractionController
-        selectionController: clipPane.selectionController
-        target: clipPane
+        controller: clipEditLayer.clipPaneInteractionController
+        selectionController: clipEditLayer.selectionController
+        target: clipEditLayer
         timeManipulator: timeManipulator
         verticalManipulator: trackListManipulator
         onCreateViewModelRequested: (position, trackIndex) => {
-            if (trackIndex >= clipPane.trackListViewModel.count)
+            if (trackIndex >= clipEditLayer.trackListViewModel.count)
                 return
-            viewModel = clipPane.clipPaneInteractionController.createAndInsertClipOnDrawing(clipPane.clipSequenceViewModel, position, trackIndex)
-            viewModel.length = clipPane.timeLayoutViewModel.positionAlignment
+            viewModel = clipEditLayer.clipPaneInteractionController.createAndInsertClipOnDrawing(clipEditLayer.clipSequenceViewModel, position, trackIndex)
+            viewModel.length = clipEditLayer.timeLayoutViewModel.positionAlignment
         }
         onUpdateViewModelRequested: (length) => {
             viewModel.length = length
         }
     }
     component ClipMoveDragHandler: MoveDragHandler {
-        controller: clipPane.clipPaneInteractionController
-        selectionController: clipPane.selectionController
-        paneItem: clipPane
+        controller: clipEditLayer.clipPaneInteractionController
+        selectionController: clipEditLayer.selectionController
+        paneItem: clipEditLayer
         timeManipulator: timeManipulator
         verticalManipulator: trackListManipulator
 
         onMoveSelectionToYRequested: (y, viewModel) => {
-            const trackCount = clipPane.trackListViewModel.items.length
+            const trackCount = clipEditLayer.trackListViewModel.items.length
             const index = Math.max(0, Math.min(
                 trackListManipulator.mapToPosition(y), trackCount - 1))
             const offset = (y - trackListManipulator.mapToY(index))
-                / clipPane.trackListViewModel.items[index].rowHeight
+                / clipEditLayer.trackListViewModel.items[index].rowHeight
             const targetIndex = Math.round(index + offset)
             if (targetIndex === viewModel.trackIndex)
                 return
             const deltaIndex = targetIndex - viewModel.trackIndex
-            const selection = clipPane.selectionController.getSelectedItems()
+            const selection = clipEditLayer.selectionController.getSelectedItems()
             for (const clip of selection) {
                 if (clip.trackIndex + deltaIndex < 0
                         || clip.trackIndex + deltaIndex >= trackCount) {
@@ -155,25 +114,25 @@ FocusScope {
     }
     SplitDragHandler {
         id: splitDragHandler
-        controller: clipPane.clipPaneInteractionController
-        selectionController: clipPane.selectionController
-        paneItem: clipPane
+        controller: clipEditLayer.clipPaneInteractionController
+        selectionController: clipEditLayer.selectionController
+        paneItem: clipEditLayer
         timeManipulator: timeManipulator
     }
     component ClipEdgeDragHandler: EdgeDragHandler {
-        controller: clipPane.clipPaneInteractionController
-        selectionController: clipPane.selectionController
-        paneItem: clipPane
+        controller: clipEditLayer.clipPaneInteractionController
+        selectionController: clipEditLayer.selectionController
+        paneItem: clipEditLayer
         timeManipulator: timeManipulator
 
         onUpdateUnitedExtendRequested: {
-            const selection = clipPane.selectionController.getSelectedItems()
+            const selection = clipEditLayer.selectionController.getSelectedItems()
             if (selection.length !== 1)
                 return
             const clip = selection[0]
             if (edge === EdgeDragHandler.LeftEdge) {
                 for (let previousClip = clip;;) {
-                    previousClip = clipPane.clipSequenceViewModel.iSliceable.previousItem(previousClip)
+                    previousClip = clipEditLayer.clipSequenceViewModel.iSliceable.previousItem(previousClip)
                     if (!previousClip
                             || previousClip.position + previousClip.length < clip.position) {
                         break
@@ -187,7 +146,7 @@ FocusScope {
                 }
             } else {
                 for (let nextClip = clip;;) {
-                    nextClip = clipPane.clipSequenceViewModel.iSliceable.nextItem(nextClip)
+                    nextClip = clipEditLayer.clipSequenceViewModel.iSliceable.nextItem(nextClip)
                     if (!nextClip || nextClip.position > clip.position + clip.length)
                         break
                     if (nextClip.position < clip.position + clip.length
@@ -210,10 +169,10 @@ FocusScope {
     }
     ScenePointerInput {
         id: scenePointerInput
-        controller: clipPane.clipPaneInteractionController
-        selectionController: clipPane.selectionController
-        paneItem: clipPane
-        coordinateSpace: clipPane
+        controller: clipEditLayer.clipPaneInteractionController
+        selectionController: clipEditLayer.selectionController
+        paneItem: clipEditLayer
+        coordinateSpace: clipEditLayer
         timeManipulator: timeManipulator
         verticalManipulator: trackListManipulator
         dispatchMap: ({
@@ -226,52 +185,52 @@ FocusScope {
         })
     }
     Connections {
-        target: clipPane.selectionController
+        target: clipEditLayer.selectionController
         function onCurrentItemChanged() {
             let oldItem = slicer.itemForModel(slicer.lastCurrentItem)
             if (oldItem) {
                 oldItem.current = false
             }
-            let newItem = slicer.itemForModel(clipPane.selectionController.currentItem)
+            let newItem = slicer.itemForModel(clipEditLayer.selectionController.currentItem)
             if (newItem) {
                 newItem.current = true
             }
-            slicer.lastCurrentItem = clipPane.selectionController.currentItem
+            slicer.lastCurrentItem = clipEditLayer.selectionController.currentItem
         }
     }
     TimeViewportContainer {
         id: viewportContainer
 
-        y: -(clipPane.trackListLayoutViewModel?.viewportOffset ?? 0)
+        y: -(clipEditLayer.trackListLayoutViewModel?.viewportOffset ?? 0)
         height: trackListManipulator.viewportHeight
-        timeViewModel: clipPane.timeViewModel
-        timeLayoutViewModel: clipPane.timeLayoutViewModel
+        timeViewModel: clipEditLayer.timeViewModel
+        timeLayoutViewModel: clipEditLayer.timeLayoutViewModel
 
         Item {
             anchors.fill: parent
             SequenceSlicer {
                 id: slicer
                 leftOutBound: 256
-                viewModel: clipPane.clipSequenceViewModel
-                sliceWidth: clipPane.width
-                timeLayoutViewModel: clipPane.timeLayoutViewModel
-                timeViewModel: clipPane.timeViewModel
+                viewModel: clipEditLayer.clipSequenceViewModel
+                sliceWidth: clipEditLayer.width
+                timeLayoutViewModel: clipEditLayer.timeLayoutViewModel
+                timeViewModel: clipEditLayer.timeViewModel
                 property ClipViewModel lastCurrentItem: null
 
                 delegate: ClipPaneDelegate {
                     id: clipPaneDelegate
-                    selectionController: clipPane.selectionController
-                    thumbnailComponent: clipPane.thumbnailComponent
+                    selectionController: clipEditLayer.selectionController
+                    thumbnailComponent: clipEditLayer.thumbnailComponent
                     onClipViewModelChanged: () => {
-                        current = (clipPane.selectionController?.currentItem === clipViewModel)
+                        current = (clipEditLayer.selectionController?.currentItem === clipViewModel)
                     }
                     Binding {
-                        clipPaneDelegate.x: (clipPaneDelegate.clipViewModel?.position ?? 0) * (clipPane.timeLayoutViewModel?.pixelDensity ?? 0)
+                        clipPaneDelegate.x: (clipPaneDelegate.clipViewModel?.position ?? 0) * (clipEditLayer.timeLayoutViewModel?.pixelDensity ?? 0)
                         clipPaneDelegate.y: trackListManipulator.map[clipPaneDelegate.clipViewModel?.trackIndex ?? 0] ?? 0
-                        clipPaneDelegate.width: (clipPaneDelegate.clipViewModel?.length ?? 0) * (clipPane.timeLayoutViewModel?.pixelDensity ?? 0)
-                        clipPaneDelegate.height: clipPane.trackListViewModel?.items[clipPaneDelegate.clipViewModel?.trackIndex ?? 0]?.rowHeight ?? 0
-                        clipPaneDelegate.headerMargin: ((clipPane.timeViewModel?.start ?? 0) - (clipPaneDelegate.clipViewModel?.position ?? 0)) * (clipPane.timeLayoutViewModel?.pixelDensity ?? 0)
-                        clipPaneDelegate.color: clipPane.trackListViewModel?.items[clipPaneDelegate.clipViewModel?.trackIndex ?? 0]?.color ?? Qt.rgba(0, 0, 0, 0)
+                        clipPaneDelegate.width: (clipPaneDelegate.clipViewModel?.length ?? 0) * (clipEditLayer.timeLayoutViewModel?.pixelDensity ?? 0)
+                        clipPaneDelegate.height: clipEditLayer.trackListViewModel?.items[clipPaneDelegate.clipViewModel?.trackIndex ?? 0]?.rowHeight ?? 0
+                        clipPaneDelegate.headerMargin: ((clipEditLayer.timeViewModel?.start ?? 0) - (clipPaneDelegate.clipViewModel?.position ?? 0)) * (clipEditLayer.timeLayoutViewModel?.pixelDensity ?? 0)
+                        clipPaneDelegate.color: clipEditLayer.trackListViewModel?.items[clipPaneDelegate.clipViewModel?.trackIndex ?? 0]?.color ?? Qt.rgba(0, 0, 0, 0)
                         when: clipPaneDelegate.SequenceSlicerLoader.inRange
                     }
                     RubberBandItemConnections {
@@ -308,7 +267,11 @@ FocusScope {
         RubberBandLayer {
             id: rubberBandLayer
 
-            anchors.fill: parent
+            parent: clipEditLayer.selectionOverlayParent ?? viewportContainer
+            x: parent === viewportContainer ? 0 : viewportContainer.x
+            y: parent === viewportContainer ? 0 : viewportContainer.y
+            width: viewportContainer.width
+            height: viewportContainer.height
             z: 2
 
             rubberBand: RubberBandRectangle {
@@ -317,7 +280,7 @@ FocusScope {
         RubberBandSelector {
             id: rubberBandSelector
 
-            selectionController: clipPane.selectionController
+            selectionController: clipEditLayer.selectionController
             onSelectionAboutToEnd: (rect) => {
                 slicer.temporarilyLoadForRubberBand(rect.x, rect.width)
             }
@@ -326,7 +289,7 @@ FocusScope {
     StandardScrollHandler {
         movableOrientation: Qt.Horizontal | Qt.Vertical
         zoomableOrientation: Qt.Horizontal
-        viewModel: clipPane.scrollBehaviorViewModel
+        viewModel: clipEditLayer.scrollBehaviorViewModel
         horizontalScrollBarEnabled: true
         horizontalScrollX: -viewportContainer.x
         horizontalScrollWidth: viewportContainer.width

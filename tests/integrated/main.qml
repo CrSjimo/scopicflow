@@ -307,53 +307,65 @@ ApplicationWindow {
                 interactionControllerNotifier: main.interactionControllerNotifier
                 transactionControllerNotifier: main.transactionControllerNotifier
             }
-            ClipPane {
-                id: clipPane
+            Item {
                 Layout.fillWidth: true
                 Layout.fillHeight: true
-                timeViewModel: main.arrangementTimeViewModel
-                timeLayoutViewModel: main.arrangementTimeLayoutViewModel
-                playbackViewModel: main.playbackViewModel
-                scrollBehaviorViewModel: main.scrollBehaviorViewModel
-                trackListViewModel: main.trackListViewModel
-                trackListLayoutViewModel: main.trackListLayoutViewModel
-                clipSequenceViewModel: main.clipSequenceViewModel
-                clipPaneBehaviorViewModel: main.clipPaneBehaviorViewModel
 
-                clipGraph: ScopicFlowInternal.NoteThumbnail {
+                ClipPaneBackground {
                     anchors.fill: parent
-                    required property QtObject model
-                    noteSequenceViewModel: model?.noteSequenceViewModel ?? null
-                    position: model.clipStart
-                    length: model.length
+                    timeViewModel: main.arrangementTimeViewModel
+                    timeLayoutViewModel: main.arrangementTimeLayoutViewModel
+                    trackListViewModel: main.trackListViewModel
+                    trackListLayoutViewModel: main.trackListLayoutViewModel
                 }
 
-                property QtObject currentClip: null
-                Connections {
-                    target: clipPane.currentClip
-                    function onPositionChanged() {
-                        main.pianoRollNoteAreaBehaviorViewModel.offset = target.position - target.clipStart
+                ClipEditLayer {
+                    id: clipPane
+                    anchors.fill: parent
+                    timeViewModel: main.arrangementTimeViewModel
+                    timeLayoutViewModel: main.arrangementTimeLayoutViewModel
+                    playbackViewModel: main.playbackViewModel
+                    scrollBehaviorViewModel: main.scrollBehaviorViewModel
+                    trackListViewModel: main.trackListViewModel
+                    trackListLayoutViewModel: main.trackListLayoutViewModel
+                    clipSequenceViewModel: main.clipSequenceViewModel
+                    clipPaneBehaviorViewModel: main.clipPaneBehaviorViewModel
+
+                    clipGraph: ScopicFlowInternal.NoteThumbnail {
+                        anchors.fill: parent
+                        required property QtObject model
+                        noteSequenceViewModel: model?.noteSequenceViewModel ?? null
+                        position: model.clipStart
+                        length: model.length
                     }
-                    function onClipStartChanged() {
-                        main.pianoRollNoteAreaBehaviorViewModel.offset = target.position - target.clipStart
+
+                    property QtObject currentClip: null
+                    Connections {
+                        target: clipPane.currentClip
+                        function onPositionChanged() {
+                            main.pianoRollNoteAreaBehaviorViewModel.offset = target.position - target.clipStart
+                        }
+                        function onClipStartChanged() {
+                            main.pianoRollNoteAreaBehaviorViewModel.offset = target.position - target.clipStart
+                        }
                     }
-                }
 
-                Connections {
-                    target: main.trackListViewModel?.handle.items[clipPane.currentClip?.trackNumber ?? 0] ?? null
-                    function onColorChanged() {
-                        main.pianoRollNoteAreaBehaviorViewModel.color = target.color
+                    Connections {
+                        target: main.trackListViewModel?.handle.items[clipPane.currentClip?.trackNumber ?? 0] ?? null
+                        function onColorChanged() {
+                            main.pianoRollNoteAreaBehaviorViewModel.color = target.color
+                        }
                     }
-                }
 
-                onClipDoubleClicked: (model) => {
-                    currentClip = model
-                    main.noteSequenceViewModel = model.noteSequenceViewModel
-                    main.pianoRollNoteAreaBehaviorViewModel.offset = model.position - model.clipStart
-                    main.pianoRollNoteAreaBehaviorViewModel.color = main.trackListViewModel.handle.items[model.trackNumber].color
-                    main.timeViewModel.start = model.position
-                }
+                    onClipDoubleClicked: (model) => {
+                        currentClip = model
+                        main.noteSequenceViewModel = model.noteSequenceViewModel
+                        main.pianoRollNoteAreaBehaviorViewModel.offset = model.position - model.clipStart
+                        main.pianoRollNoteAreaBehaviorViewModel.color = main.trackListViewModel.handle.items[model.trackNumber].color
+                        main.timeViewModel.start = model.position
+                    }
 
+                }
             }
         }
     }

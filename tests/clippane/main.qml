@@ -25,9 +25,16 @@ ApplicationWindow {
     required property RangeSequenceViewModel clipSequenceViewModel
     required property ClipPaneInteractionController clipPaneInteractionController
 
-    ClipPane {
-        width: parent.width
-        height: parent.height
+    ClipPaneBackground {
+        anchors.fill: parent
+        trackListViewModel: main.trackListViewModel
+        trackListLayoutViewModel: main.trackListLayoutViewModel
+        timeViewModel: main.timeViewModel
+        timeLayoutViewModel: main.timeLayoutViewModel
+    }
+
+    ClipEditLayer {
+        anchors.fill: parent
         trackListViewModel: main.trackListViewModel
         trackListLayoutViewModel: main.trackListLayoutViewModel
         scrollBehaviorViewModel: main.scrollBehaviorViewModel

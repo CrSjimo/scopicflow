@@ -1,7 +1,6 @@
 #ifndef SCOPIC_FLOW_NOTEEDITLAYERQUICKITEM_P_H
 #define SCOPIC_FLOW_NOTEEDITLAYERQUICKITEM_P_H
 
-#include <QAbstractItemModel>
 #include <QColor>
 #include <QFont>
 #include <QQuickItem>
@@ -48,18 +47,10 @@ namespace sflow {
         Q_PROPERTY(NoteViewModel *additionalTextEditingItem READ additionalTextEditingItem WRITE setAdditionalTextEditingItem NOTIFY additionalTextEditingItemChanged)
         Q_PROPERTY(double viewportWidth READ viewportWidth WRITE setViewportWidth NOTIFY viewportWidthChanged)
         Q_PROPERTY(double viewportHeight READ viewportHeight WRITE setViewportHeight NOTIFY viewportHeightChanged)
-        Q_PROPERTY(int shortNoteThreshold READ shortNoteThreshold WRITE setShortNoteThreshold NOTIFY shortNoteThresholdChanged)
         Q_PROPERTY(bool additionalTextAbove READ isAdditionalTextAbove WRITE setAdditionalTextAbove NOTIFY additionalTextAboveChanged)
         Q_PROPERTY(quint64 geometryRevision READ geometryRevision NOTIFY geometryRevisionChanged)
-        Q_PROPERTY(QAbstractItemModel *shortMarkerModel READ shortMarkerModel CONSTANT)
 
     public:
-        enum MarkerType {
-            ShortNoteMarker,
-            ShortRestMarker,
-        };
-        Q_ENUM(MarkerType)
-
         enum HitRegion {
             NoteHitRegion,
             AdditionalTextHitRegion,
@@ -135,14 +126,11 @@ namespace sflow {
         double viewportHeight() const;
         void setViewportHeight(double viewportHeight);
 
-        int shortNoteThreshold() const;
-        void setShortNoteThreshold(int shortNoteThreshold);
 
         bool isAdditionalTextAbove() const;
         void setAdditionalTextAbove(bool additionalTextAbove);
 
         quint64 geometryRevision() const;
-        QAbstractItemModel *shortMarkerModel() const;
 
         Q_INVOKABLE PointerHit hitTest(const QPointF &point, QQuickItem *coordinateSpace = nullptr) const;
         Q_INVOKABLE QRectF itemRect(QObject *model) const;
@@ -174,7 +162,6 @@ namespace sflow {
         void additionalTextEditingItemChanged();
         void viewportWidthChanged();
         void viewportHeightChanged();
-        void shortNoteThresholdChanged();
         void additionalTextAboveChanged();
         void geometryRevisionChanged();
 

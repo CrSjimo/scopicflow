@@ -55,7 +55,6 @@ namespace sflow {
         constexpr qreal TransparentFillOpacity = 0.25;
         constexpr qreal ThumbnailFillOpacity = 0.5;
         constexpr qreal TransparentTextOpacity = 0.75;
-        constexpr qreal MarkerOffset = 16.0;
         constexpr qsizetype NodePoolCapacity = 256;
         constexpr int ResidentTrimDelay = 75;
         constexpr qreal Pi = 3.14159265358979323846;
@@ -714,79 +713,8 @@ namespace sflow {
         return model == other.model;
     }
 
-    NoteEditLayerMarkerModel::NoteEditLayerMarkerModel(QObject *parent) : QAbstractListModel(parent) {
-    }
-
-    int NoteEditLayerMarkerModel::rowCount(const QModelIndex &parent) const {
-        return parent.isValid() ? 0 : m_markers.size();
-    }
-
-    QVariant NoteEditLayerMarkerModel::data(const QModelIndex &index, int role) const {
-        if (!index.isValid() || index.row() < 0 || index.row() >= m_markers.size())
-            return {};
-        const auto &marker = m_markers.at(index.row());
-        switch (role) {
-            case ModelObjectRole:
-                return QVariant::fromValue(static_cast<QObject *>(marker.model.data()));
-            case MarkerTypeRole:
-                return static_cast<int>(marker.type);
-            case CenterXRole:
-                return marker.center.x();
-            case CenterYRole:
-                return marker.center.y();
-            case SelectedRole:
-                return marker.selected;
-            default:
-                return {};
-        }
-    }
-
-    QHash<int, QByteArray> NoteEditLayerMarkerModel::roleNames() const {
-        return {
-            {ModelObjectRole, "modelObject"},
-            {MarkerTypeRole, "markerType"},
-            {CenterXRole, "centerX"},
-            {CenterYRole, "centerY"},
-            {SelectedRole, "selected"},
-        };
-    }
-
-    void NoteEditLayerMarkerModel::setMarkers(QVector<NoteEditLayerMarker> markers) {
-        bool sameRows = markers.size() == m_markers.size();
-        if (sameRows) {
-            for (qsizetype index = 0; index < markers.size(); ++index) {
-                if (markers[index].model != m_markers[index].model || markers[index].type != m_markers[index].type) {
-                    sameRows = false;
-                    break;
-                }
-            }
-        }
-        if (!sameRows) {
-            beginResetModel();
-            m_markers = std::move(markers);
-            endResetModel();
-            return;
-        }
-        if (markers == m_markers)
-            return;
-        m_markers = std::move(markers);
-        if (!m_markers.isEmpty()) {
-            Q_EMIT dataChanged(
-                index(0), index(m_markers.size() - 1),
-                {CenterXRole, CenterYRole, SelectedRole});
-        }
-    }
-
-    void NoteEditLayerMarkerModel::clear() {
-        if (m_markers.isEmpty())
-            return;
-        beginResetModel();
-        m_markers.clear();
-        endResetModel();
-    }
-
     NoteEditLayerQuickItemPrivate::NoteEditLayerQuickItemPrivate(NoteEditLayerQuickItem *q)
-        : q_ptr(q), markerModel(nullptr) {
+        : q_ptr(q) {
     }
 
     NoteEditLayerQuickItemPrivate::~NoteEditLayerQuickItemPrivate() {
@@ -846,8 +774,6 @@ namespace sflow {
             .position = model->position(),
             .length = model->length(),
             .key = model->key(),
-            .nextNotePosition = model->nextNotePosition(),
-            .nextNoteKey = model->nextNoteKey(),
             .selected = model->isSelected(),
             .overlapped = model->isOverlapped(),
             .additionalTextHighlighted = model->isAdditionalTextHighlighted(),
@@ -858,7 +784,7 @@ namespace sflow {
         updateSelectorRegistration(model);
 
         auto &connections = recordConnections[model];
-        connections.reserve(11);
+        connections.reserve(9);
         connections.append(QObject::connect(model, &NoteViewModel::positionChanged, q, [this, model] { updateRecord(model, true, true); }));
         connections.append(QObject::connect(model, &NoteViewModel::lengthChanged, q, [this, model] { updateRecord(model, true, true); }));
         connections.append(QObject::connect(model, &NoteViewModel::keyChanged, q, [this, model] { updateRecord(model, true, true); }));
@@ -867,8 +793,6 @@ namespace sflow {
         connections.append(QObject::connect(model, &NoteViewModel::additionalTextHighlightedChanged, q, [this, model] { updateRecord(model, false, false); }));
         connections.append(QObject::connect(model, &NoteViewModel::selectedChanged, q, [this, model] { updateRecord(model, false, false); }));
         connections.append(QObject::connect(model, &NoteViewModel::overlappedChanged, q, [this, model] { updateRecord(model, false, false); }));
-        connections.append(QObject::connect(model, &NoteViewModel::nextNotePositionChanged, q, [this, model] { updateRecord(model, false, false); }));
-        connections.append(QObject::connect(model, &NoteViewModel::nextNoteKeyChanged, q, [this, model] { updateRecord(model, false, false); }));
         connections.append(QObject::connect(model, &QObject::destroyed, q, [this, model] { detachItem(model); }));
 
         if (resettingSequence)
@@ -878,7 +802,6 @@ namespace sflow {
         else if (active && keyIntersects(residentKeyStart, residentKeyEnd, record)
                  && intervalIntersects(residentPositionStart, residentPositionEnd, record)) {
             residentItems.insert(model);
-            scheduleMarkerRebuild();
             q->update();
         }
     }
@@ -896,10 +819,8 @@ namespace sflow {
             QObject::disconnect(connection);
         records.erase(it);
         bumpGeometryRevision();
-        if (wasResident) {
-            scheduleMarkerRebuild();
+        if (wasResident)
             q->update();
-        }
     }
 
     void NoteEditLayerQuickItemPrivate::detachAllItems() {
@@ -918,7 +839,6 @@ namespace sflow {
         recordConnections.clear();
         residentItems.clear();
         selectorItems.clear();
-        markerModel.clear();
         residentRangeValid = false;
         bumpGeometryRevision();
         q->update();
@@ -936,8 +856,6 @@ namespace sflow {
         record.position = model->position();
         record.length = model->length();
         record.key = model->key();
-        record.nextNotePosition = model->nextNotePosition();
-        record.nextNoteKey = model->nextNoteKey();
         record.selected = model->isSelected();
         record.overlapped = model->isOverlapped();
         record.additionalTextHighlighted = model->isAdditionalTextHighlighted();
@@ -964,10 +882,8 @@ namespace sflow {
 
         if (geometryChanged)
             bumpGeometryRevision();
-        if (wasResident || shouldBeResident) {
-            scheduleMarkerRebuild();
+        if (wasResident || shouldBeResident)
             q->update();
-        }
     }
 
     void NoteEditLayerQuickItemPrivate::insertIntoIndex(const NoteEditLayerRecord &record) {
@@ -1025,7 +941,6 @@ namespace sflow {
             && visiblePositionStart >= residentPositionStart && visiblePositionEnd <= residentPositionEnd
             && requiredKeyStart >= residentKeyStart && requiredKeyEnd <= residentKeyEnd) {
             if (geometryChanged) {
-                scheduleMarkerRebuild();
                 bumpGeometryRevision();
                 q->update();
             }
@@ -1044,7 +959,6 @@ namespace sflow {
         const int minimumKey = static_cast<int>(std::floor(residentKeyStart));
         const int maximumKey = static_cast<int>(std::ceil(residentKeyEnd)) - 1;
         residentItems = queryIndex(minimumKey, maximumKey, queryPosition, queryLength);
-        rebuildMarkers();
         if (geometryChanged)
             bumpGeometryRevision();
         q->update();
@@ -1052,10 +966,9 @@ namespace sflow {
 
     void NoteEditLayerQuickItemPrivate::clearResidentItems() {
         Q_Q(NoteEditLayerQuickItem);
-        if (residentItems.isEmpty() && markerModel.rowCount() == 0)
+        if (residentItems.isEmpty())
             return;
         residentItems.clear();
-        markerModel.clear();
         q->update();
     }
 
@@ -1065,66 +978,6 @@ namespace sflow {
             if (generation == residentTrimGeneration)
                 updateViewport(true, false);
         });
-    }
-
-    void NoteEditLayerQuickItemPrivate::scheduleMarkerRebuild() {
-        if (markerRebuildPending)
-            return;
-        markerRebuildPending = true;
-        QTimer::singleShot(0, q_ptr, [this] {
-            markerRebuildPending = false;
-            rebuildMarkers();
-        });
-    }
-
-    void NoteEditLayerQuickItemPrivate::rebuildMarkers() {
-        if (!active || !hasValidLayout()) {
-            markerModel.clear();
-            return;
-        }
-        QVector<const NoteEditLayerRecord *> sortedRecords;
-        sortedRecords.reserve(residentItems.size());
-        for (auto *model : std::as_const(residentItems)) {
-            const auto it = records.constFind(model);
-            if (it != records.cend())
-                sortedRecords.append(&it.value());
-        }
-        std::sort(sortedRecords.begin(), sortedRecords.end(), [](const auto *left, const auto *right) {
-            return left->insertionOrder < right->insertionOrder;
-        });
-
-        const qreal timePixelDensity = timeLayoutViewModel->pixelDensity();
-        const qreal clavierPixelDensity = clavierViewModel->pixelDensity();
-        QVector<NoteEditLayerMarker> markers;
-        for (const auto *record : std::as_const(sortedRecords)) {
-            const qreal noteY = (127 - record->key) * clavierPixelDensity;
-            if (record->length <= shortNoteThreshold) {
-                markers.append({
-                    .model = record->model,
-                    .type = NoteEditLayerQuickItem::ShortNoteMarker,
-                    .center = QPointF(
-                        (record->position + 0.5 * record->length) * timePixelDensity,
-                        additionalTextAbove ? noteY + clavierPixelDensity + MarkerOffset : noteY - MarkerOffset),
-                    .selected = record->selected,
-                });
-            }
-
-            const int restLength = record->nextNotePosition - record->position - record->length;
-            if (restLength <= 0 || restLength > shortNoteThreshold)
-                continue;
-            const qreal nextNoteY = (127 - record->nextNoteKey) * clavierPixelDensity;
-            markers.append({
-                .model = record->model,
-                .type = NoteEditLayerQuickItem::ShortRestMarker,
-                .center = QPointF(
-                    (record->position + record->length + 0.5 * restLength) * timePixelDensity,
-                    additionalTextAbove
-                        ? std::min(noteY, nextNoteY) - MarkerOffset
-                        : std::max(noteY, nextNoteY) + clavierPixelDensity + MarkerOffset),
-                .selected = record->selected,
-            });
-        }
-        markerModel.setMarkers(std::move(markers));
     }
 
     void NoteEditLayerQuickItemPrivate::updateSelectorRegistration(NoteViewModel *model) {
@@ -1711,20 +1564,6 @@ namespace sflow {
         Q_EMIT viewportHeightChanged();
     }
 
-    int NoteEditLayerQuickItem::shortNoteThreshold() const {
-        Q_D(const NoteEditLayerQuickItem);
-        return d->shortNoteThreshold;
-    }
-
-    void NoteEditLayerQuickItem::setShortNoteThreshold(int shortNoteThreshold) {
-        Q_D(NoteEditLayerQuickItem);
-        if (d->shortNoteThreshold == shortNoteThreshold)
-            return;
-        d->shortNoteThreshold = shortNoteThreshold;
-        d->rebuildMarkers();
-        Q_EMIT shortNoteThresholdChanged();
-    }
-
     bool NoteEditLayerQuickItem::isAdditionalTextAbove() const {
         Q_D(const NoteEditLayerQuickItem);
         return d->additionalTextAbove;
@@ -1743,11 +1582,6 @@ namespace sflow {
     quint64 NoteEditLayerQuickItem::geometryRevision() const {
         Q_D(const NoteEditLayerQuickItem);
         return d->geometryRevision;
-    }
-
-    QAbstractItemModel *NoteEditLayerQuickItem::shortMarkerModel() const {
-        Q_D(const NoteEditLayerQuickItem);
-        return const_cast<NoteEditLayerMarkerModel *>(&d->markerModel);
     }
 
     PointerHit NoteEditLayerQuickItem::hitTest(const QPointF &point, QQuickItem *coordinateSpace) const {

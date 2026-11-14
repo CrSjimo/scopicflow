@@ -25,7 +25,6 @@ namespace sflow {
         Q_PROPERTY(Interaction primarySelectInteraction READ primarySelectInteraction WRITE setPrimarySelectInteraction NOTIFY primarySelectInteractionChanged)
         Q_PROPERTY(Interaction secondarySelectInteraction READ secondarySelectInteraction WRITE setSecondarySelectInteraction NOTIFY secondarySelectInteractionChanged)
         Q_PROPERTY(AdditionalTextPosition additionalTextPosition READ additionalTextPosition WRITE setAdditionalTextPosition NOTIFY additionalTextPositionChanged)
-        Q_PROPERTY(int shortNoteThreshold READ shortNoteThreshold WRITE setShortNoteThreshold NOTIFY shortNoteThresholdChanged)
         Q_PROPERTY(bool warnOfOverlappingNotes READ warnOfOverlappingNotes WRITE setWarnOfOverlappingNotes NOTIFY warnOfOverlappingNotesChanged)
     public:
         explicit NoteEditLayerInteractionController(QObject *parent = nullptr);
@@ -65,9 +64,6 @@ namespace sflow {
         AdditionalTextPosition additionalTextPosition() const;
         void setAdditionalTextPosition(AdditionalTextPosition position);
 
-        int shortNoteThreshold() const;
-        void setShortNoteThreshold(int threshold);
-
         bool warnOfOverlappingNotes() const;
         void setWarnOfOverlappingNotes(bool warnOfOverlappingNotes);
 
@@ -96,12 +92,6 @@ namespace sflow {
         };
         Q_ENUM(InPlaceEditOperation)
 
-        enum RippleDeleteOption {
-            RippleDelete_Previous,
-            RippleDelete_Next,
-        };
-        Q_ENUM(RippleDeleteOption)
-
     Q_SIGNALS:
         void clickSelectableChanged();
         void primaryItemInteractionChanged();
@@ -111,7 +101,6 @@ namespace sflow {
         void primarySelectInteractionChanged();
         void secondarySelectInteractionChanged();
         void additionalTextPositionChanged();
-        void shortNoteThresholdChanged();
         void warnOfOverlappingNotesChanged();
 
         void rubberBandDraggingStarted(QQuickItem *noteArea);
@@ -151,8 +140,6 @@ namespace sflow {
         void lyricInPlaceEditOperationTriggered(QQuickItem *noteArea, NoteViewModel *item, InPlaceEditOperation operation);
         void additionalTextInPlaceEditOperationTriggered(QQuickItem *noteArea, NoteViewModel *item, InPlaceEditOperation operation);
 
-        void rippleDeleteRequested(QQuickItem *noteArea, NoteViewModel *item, RippleDeleteOption option);
-
     private:
         bool m_clickSelectable;
         Interaction m_primaryItemInteraction;
@@ -162,7 +149,6 @@ namespace sflow {
         Interaction m_primarySelectInteraction;
         Interaction m_secondarySelectInteraction;
         AdditionalTextPosition m_additionalTextPosition;
-        int m_shortNoteThreshold;
         bool m_warnOfOverlappingNotes;
     };
 

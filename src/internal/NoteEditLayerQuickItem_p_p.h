@@ -3,7 +3,6 @@
 
 #include <array>
 
-#include <QAbstractListModel>
 #include <QHash>
 #include <QMetaObject>
 #include <QPointF>
@@ -28,8 +27,6 @@ namespace sflow {
         int position = 0;
         int length = 0;
         int key = 0;
-        int nextNotePosition = 0;
-        int nextNoteKey = 0;
         bool selected = false;
         bool overlapped = false;
         bool additionalTextHighlighted = false;
@@ -45,38 +42,6 @@ namespace sflow {
         bool operator==(const NoteEditLayerInterval &other) const;
 
         NoteViewModel *model = nullptr;
-    };
-
-    struct NoteEditLayerMarker {
-        QPointer<NoteViewModel> model;
-        NoteEditLayerQuickItem::MarkerType type = NoteEditLayerQuickItem::ShortNoteMarker;
-        QPointF center;
-        bool selected = false;
-
-        bool operator==(const NoteEditLayerMarker &other) const = default;
-    };
-
-    class NoteEditLayerMarkerModel : public QAbstractListModel {
-    public:
-        enum Role {
-            ModelObjectRole = Qt::UserRole + 1,
-            MarkerTypeRole,
-            CenterXRole,
-            CenterYRole,
-            SelectedRole,
-        };
-
-        explicit NoteEditLayerMarkerModel(QObject *parent = nullptr);
-
-        int rowCount(const QModelIndex &parent = {}) const override;
-        QVariant data(const QModelIndex &index, int role) const override;
-        QHash<int, QByteArray> roleNames() const override;
-
-        void setMarkers(QVector<NoteEditLayerMarker> markers);
-        void clear();
-
-    private:
-        QVector<NoteEditLayerMarker> m_markers;
     };
 
     class NoteEditLayerQuickItemPrivate {
@@ -101,8 +66,6 @@ namespace sflow {
         void updateViewport(bool forceResidentRange, bool geometryChanged);
         void clearResidentItems();
         void scheduleResidentTrim();
-        void scheduleMarkerRebuild();
-        void rebuildMarkers();
         void updateSelectorRegistration(NoteViewModel *model);
         void removeSelectorRegistration(NoteViewModel *model);
         void resetSelectorRegistrations();
@@ -144,7 +107,6 @@ namespace sflow {
         bool additionalTextAbove = false;
         double viewportWidth = 0;
         double viewportHeight = 0;
-        int shortNoteThreshold = 0;
         quint64 geometryRevision = 0;
         quint64 fontRevision = 1;
         mutable qreal additionalTextLineHeight = 0;
@@ -158,7 +120,6 @@ namespace sflow {
         QSet<NoteViewModel *> residentItems;
         QSet<NoteViewModel *> selectorItems;
         bool resettingSequence = false;
-        bool markerRebuildPending = false;
         bool geometryRevisionPending = false;
         bool residentRangeValid = false;
         double residentPositionStart = 0;
@@ -166,7 +127,6 @@ namespace sflow {
         double residentKeyStart = 0;
         double residentKeyEnd = 0;
 
-        NoteEditLayerMarkerModel markerModel;
     };
 
 }

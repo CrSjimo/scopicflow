@@ -2,13 +2,9 @@ pragma ComponentBehavior: Bound
 
 import QtQml
 import QtQuick
-import QtQuick.Controls
-import QtQuick.Templates as T
-import QtQuick.Controls.impl
 
 import SVSCraft
 import SVSCraft.UIComponents
-import SVSCraft.UIComponents.impl
 
 import dev.sjimo.ScopicFlow
 import dev.sjimo.ScopicFlow.Internal
@@ -305,7 +301,6 @@ FocusScope {
                     additionalTextEditingItem: additionalTextEditPopup.visible ? additionalTextEditPopup.model : null
                     viewportWidth: noteEditLayer.width
                     viewportHeight: noteEditLayer.height
-                    shortNoteThreshold: noteEditLayer.noteEditLayerInteractionController?.shortNoteThreshold ?? 0
                     additionalTextAbove: noteEditLayer.noteEditLayerInteractionController?.additionalTextPosition === NoteEditLayerInteractionController.AdditionalTextPosition_Up
                 }
 
@@ -330,77 +325,6 @@ FocusScope {
                             || hit.hoverRegion === NoteEditLayerItem.AdditionalTextHitRegion
                             || hit.payload === -1) ? Qt.ArrowCursor : Qt.SizeHorCursor
                     pressCursorResolver: cursorResolver
-                }
-
-                Repeater {
-                    model: noteCanvas.shortMarkerModel
-                    delegate: Item {
-                        id: shortMarker
-
-                        required property NoteViewModel modelObject
-                        required property int markerType
-                        required property double centerX
-                        required property double centerY
-                        required property bool selected
-
-                        x: centerX
-                        y: centerY
-                        width: 0
-                        height: 0
-                        z: 2.5
-                        opacity: 0.75
-
-                        T.Button {
-                            id: shortMarkerButton
-
-                            width: 20
-                            height: 20
-                            anchors.centerIn: parent
-                            background: ButtonRectangle {
-                                control: shortMarkerButton
-                            }
-                            contentItem: IconImage {
-                                source: shortMarker.markerType === NoteEditLayerItem.ShortNoteMarker
-                                    ? "qrc:/qt/qml/dev/sjimo/ScopicFlow/Internal/assets/music_note.svg"
-                                    : "qrc:/qt/qml/dev/sjimo/ScopicFlow/Internal/assets/music_rest.svg"
-                                sourceSize.width: 16
-                                sourceSize.height: 16
-                                color: shortMarker.markerType === NoteEditLayerItem.ShortNoteMarker && shortMarker.selected
-                                    ? Theme.accentColor : Theme.foregroundPrimaryColor
-                            }
-                            display: T.AbstractButton.IconOnly
-                            text: shortMarker.markerType === NoteEditLayerItem.ShortNoteMarker ? qsTr("Short note") : qsTr("Short rest")
-                            ActionToolTipHelper {
-                                text: shortMarkerButton.text
-                                delay: Theme.toolTipDelay
-                                timeout: Theme.toolTipTimeout
-                                visible: shortMarkerButton.hovered
-                            }
-                            onClicked: () => {
-                                if (shortMarker.markerType === NoteEditLayerItem.ShortNoteMarker) {
-                                    noteEditLayer.selectionController.select(shortMarker.modelObject, SelectionController.ClearPreviousSelection | SelectionController.SetCurrentItem | SelectionController.Select)
-                                } else {
-                                    shortRestMenu.noteViewModel = shortMarker.modelObject
-                                    shortRestMenu.popup(shortMarkerButton)
-                                }
-                            }
-                        }
-                    }
-                }
-
-                Menu {
-                    id: shortRestMenu
-
-                    property NoteViewModel noteViewModel: null
-
-                    Action {
-                        text: qsTr("Extend previous note forward")
-                        onTriggered: noteEditLayer.noteEditLayerInteractionController?.rippleDeleteRequested(noteEditLayer, shortRestMenu.noteViewModel, NoteEditLayerInteractionController.RippleDelete_Previous)
-                    }
-                    Action {
-                        text: qsTr("Extend next note backward")
-                        onTriggered: noteEditLayer.noteEditLayerInteractionController?.rippleDeleteRequested(noteEditLayer, shortRestMenu.noteViewModel, NoteEditLayerInteractionController.RippleDelete_Next)
-                    }
                 }
             }
             RubberBandLayer {

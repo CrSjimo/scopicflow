@@ -20,8 +20,6 @@ namespace sflow {
         Q_PROPERTY(bool selected READ isSelected WRITE setSelected NOTIFY selectedChanged)
         Q_PROPERTY(bool overlapped READ isOverlapped WRITE setOverlapped NOTIFY overlappedChanged)
         Q_PROPERTY(bool additionalTextHighlighted READ isAdditionalTextHighlighted WRITE setAdditionalTextHighlighted NOTIFY additionalTextHighlightedChanged)
-        Q_PROPERTY(int nextNotePosition READ nextNotePosition WRITE setNextNotePosition NOTIFY nextNotePositionChanged)
-        Q_PROPERTY(int nextNoteKey READ nextNoteKey WRITE setNextNoteKey NOTIFY nextNoteKeyChanged)
     public:
         explicit NoteViewModel(QObject *parent = nullptr);
         ~NoteViewModel() override;
@@ -50,11 +48,6 @@ namespace sflow {
         bool isOverlapped() const;
         void setOverlapped(bool overlapped);
 
-        int nextNotePosition() const;
-        void setNextNotePosition(int nextNotePosition);
-
-        int nextNoteKey() const;
-        void setNextNoteKey(int nextNoteKey);
 
     Q_SIGNALS:
         void lyricChanged();
@@ -65,8 +58,6 @@ namespace sflow {
         void additionalTextHighlightedChanged();
         void selectedChanged();
         void overlappedChanged();
-        void nextNotePositionChanged();
-        void nextNoteKeyChanged();
 
     private:
         QString m_lyric;
@@ -77,8 +68,6 @@ namespace sflow {
         bool m_additionalTextHighlighted;
         bool m_selected;
         bool m_overlapped;
-        int m_nextNotePosition;
-        int m_nextNoteKey;
     };
 
 }

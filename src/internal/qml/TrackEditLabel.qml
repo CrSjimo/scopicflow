@@ -12,6 +12,7 @@ T.Control {
     property bool center: false
     property string editText: text
     readonly property bool editing: popup.opened
+    property bool elideText: false
     property var horizontalAlignment: undefined
     property string text: ""
     property QtObject validator: null
@@ -30,19 +31,22 @@ T.Control {
 
     focusPolicy: Qt.StrongFocus
     hoverEnabled: true
-    implicitWidth: labelText.contentWidth + (editLabel.center ? 16 : 20)
+    implicitWidth: labelText.implicitWidth + labelEdit.leftPadding + labelEdit.rightPadding
 
     Text {
         id: labelText
 
         anchors.horizontalCenter: editLabel.center ? parent.horizontalCenter : undefined
         anchors.left: editLabel.center ? undefined : parent.left
-        anchors.leftMargin: editLabel.center ? undefined : 4
+        anchors.leftMargin: labelEdit.leftPadding
         anchors.verticalCenter: parent.verticalCenter
         color: Theme.foregroundPrimaryColor
+        elide: editLabel.elideText ? Text.ElideMiddle : Text.ElideNone
         horizontalAlignment: editLabel.center ? Text.AlignHCenter : undefined
         text: editLabel.text
+        textFormat: editLabel.elideText ? Text.PlainText : Text.AutoText
         visible: !labelEdit.visible
+        width: editLabel.elideText ? Math.max(0, editLabel.width - labelEdit.leftPadding - labelEdit.rightPadding) : undefined
         font: Theme.font
     }
     Popup {
@@ -50,7 +54,8 @@ T.Control {
 
         height: parent.height
         padding: 0
-        width: parent.width
+        width: editLabel.elideText ? labelEdit.implicitWidth : parent.width
+        x: editLabel.center ? (parent.width - width) / 2 : 0
 
         background: Item {
         }

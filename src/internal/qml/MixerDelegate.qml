@@ -226,8 +226,6 @@ Item {
         ColumnLayout {
             Layout.bottomMargin: 4
             Layout.fillWidth: true
-            Layout.leftMargin: 8
-            Layout.rightMargin: 8
             spacing: 0
 
             TrackEditLabel {
@@ -235,6 +233,7 @@ Item {
 
                 Layout.fillWidth: true
                 center: true
+                elideText: true
                 height: 24
                 text: mixerDelegate.trackViewModel.name
             }

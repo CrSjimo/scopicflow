@@ -342,21 +342,39 @@ FocusScope {
                 selectionController: noteEditLayer.selectionController
                 itemHint: RubberBandSelector.SameHeight
             }
-            ItemPopupEdit {
-                id: lyricEditPopup
+            component NoteTextEditPopup: ItemPopupEdit {
+                id: editor
 
-                readonly property rect associatedRect: {
-                    noteCanvas.geometryRevision
-                    return noteCanvas.itemRect(model)
+                required property bool editsAdditionalText
+                property rect associatedRect
+
+                function updateAssociatedRect() {
+                    associatedRect = editsAdditionalText ? noteCanvas.additionalTextRect(model) : noteCanvas.itemRect(model)
                 }
 
                 containerModel: noteEditLayer.noteSequenceViewModel
-                targetProperty: "lyric"
+                targetProperty: editsAdditionalText ? "additionalText" : "lyric"
                 radius: 2
                 width: associatedRect.width
                 height: associatedRect.height
                 x: associatedRect.x
                 y: associatedRect.y
+
+                onAboutToShow: updateAssociatedRect()
+
+                Connections {
+                    target: noteCanvas
+                    enabled: editor.visible
+
+                    function onGeometryRevisionChanged() {
+                        editor.updateAssociatedRect()
+                    }
+                }
+            }
+            NoteTextEditPopup {
+                id: lyricEditPopup
+
+                editsAdditionalText: false
 
                 onEditPreviousRequested: noteEditLayer.noteEditLayerInteractionController?.lyricInPlaceEditOperationTriggered(noteEditLayer, model, NoteEditLayerInteractionController.MovePrevious)
                 onEditNextRequested: noteEditLayer.noteEditLayerInteractionController?.lyricInPlaceEditOperationTriggered(noteEditLayer, model, NoteEditLayerInteractionController.MoveNext)
@@ -365,21 +383,10 @@ FocusScope {
                 onAccepted: noteEditLayer.noteEditLayerInteractionController?.lyricInPlaceEditOperationTriggered(noteEditLayer, model, NoteEditLayerInteractionController.CommitEditing)
                 onRejected: noteEditLayer.noteEditLayerInteractionController?.lyricInPlaceEditOperationTriggered(noteEditLayer, model, NoteEditLayerInteractionController.AbortEditing)
             }
-            ItemPopupEdit {
+            NoteTextEditPopup {
                 id: additionalTextEditPopup
 
-                readonly property rect associatedRect: {
-                    noteCanvas.geometryRevision
-                    return noteCanvas.additionalTextRect(model)
-                }
-
-                containerModel: noteEditLayer.noteSequenceViewModel
-                targetProperty: "additionalText"
-                radius: 2
-                width: associatedRect.width
-                height: associatedRect.height
-                x: associatedRect.x
-                y: associatedRect.y
+                editsAdditionalText: true
 
                 onEditPreviousRequested: noteEditLayer.noteEditLayerInteractionController?.additionalTextInPlaceEditOperationTriggered(noteEditLayer, model, NoteEditLayerInteractionController.MovePrevious)
                 onEditNextRequested: noteEditLayer.noteEditLayerInteractionController?.additionalTextInPlaceEditOperationTriggered(noteEditLayer, model, NoteEditLayerInteractionController.MoveNext)

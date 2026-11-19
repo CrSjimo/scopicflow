@@ -46,15 +46,15 @@ namespace sflow {
         void positionIndicatorMovingStarted(QQuickItem *timeline);
         void positionIndicatorMovingFinished(QQuickItem *timeline);
 
-        void loopRangeAdjustingStarted(QQuickItem *timeline, LoopAdjustmentOperation operation);
-        void loopRangeAdjustingFinished(QQuickItem *timeline, LoopAdjustmentOperation operation);
+        void loopRangeAdjustingStarted(QQuickItem *layer, LoopAdjustmentOperation operation);
+        void loopRangeAdjustingFinished(QQuickItem *layer, LoopAdjustmentOperation operation);
 
         void hoverEntered(QQuickItem *timeline, int position);
         void hoverMoved(QQuickItem *timeline, int position);
         void hoverExited(QQuickItem *timeline);
 
-        void loopHoverEntered(QQuickItem *timeline, LoopAdjustmentOperation operation);
-        void loopHoverExited(QQuickItem *timeline, LoopAdjustmentOperation operation);
+        void loopHoverEntered(QQuickItem *layer, LoopAdjustmentOperation operation);
+        void loopHoverExited(QQuickItem *layer, LoopAdjustmentOperation operation);
 
         void doubleClicked(QQuickItem *timeline, int position);
         void contextMenuRequested(QQuickItem *timeline, int position);

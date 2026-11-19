@@ -22,13 +22,28 @@ ApplicationWindow {
     required property TimelineInteractionController timelineInteractionController
 
     Timeline {
-        id: timeline
         width: parent.width
         timeLayoutViewModel: main.timeLayoutViewModel
         timeViewModel: main.timeViewModel
         playbackViewModel: main.playbackViewModel
         scrollBehaviorViewModel: main.scrollBehaviorViewModel
         timelineInteractionController: main.timelineInteractionController
+
+        TimelineLoopIndicatorLayer {
+            anchors.fill: parent
+            timeViewModel: main.timeViewModel
+            timeLayoutViewModel: main.timeLayoutViewModel
+            playbackViewModel: main.playbackViewModel
+            scrollBehaviorViewModel: main.scrollBehaviorViewModel
+            timelineInteractionController: main.timelineInteractionController
+        }
+
+        TimelinePlayheadLayer {
+            anchors.fill: parent
+            timeViewModel: main.timeViewModel
+            timeLayoutViewModel: main.timeLayoutViewModel
+            playbackViewModel: main.playbackViewModel
+        }
     }
 
 }

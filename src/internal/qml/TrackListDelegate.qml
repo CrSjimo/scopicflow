@@ -183,9 +183,9 @@ Item {
                         DescriptiveText.toolTip: Accessible.name
                         DescriptiveText.activated: hovered
 
-                        from: SVS.decibelToLinearValue(-96) - SVS.decibelToLinearValue(0)
-                        to: SVS.decibelToLinearValue(6) - SVS.decibelToLinearValue(0)
-                        value: SVS.decibelToLinearValue(track.trackViewModel.gain)
+                        from: SVS.decibelsToPosition(-96) - SVS.decibelsToPosition(0)
+                        to: SVS.decibelsToPosition(6) - SVS.decibelsToPosition(0)
+                        value: SVS.decibelsToPosition(track.trackViewModel.gain) - SVS.decibelsToPosition(0)
 
                         readonly property bool visualVisible: width > 32
                         enabled: visualVisible

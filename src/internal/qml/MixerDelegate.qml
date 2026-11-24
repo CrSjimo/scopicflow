@@ -129,7 +129,7 @@ Item {
 
                         Layout.alignment: Qt.AlignHCenter
                         Layout.fillHeight: true
-                        value: SVS.decibelToLinearValue(mixerDelegate.trackViewModel.gain)
+                        value: SVS.decibelsToPosition(mixerDelegate.trackViewModel.gain) - SVS.decibelsToPosition(0)
                     }
                     TrackEditLabel {
                         id: gainEditLabel
@@ -304,12 +304,12 @@ Item {
         id: control
 
         bottomPadding: 4
-        from: SVS.decibelToLinearValue(-96) - SVS.decibelToLinearValue(0)
+        from: SVS.decibelsToPosition(-96) - SVS.decibelsToPosition(0)
         implicitHeight: Math.max(implicitBackgroundHeight + topInset + bottomInset, implicitHandleHeight + topPadding + bottomPadding)
         implicitWidth: Math.max(implicitBackgroundWidth + leftInset + rightInset, implicitHandleWidth + leftPadding + rightPadding)
         orientation: Qt.Vertical
         padding: 0
-        to: SVS.decibelToLinearValue(6) - SVS.decibelToLinearValue(0)
+        to: SVS.decibelsToPosition(6) - SVS.decibelsToPosition(0)
         topPadding: 8
 
         background: Rectangle {
@@ -334,7 +334,7 @@ Item {
                     delegate: Rectangle {
                         readonly property bool major: [6, 0, -6, -12, -24, -96].indexOf(modelData) !== -1
                         required property int modelData
-                        readonly property double position: (SVS.decibelToLinearValue(6) - SVS.decibelToLinearValue(modelData)) / (SVS.decibelToLinearValue(6) - SVS.decibelToLinearValue(-96))
+                        readonly property double position: (SVS.decibelsToPosition(6) - SVS.decibelsToPosition(modelData)) / (SVS.decibelsToPosition(6) - SVS.decibelsToPosition(-96))
 
                         anchors.right: parent.right
                         color: Theme.foregroundPrimaryColor

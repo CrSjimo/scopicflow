@@ -464,10 +464,10 @@ Item {
                             trackList.trackListInteractionController.gainEditingCommitted(trackList, index)
                         }
                     }
-                    gainSlider.onMoved: trackViewModel.gain = SVS.linearValueToDecibel(gainSlider.value + SVS.decibelToLinearValue(0))
+                    gainSlider.onMoved: trackViewModel.gain = SVS.positionToDecibels(gainSlider.value + SVS.decibelsToPosition(0))
                     gainSlider.ThemedItem.onDoubleClickReset: () => {
                         trackList.trackListInteractionController.gainEditingStarted(trackList, index)
-                        trackViewModel.gain = SVS.linearValueToDecibel(SVS.decibelToLinearValue(0))
+                        trackViewModel.gain = SVS.positionToDecibels(SVS.decibelsToPosition(0))
                         trackList.trackListInteractionController.gainEditingCommitted(trackList, index)
                     }
                     gainSlider.onHoveredChanged: () => {

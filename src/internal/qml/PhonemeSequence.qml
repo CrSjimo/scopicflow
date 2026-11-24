@@ -3,9 +3,6 @@ pragma ComponentBehavior: Bound
 import QtQml
 import QtQuick
 
-import SVSCraft
-import SVSCraft.UIComponents
-
 import dev.sjimo.ScopicFlow
 import dev.sjimo.ScopicFlow.Internal
 
@@ -13,7 +10,6 @@ FocusScope {
     id: phonemeSequence
 
     property PointSequenceViewModel phonemeSequenceViewModel: null
-    property RangeSequenceViewModel noteSequenceViewModel: null
     property ClipViewModel clipViewModel: null
     property TimeLayoutViewModel timeLayoutViewModel: null
     property TimeViewModel timeViewModel: null
@@ -103,9 +99,9 @@ FocusScope {
                 return
             const handleCenter = hit.targetRect.x + 3
                 + event.position.x - pressPosition.x
-            const sequencePosition = proxyTimeViewModel.start
+            const clipPosition = proxyTimeViewModel.start
                 + handleCenter / pixelDensity
-            viewModel.position = sequencePosition - noteViewModel.position
+            viewModel.notePosition = clipPosition - noteViewModel.position
         }
 
         onFinished: {
@@ -202,51 +198,6 @@ FocusScope {
         timeViewModel: proxyTimeViewModel
 
         Item {
-            id: noteBoundaryLayer
-
-            anchors.fill: parent
-            z: 0
-
-            SequenceSlicer {
-                id: noteSlicer
-
-                sliceWidth: phonemeSequence.width
-                timeLayoutViewModel: phonemeSequence.timeLayoutViewModel
-                timeViewModel: proxyTimeViewModel
-                viewModel: phonemeSequence.noteSequenceViewModel
-
-                delegate: Item {
-                    id: noteBoundaryDelegate
-
-                    readonly property NoteViewModel noteViewModel: SequenceSlicerLoader.viewModel
-
-                    height: parent.height
-                    visible: SequenceSlicerLoader.inRange
-
-                    Binding {
-                        noteBoundaryDelegate.width: (noteBoundaryDelegate.noteViewModel?.length ?? 0) * (phonemeSequence.timeLayoutViewModel?.pixelDensity ?? 0)
-                        noteBoundaryDelegate.x: (noteBoundaryDelegate.noteViewModel?.position ?? 0) * (phonemeSequence.timeLayoutViewModel?.pixelDensity ?? 0)
-                        when: noteBoundaryDelegate.SequenceSlicerLoader.inRange
-                    }
-
-                    Rectangle {
-                        x: -0.5
-                        width: 1
-                        height: parent.height
-                        color: Theme.foregroundSecondaryColor
-                    }
-
-                    Rectangle {
-                        x: parent.width - 0.5
-                        width: 1
-                        height: parent.height
-                        color: Theme.foregroundSecondaryColor
-                    }
-                }
-            }
-        }
-
-        Item {
             id: phonemeLayer
 
             anchors.fill: parent
@@ -278,13 +229,13 @@ FocusScope {
                                 return 0
                             }
                             const endPosition = viewModel.nextPhoneme
-                                ? viewModel.nextPhoneme.sequencePosition
+                                ? viewModel.nextPhoneme.position
                                 : noteViewModel.position + noteViewModel.length
-                            return Math.max(0, (endPosition - viewModel.sequencePosition)
+                            return Math.max(0, (endPosition - viewModel.position)
                                 * (phonemeSequence.timeLayoutViewModel?.pixelDensity ?? 0)
                                 - phonemeDelegate.width / 2)
                         }
-                        phonemeDelegate.x: (phonemeDelegate.phonemeViewModel?.sequencePosition ?? 0)
+                        phonemeDelegate.x: (phonemeDelegate.phonemeViewModel?.position ?? 0)
                             * (phonemeSequence.timeLayoutViewModel?.pixelDensity ?? 0)
                             - phonemeDelegate.width / 2
                         when: phonemeDelegate.SequenceSlicerLoader.inRange

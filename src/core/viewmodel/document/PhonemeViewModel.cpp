@@ -11,17 +11,17 @@ namespace sflow {
 
     PhonemeViewModel::~PhonemeViewModel() = default;
 
-    double PhonemeViewModel::position() const {
-        return m_position;
+    double PhonemeViewModel::notePosition() const {
+        return m_notePosition;
     }
 
-    void PhonemeViewModel::setPosition(double position) {
-        if (!std::isfinite(position) || m_position == position) {
+    void PhonemeViewModel::setNotePosition(double notePosition) {
+        if (!std::isfinite(notePosition) || m_notePosition == notePosition) {
             return;
         }
-        m_position = position;
+        m_notePosition = notePosition;
+        Q_EMIT notePositionChanged();
         Q_EMIT positionChanged();
-        Q_EMIT sequencePositionChanged();
     }
 
     QString PhonemeViewModel::content() const {
@@ -71,20 +71,20 @@ namespace sflow {
         m_associatedNote = associatedNote;
         if (m_associatedNote) {
             m_associatedNotePositionConnection = connect(m_associatedNote, &NoteViewModel::positionChanged,
-                                                         this, &PhonemeViewModel::sequencePositionChanged);
+                                                         this, &PhonemeViewModel::positionChanged);
             m_associatedNoteDestroyedConnection = connect(m_associatedNote, &QObject::destroyed, this, [this] {
                 m_associatedNote = nullptr;
                 m_associatedNotePositionConnection = {};
                 m_associatedNoteDestroyedConnection = {};
                 Q_EMIT associatedNoteChanged();
-                Q_EMIT sequencePositionChanged();
+                Q_EMIT positionChanged();
             });
         } else {
             m_associatedNotePositionConnection = {};
             m_associatedNoteDestroyedConnection = {};
         }
         Q_EMIT associatedNoteChanged();
-        Q_EMIT sequencePositionChanged();
+        Q_EMIT positionChanged();
     }
 
     bool PhonemeViewModel::isEdited() const {
@@ -99,8 +99,8 @@ namespace sflow {
         Q_EMIT editedChanged();
     }
 
-    double PhonemeViewModel::sequencePosition() const {
-        return m_position + (m_associatedNote ? m_associatedNote->position() : 0);
+    double PhonemeViewModel::position() const {
+        return m_notePosition + (m_associatedNote ? m_associatedNote->position() : 0);
     }
 
 }

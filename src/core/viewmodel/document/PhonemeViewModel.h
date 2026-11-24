@@ -16,19 +16,19 @@ namespace sflow {
     class SCOPIC_FLOW_CORE_EXPORT PhonemeViewModel : public QObject {
         Q_OBJECT
         QML_ELEMENT
-        Q_PROPERTY(double position READ position WRITE setPosition NOTIFY positionChanged)
+        Q_PROPERTY(double notePosition READ notePosition WRITE setNotePosition NOTIFY notePositionChanged)
         Q_PROPERTY(QString content READ content WRITE setContent NOTIFY contentChanged)
         Q_PROPERTY(PhonemeViewModel *nextPhoneme READ nextPhoneme WRITE setNextPhoneme NOTIFY nextPhonemeChanged)
         Q_PROPERTY(NoteViewModel *associatedNote READ associatedNote WRITE setAssociatedNote NOTIFY associatedNoteChanged)
         Q_PROPERTY(bool isEdited READ isEdited WRITE setEdited NOTIFY editedChanged)
-        Q_PROPERTY(double sequencePosition READ sequencePosition NOTIFY sequencePositionChanged)
+        Q_PROPERTY(double position READ position NOTIFY positionChanged)
 
     public:
         explicit PhonemeViewModel(QObject *parent = nullptr);
         ~PhonemeViewModel() override;
 
-        double position() const;
-        void setPosition(double position);
+        double notePosition() const;
+        void setNotePosition(double notePosition);
 
         QString content() const;
         void setContent(const QString &content);
@@ -42,19 +42,18 @@ namespace sflow {
         bool isEdited() const;
         void setEdited(bool edited);
 
-        // PointSequenceViewModel instances used by PhonemeSequence should index this property.
-        double sequencePosition() const;
+        double position() const;
 
     Q_SIGNALS:
-        void positionChanged();
+        void notePositionChanged();
         void contentChanged();
         void nextPhonemeChanged();
         void associatedNoteChanged();
         void editedChanged();
-        void sequencePositionChanged();
+        void positionChanged();
 
     private:
-        double m_position = 0.0;
+        double m_notePosition = 0.0;
         QString m_content;
         QPointer<PhonemeViewModel> m_nextPhoneme;
         QPointer<NoteViewModel> m_associatedNote;

@@ -16,6 +16,7 @@ Item {
     property TrackListInteractionController trackListInteractionController: null
     property SelectionController selectionController: null
     property int trackWidth: 128
+    property bool showTrackNumber: true
     readonly property double contentWidth: trackListManipulator.viewportHeight
 
     onTrackListViewModelChanged: pointerRouter.cancel()
@@ -142,6 +143,7 @@ Item {
                 x: index * mixer.trackWidth
 
                 selectionController: mixer.selectionController
+                showTrackNumber: mixer.showTrackNumber
                 trackNumber: Qt.locale().toString(index + 1)
                 trackViewModel: mixer.trackListViewModel.items[index]
 
@@ -177,8 +179,8 @@ Item {
                     color: Theme.borderColor
                 }
 
-                trackControl.muteButton.visible: Boolean(mixer.trackListInteractionController.itemAction & TrackListInteractionController.EditMute)
-                trackControl.soloButton.visible: Boolean(mixer.trackListInteractionController.itemAction & TrackListInteractionController.EditSolo)
+                trackControl.muteButton.visible: Boolean(trackViewModel.itemAction & TrackViewModel.EditMute)
+                trackControl.soloButton.visible: Boolean(trackViewModel.itemAction & TrackViewModel.EditSolo)
 
                 trackControl.muteButton.onClicked: () => {
                     mixer.trackListInteractionController.muteEditingStarted(mixer, index)
@@ -206,7 +208,7 @@ Item {
                     }
                 }
 
-                trackNameEditLabel.readOnly: !(mixer.trackListInteractionController.itemAction & TrackListInteractionController.EditName)
+                trackNameEditLabel.readOnly: !(trackViewModel.itemAction & TrackViewModel.EditName)
                 trackNameEditLabel.onEditingStarted: mixer.trackListInteractionController.nameEditingStarted(mixer, index)
                 trackNameEditLabel.onEditingCommitted: text => {
                     trackViewModel.name = text
@@ -221,7 +223,7 @@ Item {
                     }
                 }
 
-                gainSlider.enabled: Boolean(mixer.trackListInteractionController.itemAction & TrackListInteractionController.EditGain)
+                gainSlider.enabled: Boolean(trackViewModel.itemAction & TrackViewModel.EditGain)
                 gainSlider.onPressedChanged: () => {
                     if (gainSlider.pressed) {
                         mixer.trackListInteractionController.gainEditingStarted(mixer, index)
@@ -243,7 +245,7 @@ Item {
                     }
                 }
 
-                gainEditLabel.readOnly: !(mixer.trackListInteractionController.itemAction & TrackListInteractionController.EditGain)
+                gainEditLabel.readOnly: !(trackViewModel.itemAction & TrackViewModel.EditGain)
                 gainEditLabel.onEditingStarted: mixer.trackListInteractionController.gainEditingStarted(mixer, index)
                 gainEditLabel.onEditingCommitted: text => {
                     trackViewModel.gain = Number.fromLocaleString(Qt.locale(), text)
@@ -258,7 +260,7 @@ Item {
                     }
                 }
 
-                panDial.enabled: Boolean(mixer.trackListInteractionController.itemAction & TrackListInteractionController.EditPan)
+                panDial.enabled: Boolean(trackViewModel.itemAction & TrackViewModel.EditPan)
                 panDial.onPressedChanged: () => {
                     if (panDial.pressed) {
                         mixer.trackListInteractionController.panEditingStarted(mixer, index)
@@ -280,7 +282,7 @@ Item {
                     }
                 }
 
-                panEditLabel.readOnly: !(mixer.trackListInteractionController.itemAction & TrackListInteractionController.EditPan)
+                panEditLabel.readOnly: !(trackViewModel.itemAction & TrackViewModel.EditPan)
                 panEditLabel.onEditingStarted: mixer.trackListInteractionController.panEditingStarted(mixer, index)
                 panEditLabel.onEditingCommitted: text => {
                     trackViewModel.pan = Number.fromLocaleString(Qt.locale(), text) * 0.01
@@ -307,7 +309,7 @@ Item {
                 peakMouseArea.onEntered: () => mixer.trackListInteractionController.itemHoverEntered(mixer, trackViewModel, TrackListInteractionController.LevelMeter)
                 peakMouseArea.onExited: () => mixer.trackListInteractionController.itemHoverExited(mixer, trackViewModel, TrackListInteractionController.LevelMeter)
 
-                multiChannelOutputButton.visible: Boolean(mixer.trackListInteractionController.itemAction & TrackListInteractionController.EditMultiChannelOutput)
+                multiChannelOutputButton.visible: Boolean(trackViewModel.itemAction & TrackViewModel.EditMultiChannelOutput)
                 multiChannelOutputButton.onClicked: () => {
                     mixer.trackListInteractionController.multiChannelOutputEditingStarted(mixer, index)
                     trackViewModel.multiChannelOutput = multiChannelOutputButton.checked

@@ -9,7 +9,7 @@ namespace sflow {
           m_leftLevel(std::numeric_limits<double>::lowest()), m_rightLevel(std::numeric_limits<double>::lowest()),
           m_leftClipping(false), m_rightClipping(false), m_peakLevel(std::numeric_limits<double>::lowest()),
           m_rowHeight(80.0), m_color(Qt::transparent), m_multiChannelOutput(true),
-          m_selected(false) {
+          m_selected(false), m_itemAction(EditMute | EditSolo | EditName | EditGain | EditPan | AdjustHeight) {
     }
 
     TrackViewModel::~TrackViewModel() = default;
@@ -165,6 +165,17 @@ namespace sflow {
         if (m_selected != selected) {
             m_selected = selected;
             Q_EMIT selectedChanged();
+        }
+    }
+
+    TrackViewModel::ItemAction TrackViewModel::itemAction() const {
+        return m_itemAction;
+    }
+
+    void TrackViewModel::setItemAction(ItemAction itemAction) {
+        if (m_itemAction != itemAction) {
+            m_itemAction = itemAction;
+            Q_EMIT itemActionChanged();
         }
     }
 

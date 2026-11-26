@@ -20,6 +20,7 @@ Item {
     required property SelectionController selectionController
     required property QtObject trackViewModel
     required property string trackNumber
+    required property bool showTrackNumber
     property bool rightAligned: false
     property Item mouseArea: null
 
@@ -111,6 +112,7 @@ Item {
                 id: trackNumberLabel
                 color: track.current && track.selectionController?.editScopeFocused ? Theme.accentColor : Theme.foregroundPrimaryColor
                 text: track.trackNumber
+                visible: track.showTrackNumber
                 Layout.minimumWidth: 16
                 Layout.maximumWidth: 16
                 Layout.bottomMargin: track.height - 40

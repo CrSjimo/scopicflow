@@ -16,6 +16,7 @@ Item {
     property TrackListInteractionController trackListInteractionController: null
     property SelectionController selectionController: null
     property bool rightAligned: false
+    property bool showTrackNumber: true
 
     onTrackListViewModelChanged: pointerRouter.cancel()
 
@@ -366,6 +367,7 @@ Item {
                     width: parent.width
                     height: trackViewModel.rowHeight
                     y: trackListManipulator.map[index]
+                    showTrackNumber: trackList.showTrackNumber
                     trackNumber: (index + 1).toLocaleString()
                     trackViewModel: trackList.trackListViewModel.items[index]
                     selectionController: trackList.selectionController
@@ -410,8 +412,8 @@ Item {
                         }
                     }
 
-                    trackControl.muteButton.visible: Boolean(trackList.trackListInteractionController.itemAction & TrackListInteractionController.EditMute)
-                    trackControl.soloButton.visible: Boolean(trackList.trackListInteractionController.itemAction & TrackListInteractionController.EditSolo)
+                    trackControl.muteButton.visible: Boolean(trackViewModel.itemAction & TrackViewModel.EditMute)
+                    trackControl.soloButton.visible: Boolean(trackViewModel.itemAction & TrackViewModel.EditSolo)
 
                     trackControl.muteButton.onClicked: () => {
                         trackList.trackListInteractionController.muteEditingStarted(trackList, index)
@@ -441,7 +443,7 @@ Item {
                         }
                     }
 
-                    trackNameEditLabel.readOnly: !(trackList.trackListInteractionController.itemAction & TrackListInteractionController.EditName)
+                    trackNameEditLabel.readOnly: !(trackViewModel.itemAction & TrackViewModel.EditName)
                     trackNameEditLabel.onEditingStarted: trackList.trackListInteractionController.nameEditingStarted(trackList, index)
                     trackNameEditLabel.onEditingCommitted: (text) => {
                         trackViewModel.name = text
@@ -456,7 +458,7 @@ Item {
                         }
                     }
 
-                    gainSlider.enabled: Boolean(trackList.trackListInteractionController.itemAction & TrackListInteractionController.EditGain)
+                    gainSlider.enabled: Boolean(trackViewModel.itemAction & TrackViewModel.EditGain)
                     gainSlider.onPressedChanged: () => {
                         if (gainSlider.pressed) {
                             trackList.trackListInteractionController.gainEditingStarted(trackList, index)
@@ -478,7 +480,7 @@ Item {
                         }
                     }
 
-                    gainEditLabel.readOnly: !(trackList.trackListInteractionController.itemAction & TrackListInteractionController.EditGain)
+                    gainEditLabel.readOnly: !(trackViewModel.itemAction & TrackViewModel.EditGain)
                     gainEditLabel.onEditingStarted: trackList.trackListInteractionController.gainEditingStarted(trackList, index)
                     gainEditLabel.onEditingCommitted: (text) => {
                         trackViewModel.gain = Number.fromLocaleString(Qt.locale(), text)
@@ -493,7 +495,7 @@ Item {
                         }
                     }
 
-                    panDial.enabled: Boolean(trackList.trackListInteractionController.itemAction & TrackListInteractionController.EditPan)
+                    panDial.enabled: Boolean(trackViewModel.itemAction & TrackViewModel.EditPan)
                     panDial.onPressedChanged: () => {
                         if (panDial.pressed) {
                             trackList.trackListInteractionController.panEditingStarted(trackList, index)
@@ -515,7 +517,7 @@ Item {
                         }
                     }
 
-                    panEditLabel.readOnly: !(trackList.trackListInteractionController.itemAction & TrackListInteractionController.EditPan)
+                    panEditLabel.readOnly: !(trackViewModel.itemAction & TrackViewModel.EditPan)
                     panEditLabel.onEditingStarted: trackList.trackListInteractionController.panEditingStarted(trackList, index)
                     panEditLabel.onEditingCommitted: (text) => {
                         trackViewModel.pan = Number.fromLocaleString(Qt.locale(), text) / 100
@@ -602,8 +604,8 @@ Item {
                         height: 4
                         anchors.bottom: parent.bottom
                         cursorShape: Qt.SplitVCursor
-                        enabled: trackHandle.index !== 0
-                        hoverEnabled: trackHandle.index !== 0
+                        enabled: Boolean(trackHandle.trackViewModel?.itemAction & TrackViewModel.AdjustHeight)
+                        hoverEnabled: enabled
                         CursorBinding.cursorShape: cursorShape
 
                         onCanceled: () => {
@@ -623,9 +625,6 @@ Item {
                             trackList.trackListInteractionController.heightAdjustingFinished(trackList, trackHandle.index - 1)
                         }
                         onPositionChanged: mouse => {
-                            if (!(trackList.trackListInteractionController.itemAction & TrackListInteractionController.AdjustHeight)) {
-                                return;
-                            }
                             if (originalY === -1) {
                                 return;
                             }

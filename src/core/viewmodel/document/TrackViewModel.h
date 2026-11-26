@@ -1,8 +1,9 @@
 #ifndef SCOPIC_FLOW_TRACKVIEWMODEL_H
 #define SCOPIC_FLOW_TRACKVIEWMODEL_H
 
-#include <QObject>
 #include <QColor>
+#include <QFlags>
+#include <QObject>
 #include <qqmlintegration.h>
 
 #include <ScopicFlowCore/ScopicFlowCoreGlobal.h>
@@ -26,6 +27,7 @@ namespace sflow {
         Q_PROPERTY(QColor color READ color WRITE setColor NOTIFY colorChanged)
         Q_PROPERTY(bool multiChannelOutput READ multiChannelOutput WRITE setMultiChannelOutput NOTIFY multiChannelOutputChanged)
         Q_PROPERTY(bool selected READ isSelected WRITE setSelected NOTIFY selectedChanged)
+        Q_PROPERTY(ItemAction itemAction READ itemAction WRITE setItemAction NOTIFY itemActionChanged)
     public:
         explicit TrackViewModel(QObject *parent = nullptr);
         ~TrackViewModel() override;
@@ -72,6 +74,21 @@ namespace sflow {
         bool isSelected() const;
         void setSelected(bool selected);
 
+        enum ItemActionFlag {
+            EditMute = 0x1,
+            EditSolo = 0x2,
+            EditName = 0x4,
+            EditGain = 0x8,
+            EditPan = 0x10,
+            AdjustHeight = 0x20,
+            EditMultiChannelOutput = 0x40,
+        };
+        Q_DECLARE_FLAGS(ItemAction, ItemActionFlag)
+        Q_FLAG(ItemAction)
+
+        ItemAction itemAction() const;
+        void setItemAction(ItemAction itemAction);
+
     Q_SIGNALS:
         void nameChanged();
         void muteChanged();
@@ -87,6 +104,7 @@ namespace sflow {
         void colorChanged();
         void multiChannelOutputChanged();
         void selectedChanged();
+        void itemActionChanged();
 
     private:
         QString m_name;
@@ -103,7 +121,9 @@ namespace sflow {
         QColor m_color;
         bool m_multiChannelOutput;
         bool m_selected;
+        ItemAction m_itemAction;
     };
+    Q_DECLARE_OPERATORS_FOR_FLAGS(TrackViewModel::ItemAction)
 
 }
 

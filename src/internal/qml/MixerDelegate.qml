@@ -18,6 +18,7 @@ Item {
     required property SelectionController selectionController
     required property QtObject trackViewModel
     required property string trackNumber
+    required property bool showTrackNumber
     property Item mouseArea: null
 
     readonly property Dial panDial: panDial
@@ -96,7 +97,7 @@ Item {
                 flat: false
                 display: T.AbstractButton.IconOnly
                 text: "Multi-Channel Output"
-                icon.source: "image://fluent-system-icons/list" // TODO find a proper icon
+                icon.source: "image://fluent-system-icons/" + (checked ? "arrow_right_parallel" : "merge")
             }
         }
         Rectangle {
@@ -114,6 +115,7 @@ Item {
                 id: control
 
                 anchors.horizontalCenter: parent.horizontalCenter
+                height: 24
                 trackViewModel: mixerDelegate.trackViewModel
             }
             RowLayout {
@@ -240,6 +242,7 @@ Item {
             RowLayout {
                 Layout.fillWidth: true
                 Layout.leftMargin: 8
+                Layout.minimumHeight: trackNumberLabel.implicitHeight
                 Layout.rightMargin: 8
                 spacing: 8
 
@@ -274,6 +277,7 @@ Item {
                     Layout.alignment: Qt.AlignVCenter
                     color: mixerDelegate.current && mixerDelegate.selectionController?.editScopeFocused ? Theme.accentColor : Theme.foregroundPrimaryColor
                     text: mixerDelegate.trackNumber
+                    visible: mixerDelegate.showTrackNumber
                     font: Theme.font
 
                     Behavior on color {

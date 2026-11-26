@@ -7,8 +7,7 @@ namespace sflow {
         : QObject(parent), m_clickSelectable(true),
           m_primaryItemInteraction(DragMove), m_secondaryItemInteraction(DragCopy),
           m_primarySceneInteraction(RubberBandSelect), m_secondarySceneInteraction(RubberBandSelect),
-          m_primarySelectInteraction(RubberBandSelect), m_secondarySelectInteraction(RubberBandSelect),
-          m_itemAction(EditMute | EditSolo | EditName | EditGain | EditPan | AdjustHeight) {
+          m_primarySelectInteraction(RubberBandSelect), m_secondarySelectInteraction(RubberBandSelect) {
     }
 
     TrackListInteractionController::~TrackListInteractionController() = default;
@@ -74,15 +73,6 @@ namespace sflow {
         if (m_secondarySelectInteraction != sceneInteraction) {
             m_secondarySelectInteraction = sceneInteraction;
             emit secondarySelectInteractionChanged();
-        }
-    }
-    TrackListInteractionController::ItemAction TrackListInteractionController::itemAction() const {
-        return m_itemAction;
-    }
-    void TrackListInteractionController::setItemAction(ItemAction itemAction) {
-        if (m_itemAction != itemAction) {
-            m_itemAction = itemAction;
-            emit itemActionChanged();
         }
     }
 

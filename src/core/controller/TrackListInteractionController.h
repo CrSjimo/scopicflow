@@ -21,7 +21,6 @@ namespace sflow {
         Q_PROPERTY(Interaction secondarySceneInteraction READ secondarySceneInteraction WRITE setSecondarySceneInteraction NOTIFY secondarySceneInteractionChanged)
         Q_PROPERTY(Interaction primarySelectInteraction READ primarySelectInteraction WRITE setPrimarySelectInteraction NOTIFY primarySelectInteractionChanged)
         Q_PROPERTY(Interaction secondarySelectInteraction READ secondarySelectInteraction WRITE setSecondarySelectInteraction NOTIFY secondarySelectInteractionChanged)
-        Q_PROPERTY(ItemAction itemAction READ itemAction WRITE setItemAction NOTIFY itemActionChanged)
 
     public:
         explicit TrackListInteractionController(QObject *parent = nullptr);
@@ -50,21 +49,6 @@ namespace sflow {
         Interaction secondarySelectInteraction() const;
         void setSecondarySelectInteraction(Interaction sceneInteraction);
 
-        enum ItemActionFlag {
-            EditMute = 0x1,
-            EditSolo = 0x2,
-            EditName = 0x4,
-            EditGain = 0x8,
-            EditPan = 0x10,
-            AdjustHeight = 0x20,
-            EditMultiChannelOutput = 0x40,
-        };
-        Q_ENUM(ItemActionFlag)
-        Q_DECLARE_FLAGS(ItemAction, ItemActionFlag)
-
-        void setItemAction(ItemAction itemInteraction);
-        ItemAction itemAction() const;
-
         enum ItemHoverTarget {
             ItemBackground,
             ColorIndicator,
@@ -89,7 +73,6 @@ namespace sflow {
         void secondarySceneInteractionChanged();
         void primarySelectInteractionChanged();
         void secondarySelectInteractionChanged();
-        void itemActionChanged();
 
         void rubberBandDraggingStarted(QQuickItem *trackList);
         void rubberBandDraggingCommitted(QQuickItem *trackList);
@@ -149,9 +132,7 @@ namespace sflow {
         Interaction m_secondarySceneInteraction;
         Interaction m_primarySelectInteraction;
         Interaction m_secondarySelectInteraction;
-        ItemAction m_itemAction;
     };
-    Q_DECLARE_OPERATORS_FOR_FLAGS(TrackListInteractionController::ItemAction)
 
 }
 
